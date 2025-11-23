@@ -79,6 +79,7 @@ export default function Dashboard() {
   const [performanceError, setPerformanceError] = useState<string | null>(null);
   const [timeRange, setTimeRange] = useState('7d');
   const [seeding, setSeeding] = useState(false);
+  const [showSeedButton, setShowSeedButton] = useState(false);
 
   // Load dashboard data on mount
   useEffect(() => {
@@ -115,6 +116,24 @@ export default function Dashboard() {
     fetchPerformanceData();
   }, [timeRange]);
 
+  // Check if data exists to show/hide seed button
+  useEffect(() => {
+    const checkForData = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: campaignsData } = await supabase
+        .from('campaigns')
+        .select('id')
+        .eq('user_id', user.id)
+        .limit(1);
+
+      // Show seed button if no campaigns exist
+      setShowSeedButton(!campaignsData || campaignsData.length === 0);
+    };
+    checkForData();
+  }, [campaigns]);
+
   const fetchKpis = async () => {
     setKpisLoading(true);
     setKpisError(null);
@@ -134,12 +153,21 @@ export default function Dashboard() {
         .limit(1)
         .maybeSingle();
 
-      if (latestError) throw latestError;
-
-      if (!latestMetrics) {
-        setKpisError('No metrics data available');
+      // If no data exists, show placeholder instead of error
+      if (latestError?.code === 'PGRST116' || !latestMetrics) {
+        console.log('No metrics data found - user needs to seed data');
+        // Set placeholder KPIs with zeros
+        setKpis({
+          reach: { value: '0', change: '+0%', up: true, benchmark: '-' },
+          engagement_rate: { value: '0%', change: '+0%', up: true, benchmark: '-' },
+          conversions: { value: '0', change: '+0%', up: true, benchmark: '-' },
+          email_open_rate: { value: '0%', change: '+0%', up: true, benchmark: '-' }
+        });
+        setKpisLoading(false);
         return;
       }
+
+      if (latestError) throw latestError;
 
       // Get metrics from 7 days ago for comparison
       const sevenDaysAgo = new Date();
@@ -307,8 +335,11 @@ export default function Dashboard() {
   const seedSampleData = async () => {
     if (!user) return;
     
+    console.log('Starting seed data process...');
     setSeeding(true);
     try {
+      console.log('Current user:', user.id);
+      
       const today = new Date();
       const getDate = (daysAgo: number) => {
         const date = new Date(today);
@@ -324,6 +355,7 @@ export default function Dashboard() {
       };
 
       // Insert campaigns
+      console.log('Inserting campaigns...');
       const campaignsData = [
         { user_id: user.id, name: 'Summer Sale Launch', status: 'active' as const, platform: 'Multi-channel', spend: 2450.00, roi: '+187%', trend: 'up' as const },
         { user_id: user.id, name: 'Product Awareness Q3', status: 'active' as const, platform: 'Social', spend: 1820.00, roi: '+142%', trend: 'up' as const },
@@ -331,14 +363,20 @@ export default function Dashboard() {
         { user_id: user.id, name: 'Influencer Collab', status: 'draft' as const, platform: 'Instagram', spend: 0.00, roi: '—', trend: 'neutral' as const }
       ];
 
-      const { error: campaignsError } = await supabase
+      const { data: campaignsResult, error: campaignsError } = await supabase
         .from('campaigns')
-        .insert(campaignsData);
+        .insert(campaignsData)
+        .select();
 
-      if (campaignsError) throw campaignsError;
+      if (campaignsError) {
+        console.error('Error inserting campaigns:', campaignsError);
+        throw campaignsError;
+      }
+      console.log('Campaigns inserted:', campaignsResult);
 
       // Insert today's metrics
-      const { error: metricsError } = await supabase
+      console.log('Inserting metrics...');
+      const { data: metricsResult, error: metricsError } = await supabase
         .from('metrics_daily')
         .insert({
           user_id: user.id,
@@ -347,11 +385,17 @@ export default function Dashboard() {
           engagement_rate: 4.8,
           conversions: 1847,
           email_open_rate: 32.4
-        });
+        })
+        .select();
 
-      if (metricsError) throw metricsError;
+      if (metricsError) {
+        console.error('Error inserting metrics:', metricsError);
+        throw metricsError;
+      }
+      console.log('Metrics inserted:', metricsResult);
 
       // Insert 7 days of performance data
+      console.log('Inserting performance data...');
       const performanceDataArray = [
         { user_id: user.id, date: getDate(6), day_name: getDayName(6), engagement: 4200, conversions: 240, reach: 18000 },
         { user_id: user.id, date: getDate(5), day_name: getDayName(5), engagement: 3800, conversions: 198, reach: 16500 },
@@ -362,11 +406,21 @@ export default function Dashboard() {
         { user_id: user.id, date: getDate(0), day_name: getDayName(0), engagement: 3600, conversions: 165, reach: 15000 }
       ];
 
-      const { error: performanceError } = await supabase
+      const { data: performanceResult, error: performanceError } = await supabase
         .from('performance_data')
-        .insert(performanceDataArray);
+        .insert(performanceDataArray)
+        .select();
 
-      if (performanceError) throw performanceError;
+      if (performanceError) {
+        console.error('Error inserting performance data:', performanceError);
+        throw performanceError;
+      }
+      console.log('Performance data inserted:', performanceResult);
+
+      console.log('All data seeded successfully!');
+
+      // Hide seed button
+      setShowSeedButton(false);
 
       // Show success and refresh
       import('@/hooks/use-toast').then(({ toast }) => {
@@ -377,11 +431,15 @@ export default function Dashboard() {
       });
 
       // Refresh all data
-      fetchKpis();
-      fetchCampaigns();
-      fetchPerformanceData();
+      console.log('Reloading dashboard data...');
+      await Promise.all([
+        fetchKpis(),
+        fetchCampaigns(),
+        fetchPerformanceData()
+      ]);
+      console.log('Dashboard data reloaded!');
     } catch (error: any) {
-      console.error('Failed to seed data:', error);
+      console.error('Error seeding data:', error);
       import('@/hooks/use-toast').then(({ toast }) => {
         toast({
           title: 'Error',
@@ -501,6 +559,24 @@ export default function Dashboard() {
                   <button className="text-rose-400 hover:text-rose-300 p-1">
                     <Check className="w-5 h-5" />
                   </button>
+                </div>
+              )}
+
+              {/* Seed Sample Data Button */}
+              {showSeedButton && (
+                <div className="mb-6 flex items-center justify-center">
+                  <div className="bg-gradient-to-br from-violet-500/10 to-fuchsia-500/10 border border-violet-500/30 rounded-xl p-8 max-w-md text-center">
+                    <div className="text-4xl mb-4">🎯</div>
+                    <h3 className="text-xl font-bold mb-2">No Data Yet</h3>
+                    <p className="text-slate-400 mb-4">Get started by adding sample data to see your dashboard in action.</p>
+                    <button
+                      onClick={seedSampleData}
+                      disabled={seeding}
+                      className="px-6 py-3 bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-lg font-medium hover:opacity-90 disabled:opacity-50 transition-opacity"
+                    >
+                      {seeding ? 'Adding Sample Data...' : '🚀 Seed Sample Data'}
+                    </button>
+                  </div>
                 </div>
               )}
 
