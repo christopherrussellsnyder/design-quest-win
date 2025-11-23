@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts';
+import { supabase } from '@/integrations/supabase/client';
 import { Sparkles, TrendingUp, Users, Mail, Target, Zap, ChevronDown, Play, Pause, Settings, Bell, Search, Plus, ArrowUpRight, ArrowDownRight, LayoutDashboard, FileText, Send, Megaphone, Calendar, ChevronRight, Image, Type, Video, Wand2, Copy, RefreshCw, Check, Filter, Download, Eye, MousePointer, DollarSign, ChevronLeft, BarChart3 } from 'lucide-react';
 
 const performanceData = [
@@ -65,6 +66,31 @@ export default function Dashboard() {
   const [generated, setGenerated] = useState(false);
   const [campaignStep, setCampaignStep] = useState(1);
   const [selectedMetric, setSelectedMetric] = useState('impressions');
+  const [kpis, setKpis] = useState<any>(null);
+  const [kpisLoading, setKpisLoading] = useState(true);
+
+  // Fetch KPI data from API
+  useEffect(() => {
+    const fetchKpis = async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('dashboard-kpis');
+        
+        if (error) {
+          console.error('Failed to load KPIs:', error);
+          setKpisLoading(false);
+          return;
+        }
+        
+        setKpis(data);
+      } catch (err) {
+        console.error('Failed to load KPIs:', err);
+      } finally {
+        setKpisLoading(false);
+      }
+    };
+
+    fetchKpis();
+  }, []);
 
   const navItems = [
     { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -162,29 +188,67 @@ export default function Dashboard() {
             <>
               {/* Stats Row */}
               <div className="grid grid-cols-4 gap-4 mb-6">
-                {[
-                  { label: 'Total Reach', value: '2.4M', change: '+12.5%', up: true, icon: Users, color: 'cyan' },
-                  { label: 'Engagement Rate', value: '4.8%', change: '+0.8%', up: true, icon: TrendingUp, color: 'green' },
-                  { label: 'Conversions', value: '1,847', change: '+23.1%', up: true, icon: Target, color: 'violet' },
-                  { label: 'Email Open Rate', value: '32.4%', change: '-2.1%', up: false, icon: Mail, color: 'amber' },
-                ].map((stat, i) => {
-                  const StatIcon = stat.icon;
-                  return (
-                    <div key={i} className="bg-slate-900/50 border border-slate-800 rounded-xl p-4 hover:border-slate-700 transition-colors">
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="text-slate-400 text-sm">{stat.label}</span>
-                        <div className={`w-8 h-8 rounded-lg bg-${stat.color}-500/10 flex items-center justify-center`}>
-                          <StatIcon className={`w-4 h-4 text-${stat.color}-400`} />
+                {kpisLoading ? (
+                  // Loading state
+                  Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} className="bg-slate-900/50 border border-slate-800 rounded-xl p-4 animate-pulse">
+                      <div className="h-4 bg-slate-800 rounded w-24 mb-3"></div>
+                      <div className="h-8 bg-slate-800 rounded w-20 mb-2"></div>
+                      <div className="h-4 bg-slate-800 rounded w-16"></div>
+                    </div>
+                  ))
+                ) : kpis ? (
+                  // Real data from API
+                  [
+                    { key: 'reach', label: 'Total Reach', icon: Users, color: 'cyan' },
+                    { key: 'engagement_rate', label: 'Engagement Rate', icon: TrendingUp, color: 'green' },
+                    { key: 'conversions', label: 'Conversions', icon: Target, color: 'violet' },
+                    { key: 'email_open_rate', label: 'Email Open Rate', icon: Mail, color: 'amber' },
+                  ].map((stat) => {
+                    const StatIcon = stat.icon;
+                    const data = kpis[stat.key];
+                    return (
+                      <div key={stat.key} className="bg-slate-900/50 border border-slate-800 rounded-xl p-4 hover:border-slate-700 transition-colors">
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="text-slate-400 text-sm">{stat.label}</span>
+                          <div className={`w-8 h-8 rounded-lg bg-${stat.color}-500/10 flex items-center justify-center`}>
+                            <StatIcon className={`w-4 h-4 text-${stat.color}-400`} />
+                          </div>
+                        </div>
+                        <div className="text-2xl font-bold mb-1">{data?.value || 'N/A'}</div>
+                        <div className={`flex items-center gap-1 text-sm ${data?.up ? 'text-emerald-400' : 'text-rose-400'}`}>
+                          {data?.up ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
+                          {data?.change || '0%'} vs last week
                         </div>
                       </div>
-                      <div className="text-2xl font-bold mb-1">{stat.value}</div>
-                      <div className={`flex items-center gap-1 text-sm ${stat.up ? 'text-emerald-400' : 'text-rose-400'}`}>
-                        {stat.up ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
-                        {stat.change} vs last week
+                    );
+                  })
+                ) : (
+                  // Error state - fallback to hardcoded data
+                  [
+                    { label: 'Total Reach', value: '2.4M', change: '+12.5%', up: true, icon: Users, color: 'cyan' },
+                    { label: 'Engagement Rate', value: '4.8%', change: '+0.8%', up: true, icon: TrendingUp, color: 'green' },
+                    { label: 'Conversions', value: '1,847', change: '+23.1%', up: true, icon: Target, color: 'violet' },
+                    { label: 'Email Open Rate', value: '32.4%', change: '-2.1%', up: false, icon: Mail, color: 'amber' },
+                  ].map((stat, i) => {
+                    const StatIcon = stat.icon;
+                    return (
+                      <div key={i} className="bg-slate-900/50 border border-slate-800 rounded-xl p-4 hover:border-slate-700 transition-colors">
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="text-slate-400 text-sm">{stat.label}</span>
+                          <div className={`w-8 h-8 rounded-lg bg-${stat.color}-500/10 flex items-center justify-center`}>
+                            <StatIcon className={`w-4 h-4 text-${stat.color}-400`} />
+                          </div>
+                        </div>
+                        <div className="text-2xl font-bold mb-1">{stat.value}</div>
+                        <div className={`flex items-center gap-1 text-sm ${stat.up ? 'text-emerald-400' : 'text-rose-400'}`}>
+                          {stat.up ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
+                          {stat.change} vs last week
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })
+                )}
               </div>
 
               <div className="grid grid-cols-3 gap-6 mb-6">
