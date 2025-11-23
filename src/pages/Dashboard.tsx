@@ -68,6 +68,8 @@ export default function Dashboard() {
   const [selectedMetric, setSelectedMetric] = useState('impressions');
   const [kpis, setKpis] = useState<any>(null);
   const [kpisLoading, setKpisLoading] = useState(true);
+  const [campaigns, setCampaigns] = useState<any[]>([]);
+  const [campaignsLoading, setCampaignsLoading] = useState(true);
 
   // Fetch KPI data from API
   useEffect(() => {
@@ -90,6 +92,29 @@ export default function Dashboard() {
     };
 
     fetchKpis();
+  }, []);
+
+  // Fetch campaigns from API
+  useEffect(() => {
+    const fetchCampaigns = async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('dashboard-campaigns');
+        
+        if (error) {
+          console.error('Failed to load campaigns:', error);
+          setCampaignsLoading(false);
+          return;
+        }
+        
+        setCampaigns(data || []);
+      } catch (err) {
+        console.error('Failed to load campaigns:', err);
+      } finally {
+        setCampaignsLoading(false);
+      }
+    };
+
+    fetchCampaigns();
   }, []);
 
   const navItems = [
@@ -332,53 +357,73 @@ export default function Dashboard() {
                   </button>
                 </div>
                 <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="text-left text-sm text-slate-400 border-b border-slate-800">
-                        <th className="pb-3 font-medium">Campaign</th>
-                        <th className="pb-3 font-medium">Status</th>
-                        <th className="pb-3 font-medium">Platform</th>
-                        <th className="pb-3 font-medium">Spend</th>
-                        <th className="pb-3 font-medium">ROI</th>
-                        <th className="pb-3 font-medium">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {campaigns.map(c => (
-                        <tr key={c.id} className="border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors">
-                          <td className="py-4">
-                            <span className="font-medium">{c.name}</span>
-                          </td>
-                          <td className="py-4">
-                            <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
-                              c.status === 'active' ? 'bg-emerald-500/20 text-emerald-400' :
-                              c.status === 'paused' ? 'bg-amber-500/20 text-amber-400' :
-                              'bg-slate-500/20 text-slate-400'
-                            }`}>
-                              {c.status}
-                            </span>
-                          </td>
-                          <td className="py-4 text-slate-300">{c.platform}</td>
-                          <td className="py-4 text-slate-300">{c.spend}</td>
-                          <td className="py-4">
-                            <span className={c.trend === 'up' ? 'text-emerald-400' : c.trend === 'down' ? 'text-rose-400' : 'text-slate-400'}>
-                              {c.roi}
-                            </span>
-                          </td>
-                          <td className="py-4">
-                            <div className="flex items-center gap-2">
-                              <button className="p-1.5 rounded hover:bg-slate-700 transition-colors">
-                                {c.status === 'active' ? <Pause className="w-4 h-4 text-slate-400" /> : <Play className="w-4 h-4 text-slate-400" />}
-                              </button>
-                              <button className="p-1.5 rounded hover:bg-slate-700 transition-colors">
-                                <Settings className="w-4 h-4 text-slate-400" />
-                              </button>
-                            </div>
-                          </td>
+                  {campaignsLoading ? (
+                    // Loading state
+                    <div className="py-8 text-center">
+                      <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-violet-500"></div>
+                      <p className="mt-2 text-sm text-slate-400">Loading campaigns...</p>
+                    </div>
+                  ) : campaigns.length === 0 ? (
+                    // Empty state
+                    <div className="py-12 text-center">
+                      <Megaphone className="w-12 h-12 text-slate-600 mx-auto mb-3" />
+                      <p className="text-slate-400 mb-2">No campaigns yet</p>
+                      <p className="text-sm text-slate-500 mb-4">Create your first campaign to get started</p>
+                      <button onClick={() => setActiveTab('campaigns')} className="inline-flex items-center gap-2 px-4 py-2 bg-violet-500/20 text-violet-400 rounded-lg text-sm font-medium hover:bg-violet-500/30 transition-colors">
+                        <Plus className="w-4 h-4" />
+                        Create Campaign
+                      </button>
+                    </div>
+                  ) : (
+                    // Campaigns table
+                    <table className="w-full">
+                      <thead>
+                        <tr className="text-left text-sm text-slate-400 border-b border-slate-800">
+                          <th className="pb-3 font-medium">Campaign</th>
+                          <th className="pb-3 font-medium">Status</th>
+                          <th className="pb-3 font-medium">Platform</th>
+                          <th className="pb-3 font-medium">Spend</th>
+                          <th className="pb-3 font-medium">ROI</th>
+                          <th className="pb-3 font-medium">Actions</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {campaigns.map(c => (
+                          <tr key={c.id} className="border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors">
+                            <td className="py-4">
+                              <span className="font-medium">{c.name}</span>
+                            </td>
+                            <td className="py-4">
+                              <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
+                                c.status === 'active' ? 'bg-emerald-500/20 text-emerald-400' :
+                                c.status === 'paused' ? 'bg-amber-500/20 text-amber-400' :
+                                'bg-slate-500/20 text-slate-400'
+                              }`}>
+                                {c.status}
+                              </span>
+                            </td>
+                            <td className="py-4 text-slate-300">{c.platform}</td>
+                            <td className="py-4 text-slate-300">{c.spend}</td>
+                            <td className="py-4">
+                              <span className={c.trend === 'up' ? 'text-emerald-400' : c.trend === 'down' ? 'text-rose-400' : 'text-slate-400'}>
+                                {c.roi}
+                              </span>
+                            </td>
+                            <td className="py-4">
+                              <div className="flex items-center gap-2">
+                                <button className="p-1.5 rounded hover:bg-slate-700 transition-colors">
+                                  {c.status === 'active' ? <Pause className="w-4 h-4 text-slate-400" /> : <Play className="w-4 h-4 text-slate-400" />}
+                                </button>
+                                <button className="p-1.5 rounded hover:bg-slate-700 transition-colors">
+                                  <Settings className="w-4 h-4 text-slate-400" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
                 </div>
               </div>
             </>
