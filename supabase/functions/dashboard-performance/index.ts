@@ -32,13 +32,27 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Get auth header (check both cases)
+    const authHeader = req.headers.get('Authorization') || req.headers.get('authorization');
+    
+    if (!authHeader) {
+      console.error('No authorization header found');
+      return new Response(
+        JSON.stringify({ error: 'No authorization header' }),
+        {
+          status: 401,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
     // Create Supabase client with auth
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
       {
         global: {
-          headers: { Authorization: req.headers.get('Authorization')! },
+          headers: { Authorization: authHeader },
         },
       }
     );
@@ -60,9 +74,21 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Parse query parameters
+    // Parse query parameters from URL or body
     const url = new URL(req.url);
-    const timeRangeParam = url.searchParams.get('timeRange') || '7d';
+    let timeRangeParam = url.searchParams.get('timeRange');
+    
+    // If not in URL, check request body
+    if (!timeRangeParam && req.method === 'POST') {
+      try {
+        const body = await req.json();
+        timeRangeParam = body.timeRange;
+      } catch {
+        // Body parsing failed, use default
+      }
+    }
+    
+    timeRangeParam = timeRangeParam || '7d';
 
     // Validate timeRange parameter
     if (!VALID_TIME_RANGES.includes(timeRangeParam as TimeRange)) {
