@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts';
 import { supabase } from '@/integrations/supabase/client';
-import { Sparkles, TrendingUp, Users, Mail, Target, Zap, ChevronDown, Play, Pause, Settings, Bell, Search, Plus, ArrowUpRight, ArrowDownRight, LayoutDashboard, FileText, Send, Megaphone, Calendar, ChevronRight, Image, Type, Video, Wand2, Copy, RefreshCw, Check, Filter, Download, Eye, MousePointer, DollarSign, ChevronLeft, BarChart3 } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { Sparkles, TrendingUp, Users, Mail, Target, Zap, ChevronDown, Play, Pause, Settings, Bell, Search, Plus, ArrowUpRight, ArrowDownRight, LayoutDashboard, FileText, Send, Megaphone, Calendar, ChevronRight, Image, Type, Video, Wand2, Copy, RefreshCw, Check, Filter, Download, Eye, MousePointer, DollarSign, ChevronLeft, BarChart3, LogOut } from 'lucide-react';
 
 const performanceData = [
   { name: 'Mon', engagement: 4200, conversions: 240, reach: 18000 },
@@ -60,6 +61,7 @@ const channelPerformance = [
 ];
 
 export default function Dashboard() {
+  const { user, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [contentType, setContentType] = useState('text');
   const [generating, setGenerating] = useState(false);
@@ -76,6 +78,7 @@ export default function Dashboard() {
   const [performanceLoading, setPerformanceLoading] = useState(true);
   const [performanceError, setPerformanceError] = useState<string | null>(null);
   const [timeRange, setTimeRange] = useState('7d');
+  const [seeding, setSeeding] = useState(false);
 
   // Fetch KPI data from API
   useEffect(() => {
@@ -184,6 +187,96 @@ export default function Dashboard() {
     }, 2000);
   };
 
+  const seedSampleData = async () => {
+    if (!user) return;
+    
+    setSeeding(true);
+    try {
+      const today = new Date();
+      const getDate = (daysAgo: number) => {
+        const date = new Date(today);
+        date.setDate(date.getDate() - daysAgo);
+        return date.toISOString().split('T')[0];
+      };
+
+      const getDayName = (daysAgo: number) => {
+        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const date = new Date(today);
+        date.setDate(date.getDate() - daysAgo);
+        return days[date.getDay()];
+      };
+
+      // Insert campaigns
+      const campaignsData = [
+        { user_id: user.id, name: 'Summer Sale Launch', status: 'active' as const, platform: 'Multi-channel', spend: 2450.00, roi: '+187%', trend: 'up' as const },
+        { user_id: user.id, name: 'Product Awareness Q3', status: 'active' as const, platform: 'Social', spend: 1820.00, roi: '+142%', trend: 'up' as const },
+        { user_id: user.id, name: 'Email Re-engagement', status: 'paused' as const, platform: 'Email', spend: 680.00, roi: '+89%', trend: 'down' as const },
+        { user_id: user.id, name: 'Influencer Collab', status: 'draft' as const, platform: 'Instagram', spend: 0.00, roi: '—', trend: 'neutral' as const }
+      ];
+
+      const { error: campaignsError } = await supabase
+        .from('campaigns')
+        .insert(campaignsData);
+
+      if (campaignsError) throw campaignsError;
+
+      // Insert today's metrics
+      const { error: metricsError } = await supabase
+        .from('metrics_daily')
+        .insert({
+          user_id: user.id,
+          date: getDate(0),
+          reach: 2400000,
+          engagement_rate: 4.8,
+          conversions: 1847,
+          email_open_rate: 32.4
+        });
+
+      if (metricsError) throw metricsError;
+
+      // Insert 7 days of performance data
+      const performanceDataArray = [
+        { user_id: user.id, date: getDate(6), day_name: getDayName(6), engagement: 4200, conversions: 240, reach: 18000 },
+        { user_id: user.id, date: getDate(5), day_name: getDayName(5), engagement: 3800, conversions: 198, reach: 16500 },
+        { user_id: user.id, date: getDate(4), day_name: getDayName(4), engagement: 5100, conversions: 320, reach: 22000 },
+        { user_id: user.id, date: getDate(3), day_name: getDayName(3), engagement: 4700, conversions: 280, reach: 19800 },
+        { user_id: user.id, date: getDate(2), day_name: getDayName(2), engagement: 5800, conversions: 410, reach: 25000 },
+        { user_id: user.id, date: getDate(1), day_name: getDayName(1), engagement: 4100, conversions: 195, reach: 17200 },
+        { user_id: user.id, date: getDate(0), day_name: getDayName(0), engagement: 3600, conversions: 165, reach: 15000 }
+      ];
+
+      const { error: performanceError } = await supabase
+        .from('performance_data')
+        .insert(performanceDataArray);
+
+      if (performanceError) throw performanceError;
+
+      // Show success and refresh
+      import('@/hooks/use-toast').then(({ toast }) => {
+        toast({
+          title: 'Success!',
+          description: 'Sample data added successfully!',
+        });
+      });
+
+      // Refresh all data
+      fetchKpis();
+      fetchCampaigns();
+      fetchPerformanceData();
+    } catch (error: any) {
+      console.error('Failed to seed data:', error);
+      import('@/hooks/use-toast').then(({ toast }) => {
+        toast({
+          title: 'Error',
+          description: error.message || 'Failed to add sample data',
+          variant: 'destructive',
+        });
+      });
+    } finally {
+      setSeeding(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-950 text-white flex">
       {/* Sidebar */}
@@ -252,7 +345,21 @@ export default function Dashboard() {
             <button className="p-2 rounded-lg hover:bg-slate-800 transition-colors">
               <Settings className="w-5 h-5 text-slate-400" />
             </button>
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 ml-2"></div>
+            <div className="flex items-center gap-3 ml-2 pl-3 border-l border-slate-700">
+              <div className="text-right">
+                <div className="text-sm text-slate-400">{user?.email}</div>
+              </div>
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center font-semibold">
+                {user?.email?.charAt(0).toUpperCase()}
+              </div>
+              <button
+                onClick={signOut}
+                className="p-2 rounded-lg hover:bg-slate-800 transition-colors text-slate-400 hover:text-rose-400"
+                title="Logout"
+              >
+                <LogOut className="w-5 h-5" />
+              </button>
+            </div>
           </div>
         </header>
 
@@ -260,6 +367,26 @@ export default function Dashboard() {
         <main className="flex-1 p-6 overflow-auto">
           {activeTab === 'dashboard' && (
             <>
+              {/* Alert System - show if any campaign has low ROI */}
+              {campaigns.some(c => c.roi && parseInt(c.roi) < -10) && (
+                <div className="bg-rose-500/10 border border-rose-500/30 rounded-xl p-4 mb-6 flex items-start justify-between">
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-rose-500/20 flex items-center justify-center flex-shrink-0">
+                      <Target className="w-5 h-5 text-rose-400" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-rose-400 mb-1">Campaign Performance Alert</h3>
+                      <p className="text-sm text-rose-400/90">
+                        Email Re-engagement campaign is 15% below target. Consider increasing budget or refreshing creative.
+                      </p>
+                    </div>
+                  </div>
+                  <button className="text-rose-400 hover:text-rose-300 p-1">
+                    <Check className="w-5 h-5" />
+                  </button>
+                </div>
+              )}
+
               {/* Stats Row */}
               <div className="grid grid-cols-4 gap-4 mb-6">
                 {kpisError ? (
@@ -342,43 +469,114 @@ export default function Dashboard() {
                 )}
               </div>
 
+              {/* Goal Tracking & Budget Status Row */}
+              <div className="grid grid-cols-2 gap-6 mb-6">
+                {/* Monthly Goals Card */}
+                <div className="bg-gradient-to-br from-violet-500/10 to-fuchsia-500/10 border border-violet-500/20 rounded-xl p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="font-semibold">Monthly Goals</h2>
+                    <span className="text-xs text-slate-400">Last updated: 2 min ago</span>
+                  </div>
+                  <div className="text-4xl font-bold mb-6 text-transparent bg-gradient-to-r from-violet-400 to-fuchsia-400 bg-clip-text">
+                    73%
+                  </div>
+                  <div className="space-y-4">
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm text-slate-300">Conversions</span>
+                        <span className="text-sm font-medium">1,847 / 2,500</span>
+                      </div>
+                      <div className="w-full bg-slate-800 rounded-full h-2">
+                        <div className="bg-gradient-to-r from-violet-500 to-fuchsia-500 h-2 rounded-full" style={{width: '74%'}}></div>
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm text-slate-300">Revenue</span>
+                        <span className="text-sm font-medium">$91.9K / $120K</span>
+                      </div>
+                      <div className="w-full bg-slate-800 rounded-full h-2">
+                        <div className="bg-gradient-to-r from-violet-500 to-fuchsia-500 h-2 rounded-full" style={{width: '77%'}}></div>
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm text-slate-300">New Leads</span>
+                        <span className="text-sm font-medium">3,420 / 5,000</span>
+                      </div>
+                      <div className="w-full bg-slate-800 rounded-full h-2">
+                        <div className="bg-gradient-to-r from-violet-500 to-fuchsia-500 h-2 rounded-full" style={{width: '68%'}}></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Budget Status Card */}
+                <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                      <DollarSign className="w-5 h-5 text-emerald-400" />
+                    </div>
+                    <h2 className="font-semibold">Budget Status</h2>
+                  </div>
+                  <div className="mb-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm text-slate-400">Monthly Budget</span>
+                      <span className="text-sm font-medium">$12,250 / $15,000</span>
+                    </div>
+                    <div className="w-full bg-slate-800 rounded-full h-2">
+                      <div className="bg-gradient-to-r from-emerald-500 to-cyan-500 h-2 rounded-full" style={{width: '82%'}}></div>
+                    </div>
+                    <p className="text-xs text-slate-400 mt-1">$2,750 remaining • 9 days left</p>
+                  </div>
+                  <div className="mt-6 pt-6 border-t border-slate-800">
+                    <p className="text-sm text-slate-400 mb-2">Daily burn rate</p>
+                    <div className="text-3xl font-bold text-emerald-400 mb-1">$306</div>
+                    <p className="text-xs text-slate-500">Target: $300/day</p>
+                  </div>
+                </div>
+              </div>
+
               <div className="grid grid-cols-3 gap-6 mb-6">
                 {/* Performance Chart */}
                 <div className="col-span-2 bg-slate-900/50 border border-slate-800 rounded-xl p-5">
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="font-semibold">Performance Overview</h2>
-                    <div className="flex items-center gap-2">
-                      <button 
-                        onClick={() => setTimeRange('7d')}
-                        className={`px-3 py-1.5 text-xs rounded-lg border transition-colors ${
-                          timeRange === '7d' 
-                            ? 'bg-violet-500/20 text-violet-400 border-violet-500/30' 
-                            : 'text-slate-400 border-transparent hover:bg-slate-800'
-                        }`}
-                      >
-                        7 Days
-                      </button>
-                      <button 
-                        onClick={() => setTimeRange('30d')}
-                        className={`px-3 py-1.5 text-xs rounded-lg border transition-colors ${
-                          timeRange === '30d' 
-                            ? 'bg-violet-500/20 text-violet-400 border-violet-500/30' 
-                            : 'text-slate-400 border-transparent hover:bg-slate-800'
-                        }`}
-                      >
-                        30 Days
-                      </button>
-                      <button 
-                        onClick={() => setTimeRange('90d')}
-                        className={`px-3 py-1.5 text-xs rounded-lg border transition-colors ${
-                          timeRange === '90d' 
-                            ? 'bg-violet-500/20 text-violet-400 border-violet-500/30' 
-                            : 'text-slate-400 border-transparent hover:bg-slate-800'
-                        }`}
-                      >
-                        90 Days
-                      </button>
+                  <div className="mb-4">
+                    <div className="flex items-center justify-between mb-1">
+                      <h2 className="font-semibold">Performance Overview</h2>
+                      <div className="flex items-center gap-2">
+                        <button 
+                          onClick={() => setTimeRange('7d')}
+                          className={`px-3 py-1.5 text-xs rounded-lg border transition-colors ${
+                            timeRange === '7d' 
+                              ? 'bg-violet-500/20 text-violet-400 border-violet-500/30' 
+                              : 'text-slate-400 border-transparent hover:bg-slate-800'
+                          }`}
+                        >
+                          7 Days
+                        </button>
+                        <button 
+                          onClick={() => setTimeRange('30d')}
+                          className={`px-3 py-1.5 text-xs rounded-lg border transition-colors ${
+                            timeRange === '30d' 
+                              ? 'bg-violet-500/20 text-violet-400 border-violet-500/30' 
+                              : 'text-slate-400 border-transparent hover:bg-slate-800'
+                          }`}
+                        >
+                          30 Days
+                        </button>
+                        <button 
+                          onClick={() => setTimeRange('90d')}
+                          className={`px-3 py-1.5 text-xs rounded-lg border transition-colors ${
+                            timeRange === '90d' 
+                              ? 'bg-violet-500/20 text-violet-400 border-violet-500/30' 
+                              : 'text-slate-400 border-transparent hover:bg-slate-800'
+                          }`}
+                        >
+                          90 Days
+                        </button>
+                      </div>
                     </div>
+                    <p className="text-xs text-slate-500">Real-time data • Updates every 5 minutes</p>
                   </div>
                   {performanceError ? (
                     // Error state
@@ -463,6 +661,17 @@ export default function Dashboard() {
                     <Sparkles className="w-5 h-5 text-fuchsia-400" />
                     <h2 className="font-semibold">AI Recommendations</h2>
                   </div>
+                  
+                  {/* Executive Summary */}
+                  <div className="mb-4 p-4 bg-gradient-to-br from-violet-500/10 to-fuchsia-500/10 border border-violet-500/20 rounded-lg">
+                    <div className="inline-block px-2 py-1 bg-violet-500/20 text-violet-400 rounded text-xs font-medium mb-2">
+                      Executive Summary
+                    </div>
+                    <p className="text-sm text-slate-300 leading-relaxed">
+                      Campaigns performing 23% above target this month. Email channel showing exceptional ROI.
+                    </p>
+                  </div>
+
                   <div className="space-y-3">
                     {aiSuggestions.map(s => (
                       <div key={s.id} className="p-3 bg-slate-800/50 rounded-lg border border-slate-700 hover:border-violet-500/50 transition-colors cursor-pointer">
@@ -530,15 +739,24 @@ export default function Dashboard() {
                       ))}
                     </div>
                   ) : campaigns.length === 0 ? (
-                    // Empty state
+                    // Empty state with seed button
                     <div className="py-12 text-center">
                       <Megaphone className="w-12 h-12 text-slate-600 mx-auto mb-3" />
                       <p className="text-slate-400 mb-2">No campaigns yet</p>
-                      <p className="text-sm text-slate-500 mb-4">Create your first campaign to get started</p>
-                      <button onClick={() => setActiveTab('campaigns')} className="inline-flex items-center gap-2 px-4 py-2 bg-violet-500/20 text-violet-400 rounded-lg text-sm font-medium hover:bg-violet-500/30 transition-colors">
-                        <Plus className="w-4 h-4" />
-                        Create Campaign
-                      </button>
+                      <p className="text-sm text-slate-500 mb-4">Seed sample data or create your first campaign</p>
+                      <div className="flex items-center justify-center gap-3">
+                        <button
+                          onClick={seedSampleData}
+                          disabled={seeding}
+                          className="inline-flex items-center gap-2 px-6 py-3 bg-violet-500/20 text-violet-400 border border-violet-500/30 rounded-lg text-sm font-medium hover:bg-violet-500/30 transition-colors disabled:opacity-50"
+                        >
+                          🎯 {seeding ? 'Seeding...' : 'Seed Sample Data'}
+                        </button>
+                        <button onClick={() => setActiveTab('campaigns')} className="inline-flex items-center gap-2 px-6 py-3 bg-slate-800 text-white rounded-lg text-sm font-medium hover:bg-slate-700 transition-colors">
+                          <Plus className="w-4 h-4" />
+                          Create Campaign
+                        </button>
+                      </div>
                     </div>
                   ) : (
                     // Campaigns table
@@ -590,6 +808,59 @@ export default function Dashboard() {
                       </tbody>
                     </table>
                   )}
+                </div>
+              </div>
+
+              {/* Attribution Model & Team Performance Row */}
+              <div className="grid grid-cols-2 gap-6">
+                {/* Attribution Model Card */}
+                <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-5">
+                  <h2 className="font-semibold mb-4">Attribution Model</h2>
+                  <div className="space-y-3">
+                    {[
+                      { name: 'Email Campaign', value: 487, percent: 26, color: 'violet' },
+                      { name: 'Facebook Ads', value: 345, percent: 19, color: 'blue' },
+                      { name: 'Google Ads', value: 312, percent: 17, color: 'emerald' },
+                      { name: 'Organic Social', value: 289, percent: 16, color: 'cyan' },
+                      { name: 'Other', value: 414, percent: 22, color: 'slate' }
+                    ].map((source, i) => (
+                      <div key={i}>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <span className="text-sm text-slate-300">{source.name}</span>
+                          <span className="text-sm font-medium">{source.value} ({source.percent}%)</span>
+                        </div>
+                        <div className="w-full bg-slate-800 rounded-full h-1.5">
+                          <div className={`bg-${source.color}-500 h-1.5 rounded-full`} style={{width: `${source.percent}%`}}></div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Team Performance Card */}
+                <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-5">
+                  <h2 className="font-semibold mb-4">Team Performance</h2>
+                  <div className="space-y-4">
+                    {[
+                      { name: 'Sarah M.', campaigns: 8, roi: '+187%', gradient: 'from-pink-500 to-rose-500' },
+                      { name: 'Mike T.', campaigns: 6, roi: '+142%', gradient: 'from-blue-500 to-cyan-500' },
+                      { name: 'Lisa K.', campaigns: 5, roi: '+98%', gradient: 'from-violet-500 to-purple-500' }
+                    ].map((member, i) => (
+                      <div key={i} className="flex items-center gap-3 p-3 bg-slate-800/30 rounded-lg">
+                        <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${member.gradient} flex items-center justify-center text-sm font-semibold`}>
+                          {member.name.split(' ').map(n => n[0]).join('')}
+                        </div>
+                        <div className="flex-1">
+                          <div className="font-medium text-sm">{member.name}</div>
+                          <div className="text-xs text-slate-400">{member.campaigns} campaigns</div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-sm font-semibold text-emerald-400">{member.roi}</div>
+                          <div className="text-xs text-slate-500">ROI</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </>
