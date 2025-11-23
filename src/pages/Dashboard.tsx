@@ -68,98 +68,103 @@ export default function Dashboard() {
   const [selectedMetric, setSelectedMetric] = useState('impressions');
   const [kpis, setKpis] = useState<any>(null);
   const [kpisLoading, setKpisLoading] = useState(true);
+  const [kpisError, setKpisError] = useState<string | null>(null);
   const [campaigns, setCampaigns] = useState<any[]>([]);
   const [campaignsLoading, setCampaignsLoading] = useState(true);
+  const [campaignsError, setCampaignsError] = useState<string | null>(null);
   const [performanceData, setPerformanceData] = useState<any[]>([]);
   const [performanceLoading, setPerformanceLoading] = useState(true);
+  const [performanceError, setPerformanceError] = useState<string | null>(null);
   const [timeRange, setTimeRange] = useState('7d');
 
   // Fetch KPI data from API
   useEffect(() => {
-    const fetchKpis = async () => {
-      try {
-        const { data, error } = await supabase.functions.invoke('dashboard-kpis');
-        
-        if (error) {
-          console.error('Failed to load KPIs:', error);
-          setKpisLoading(false);
-          return;
-        }
-        
-        setKpis(data);
-      } catch (err) {
-        console.error('Failed to load KPIs:', err);
-      } finally {
-        setKpisLoading(false);
-      }
-    };
-
     fetchKpis();
   }, []);
 
+  const fetchKpis = async () => {
+    setKpisLoading(true);
+    setKpisError(null);
+    try {
+      const { data, error } = await supabase.functions.invoke('dashboard-kpis');
+      
+      if (error) {
+        throw new Error(error.message || 'Failed to load KPIs');
+      }
+      
+      setKpis(data);
+    } catch (err: any) {
+      console.error('Failed to load KPIs:', err);
+      setKpisError(err.message || 'Failed to load KPIs');
+    } finally {
+      setKpisLoading(false);
+    }
+  };
+
   // Fetch campaigns from API
   useEffect(() => {
-    const fetchCampaigns = async () => {
-      try {
-        const { data, error } = await supabase.functions.invoke('dashboard-campaigns');
-        
-        if (error) {
-          console.error('Failed to load campaigns:', error);
-          setCampaignsLoading(false);
-          return;
-        }
-        
-        setCampaigns(data || []);
-      } catch (err) {
-        console.error('Failed to load campaigns:', err);
-      } finally {
-        setCampaignsLoading(false);
-      }
-    };
-
     fetchCampaigns();
   }, []);
 
+  const fetchCampaigns = async () => {
+    setCampaignsLoading(true);
+    setCampaignsError(null);
+    try {
+      const { data, error } = await supabase.functions.invoke('dashboard-campaigns');
+      
+      if (error) {
+        throw new Error(error.message || 'Failed to load campaigns');
+      }
+      
+      setCampaigns(data || []);
+    } catch (err: any) {
+      console.error('Failed to load campaigns:', err);
+      setCampaignsError(err.message || 'Failed to load campaigns');
+    } finally {
+      setCampaignsLoading(false);
+    }
+  };
+
   // Fetch performance data from API based on timeRange
   useEffect(() => {
-    const fetchPerformanceData = async () => {
-      setPerformanceLoading(true);
-      try {
-        // Get the session for authorization
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (!session) {
-          console.log('No active session for performance data');
-          setPerformanceLoading(false);
-          return;
-        }
-
-        // Call edge function with query parameter using fetch
-        const response = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/dashboard-performance?timeRange=${timeRange}`,
-          {
-            headers: {
-              Authorization: `Bearer ${session.access_token}`,
-              'Content-Type': 'application/json',
-            },
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch performance data');
-        }
-
-        const data = await response.json();
-        setPerformanceData(data || []);
-      } catch (err) {
-        console.error('Failed to load performance data:', err);
-      } finally {
-        setPerformanceLoading(false);
-      }
-    };
-
     fetchPerformanceData();
   }, [timeRange]);
+
+  const fetchPerformanceData = async () => {
+    setPerformanceLoading(true);
+    setPerformanceError(null);
+    try {
+      // Get the session for authorization
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        throw new Error('No active session. Please log in.');
+      }
+
+      // Call edge function with query parameter using fetch
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/dashboard-performance?timeRange=${timeRange}`,
+        {
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch performance data');
+      }
+
+      const data = await response.json();
+      setPerformanceData(data || []);
+    } catch (err: any) {
+      console.error('Failed to load performance data:', err);
+      setPerformanceError(err.message || 'Failed to load performance data');
+    } finally {
+      setPerformanceLoading(false);
+    }
+  };
 
   const navItems = [
     { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -257,7 +262,24 @@ export default function Dashboard() {
             <>
               {/* Stats Row */}
               <div className="grid grid-cols-4 gap-4 mb-6">
-                {kpisLoading ? (
+                {kpisError ? (
+                  // Error state
+                  <div className="col-span-4 bg-rose-500/10 border border-rose-500/30 rounded-xl p-6">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <h3 className="text-rose-400 font-semibold mb-1">Failed to load KPIs</h3>
+                        <p className="text-sm text-rose-400/80">{kpisError}</p>
+                      </div>
+                      <button 
+                        onClick={fetchKpis}
+                        className="px-4 py-2 bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+                      >
+                        <RefreshCw className="w-4 h-4" />
+                        Retry
+                      </button>
+                    </div>
+                  </div>
+                ) : kpisLoading ? (
                   // Loading state
                   Array.from({ length: 4 }).map((_, i) => (
                     <div key={i} className="bg-slate-900/50 border border-slate-800 rounded-xl p-4 animate-pulse">
@@ -358,7 +380,24 @@ export default function Dashboard() {
                       </button>
                     </div>
                   </div>
-                  {performanceLoading ? (
+                  {performanceError ? (
+                    // Error state
+                    <div className="h-[220px] flex items-center justify-center">
+                      <div className="text-center max-w-md">
+                        <div className="bg-rose-500/10 border border-rose-500/30 rounded-xl p-6">
+                          <h3 className="text-rose-400 font-semibold mb-2">Failed to load performance data</h3>
+                          <p className="text-sm text-rose-400/80 mb-4">{performanceError}</p>
+                          <button 
+                            onClick={fetchPerformanceData}
+                            className="px-4 py-2 bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 rounded-lg text-sm font-medium transition-colors inline-flex items-center gap-2"
+                          >
+                            <RefreshCw className="w-4 h-4" />
+                            Retry
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : performanceLoading ? (
                     // Skeleton loading state for chart
                     <div className="h-[220px] space-y-3 animate-pulse">
                       <div className="flex justify-between items-end h-full px-4">
@@ -453,7 +492,24 @@ export default function Dashboard() {
                   </button>
                 </div>
                 <div className="overflow-x-auto">
-                  {campaignsLoading ? (
+                  {campaignsError ? (
+                    // Error state
+                    <div className="py-8">
+                      <div className="bg-rose-500/10 border border-rose-500/30 rounded-xl p-6 max-w-md mx-auto">
+                        <div className="text-center">
+                          <h3 className="text-rose-400 font-semibold mb-2">Failed to load campaigns</h3>
+                          <p className="text-sm text-rose-400/80 mb-4">{campaignsError}</p>
+                          <button 
+                            onClick={fetchCampaigns}
+                            className="px-4 py-2 bg-rose-500/20 hover:bg-rose-500/30 text-rose-400 rounded-lg text-sm font-medium transition-colors inline-flex items-center gap-2"
+                          >
+                            <RefreshCw className="w-4 h-4" />
+                            Retry
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : campaignsLoading ? (
                     // Skeleton loading state
                     <div className="space-y-3">
                       {Array.from({ length: 4 }).map((_, i) => (
