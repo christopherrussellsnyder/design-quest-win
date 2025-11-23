@@ -359,12 +359,27 @@ export default function Dashboard() {
                     </div>
                   </div>
                   {performanceLoading ? (
-                    <div className="h-[220px] flex items-center justify-center">
-                      <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-violet-500"></div>
+                    // Skeleton loading state for chart
+                    <div className="h-[220px] space-y-3 animate-pulse">
+                      <div className="flex justify-between items-end h-full px-4">
+                        {Array.from({ length: 7 }).map((_, i) => (
+                          <div key={i} className="flex flex-col justify-end items-center gap-2 flex-1">
+                            <div 
+                              className="bg-slate-800 rounded-t w-full" 
+                              style={{ height: `${Math.random() * 60 + 40}%` }}
+                            ></div>
+                            <div className="h-2 bg-slate-800 rounded w-8"></div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   ) : performanceData.length === 0 ? (
                     <div className="h-[220px] flex items-center justify-center">
-                      <p className="text-slate-400">No performance data available</p>
+                      <div className="text-center">
+                        <BarChart3 className="w-12 h-12 text-slate-600 mx-auto mb-3" />
+                        <p className="text-slate-400">No performance data available</p>
+                        <p className="text-sm text-slate-500 mt-1">Data will appear once you have campaigns running</p>
+                      </div>
                     </div>
                   ) : (
                     <ResponsiveContainer width="100%" height={220}>
@@ -439,10 +454,24 @@ export default function Dashboard() {
                 </div>
                 <div className="overflow-x-auto">
                   {campaignsLoading ? (
-                    // Loading state
-                    <div className="py-8 text-center">
-                      <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-violet-500"></div>
-                      <p className="mt-2 text-sm text-slate-400">Loading campaigns...</p>
+                    // Skeleton loading state
+                    <div className="space-y-3">
+                      {Array.from({ length: 4 }).map((_, i) => (
+                        <div key={i} className="flex items-center gap-4 p-4 animate-pulse">
+                          <div className="flex-1">
+                            <div className="h-4 bg-slate-800 rounded w-48 mb-2"></div>
+                            <div className="h-3 bg-slate-800 rounded w-24"></div>
+                          </div>
+                          <div className="h-6 bg-slate-800 rounded w-16"></div>
+                          <div className="h-4 bg-slate-800 rounded w-20"></div>
+                          <div className="h-4 bg-slate-800 rounded w-16"></div>
+                          <div className="h-4 bg-slate-800 rounded w-12"></div>
+                          <div className="flex gap-2">
+                            <div className="h-8 w-8 bg-slate-800 rounded"></div>
+                            <div className="h-8 w-8 bg-slate-800 rounded"></div>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   ) : campaigns.length === 0 ? (
                     // Empty state
