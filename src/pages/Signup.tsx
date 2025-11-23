@@ -37,7 +37,7 @@ export default function Signup() {
     try {
       const redirectUrl = `${window.location.origin}/dashboard`;
       
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -47,19 +47,25 @@ export default function Signup() {
 
       if (error) throw error;
 
+      console.log('Signup successful, session:', data.session ? 'Created' : 'Pending');
+
       toast({
         title: 'Account created!',
         description: 'Welcome to MarketAI. Redirecting to dashboard...',
       });
 
-      navigate('/dashboard');
+      // Wait for session to be established
+      if (data.session) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        navigate('/dashboard');
+      }
     } catch (error: any) {
+      console.error('Signup error:', error);
       toast({
         title: 'Signup failed',
         description: error.message || 'Failed to create account',
         variant: 'destructive',
       });
-    } finally {
       setLoading(false);
     }
   };

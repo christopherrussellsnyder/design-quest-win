@@ -8,21 +8,25 @@ const corsHeaders = {
 interface PerformanceData {
   date: string;
   day_name: string;
-  engagement: number;
-  conversions: number;
-  reach: number;
+  engagement: number | null;
+  conversions: number | null;
+  reach: number | null;
 }
 
 const VALID_TIME_RANGES = ['7d', '30d', '90d'] as const;
 type TimeRange = typeof VALID_TIME_RANGES[number];
 
 function getDaysFromTimeRange(timeRange: TimeRange): number {
-  const mapping: Record<TimeRange, number> = {
-    '7d': 7,
-    '30d': 30,
-    '90d': 90,
-  };
-  return mapping[timeRange];
+  switch (timeRange) {
+    case '7d':
+      return 7;
+    case '30d':
+      return 30;
+    case '90d':
+      return 90;
+    default:
+      return 7;
+  }
 }
 
 Deno.serve(async (req) => {
@@ -46,6 +50,8 @@ Deno.serve(async (req) => {
       );
     }
 
+    console.log('Authorization header present:', authHeader.substring(0, 20) + '...');
+
     // Create Supabase client with auth
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -66,7 +72,7 @@ Deno.serve(async (req) => {
     if (authError || !user) {
       console.error('Authentication error:', authError);
       return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
+        JSON.stringify({ error: 'Unauthorized', details: authError?.message }),
         {
           status: 401,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -74,29 +80,30 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Parse query parameters from URL or body
-    const url = new URL(req.url);
-    let timeRangeParam = url.searchParams.get('timeRange');
-    
-    // If not in URL, check request body
-    if (!timeRangeParam && req.method === 'POST') {
-      try {
-        const body = await req.json();
-        timeRangeParam = body.timeRange;
-      } catch {
-        // Body parsing failed, use default
-      }
-    }
-    
-    timeRangeParam = timeRangeParam || '7d';
+    console.log(`Fetching performance data for user: ${user.id}`);
 
-    // Validate timeRange parameter
-    if (!VALID_TIME_RANGES.includes(timeRangeParam as TimeRange)) {
-      console.error('Invalid timeRange parameter:', timeRangeParam);
+    // Get timeRange from request body or URL params
+    let timeRange: string = '7d';
+    
+    try {
+      const url = new URL(req.url);
+      const urlTimeRange = url.searchParams.get('timeRange');
+      
+      if (req.method === 'POST') {
+        const body = await req.json();
+        timeRange = body.timeRange || urlTimeRange || '7d';
+      } else {
+        timeRange = urlTimeRange || '7d';
+      }
+    } catch (e) {
+      console.log('Could not parse timeRange, using default 7d');
+    }
+
+    // Validate timeRange
+    if (!VALID_TIME_RANGES.includes(timeRange as TimeRange)) {
+      console.error('Invalid time range:', timeRange);
       return new Response(
-        JSON.stringify({ 
-          error: 'Invalid timeRange parameter. Must be one of: 7d, 30d, 90d' 
-        }),
+        JSON.stringify({ error: 'Invalid time range. Must be one of: 7d, 30d, 90d' }),
         {
           status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -104,31 +111,25 @@ Deno.serve(async (req) => {
       );
     }
 
-    const timeRange = timeRangeParam as TimeRange;
-    const days = getDaysFromTimeRange(timeRange);
-
-    console.log(`Fetching performance data for user: ${user.id}, timeRange: ${timeRange} (${days} days)`);
-
-    // Calculate the date threshold
-    const today = new Date();
-    const startDate = new Date(today);
+    const days = getDaysFromTimeRange(timeRange as TimeRange);
+    const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
-    const startDateStr = startDate.toISOString().split('T')[0];
+    const startDateString = startDate.toISOString().split('T')[0];
 
-    console.log(`Querying data from ${startDateStr} onwards`);
+    console.log(`Fetching performance data for ${timeRange} (${days} days) starting from ${startDateString}`);
 
     // Query performance data for the specified time range
     const { data: performanceData, error: performanceError } = await supabaseClient
       .from('performance_data')
       .select('*')
       .eq('user_id', user.id)
-      .gte('date', startDateStr)
+      .gte('date', startDateString)
       .order('date', { ascending: true });
 
     if (performanceError) {
       console.error('Database error fetching performance data:', performanceError);
       return new Response(
-        JSON.stringify({ error: 'Failed to fetch performance data' }),
+        JSON.stringify({ error: 'Failed to fetch performance data', details: performanceError.message }),
         {
           status: 500,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -146,12 +147,12 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Format data for chart display
-    const formattedData = performanceData.map((item: PerformanceData) => ({
-      name: item.day_name,
-      engagement: item.engagement,
-      conversions: item.conversions,
-      reach: item.reach,
+    // Format performance data for chart
+    const formattedData = performanceData.map((record: PerformanceData) => ({
+      name: record.day_name,
+      engagement: record.engagement ?? 0,
+      conversions: record.conversions ?? 0,
+      reach: record.reach ?? 0,
     }));
 
     console.log(`Successfully fetched ${formattedData.length} performance records`);
@@ -162,7 +163,10 @@ Deno.serve(async (req) => {
   } catch (error) {
     console.error('Unexpected error:', error);
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
+      JSON.stringify({ 
+        error: 'Internal server error', 
+        details: error instanceof Error ? error.message : 'Unknown error' 
+      }),
       {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
