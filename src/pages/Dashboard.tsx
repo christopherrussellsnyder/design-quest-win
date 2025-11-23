@@ -137,29 +137,14 @@ export default function Dashboard() {
     setPerformanceLoading(true);
     setPerformanceError(null);
     try {
-      // Get the session for authorization
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data, error } = await supabase.functions.invoke('dashboard-performance', {
+        body: { timeRange }
+      });
       
-      if (!session) {
-        throw new Error('No active session. Please log in.');
+      if (error) {
+        throw new Error(error.message || 'Failed to load performance data');
       }
-
-      // Call edge function with query parameter using fetch
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/dashboard-performance?timeRange=${timeRange}`,
-        {
-          headers: {
-            Authorization: `Bearer ${session.access_token}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch performance data');
-      }
-
-      const data = await response.json();
+      
       setPerformanceData(data || []);
     } catch (err: any) {
       console.error('Failed to load performance data:', err);
