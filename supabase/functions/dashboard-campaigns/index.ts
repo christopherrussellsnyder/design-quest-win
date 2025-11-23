@@ -45,6 +45,8 @@ Deno.serve(async (req) => {
       );
     }
 
+    console.log('Authorization header present:', authHeader.substring(0, 20) + '...');
+
     // Create Supabase client with auth
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -65,7 +67,7 @@ Deno.serve(async (req) => {
     if (authError || !user) {
       console.error('Authentication error:', authError);
       return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
+        JSON.stringify({ error: 'Unauthorized', details: authError?.message }),
         {
           status: 401,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -85,7 +87,7 @@ Deno.serve(async (req) => {
     if (campaignsError) {
       console.error('Database error fetching campaigns:', campaignsError);
       return new Response(
-        JSON.stringify({ error: 'Failed to fetch campaigns' }),
+        JSON.stringify({ error: 'Failed to fetch campaigns', details: campaignsError.message }),
         {
           status: 500,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -122,7 +124,10 @@ Deno.serve(async (req) => {
   } catch (error) {
     console.error('Unexpected error:', error);
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
+      JSON.stringify({ 
+        error: 'Internal server error', 
+        details: error instanceof Error ? error.message : 'Unknown error' 
+      }),
       {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

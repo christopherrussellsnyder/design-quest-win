@@ -89,11 +89,15 @@ export default function Dashboard() {
     setKpisLoading(true);
     setKpisError(null);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
-      if (!session) {
-        throw new Error('No active session');
+      if (sessionError || !session) {
+        console.error('No valid session:', sessionError);
+        window.location.href = '/login';
+        return;
       }
+
+      console.log('Fetching KPIs with token:', session.access_token.substring(0, 20) + '...');
 
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/dashboard-kpis`,
@@ -106,15 +110,23 @@ export default function Dashboard() {
         }
       );
 
+      console.log('KPIs response status:', response.status);
+
+      if (response.status === 401) {
+        console.error('Unauthorized - redirecting to login');
+        await supabase.auth.signOut();
+        window.location.href = '/login';
+        return;
+      }
+
       if (!response.ok) {
-        if (response.status === 401) {
-          window.location.href = '/login';
-          return;
-        }
-        throw new Error('Failed to fetch KPIs');
+        const errorText = await response.text();
+        console.error('API error:', errorText);
+        throw new Error(`Failed to fetch KPIs: ${response.status}`);
       }
 
       const data = await response.json();
+      console.log('KPIs data received:', data);
       setKpis(data);
     } catch (err: any) {
       console.error('Failed to load KPIs:', err);
@@ -133,11 +145,15 @@ export default function Dashboard() {
     setCampaignsLoading(true);
     setCampaignsError(null);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
-      if (!session) {
-        throw new Error('No active session');
+      if (sessionError || !session) {
+        console.error('No valid session:', sessionError);
+        window.location.href = '/login';
+        return;
       }
+
+      console.log('Fetching campaigns...');
 
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/dashboard-campaigns`,
@@ -150,15 +166,23 @@ export default function Dashboard() {
         }
       );
 
+      console.log('Campaigns response status:', response.status);
+
+      if (response.status === 401) {
+        console.error('Unauthorized - redirecting to login');
+        await supabase.auth.signOut();
+        window.location.href = '/login';
+        return;
+      }
+
       if (!response.ok) {
-        if (response.status === 401) {
-          window.location.href = '/login';
-          return;
-        }
-        throw new Error('Failed to fetch campaigns');
+        const errorText = await response.text();
+        console.error('API error:', errorText);
+        throw new Error(`Failed to fetch campaigns: ${response.status}`);
       }
 
       const data = await response.json();
+      console.log('Campaigns data received:', data.length, 'campaigns');
       setCampaigns(data || []);
     } catch (err: any) {
       console.error('Failed to load campaigns:', err);
@@ -177,11 +201,15 @@ export default function Dashboard() {
     setPerformanceLoading(true);
     setPerformanceError(null);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
-      if (!session) {
-        throw new Error('No active session');
+      if (sessionError || !session) {
+        console.error('No valid session:', sessionError);
+        window.location.href = '/login';
+        return;
       }
+
+      console.log('Fetching performance data for range:', timeRange);
 
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/dashboard-performance`,
@@ -195,15 +223,23 @@ export default function Dashboard() {
         }
       );
 
+      console.log('Performance data response status:', response.status);
+
+      if (response.status === 401) {
+        console.error('Unauthorized - redirecting to login');
+        await supabase.auth.signOut();
+        window.location.href = '/login';
+        return;
+      }
+
       if (!response.ok) {
-        if (response.status === 401) {
-          window.location.href = '/login';
-          return;
-        }
-        throw new Error('Failed to fetch performance data');
+        const errorText = await response.text();
+        console.error('API error:', errorText);
+        throw new Error(`Failed to fetch performance data: ${response.status}`);
       }
 
       const data = await response.json();
+      console.log('Performance data received:', data.length, 'records');
       setPerformanceData(data || []);
     } catch (err: any) {
       console.error('Failed to load performance data:', err);

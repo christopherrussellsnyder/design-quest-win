@@ -15,21 +15,27 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) throw error;
 
-      navigate('/dashboard');
+      // Wait for session to be established
+      if (data.session) {
+        console.log('Login successful, session established');
+        // Small delay to ensure auth state is propagated
+        await new Promise(resolve => setTimeout(resolve, 100));
+        navigate('/dashboard');
+      }
     } catch (error: any) {
+      console.error('Login error:', error);
       toast({
         title: 'Login failed',
         description: error.message || 'Invalid email or password',
         variant: 'destructive',
       });
-    } finally {
       setLoading(false);
     }
   };

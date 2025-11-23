@@ -6,30 +6,30 @@ const corsHeaders = {
 };
 
 interface MetricRecord {
-  date: string;
-  reach: number;
-  engagement_rate: number;
-  conversions: number;
-  email_open_rate: number;
+  reach: number | null;
+  engagement_rate: number | null;
+  conversions: number | null;
+  email_open_rate: number | null;
 }
 
 function formatNumber(value: number): string {
   if (value >= 1000000) {
     return `${(value / 1000000).toFixed(1)}M`;
   }
-  return value.toLocaleString('en-US');
+  if (value >= 1000) {
+    return value.toLocaleString('en-US');
+  }
+  return value.toString();
 }
 
 function calculateChange(current: number, previous: number): { change: string; up: boolean } {
-  if (previous === 0) {
-    return { change: '+0.0%', up: true };
-  }
-  
+  if (previous === 0) return { change: '+100%', up: true };
   const percentChange = ((current - previous) / previous) * 100;
-  const isUp = percentChange >= 0;
-  const formatted = `${isUp ? '+' : ''}${percentChange.toFixed(1)}%`;
-  
-  return { change: formatted, up: isUp };
+  const sign = percentChange >= 0 ? '+' : '';
+  return {
+    change: `${sign}${percentChange.toFixed(1)}%`,
+    up: percentChange >= 0,
+  };
 }
 
 Deno.serve(async (req) => {
@@ -53,6 +53,8 @@ Deno.serve(async (req) => {
       );
     }
 
+    console.log('Authorization header present:', authHeader.substring(0, 20) + '...');
+
     // Create Supabase client with auth
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -73,7 +75,7 @@ Deno.serve(async (req) => {
     if (authError || !user) {
       console.error('Authentication error:', authError);
       return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
+        JSON.stringify({ error: 'Unauthorized', details: authError?.message }),
         {
           status: 401,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -83,8 +85,13 @@ Deno.serve(async (req) => {
 
     console.log(`Fetching KPIs for user: ${user.id}`);
 
-    // Get the most recent metrics
-    const { data: recentData, error: recentError } = await supabaseClient
+    // Get current date and 7 days ago
+    const today = new Date();
+    const sevenDaysAgo = new Date(today);
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    // Query latest metrics
+    const { data: latestMetrics, error: latestError } = await supabaseClient
       .from('metrics_daily')
       .select('*')
       .eq('user_id', user.id)
@@ -92,92 +99,83 @@ Deno.serve(async (req) => {
       .limit(1)
       .single();
 
-    if (recentError) {
-      console.error('Error fetching recent metrics:', recentError);
-      return new Response(
-        JSON.stringify({ error: 'Failed to fetch recent metrics' }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
-      );
+    if (latestError && latestError.code !== 'PGRST116') {
+      console.error('Error fetching latest metrics:', latestError);
+      throw latestError;
     }
 
-    if (!recentData) {
-      console.log('No metrics found for user');
-      return new Response(
-        JSON.stringify({ error: 'No metrics data available' }),
-        {
-          status: 404,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
-      );
-    }
-
-    // Calculate date 7 days ago from the most recent record
-    const recentDate = new Date(recentData.date);
-    const sevenDaysAgo = new Date(recentDate);
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    const sevenDaysAgoStr = sevenDaysAgo.toISOString().split('T')[0];
-
-    console.log(`Recent date: ${recentData.date}, Seven days ago: ${sevenDaysAgoStr}`);
-
-    // Get metrics from 7 days ago
-    const { data: previousData, error: previousError } = await supabaseClient
+    // Query metrics from 7 days ago
+    const { data: previousMetrics, error: previousError } = await supabaseClient
       .from('metrics_daily')
       .select('*')
       .eq('user_id', user.id)
-      .eq('date', sevenDaysAgoStr)
-      .maybeSingle();
+      .lte('date', sevenDaysAgo.toISOString().split('T')[0])
+      .order('date', { ascending: false })
+      .limit(1)
+      .single();
 
-    if (previousError) {
+    if (previousError && previousError.code !== 'PGRST116') {
       console.error('Error fetching previous metrics:', previousError);
     }
 
-    // Build response with calculated changes
-    const recent = recentData as MetricRecord;
-    const previous = previousData as MetricRecord | null;
+    // Default values if no data
+    const current: MetricRecord = latestMetrics || {
+      reach: 0,
+      engagement_rate: 0,
+      conversions: 0,
+      email_open_rate: 0,
+    };
 
-    const reachChange = previous
-      ? calculateChange(recent.reach, previous.reach)
-      : { change: '+0.0%', up: true };
+    const previous: MetricRecord = previousMetrics || {
+      reach: 0,
+      engagement_rate: 0,
+      conversions: 0,
+      email_open_rate: 0,
+    };
 
-    const engagementChange = previous
-      ? calculateChange(recent.engagement_rate, previous.engagement_rate)
-      : { change: '+0.0%', up: true };
-
-    const conversionsChange = previous
-      ? calculateChange(recent.conversions, previous.conversions)
-      : { change: '+0.0%', up: true };
-
-    const emailChange = previous
-      ? calculateChange(recent.email_open_rate, previous.email_open_rate)
-      : { change: '+0.0%', up: true };
+    // Calculate KPIs with changes
+    const reachChange = calculateChange(current.reach ?? 0, previous.reach ?? 0);
+    const engagementChange = calculateChange(
+      current.engagement_rate ?? 0,
+      previous.engagement_rate ?? 0
+    );
+    const conversionsChange = calculateChange(
+      current.conversions ?? 0,
+      previous.conversions ?? 0
+    );
+    const emailChange = calculateChange(
+      current.email_open_rate ?? 0,
+      previous.email_open_rate ?? 0
+    );
 
     const response = {
       reach: {
-        value: formatNumber(recent.reach),
+        value: formatNumber(current.reach ?? 0),
         change: reachChange.change,
         up: reachChange.up,
+        benchmark: 'Top 15%',
       },
       engagement_rate: {
-        value: `${recent.engagement_rate}%`,
+        value: `${(current.engagement_rate ?? 0).toFixed(1)}%`,
         change: engagementChange.change,
         up: engagementChange.up,
+        benchmark: 'Top 20%',
       },
       conversions: {
-        value: formatNumber(recent.conversions),
+        value: formatNumber(current.conversions ?? 0),
         change: conversionsChange.change,
         up: conversionsChange.up,
+        benchmark: 'Top 10%',
       },
       email_open_rate: {
-        value: `${recent.email_open_rate}%`,
+        value: `${(current.email_open_rate ?? 0).toFixed(1)}%`,
         change: emailChange.change,
         up: emailChange.up,
+        benchmark: 'Average',
       },
     };
 
-    console.log('Successfully calculated KPIs');
+    console.log('KPIs calculated successfully');
 
     return new Response(JSON.stringify(response), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -185,7 +183,10 @@ Deno.serve(async (req) => {
   } catch (error) {
     console.error('Unexpected error:', error);
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
+      JSON.stringify({ 
+        error: 'Internal server error', 
+        details: error instanceof Error ? error.message : 'Unknown error' 
+      }),
       {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
