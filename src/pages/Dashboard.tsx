@@ -80,54 +80,122 @@ export default function Dashboard() {
   const [timeRange, setTimeRange] = useState('7d');
   const [seeding, setSeeding] = useState(false);
 
-  // Fetch KPI data from API
+  // Load dashboard data on mount
   useEffect(() => {
-    fetchKpis();
+    const loadDashboardData = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        window.location.href = '/login';
+        return;
+      }
+
+      // Load all data in parallel
+      await Promise.all([
+        fetchKpis(),
+        fetchCampaigns(),
+        fetchPerformanceData()
+      ]);
+    };
+
+    loadDashboardData();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session) {
+        window.location.href = '/login';
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
+
+  // Refetch performance data when timeRange changes
+  useEffect(() => {
+    fetchPerformanceData();
+  }, [timeRange]);
 
   const fetchKpis = async () => {
     setKpisLoading(true);
     setKpisError(null);
     try {
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        window.location.href = '/login';
+        return;
+      }
+
+      // Get latest metrics
+      const { data: latestMetrics, error: latestError } = await supabase
+        .from('metrics_daily')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('date', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (latestError) throw latestError;
+
+      if (!latestMetrics) {
+        setKpisError('No metrics data available');
+        return;
+      }
+
+      // Get metrics from 7 days ago for comparison
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
       
-      if (sessionError || !session) {
-        console.error('No valid session:', sessionError);
-        window.location.href = '/login';
-        return;
-      }
+      const { data: previousMetrics } = await supabase
+        .from('metrics_daily')
+        .select('*')
+        .eq('user_id', user.id)
+        .lte('date', sevenDaysAgo.toISOString().split('T')[0])
+        .order('date', { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
-      console.log('Fetching KPIs with token:', session.access_token.substring(0, 20) + '...');
+      // Calculate changes
+      const calculateChange = (current: number, previous: number | null) => {
+        if (!previous || previous === 0) return '+0%';
+        const change = ((current - previous) / previous) * 100;
+        return `${change > 0 ? '+' : ''}${change.toFixed(1)}%`;
+      };
 
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/dashboard-kpis`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${session.access_token}`,
-            'Content-Type': 'application/json',
-          },
+      // Format numbers
+      const formatNumber = (num: number) => {
+        if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
+        if (num >= 1000) return num.toLocaleString();
+        return num.toString();
+      };
+
+      const kpisData = {
+        reach: {
+          value: formatNumber(latestMetrics.reach ?? 0),
+          change: calculateChange(latestMetrics.reach ?? 0, previousMetrics?.reach ?? null),
+          up: (latestMetrics.reach ?? 0) >= (previousMetrics?.reach ?? 0),
+          benchmark: 'Top 15%'
+        },
+        engagement_rate: {
+          value: `${latestMetrics.engagement_rate ?? 0}%`,
+          change: calculateChange(latestMetrics.engagement_rate ?? 0, previousMetrics?.engagement_rate ?? null),
+          up: (latestMetrics.engagement_rate ?? 0) >= (previousMetrics?.engagement_rate ?? 0),
+          benchmark: 'Top 20%'
+        },
+        conversions: {
+          value: (latestMetrics.conversions ?? 0).toLocaleString(),
+          change: calculateChange(latestMetrics.conversions ?? 0, previousMetrics?.conversions ?? null),
+          up: (latestMetrics.conversions ?? 0) >= (previousMetrics?.conversions ?? 0),
+          benchmark: 'Top 10%'
+        },
+        email_open_rate: {
+          value: `${latestMetrics.email_open_rate ?? 0}%`,
+          change: calculateChange(latestMetrics.email_open_rate ?? 0, previousMetrics?.email_open_rate ?? null),
+          up: (latestMetrics.email_open_rate ?? 0) >= (previousMetrics?.email_open_rate ?? 0),
+          benchmark: 'Average'
         }
-      );
+      };
 
-      console.log('KPIs response status:', response.status);
-
-      if (response.status === 401) {
-        console.error('Unauthorized - redirecting to login');
-        await supabase.auth.signOut();
-        window.location.href = '/login';
-        return;
-      }
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('API error:', errorText);
-        throw new Error(`Failed to fetch KPIs: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log('KPIs data received:', data);
-      setKpis(data);
+      setKpis(kpisData);
     } catch (err: any) {
       console.error('Failed to load KPIs:', err);
       setKpisError(err.message || 'Failed to load KPIs');
@@ -136,54 +204,31 @@ export default function Dashboard() {
     }
   };
 
-  // Fetch campaigns from API
-  useEffect(() => {
-    fetchCampaigns();
-  }, []);
-
   const fetchCampaigns = async () => {
     setCampaignsLoading(true);
     setCampaignsError(null);
     try {
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
-      if (sessionError || !session) {
-        console.error('No valid session:', sessionError);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
         window.location.href = '/login';
         return;
       }
 
-      console.log('Fetching campaigns...');
+      const { data: campaignsData, error } = await supabase
+        .from('campaigns')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
 
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/dashboard-campaigns`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${session.access_token}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
+      if (error) throw error;
 
-      console.log('Campaigns response status:', response.status);
+      // Format spend values
+      const formattedCampaigns = (campaignsData || []).map(campaign => ({
+        ...campaign,
+        spend: `$${campaign.spend.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
+      }));
 
-      if (response.status === 401) {
-        console.error('Unauthorized - redirecting to login');
-        await supabase.auth.signOut();
-        window.location.href = '/login';
-        return;
-      }
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('API error:', errorText);
-        throw new Error(`Failed to fetch campaigns: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log('Campaigns data received:', data.length, 'campaigns');
-      setCampaigns(data || []);
+      setCampaigns(formattedCampaigns);
     } catch (err: any) {
       console.error('Failed to load campaigns:', err);
       setCampaignsError(err.message || 'Failed to load campaigns');
@@ -192,55 +237,47 @@ export default function Dashboard() {
     }
   };
 
-  // Fetch performance data from API based on timeRange
-  useEffect(() => {
-    fetchPerformanceData();
-  }, [timeRange]);
-
   const fetchPerformanceData = async () => {
     setPerformanceLoading(true);
     setPerformanceError(null);
     try {
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        window.location.href = '/login';
+        return;
+      }
+
+      // Calculate date range based on timeRange state
+      const endDate = new Date();
+      const startDate = new Date();
       
-      if (sessionError || !session) {
-        console.error('No valid session:', sessionError);
-        window.location.href = '/login';
-        return;
+      if (timeRange === '7d') {
+        startDate.setDate(endDate.getDate() - 7);
+      } else if (timeRange === '30d') {
+        startDate.setDate(endDate.getDate() - 30);
+      } else if (timeRange === '90d') {
+        startDate.setDate(endDate.getDate() - 90);
       }
 
-      console.log('Fetching performance data for range:', timeRange);
+      const { data: performanceData, error } = await supabase
+        .from('performance_data')
+        .select('*')
+        .eq('user_id', user.id)
+        .gte('date', startDate.toISOString().split('T')[0])
+        .lte('date', endDate.toISOString().split('T')[0])
+        .order('date', { ascending: true });
 
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/dashboard-performance`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${session.access_token}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ timeRange })
-        }
-      );
+      if (error) throw error;
 
-      console.log('Performance data response status:', response.status);
+      // Format for chart (use day_name from database)
+      const chartData = (performanceData || []).map(item => ({
+        name: item.day_name,
+        engagement: item.engagement ?? 0,
+        conversions: item.conversions ?? 0,
+        reach: item.reach ?? 0
+      }));
 
-      if (response.status === 401) {
-        console.error('Unauthorized - redirecting to login');
-        await supabase.auth.signOut();
-        window.location.href = '/login';
-        return;
-      }
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('API error:', errorText);
-        throw new Error(`Failed to fetch performance data: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log('Performance data received:', data.length, 'records');
-      setPerformanceData(data || []);
+      setPerformanceData(chartData);
     } catch (err: any) {
       console.error('Failed to load performance data:', err);
       setPerformanceError(err.message || 'Failed to load performance data');

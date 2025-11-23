@@ -25,8 +25,8 @@ export default function Login() {
       // Wait for session to be established
       if (data.session) {
         console.log('Login successful, session established');
-        // Small delay to ensure auth state is propagated
-        await new Promise(resolve => setTimeout(resolve, 100));
+        // Wait a moment for session to be fully synced
+        await new Promise(resolve => setTimeout(resolve, 500));
         navigate('/dashboard');
       }
     } catch (error: any) {
