@@ -70,6 +70,9 @@ export default function Dashboard() {
   const [kpisLoading, setKpisLoading] = useState(true);
   const [campaigns, setCampaigns] = useState<any[]>([]);
   const [campaignsLoading, setCampaignsLoading] = useState(true);
+  const [performanceData, setPerformanceData] = useState<any[]>([]);
+  const [performanceLoading, setPerformanceLoading] = useState(true);
+  const [timeRange, setTimeRange] = useState('7d');
 
   // Fetch KPI data from API
   useEffect(() => {
@@ -116,6 +119,47 @@ export default function Dashboard() {
 
     fetchCampaigns();
   }, []);
+
+  // Fetch performance data from API based on timeRange
+  useEffect(() => {
+    const fetchPerformanceData = async () => {
+      setPerformanceLoading(true);
+      try {
+        // Get the session for authorization
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session) {
+          console.log('No active session for performance data');
+          setPerformanceLoading(false);
+          return;
+        }
+
+        // Call edge function with query parameter using fetch
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/dashboard-performance?timeRange=${timeRange}`,
+          {
+            headers: {
+              Authorization: `Bearer ${session.access_token}`,
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch performance data');
+        }
+
+        const data = await response.json();
+        setPerformanceData(data || []);
+      } catch (err) {
+        console.error('Failed to load performance data:', err);
+      } finally {
+        setPerformanceLoading(false);
+      }
+    };
+
+    fetchPerformanceData();
+  }, [timeRange]);
 
   const navItems = [
     { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -282,34 +326,71 @@ export default function Dashboard() {
                   <div className="flex items-center justify-between mb-4">
                     <h2 className="font-semibold">Performance Overview</h2>
                     <div className="flex items-center gap-2">
-                      <button className="px-3 py-1.5 text-xs bg-violet-500/20 text-violet-400 rounded-lg border border-violet-500/30">7 Days</button>
-                      <button className="px-3 py-1.5 text-xs text-slate-400 hover:bg-slate-800 rounded-lg">30 Days</button>
-                      <button className="px-3 py-1.5 text-xs text-slate-400 hover:bg-slate-800 rounded-lg">90 Days</button>
+                      <button 
+                        onClick={() => setTimeRange('7d')}
+                        className={`px-3 py-1.5 text-xs rounded-lg border transition-colors ${
+                          timeRange === '7d' 
+                            ? 'bg-violet-500/20 text-violet-400 border-violet-500/30' 
+                            : 'text-slate-400 border-transparent hover:bg-slate-800'
+                        }`}
+                      >
+                        7 Days
+                      </button>
+                      <button 
+                        onClick={() => setTimeRange('30d')}
+                        className={`px-3 py-1.5 text-xs rounded-lg border transition-colors ${
+                          timeRange === '30d' 
+                            ? 'bg-violet-500/20 text-violet-400 border-violet-500/30' 
+                            : 'text-slate-400 border-transparent hover:bg-slate-800'
+                        }`}
+                      >
+                        30 Days
+                      </button>
+                      <button 
+                        onClick={() => setTimeRange('90d')}
+                        className={`px-3 py-1.5 text-xs rounded-lg border transition-colors ${
+                          timeRange === '90d' 
+                            ? 'bg-violet-500/20 text-violet-400 border-violet-500/30' 
+                            : 'text-slate-400 border-transparent hover:bg-slate-800'
+                        }`}
+                      >
+                        90 Days
+                      </button>
                     </div>
                   </div>
-                  <ResponsiveContainer width="100%" height={220}>
-                    <AreaChart data={performanceData}>
-                      <defs>
-                        <linearGradient id="engGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3}/>
-                          <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
-                        </linearGradient>
-                        <linearGradient id="convGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.3}/>
-                          <stop offset="95%" stopColor="#06b6d4" stopOpacity={0}/>
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                      <XAxis dataKey="name" stroke="#64748b" fontSize={12} />
-                      <YAxis stroke="#64748b" fontSize={12} />
-                      <Tooltip 
-                        contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px' }}
-                        labelStyle={{ color: '#f8fafc' }}
-                      />
-                      <Area type="monotone" dataKey="engagement" stroke="#8b5cf6" fill="url(#engGrad)" strokeWidth={2} />
-                      <Area type="monotone" dataKey="conversions" stroke="#06b6d4" fill="url(#convGrad)" strokeWidth={2} />
-                    </AreaChart>
-                  </ResponsiveContainer>
+                  {performanceLoading ? (
+                    <div className="h-[220px] flex items-center justify-center">
+                      <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-violet-500"></div>
+                    </div>
+                  ) : performanceData.length === 0 ? (
+                    <div className="h-[220px] flex items-center justify-center">
+                      <p className="text-slate-400">No performance data available</p>
+                    </div>
+                  ) : (
+                    <ResponsiveContainer width="100%" height={220}>
+                      <AreaChart data={performanceData}>
+                        <defs>
+                          <linearGradient id="engGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3}/>
+                            <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
+                          </linearGradient>
+                          <linearGradient id="convGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.3}/>
+                            <stop offset="95%" stopColor="#06b6d4" stopOpacity={0}/>
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                        <XAxis dataKey="name" stroke="#64748b" fontSize={12} />
+                        <YAxis stroke="#64748b" fontSize={12} />
+                        <Tooltip 
+                          contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px' }}
+                          labelStyle={{ color: '#f8fafc' }}
+                        />
+                        <Area type="monotone" dataKey="engagement" stroke="#8b5cf6" fill="url(#engGrad)" strokeWidth={2} />
+                        <Area type="monotone" dataKey="conversions" stroke="#06b6d4" fill="url(#convGrad)" strokeWidth={2} />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  )}
                   <div className="flex items-center gap-6 mt-3 justify-center">
                     <div className="flex items-center gap-2">
                       <div className="w-3 h-3 rounded-full bg-violet-500"></div>
