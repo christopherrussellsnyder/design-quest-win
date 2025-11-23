@@ -89,12 +89,32 @@ export default function Dashboard() {
     setKpisLoading(true);
     setKpisError(null);
     try {
-      const { data, error } = await supabase.functions.invoke('dashboard-kpis');
+      const { data: { session } } = await supabase.auth.getSession();
       
-      if (error) {
-        throw new Error(error.message || 'Failed to load KPIs');
+      if (!session) {
+        throw new Error('No active session');
       }
-      
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/dashboard-kpis`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          window.location.href = '/login';
+          return;
+        }
+        throw new Error('Failed to fetch KPIs');
+      }
+
+      const data = await response.json();
       setKpis(data);
     } catch (err: any) {
       console.error('Failed to load KPIs:', err);
@@ -113,12 +133,32 @@ export default function Dashboard() {
     setCampaignsLoading(true);
     setCampaignsError(null);
     try {
-      const { data, error } = await supabase.functions.invoke('dashboard-campaigns');
+      const { data: { session } } = await supabase.auth.getSession();
       
-      if (error) {
-        throw new Error(error.message || 'Failed to load campaigns');
+      if (!session) {
+        throw new Error('No active session');
       }
-      
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/dashboard-campaigns`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          window.location.href = '/login';
+          return;
+        }
+        throw new Error('Failed to fetch campaigns');
+      }
+
+      const data = await response.json();
       setCampaigns(data || []);
     } catch (err: any) {
       console.error('Failed to load campaigns:', err);
@@ -137,14 +177,33 @@ export default function Dashboard() {
     setPerformanceLoading(true);
     setPerformanceError(null);
     try {
-      const { data, error } = await supabase.functions.invoke('dashboard-performance', {
-        body: { timeRange }
-      });
+      const { data: { session } } = await supabase.auth.getSession();
       
-      if (error) {
-        throw new Error(error.message || 'Failed to load performance data');
+      if (!session) {
+        throw new Error('No active session');
       }
-      
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/dashboard-performance`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ timeRange })
+        }
+      );
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          window.location.href = '/login';
+          return;
+        }
+        throw new Error('Failed to fetch performance data');
+      }
+
+      const data = await response.json();
       setPerformanceData(data || []);
     } catch (err: any) {
       console.error('Failed to load performance data:', err);
