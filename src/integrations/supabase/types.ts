@@ -14,7 +14,111 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      campaigns: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          platform: string
+          roi: string | null
+          spend: number
+          status: Database["public"]["Enums"]["campaign_status"]
+          trend: Database["public"]["Enums"]["campaign_trend"] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          platform: string
+          roi?: string | null
+          spend?: number
+          status?: Database["public"]["Enums"]["campaign_status"]
+          trend?: Database["public"]["Enums"]["campaign_trend"] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          platform?: string
+          roi?: string | null
+          spend?: number
+          status?: Database["public"]["Enums"]["campaign_status"]
+          trend?: Database["public"]["Enums"]["campaign_trend"] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      metrics_daily: {
+        Row: {
+          conversions: number | null
+          created_at: string
+          date: string
+          email_open_rate: number | null
+          engagement_rate: number | null
+          id: string
+          reach: number | null
+          user_id: string
+        }
+        Insert: {
+          conversions?: number | null
+          created_at?: string
+          date: string
+          email_open_rate?: number | null
+          engagement_rate?: number | null
+          id?: string
+          reach?: number | null
+          user_id: string
+        }
+        Update: {
+          conversions?: number | null
+          created_at?: string
+          date?: string
+          email_open_rate?: number | null
+          engagement_rate?: number | null
+          id?: string
+          reach?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      performance_data: {
+        Row: {
+          conversions: number | null
+          created_at: string
+          date: string
+          day_name: string
+          engagement: number | null
+          id: string
+          reach: number | null
+          user_id: string
+        }
+        Insert: {
+          conversions?: number | null
+          created_at?: string
+          date: string
+          day_name: string
+          engagement?: number | null
+          id?: string
+          reach?: number | null
+          user_id: string
+        }
+        Update: {
+          conversions?: number | null
+          created_at?: string
+          date?: string
+          day_name?: string
+          engagement?: number | null
+          id?: string
+          reach?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +127,8 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      campaign_status: "active" | "paused" | "draft"
+      campaign_trend: "up" | "down" | "neutral"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +255,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      campaign_status: ["active", "paused", "draft"],
+      campaign_trend: ["up", "down", "neutral"],
+    },
   },
 } as const
