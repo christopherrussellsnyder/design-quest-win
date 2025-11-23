@@ -1,1 +1,4 @@
 project_id = "yxpzkcqeqzpgysvrrezc"
+
+[functions.dashboard-kpis]
+verify_jwt = true
