@@ -5,3 +5,6 @@ verify_jwt = true
 
 [functions.dashboard-campaigns]
 verify_jwt = true
+
+[functions.dashboard-performance]
+verify_jwt = true
