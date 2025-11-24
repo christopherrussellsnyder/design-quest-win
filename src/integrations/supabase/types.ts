@@ -14,39 +14,174 @@ export type Database = {
   }
   public: {
     Tables: {
+      campaign_drafts: {
+        Row: {
+          audience_segment: string | null
+          bid_strategy: string | null
+          call_to_action: string | null
+          completed: boolean | null
+          created_at: string | null
+          current_step: number | null
+          daily_limit: number | null
+          end_date: string | null
+          estimated_reach_max: number | null
+          estimated_reach_min: number | null
+          id: string
+          interests: string[] | null
+          locations: string | null
+          name: string | null
+          objective: string | null
+          platforms: string[] | null
+          primary_message: string | null
+          start_date: string | null
+          total_budget: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          audience_segment?: string | null
+          bid_strategy?: string | null
+          call_to_action?: string | null
+          completed?: boolean | null
+          created_at?: string | null
+          current_step?: number | null
+          daily_limit?: number | null
+          end_date?: string | null
+          estimated_reach_max?: number | null
+          estimated_reach_min?: number | null
+          id?: string
+          interests?: string[] | null
+          locations?: string | null
+          name?: string | null
+          objective?: string | null
+          platforms?: string[] | null
+          primary_message?: string | null
+          start_date?: string | null
+          total_budget?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          audience_segment?: string | null
+          bid_strategy?: string | null
+          call_to_action?: string | null
+          completed?: boolean | null
+          created_at?: string | null
+          current_step?: number | null
+          daily_limit?: number | null
+          end_date?: string | null
+          estimated_reach_max?: number | null
+          estimated_reach_min?: number | null
+          id?: string
+          interests?: string[] | null
+          locations?: string | null
+          name?: string | null
+          objective?: string | null
+          platforms?: string[] | null
+          primary_message?: string | null
+          start_date?: string | null
+          total_budget?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      campaign_templates: {
+        Row: {
+          category: string
+          created_at: string | null
+          default_message: string | null
+          default_platforms: string[] | null
+          description: string | null
+          icon: string | null
+          id: string
+          name: string
+          objective: string
+          popular: boolean | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          default_message?: string | null
+          default_platforms?: string[] | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name: string
+          objective: string
+          popular?: boolean | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          default_message?: string | null
+          default_platforms?: string[] | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
+          objective?: string
+          popular?: boolean | null
+        }
+        Relationships: []
+      }
       campaigns: {
         Row: {
           created_at: string
+          daily_limit: number | null
+          end_date: string | null
+          estimated_reach: number | null
           id: string
           name: string
+          objective: string | null
           platform: string
+          predicted_conversions: number | null
+          predicted_roi: string | null
           roi: string | null
           spend: number
+          start_date: string | null
           status: Database["public"]["Enums"]["campaign_status"]
+          total_budget: number | null
           trend: Database["public"]["Enums"]["campaign_trend"] | null
           updated_at: string
           user_id: string
         }
         Insert: {
           created_at?: string
+          daily_limit?: number | null
+          end_date?: string | null
+          estimated_reach?: number | null
           id?: string
           name: string
+          objective?: string | null
           platform: string
+          predicted_conversions?: number | null
+          predicted_roi?: string | null
           roi?: string | null
           spend?: number
+          start_date?: string | null
           status?: Database["public"]["Enums"]["campaign_status"]
+          total_budget?: number | null
           trend?: Database["public"]["Enums"]["campaign_trend"] | null
           updated_at?: string
           user_id: string
         }
         Update: {
           created_at?: string
+          daily_limit?: number | null
+          end_date?: string | null
+          estimated_reach?: number | null
           id?: string
           name?: string
+          objective?: string | null
           platform?: string
+          predicted_conversions?: number | null
+          predicted_roi?: string | null
           roi?: string | null
           spend?: number
+          start_date?: string | null
           status?: Database["public"]["Enums"]["campaign_status"]
+          total_budget?: number | null
           trend?: Database["public"]["Enums"]["campaign_trend"] | null
           updated_at?: string
           user_id?: string
