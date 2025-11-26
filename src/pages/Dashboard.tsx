@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Sparkles, TrendingUp, Users, Mail, Target, Zap, ChevronDown, Play, Pause, Settings, Bell, Search, Plus, ArrowUpRight, ArrowDownRight, LayoutDashboard, FileText, Send, Megaphone, Calendar, ChevronRight, Image, Type, Video, Wand2, Copy, RefreshCw, Check, Filter, Download, Eye, MousePointer, DollarSign, ChevronLeft, BarChart3, LogOut } from 'lucide-react';
+import { Sparkles, TrendingUp, Users, Mail, Target, Zap, ChevronDown, Play, Pause, Settings, Bell, Search, Plus, ArrowUpRight, ArrowDownRight, LayoutDashboard, FileText, Send, Megaphone, Calendar, ChevronRight, Image, Type, Video, Wand2, Copy, RefreshCw, Check, Filter, Download, Eye, MousePointer, DollarSign, ChevronLeft, BarChart3, LogOut, X } from 'lucide-react';
 
 const performanceData = [
   { name: 'Mon', engagement: 4200, conversions: 240, reach: 18000 },
@@ -98,6 +98,12 @@ export default function Dashboard() {
     daily_limit: '',
     bid_strategy: 'automatic'
   });
+  
+  // Campaign Management State
+  const [loadingCampaigns, setLoadingCampaigns] = useState(false);
+  const [selectedCampaign, setSelectedCampaign] = useState<any>(null);
+  const [showCampaignDetails, setShowCampaignDetails] = useState(false);
+  const [editingCampaignId, setEditingCampaignId] = useState<string | null>(null);
 
   // Load dashboard data on mount
   useEffect(() => {
@@ -133,6 +139,13 @@ export default function Dashboard() {
   useEffect(() => {
     fetchPerformanceData();
   }, [timeRange]);
+  
+  // Fetch campaigns when dashboard tab is active
+  useEffect(() => {
+    if (activeTab === 'dashboard') {
+      fetchCampaigns();
+    }
+  }, [activeTab]);
 
   // Check if data exists to show/hide seed button
   useEffect(() => {
@@ -268,6 +281,7 @@ export default function Dashboard() {
   };
 
   const fetchCampaigns = async () => {
+    setLoadingCampaigns(true);
     setCampaignsLoading(true);
     setCampaignsError(null);
     try {
@@ -292,11 +306,209 @@ export default function Dashboard() {
       }));
 
       setCampaigns(formattedCampaigns);
+      console.log('Campaigns loaded:', formattedCampaigns.length);
     } catch (err: any) {
       console.error('Failed to load campaigns:', err);
       setCampaignsError(err.message || 'Failed to load campaigns');
     } finally {
+      setLoadingCampaigns(false);
       setCampaignsLoading(false);
+    }
+  };
+  
+  // Update campaign status (pause/resume)
+  const updateCampaignStatus = async (campaignId: string, newStatus: 'active' | 'paused') => {
+    try {
+      const { error } = await supabase
+        .from('campaigns')
+        .update({ status: newStatus })
+        .eq('id', campaignId);
+      
+      if (error) {
+        console.error('Update status error:', error);
+        import('@/hooks/use-toast').then(({ toast }) => {
+          toast({
+            title: 'Error',
+            description: 'Failed to update campaign status',
+            variant: 'destructive'
+          });
+        });
+      } else {
+        import('@/hooks/use-toast').then(({ toast }) => {
+          toast({
+            title: 'Success',
+            description: `Campaign ${newStatus === 'paused' ? 'paused' : 'resumed'} successfully`,
+          });
+        });
+        fetchCampaigns(); // Refresh list
+      }
+    } catch (error) {
+      console.error('Update status error:', error);
+      import('@/hooks/use-toast').then(({ toast }) => {
+        toast({
+          title: 'Error',
+          description: 'Failed to update campaign status',
+          variant: 'destructive'
+        });
+      });
+    }
+  };
+
+  // Delete campaign
+  const deleteCampaign = async (campaignId: string) => {
+    if (!confirm('Are you sure you want to delete this campaign? This action cannot be undone.')) {
+      return;
+    }
+    
+    try {
+      const { error } = await supabase
+        .from('campaigns')
+        .delete()
+        .eq('id', campaignId);
+      
+      if (error) {
+        console.error('Delete campaign error:', error);
+        import('@/hooks/use-toast').then(({ toast }) => {
+          toast({
+            title: 'Error',
+            description: 'Failed to delete campaign',
+            variant: 'destructive'
+          });
+        });
+      } else {
+        import('@/hooks/use-toast').then(({ toast }) => {
+          toast({
+            title: 'Success',
+            description: 'Campaign deleted successfully',
+          });
+        });
+        fetchCampaigns(); // Refresh list
+        setShowCampaignDetails(false);
+        setSelectedCampaign(null);
+      }
+    } catch (error) {
+      console.error('Delete campaign error:', error);
+      import('@/hooks/use-toast').then(({ toast }) => {
+        toast({
+          title: 'Error',
+          description: 'Failed to delete campaign',
+          variant: 'destructive'
+        });
+      });
+    }
+  };
+
+  // Load campaign into builder for editing
+  const editCampaign = async (campaign: any) => {
+    setEditingCampaignId(campaign.id);
+    
+    // Populate form with campaign data
+    setCampaignFormData({
+      name: campaign.name || '',
+      objective: campaign.objective || 'awareness',
+      start_date: campaign.start_date || '',
+      end_date: campaign.end_date || '',
+      audience_segment: campaign.target_audience?.segment || 'Young Professionals (25-34)',
+      locations: campaign.target_audience?.locations || '',
+      interests: campaign.target_audience?.interests || [],
+      platforms: Array.isArray(campaign.platforms) ? campaign.platforms : campaign.platform?.split(', ') || [],
+      primary_message: campaign.content?.message || '',
+      call_to_action: campaign.content?.cta || '',
+      total_budget: campaign.total_budget?.toString() || '',
+      daily_limit: campaign.daily_limit?.toString() || '',
+      bid_strategy: 'automatic'
+    });
+    
+    // Switch to Campaign Builder tab
+    setActiveTab('campaigns');
+    setCampaignStep(1);
+    setShowCampaignDetails(false);
+  };
+
+  // Save edited campaign
+  const saveEditedCampaign = async () => {
+    if (!editingCampaignId) {
+      // This is a new campaign, use existing launch logic
+      await launchCampaign();
+      return;
+    }
+    
+    // Validation
+    if (!campaignFormData.name || campaignFormData.name.trim() === '') {
+      import('@/hooks/use-toast').then(({ toast }) => {
+        toast({
+          title: 'Validation Error',
+          description: 'Please enter a campaign name',
+          variant: 'destructive'
+        });
+      });
+      return;
+    }
+    
+    try {
+      const { error } = await supabase
+        .from('campaigns')
+        .update({
+          name: campaignFormData.name,
+          objective: campaignFormData.objective,
+          start_date: campaignFormData.start_date || null,
+          end_date: campaignFormData.end_date || null,
+          total_budget: campaignFormData.total_budget ? parseFloat(campaignFormData.total_budget) : null,
+          daily_limit: campaignFormData.daily_limit ? parseFloat(campaignFormData.daily_limit) : null,
+          platform: campaignFormData.platforms.join(', ') || 'Multi-channel',
+        })
+        .eq('id', editingCampaignId);
+      
+      if (error) {
+        console.error('Update campaign error:', error);
+        import('@/hooks/use-toast').then(({ toast }) => {
+          toast({
+            title: 'Error',
+            description: 'Failed to update campaign: ' + error.message,
+            variant: 'destructive'
+          });
+        });
+        return;
+      }
+      
+      // Reset form
+      setCampaignFormData({
+        name: '',
+        objective: 'awareness',
+        start_date: '',
+        end_date: '',
+        audience_segment: 'Young Professionals (25-34)',
+        locations: '',
+        interests: [],
+        platforms: [],
+        primary_message: '',
+        call_to_action: '',
+        total_budget: '',
+        daily_limit: '',
+        bid_strategy: 'automatic'
+      });
+      setEditingCampaignId(null);
+      setCampaignStep(1);
+      
+      import('@/hooks/use-toast').then(({ toast }) => {
+        toast({
+          title: 'Success',
+          description: 'Campaign updated successfully',
+        });
+      });
+      
+      setActiveTab('dashboard');
+      fetchCampaigns();
+      
+    } catch (error) {
+      console.error('Update campaign error:', error);
+      import('@/hooks/use-toast').then(({ toast }) => {
+        toast({
+          title: 'Error',
+          description: 'Failed to update campaign',
+          variant: 'destructive'
+        });
+      });
     }
   };
 
@@ -475,6 +687,12 @@ export default function Dashboard() {
   };
 
   const launchCampaign = async () => {
+    // If editing existing campaign, use save function instead
+    if (editingCampaignId) {
+      await saveEditedCampaign();
+      return;
+    }
+    
     // Validation
     if (!campaignFormData.name || campaignFormData.name.trim() === '') {
       import('@/hooks/use-toast').then(({ toast }) => {
@@ -1228,9 +1446,16 @@ export default function Dashboard() {
                           <th className="pb-3 font-medium">Actions</th>
                         </tr>
                       </thead>
-                      <tbody>
+                       <tbody>
                         {campaigns.map(c => (
-                          <tr key={c.id} className="border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors">
+                          <tr 
+                            key={c.id} 
+                            className="border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors cursor-pointer"
+                            onClick={() => {
+                              setSelectedCampaign(c);
+                              setShowCampaignDetails(true);
+                            }}
+                          >
                             <td className="py-4">
                               <span className="font-medium">{c.name}</span>
                             </td>
@@ -1250,12 +1475,26 @@ export default function Dashboard() {
                                 {c.roi}
                               </span>
                             </td>
-                            <td className="py-4">
+                            <td className="py-4" onClick={(e) => e.stopPropagation()}>
                               <div className="flex items-center gap-2">
-                                <button className="p-1.5 rounded hover:bg-slate-700 transition-colors">
+                                <button 
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    updateCampaignStatus(c.id, c.status === 'active' ? 'paused' : 'active');
+                                  }}
+                                  className="p-1.5 rounded hover:bg-slate-700 transition-colors"
+                                  title={c.status === 'active' ? 'Pause Campaign' : 'Resume Campaign'}
+                                >
                                   {c.status === 'active' ? <Pause className="w-4 h-4 text-slate-400" /> : <Play className="w-4 h-4 text-slate-400" />}
                                 </button>
-                                <button className="p-1.5 rounded hover:bg-slate-700 transition-colors">
+                                <button 
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    editCampaign(c);
+                                  }}
+                                  className="p-1.5 rounded hover:bg-slate-700 transition-colors"
+                                  title="Edit Campaign"
+                                >
                                   <Settings className="w-4 h-4 text-slate-400" />
                                 </button>
                               </div>
@@ -1607,7 +1846,7 @@ export default function Dashboard() {
                     }} 
                     className="px-8 py-2.5 bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-lg text-sm font-medium hover:opacity-90"
                   >
-                    {campaignStep === 5 ? 'Launch Campaign' : 'Continue'}
+                    {campaignStep === 5 ? (editingCampaignId ? 'Update Campaign' : 'Launch Campaign') : 'Continue'}
                   </button>
                 </div>
               </div>
@@ -2596,6 +2835,93 @@ export default function Dashboard() {
           )}
         </main>
       </div>
+      
+      {/* Campaign Details Modal */}
+      {showCampaignDetails && selectedCampaign && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="flex justify-between items-start p-6 border-b border-slate-800">
+              <div>
+                <h2 className="text-2xl font-bold mb-2">{selectedCampaign.name}</h2>
+                <span className={`text-xs px-3 py-1 rounded-full ${
+                  selectedCampaign.status === 'active' ? 'bg-emerald-500/20 text-emerald-400' :
+                  selectedCampaign.status === 'paused' ? 'bg-amber-500/20 text-amber-400' :
+                  'bg-slate-500/20 text-slate-400'
+                }`}>
+                  {selectedCampaign.status}
+                </span>
+              </div>
+              <button
+                onClick={() => {
+                  setShowCampaignDetails(false);
+                  setSelectedCampaign(null);
+                }}
+                className="p-2 hover:bg-slate-800 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            {/* Modal Body */}
+            <div className="p-6 space-y-6">
+              {/* Campaign Details */}
+              <div>
+                <h3 className="text-sm font-semibold text-slate-400 mb-3">Campaign Details</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs text-slate-500">Objective</label>
+                    <p className="text-sm">
+                      {selectedCampaign.objective === 'awareness' ? 'Brand Awareness' :
+                       selectedCampaign.objective === 'traffic' ? 'Website Traffic' : 'Conversions'}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-500">Budget</label>
+                    <p className="text-sm">${selectedCampaign.total_budget?.toLocaleString() || 0}</p>
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-500">Start Date</label>
+                    <p className="text-sm">{selectedCampaign.start_date ? new Date(selectedCampaign.start_date).toLocaleDateString() : 'Not set'}</p>
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-500">End Date</label>
+                    <p className="text-sm">{selectedCampaign.end_date ? new Date(selectedCampaign.end_date).toLocaleDateString() : 'Not set'}</p>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Platform */}
+              <div>
+                <h3 className="text-sm font-semibold text-slate-400 mb-3">Platform</h3>
+                <p className="text-sm">{selectedCampaign.platform}</p>
+              </div>
+              
+              {/* Actions */}
+              <div className="flex gap-3 pt-4 border-t border-slate-800">
+                <button
+                  onClick={() => editCampaign(selectedCampaign)}
+                  className="flex-1 px-4 py-2.5 bg-violet-500 hover:bg-violet-600 rounded-lg transition-colors"
+                >
+                  Edit Campaign
+                </button>
+                <button
+                  onClick={() => updateCampaignStatus(selectedCampaign.id, selectedCampaign.status === 'active' ? 'paused' : 'active')}
+                  className="flex-1 px-4 py-2.5 border border-slate-700 hover:bg-slate-800 rounded-lg transition-colors"
+                >
+                  {selectedCampaign.status === 'active' ? 'Pause' : 'Resume'} Campaign
+                </button>
+                <button
+                  onClick={() => deleteCampaign(selectedCampaign.id)}
+                  className="px-4 py-2.5 border border-red-500/50 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
