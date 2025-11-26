@@ -80,6 +80,23 @@ export default function Dashboard() {
   const [timeRange, setTimeRange] = useState('7d');
   const [seeding, setSeeding] = useState(false);
   const [showSeedButton, setShowSeedButton] = useState(false);
+  const [campaignDraftId, setCampaignDraftId] = useState<string | null>(null);
+  const [isSavingCampaign, setIsSavingCampaign] = useState(false);
+  const [campaignFormData, setCampaignFormData] = useState({
+    name: '',
+    objective: 'awareness',
+    start_date: '',
+    end_date: '',
+    audience_segment: 'Young Professionals (25-34)',
+    locations: '',
+    interests: [] as string[],
+    platforms: [] as string[],
+    primary_message: '',
+    call_to_action: '',
+    total_budget: '',
+    daily_limit: '',
+    bid_strategy: 'automatic'
+  });
 
   // Load dashboard data on mount
   useEffect(() => {
@@ -133,6 +150,23 @@ export default function Dashboard() {
     };
     checkForData();
   }, [campaigns]);
+
+  // Load draft when Campaign Builder tab is opened
+  useEffect(() => {
+    if (activeTab === 'campaigns') {
+      loadCampaignDraft();
+    }
+  }, [activeTab]);
+
+  // Auto-save every 30 seconds
+  useEffect(() => {
+    if (activeTab === 'campaigns' && campaignFormData.name) {
+      const interval = setInterval(() => {
+        saveCampaignDraft();
+      }, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [activeTab, campaignFormData]);
 
   const fetchKpis = async () => {
     setKpisLoading(true);
@@ -330,6 +364,159 @@ export default function Dashboard() {
       setGenerating(false);
       setGenerated(true);
     }, 2000);
+  };
+
+  const loadCampaignDraft = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: drafts } = await supabase
+        .from('campaign_drafts')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('completed', false)
+        .order('updated_at', { ascending: false })
+        .limit(1);
+      
+      if (drafts && drafts.length > 0) {
+        const draft = drafts[0];
+        setCampaignDraftId(draft.id);
+        setCampaignFormData({
+          name: draft.name || '',
+          objective: draft.objective || 'awareness',
+          start_date: draft.start_date || '',
+          end_date: draft.end_date || '',
+          audience_segment: draft.audience_segment || 'Young Professionals (25-34)',
+          locations: draft.locations || '',
+          interests: draft.interests || [],
+          platforms: draft.platforms || [],
+          primary_message: draft.primary_message || '',
+          call_to_action: draft.call_to_action || '',
+          total_budget: draft.total_budget?.toString() || '',
+          daily_limit: draft.daily_limit?.toString() || '',
+          bid_strategy: draft.bid_strategy || 'automatic'
+        });
+        setCampaignStep(draft.current_step || 1);
+      }
+    } catch (error) {
+      console.error('Load draft error:', error);
+    }
+  };
+
+  const saveCampaignDraft = async () => {
+    setIsSavingCampaign(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      
+      const draftData = {
+        user_id: user.id,
+        name: campaignFormData.name || 'Untitled Campaign',
+        objective: campaignFormData.objective,
+        start_date: campaignFormData.start_date || null,
+        end_date: campaignFormData.end_date || null,
+        audience_segment: campaignFormData.audience_segment,
+        locations: campaignFormData.locations,
+        interests: campaignFormData.interests,
+        platforms: campaignFormData.platforms,
+        primary_message: campaignFormData.primary_message,
+        call_to_action: campaignFormData.call_to_action,
+        total_budget: campaignFormData.total_budget ? parseFloat(campaignFormData.total_budget) : null,
+        daily_limit: campaignFormData.daily_limit ? parseFloat(campaignFormData.daily_limit) : null,
+        bid_strategy: campaignFormData.bid_strategy,
+        current_step: campaignStep,
+        completed: false,
+        updated_at: new Date().toISOString()
+      };
+      
+      if (campaignDraftId) {
+        await supabase
+          .from('campaign_drafts')
+          .update(draftData)
+          .eq('id', campaignDraftId);
+      } else {
+        const { data } = await supabase
+          .from('campaign_drafts')
+          .insert(draftData)
+          .select()
+          .single();
+        
+        if (data) setCampaignDraftId(data.id);
+      }
+    } catch (error) {
+      console.error('Save draft error:', error);
+    } finally {
+      setIsSavingCampaign(false);
+    }
+  };
+
+  const launchCampaign = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      
+      await supabase
+        .from('campaigns')
+        .insert({
+          user_id: user.id,
+          name: campaignFormData.name,
+          objective: campaignFormData.objective,
+          start_date: campaignFormData.start_date || null,
+          end_date: campaignFormData.end_date || null,
+          total_budget: campaignFormData.total_budget ? parseFloat(campaignFormData.total_budget) : null,
+          daily_limit: campaignFormData.daily_limit ? parseFloat(campaignFormData.daily_limit) : null,
+          status: 'active',
+          platform: campaignFormData.platforms.join(', ') || 'Multi-channel',
+          spend: 0,
+          roi: '—',
+          trend: 'neutral'
+        });
+      
+      if (campaignDraftId) {
+        await supabase
+          .from('campaign_drafts')
+          .delete()
+          .eq('id', campaignDraftId);
+      }
+      
+      import('@/hooks/use-toast').then(({ toast }) => {
+        toast({
+          title: 'Campaign Launched!',
+          description: 'Your campaign is now live and running.',
+        });
+      });
+
+      // Reset form and go back to dashboard
+      setCampaignFormData({
+        name: '',
+        objective: 'awareness',
+        start_date: '',
+        end_date: '',
+        audience_segment: 'Young Professionals (25-34)',
+        locations: '',
+        interests: [],
+        platforms: [],
+        primary_message: '',
+        call_to_action: '',
+        total_budget: '',
+        daily_limit: '',
+        bid_strategy: 'automatic'
+      });
+      setCampaignDraftId(null);
+      setCampaignStep(1);
+      setActiveTab('dashboard');
+      fetchCampaigns();
+    } catch (error) {
+      console.error('Launch error:', error);
+      import('@/hooks/use-toast').then(({ toast }) => {
+        toast({
+          title: 'Error',
+          description: 'Failed to launch campaign. Please try again.',
+          variant: 'destructive'
+        });
+      });
+    }
   };
 
   const seedSampleData = async () => {
@@ -1086,19 +1273,28 @@ export default function Dashboard() {
                     <h2 className="font-semibold mb-4">Campaign Details</h2>
                     <div>
                       <label className="text-sm text-slate-400 block mb-2">Campaign Name</label>
-                      <input className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-violet-500" placeholder="e.g., Summer Sale 2024" defaultValue="Summer Sale 2024" />
+                      <input 
+                        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-violet-500" 
+                        placeholder="e.g., Summer Sale 2024" 
+                        value={campaignFormData.name}
+                        onChange={(e) => setCampaignFormData({...campaignFormData, name: e.target.value})}
+                      />
                     </div>
                     <div>
                       <label className="text-sm text-slate-400 block mb-2">Objective</label>
                       <div className="grid grid-cols-3 gap-3">
                         {[
-                          { icon: Eye, label: 'Awareness', desc: 'Reach new audiences' },
-                          { icon: MousePointer, label: 'Traffic', desc: 'Drive website visits' },
-                          { icon: Target, label: 'Conversions', desc: 'Increase sales' }
+                          { id: 'awareness', icon: Eye, label: 'Awareness', desc: 'Reach new audiences' },
+                          { id: 'traffic', icon: MousePointer, label: 'Traffic', desc: 'Drive website visits' },
+                          { id: 'conversions', icon: Target, label: 'Conversions', desc: 'Increase sales' }
                         ].map((obj, i) => {
                           const ObjIcon = obj.icon;
                           return (
-                            <button key={i} className={`p-4 rounded-lg border text-left transition-all ${i === 0 ? 'border-violet-500 bg-violet-500/10' : 'border-slate-700 hover:border-slate-600'}`}>
+                            <button 
+                              key={i} 
+                              onClick={() => setCampaignFormData({...campaignFormData, objective: obj.id})}
+                              className={`p-4 rounded-lg border text-left transition-all ${campaignFormData.objective === obj.id ? 'border-violet-500 bg-violet-500/10' : 'border-slate-700 hover:border-slate-600'}`}
+                            >
                               <ObjIcon className="w-5 h-5 mb-2 text-violet-400" />
                               <div className="font-medium text-sm">{obj.label}</div>
                               <div className="text-xs text-slate-400">{obj.desc}</div>
@@ -1110,11 +1306,21 @@ export default function Dashboard() {
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="text-sm text-slate-400 block mb-2">Start Date</label>
-                        <input type="date" className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-violet-500" defaultValue="2024-07-01" />
+                        <input 
+                          type="date" 
+                          className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-violet-500" 
+                          value={campaignFormData.start_date}
+                          onChange={(e) => setCampaignFormData({...campaignFormData, start_date: e.target.value})}
+                        />
                       </div>
                       <div>
                         <label className="text-sm text-slate-400 block mb-2">End Date</label>
-                        <input type="date" className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-violet-500" defaultValue="2024-07-28" />
+                        <input 
+                          type="date" 
+                          className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-violet-500" 
+                          value={campaignFormData.end_date}
+                          onChange={(e) => setCampaignFormData({...campaignFormData, end_date: e.target.value})}
+                        />
                       </div>
                     </div>
                   </div>
@@ -1126,7 +1332,11 @@ export default function Dashboard() {
                     <h2 className="font-semibold mb-4">Target Audience</h2>
                     <div>
                       <label className="text-sm text-slate-400 block mb-2">Use Existing Segment</label>
-                      <select className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-violet-500">
+                      <select 
+                        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-violet-500"
+                        value={campaignFormData.audience_segment}
+                        onChange={(e) => setCampaignFormData({...campaignFormData, audience_segment: e.target.value})}
+                      >
                         <option>Young Professionals (25-34)</option>
                         <option>Parents (30-45)</option>
                         <option>Students (18-24)</option>
@@ -1135,7 +1345,12 @@ export default function Dashboard() {
                     </div>
                     <div>
                       <label className="text-sm text-slate-400 block mb-2">Locations</label>
-                      <input className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-violet-500" placeholder="United States, Canada..." defaultValue="United States, United Kingdom" />
+                      <input 
+                        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-violet-500" 
+                        placeholder="United States, Canada..." 
+                        value={campaignFormData.locations}
+                        onChange={(e) => setCampaignFormData({...campaignFormData, locations: e.target.value})}
+                      />
                     </div>
                     <div>
                       <label className="text-sm text-slate-400 block mb-2">Interests</label>
@@ -1161,14 +1376,44 @@ export default function Dashboard() {
                     <div>
                       <label className="text-sm text-slate-400 block mb-2">Platforms</label>
                       <div className="flex gap-2">
-                        {['Facebook', 'Instagram', 'Google', 'Email'].map(p => (
-                          <button key={p} className="px-4 py-2 rounded-lg border border-slate-700 hover:border-violet-500 text-sm">{p}</button>
-                        ))}
+                        {['Facebook', 'Instagram', 'Google', 'Email'].map(p => {
+                          const isSelected = campaignFormData.platforms.includes(p);
+                          return (
+                            <button 
+                              key={p} 
+                              onClick={() => {
+                                if (isSelected) {
+                                  setCampaignFormData({
+                                    ...campaignFormData, 
+                                    platforms: campaignFormData.platforms.filter(platform => platform !== p)
+                                  });
+                                } else {
+                                  setCampaignFormData({
+                                    ...campaignFormData, 
+                                    platforms: [...campaignFormData.platforms, p]
+                                  });
+                                }
+                              }}
+                              className={`px-4 py-2 rounded-lg border text-sm transition-all ${
+                                isSelected 
+                                  ? 'border-violet-500 bg-violet-500/10 text-violet-400' 
+                                  : 'border-slate-700 hover:border-violet-500'
+                              }`}
+                            >
+                              {p}
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
                     <div>
                       <label className="text-sm text-slate-400 block mb-2">Primary Message</label>
-                      <textarea className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-sm h-20 resize-none focus:outline-none focus:border-violet-500" placeholder="What's the main message?" defaultValue="Get 50% off all summer essentials! Limited time offer." />
+                      <textarea 
+                        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-sm h-20 resize-none focus:outline-none focus:border-violet-500" 
+                        placeholder="What's the main message?" 
+                        value={campaignFormData.primary_message}
+                        onChange={(e) => setCampaignFormData({...campaignFormData, primary_message: e.target.value})}
+                      />
                     </div>
                     <button className="flex items-center gap-2 px-4 py-2 bg-violet-500/20 text-violet-400 rounded-lg text-sm border border-violet-500/30">
                       <Wand2 className="w-4 h-4" />Generate with AI
@@ -1184,14 +1429,24 @@ export default function Dashboard() {
                       <label className="text-sm text-slate-400 block mb-2">Total Budget</label>
                       <div className="relative">
                         <DollarSign className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
-                        <input className="w-full bg-slate-800 border border-slate-700 rounded-lg pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:border-violet-500" placeholder="5,000" defaultValue="5,000" />
+                        <input 
+                          className="w-full bg-slate-800 border border-slate-700 rounded-lg pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:border-violet-500" 
+                          placeholder="5,000" 
+                          value={campaignFormData.total_budget}
+                          onChange={(e) => setCampaignFormData({...campaignFormData, total_budget: e.target.value})}
+                        />
                       </div>
                     </div>
                     <div>
                       <label className="text-sm text-slate-400 block mb-2">Daily Spend Limit</label>
                       <div className="relative">
                         <DollarSign className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
-                        <input className="w-full bg-slate-800 border border-slate-700 rounded-lg pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:border-violet-500" placeholder="200" defaultValue="180" />
+                        <input 
+                          className="w-full bg-slate-800 border border-slate-700 rounded-lg pl-9 pr-4 py-2.5 text-sm focus:outline-none focus:border-violet-500" 
+                          placeholder="200" 
+                          value={campaignFormData.daily_limit}
+                          onChange={(e) => setCampaignFormData({...campaignFormData, daily_limit: e.target.value})}
+                        />
                       </div>
                     </div>
                     <div className="p-4 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
@@ -1206,12 +1461,12 @@ export default function Dashboard() {
                     <h2 className="font-semibold mb-4">Review & Launch</h2>
                     <div className="space-y-3">
                       {[
-                        { label: 'Campaign', value: 'Summer Sale 2024' },
-                        { label: 'Objective', value: 'Awareness' },
-                        { label: 'Audience', value: 'Young Professionals • 1.2M-1.8M reach' },
-                        { label: 'Platforms', value: 'Facebook, Instagram, Google' },
-                        { label: 'Budget', value: '$5,000 total • $180/day' },
-                        { label: 'Duration', value: 'Jul 1 - Jul 28, 2024' }
+                        { label: 'Campaign', value: campaignFormData.name || 'Untitled' },
+                        { label: 'Objective', value: campaignFormData.objective.charAt(0).toUpperCase() + campaignFormData.objective.slice(1) },
+                        { label: 'Audience', value: campaignFormData.audience_segment },
+                        { label: 'Platforms', value: campaignFormData.platforms.join(', ') || 'None selected' },
+                        { label: 'Budget', value: `$${campaignFormData.total_budget || '0'} total${campaignFormData.daily_limit ? ` • $${campaignFormData.daily_limit}/day` : ''}` },
+                        { label: 'Duration', value: `${campaignFormData.start_date || 'Not set'} - ${campaignFormData.end_date || 'Not set'}` }
                       ].map((item, i) => (
                         <div key={i} className="flex justify-between py-3 border-b border-slate-800">
                           <span className="text-slate-400">{item.label}</span>
@@ -1224,23 +1479,40 @@ export default function Dashboard() {
 
                 {/* Navigation Buttons */}
                 <div className="flex justify-between mt-8">
-                  <button 
-                    onClick={() => setCampaignStep(Math.max(1, campaignStep - 1))} 
-                    className={`px-4 py-2 rounded-lg text-sm ${campaignStep === 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-slate-800'}`} 
-                    disabled={campaignStep === 1}
-                  >
-                    Back
-                  </button>
+                  <div className="flex gap-3">
+                    <button 
+                      onClick={() => setCampaignStep(Math.max(1, campaignStep - 1))} 
+                      className={`px-4 py-2 rounded-lg text-sm ${campaignStep === 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-slate-800'}`} 
+                      disabled={campaignStep === 1}
+                    >
+                      Back
+                    </button>
+                    {campaignFormData.name && (
+                      <button
+                        onClick={async () => {
+                          await saveCampaignDraft();
+                          import('@/hooks/use-toast').then(({ toast }) => {
+                            toast({
+                              title: 'Draft saved!',
+                              description: 'Your campaign progress has been saved.',
+                            });
+                          });
+                        }}
+                        className="px-6 py-2.5 border border-slate-700 rounded-lg hover:bg-slate-800 text-sm"
+                      >
+                        Save as Draft
+                      </button>
+                    )}
+                  </div>
                   <button 
                     onClick={() => {
                       if (campaignStep < 5) {
                         setCampaignStep(campaignStep + 1);
                       } else {
-                        setActiveTab('dashboard');
-                        setCampaignStep(1);
+                        launchCampaign();
                       }
                     }} 
-                    className="px-6 py-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-lg text-sm font-medium"
+                    className="px-8 py-2.5 bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-lg text-sm font-medium hover:opacity-90"
                   >
                     {campaignStep === 5 ? 'Launch Campaign' : 'Continue'}
                   </button>
