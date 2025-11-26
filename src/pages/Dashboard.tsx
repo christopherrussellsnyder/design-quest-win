@@ -82,6 +82,7 @@ export default function Dashboard() {
   const [showSeedButton, setShowSeedButton] = useState(false);
   const [campaignDraftId, setCampaignDraftId] = useState<string | null>(null);
   const [isSavingCampaign, setIsSavingCampaign] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [campaignFormData, setCampaignFormData] = useState({
     name: '',
     objective: 'awareness',
@@ -398,6 +399,8 @@ export default function Dashboard() {
           bid_strategy: draft.bid_strategy || 'automatic'
         });
         setCampaignStep(draft.current_step || 1);
+        setLastSaved(new Date(draft.updated_at));
+        console.log('Draft loaded:', draft.name);
       }
     } catch (error) {
       console.error('Load draft error:', error);
@@ -405,14 +408,21 @@ export default function Dashboard() {
   };
 
   const saveCampaignDraft = async () => {
+    if (!campaignFormData.name || campaignFormData.name.trim() === '') {
+      return;
+    }
+    
     setIsSavingCampaign(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        setIsSavingCampaign(false);
+        return;
+      }
       
       const draftData = {
         user_id: user.id,
-        name: campaignFormData.name || 'Untitled Campaign',
+        name: campaignFormData.name,
         objective: campaignFormData.objective,
         start_date: campaignFormData.start_date || null,
         end_date: campaignFormData.end_date || null,
@@ -431,18 +441,31 @@ export default function Dashboard() {
       };
       
       if (campaignDraftId) {
-        await supabase
+        const { error } = await supabase
           .from('campaign_drafts')
           .update(draftData)
           .eq('id', campaignDraftId);
+        
+        if (error) {
+          console.error('Update draft error:', error);
+        } else {
+          setLastSaved(new Date());
+          console.log('Draft updated');
+        }
       } else {
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from('campaign_drafts')
           .insert(draftData)
           .select()
           .single();
         
-        if (data) setCampaignDraftId(data.id);
+        if (error) {
+          console.error('Create draft error:', error);
+        } else if (data) {
+          setCampaignDraftId(data.id);
+          setLastSaved(new Date());
+          console.log('Draft created:', data.id);
+        }
       }
     } catch (error) {
       console.error('Save draft error:', error);
@@ -452,9 +475,63 @@ export default function Dashboard() {
   };
 
   const launchCampaign = async () => {
+    // Validation
+    if (!campaignFormData.name || campaignFormData.name.trim() === '') {
+      import('@/hooks/use-toast').then(({ toast }) => {
+        toast({
+          title: 'Validation Error',
+          description: 'Please enter a campaign name',
+          variant: 'destructive'
+        });
+      });
+      return;
+    }
+    
+    if (!campaignFormData.start_date) {
+      import('@/hooks/use-toast').then(({ toast }) => {
+        toast({
+          title: 'Validation Error',
+          description: 'Please select a start date',
+          variant: 'destructive'
+        });
+      });
+      return;
+    }
+    
+    if (!campaignFormData.end_date) {
+      import('@/hooks/use-toast').then(({ toast }) => {
+        toast({
+          title: 'Validation Error',
+          description: 'Please select an end date',
+          variant: 'destructive'
+        });
+      });
+      return;
+    }
+    
+    if (new Date(campaignFormData.end_date) <= new Date(campaignFormData.start_date)) {
+      import('@/hooks/use-toast').then(({ toast }) => {
+        toast({
+          title: 'Validation Error',
+          description: 'End date must be after start date',
+          variant: 'destructive'
+        });
+      });
+      return;
+    }
+    
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        import('@/hooks/use-toast').then(({ toast }) => {
+          toast({
+            title: 'Authentication Error',
+            description: 'You must be logged in to launch a campaign',
+            variant: 'destructive'
+          });
+        });
+        return;
+      }
       
       await supabase
         .from('campaigns')
@@ -1249,11 +1326,27 @@ export default function Dashboard() {
           {/* CAMPAIGN BUILDER */}
           {activeTab === 'campaigns' && (
             <div className="max-w-5xl mx-auto">
-              <div className="flex items-center gap-4 mb-6">
-                <button onClick={() => setActiveTab('dashboard')} className="p-2 rounded-lg hover:bg-slate-800 transition-colors">
-                  <ChevronLeft className="w-5 h-5" />
-                </button>
-                <h1 className="text-2xl font-bold">Campaign Builder</h1>
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <button onClick={() => setActiveTab('dashboard')} className="p-2 rounded-lg hover:bg-slate-800 transition-colors">
+                    <ChevronLeft className="w-5 h-5" />
+                  </button>
+                  <h1 className="text-2xl font-bold">Campaign Builder</h1>
+                  
+                  {/* Auto-save indicator */}
+                  {isSavingCampaign && (
+                    <span className="text-sm text-slate-400 flex items-center gap-2">
+                      <div className="w-2 h-2 bg-violet-500 rounded-full animate-pulse"></div>
+                      Saving...
+                    </span>
+                  )}
+                  {!isSavingCampaign && lastSaved && (
+                    <span className="text-sm text-emerald-400 flex items-center gap-2">
+                      <Check className="w-4 h-4" />
+                      Saved
+                    </span>
+                  )}
+                </div>
               </div>
 
               {/* Progress Steps */}
