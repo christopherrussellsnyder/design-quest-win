@@ -188,6 +188,68 @@ export type Database = {
         }
         Relationships: []
       }
+      content_library: {
+        Row: {
+          campaign_id: string | null
+          content_type: string
+          created_at: string | null
+          generated_content: string
+          id: string
+          is_favorite: boolean | null
+          length: string | null
+          objective: string | null
+          platform: string | null
+          prompt: string | null
+          rating: number | null
+          tone: string | null
+          updated_at: string | null
+          used_in_campaign: boolean | null
+          user_id: string
+        }
+        Insert: {
+          campaign_id?: string | null
+          content_type: string
+          created_at?: string | null
+          generated_content: string
+          id?: string
+          is_favorite?: boolean | null
+          length?: string | null
+          objective?: string | null
+          platform?: string | null
+          prompt?: string | null
+          rating?: number | null
+          tone?: string | null
+          updated_at?: string | null
+          used_in_campaign?: boolean | null
+          user_id: string
+        }
+        Update: {
+          campaign_id?: string | null
+          content_type?: string
+          created_at?: string | null
+          generated_content?: string
+          id?: string
+          is_favorite?: boolean | null
+          length?: string | null
+          objective?: string | null
+          platform?: string | null
+          prompt?: string | null
+          rating?: number | null
+          tone?: string | null
+          updated_at?: string | null
+          used_in_campaign?: boolean | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_library_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       metrics_daily: {
         Row: {
           conversions: number | null
