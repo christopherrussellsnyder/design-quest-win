@@ -104,6 +104,17 @@ export default function Dashboard() {
   const [selectedCampaign, setSelectedCampaign] = useState<any>(null);
   const [showCampaignDetails, setShowCampaignDetails] = useState(false);
   const [editingCampaignId, setEditingCampaignId] = useState<string | null>(null);
+  
+  // Template Selection State
+  const [templates, setTemplates] = useState<any[]>([]);
+  const [showTemplateSelector, setShowTemplateSelector] = useState(false);
+  const [loadingTemplates, setLoadingTemplates] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
+  
+  // Analytics State
+  const [campaignMetrics, setCampaignMetrics] = useState<Record<string, any>>({});
+  const [loadingMetrics, setLoadingMetrics] = useState(false);
+  const [selectedMetricCampaign, setSelectedMetricCampaign] = useState<string | null>(null);
 
   // Load dashboard data on mount
   useEffect(() => {
@@ -165,10 +176,11 @@ export default function Dashboard() {
     checkForData();
   }, [campaigns]);
 
-  // Load draft when Campaign Builder tab is opened
+  // Load draft and templates when Campaign Builder tab is opened
   useEffect(() => {
     if (activeTab === 'campaigns') {
       loadCampaignDraft();
+      loadTemplates();
     }
   }, [activeTab]);
 
@@ -307,12 +319,109 @@ export default function Dashboard() {
 
       setCampaigns(formattedCampaigns);
       console.log('Campaigns loaded:', formattedCampaigns.length);
+      
+      // Auto-load metrics for active campaigns
+      if (campaignsData) {
+        campaignsData.forEach(campaign => {
+          if (campaign.status === 'active') {
+            const metrics = generateMockMetrics(campaign);
+            setCampaignMetrics(prev => ({
+              ...prev,
+              [campaign.id]: metrics
+            }));
+          }
+        });
+      }
     } catch (err: any) {
       console.error('Failed to load campaigns:', err);
       setCampaignsError(err.message || 'Failed to load campaigns');
     } finally {
       setLoadingCampaigns(false);
       setCampaignsLoading(false);
+    }
+  };
+  
+  // Load templates from database
+  const loadTemplates = async () => {
+    setLoadingTemplates(true);
+    try {
+      const { data, error } = await supabase
+        .from('campaign_templates')
+        .select('*')
+        .order('name');
+      
+      if (error) {
+        console.error('Load templates error:', error);
+      } else {
+        setTemplates(data || []);
+        console.log('Templates loaded:', data?.length);
+      }
+    } catch (error) {
+      console.error('Load templates error:', error);
+    } finally {
+      setLoadingTemplates(false);
+    }
+  };
+
+  // Apply template to campaign form
+  const applyTemplate = (template: any) => {
+    setCampaignFormData({
+      ...campaignFormData,
+      name: template.name + ' Campaign',
+      objective: template.objective || 'awareness',
+      platforms: template.default_platforms || [],
+      primary_message: template.default_message || '',
+      start_date: new Date().toISOString().split('T')[0]
+    });
+    
+    setSelectedTemplate(template);
+    setShowTemplateSelector(false);
+  };
+  
+  // Generate mock analytics data for campaigns
+  const generateMockMetrics = (campaign: any) => {
+    const daysSinceStart = campaign.start_date ? 
+      Math.floor((new Date().getTime() - new Date(campaign.start_date).getTime()) / (1000 * 60 * 60 * 24)) : 0;
+    const daysActive = Math.max(1, Math.min(daysSinceStart, 30));
+    
+    // Generate realistic mock data based on campaign objective
+    const baseMetrics: Record<string, any> = {
+      awareness: { impressions: 50000, clicks: 1500, ctr: 3.0, conversions: 45 },
+      traffic: { impressions: 35000, clicks: 2800, ctr: 8.0, conversions: 140 },
+      conversions: { impressions: 25000, clicks: 2000, ctr: 8.0, conversions: 320 }
+    };
+    
+    const base = baseMetrics[campaign.objective] || baseMetrics.awareness;
+    const multiplier = daysActive / 30;
+    
+    return {
+      impressions: Math.floor(base.impressions * multiplier),
+      clicks: Math.floor(base.clicks * multiplier),
+      ctr: base.ctr + (Math.random() * 2 - 1),
+      conversions: Math.floor(base.conversions * multiplier),
+      spend: Math.floor((campaign.daily_limit || 0) * daysActive),
+      cpc: ((campaign.daily_limit || 0) * daysActive) / (base.clicks * multiplier) || 0,
+      cvr: ((base.conversions * multiplier) / (base.clicks * multiplier) * 100) || 0
+    };
+  };
+
+  // Fetch or generate analytics for a campaign
+  const fetchCampaignMetrics = async (campaignId: string) => {
+    setLoadingMetrics(true);
+    
+    try {
+      const campaign = campaigns.find((c: any) => c.id === campaignId);
+      if (campaign) {
+        const metrics = generateMockMetrics(campaign);
+        setCampaignMetrics(prev => ({
+          ...prev,
+          [campaignId]: metrics
+        }));
+      }
+    } catch (error) {
+      console.error('Fetch metrics error:', error);
+    } finally {
+      setLoadingMetrics(false);
     }
   };
   
@@ -489,6 +598,7 @@ export default function Dashboard() {
       });
       setEditingCampaignId(null);
       setCampaignStep(1);
+      setSelectedTemplate(null);
       
       import('@/hooks/use-toast').then(({ toast }) => {
         toast({
@@ -800,6 +910,7 @@ export default function Dashboard() {
       });
       setCampaignDraftId(null);
       setCampaignStep(1);
+      setSelectedTemplate(null);
       setActiveTab('dashboard');
       fetchCampaigns();
     } catch (error) {
@@ -1061,6 +1172,79 @@ export default function Dashboard() {
                   </div>
                 </div>
               )}
+              
+              {/* Overview Metrics */}
+              <div className="grid grid-cols-4 gap-4 mb-6">
+                <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="p-2 bg-violet-500/20 rounded-lg">
+                      <Megaphone className="w-5 h-5 text-violet-400" />
+                    </div>
+                    <span className="text-xs text-emerald-400 flex items-center gap-1">
+                      <TrendingUp className="w-3 h-3" />
+                      +12%
+                    </span>
+                  </div>
+                  <div className="text-2xl font-bold mb-1">
+                    {campaigns.filter((c: any) => c.status === 'active').length}
+                  </div>
+                  <div className="text-sm text-slate-400">Active Campaigns</div>
+                </div>
+                
+                <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="p-2 bg-cyan-500/20 rounded-lg">
+                      <Eye className="w-5 h-5 text-cyan-400" />
+                    </div>
+                    <span className="text-xs text-emerald-400 flex items-center gap-1">
+                      <TrendingUp className="w-3 h-3" />
+                      +24%
+                    </span>
+                  </div>
+                  <div className="text-2xl font-bold mb-1">
+                    {Object.values(campaignMetrics)
+                      .reduce((sum: number, m: any) => sum + (m.impressions || 0), 0)
+                      .toLocaleString()}
+                  </div>
+                  <div className="text-sm text-slate-400">Total Impressions</div>
+                </div>
+                
+                <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="p-2 bg-emerald-500/20 rounded-lg">
+                      <MousePointer className="w-5 h-5 text-emerald-400" />
+                    </div>
+                    <span className="text-xs text-emerald-400 flex items-center gap-1">
+                      <TrendingUp className="w-3 h-3" />
+                      +8%
+                    </span>
+                  </div>
+                  <div className="text-2xl font-bold mb-1">
+                    {Object.values(campaignMetrics)
+                      .reduce((sum: number, m: any) => sum + (m.clicks || 0), 0)
+                      .toLocaleString()}
+                  </div>
+                  <div className="text-sm text-slate-400">Total Clicks</div>
+                </div>
+                
+                <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="p-2 bg-fuchsia-500/20 rounded-lg">
+                      <Target className="w-5 h-5 text-fuchsia-400" />
+                    </div>
+                    <span className="text-xs text-emerald-400 flex items-center gap-1">
+                      <TrendingUp className="w-3 h-3" />
+                      +16%
+                    </span>
+                  </div>
+                  <div className="text-2xl font-bold mb-1">
+                    {Object.values(campaignMetrics)
+                      .reduce((sum: number, m: any) => sum + (m.conversions || 0), 0)
+                      .toLocaleString()}
+                  </div>
+                  <div className="text-sm text-slate-400">Total Conversions</div>
+                </div>
+              </div>
 
               {/* Stats Row */}
               <div className="grid grid-cols-4 gap-4 mb-6">
@@ -1447,17 +1631,41 @@ export default function Dashboard() {
                         </tr>
                       </thead>
                        <tbody>
-                        {campaigns.map(c => (
+                        {campaigns.map((c: any) => {
+                          const metrics = campaignMetrics[c.id];
+                          
+                          return (
                           <tr 
                             key={c.id} 
                             className="border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors cursor-pointer"
                             onClick={() => {
                               setSelectedCampaign(c);
                               setShowCampaignDetails(true);
+                              if (c.status === 'active' && !metrics) {
+                                fetchCampaignMetrics(c.id);
+                              }
                             }}
                           >
                             <td className="py-4">
-                              <span className="font-medium">{c.name}</span>
+                              <div>
+                                <div className="font-medium mb-1">{c.name}</div>
+                                {metrics && c.status === 'active' && (
+                                  <div className="flex gap-3 text-xs text-slate-400">
+                                    <span className="flex items-center gap-1">
+                                      <Eye className="w-3 h-3" />
+                                      {(metrics.impressions || 0).toLocaleString()}
+                                    </span>
+                                    <span className="flex items-center gap-1">
+                                      <MousePointer className="w-3 h-3" />
+                                      {(metrics.clicks || 0).toLocaleString()}
+                                    </span>
+                                    <span className="flex items-center gap-1 text-emerald-400">
+                                      <TrendingUp className="w-3 h-3" />
+                                      {(metrics.ctr || 0).toFixed(2)}%
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
                             </td>
                             <td className="py-4">
                               <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
@@ -1500,7 +1708,8 @@ export default function Dashboard() {
                               </div>
                             </td>
                           </tr>
-                        ))}
+                          );
+                        })}
                       </tbody>
                     </table>
                   )}
@@ -1565,6 +1774,75 @@ export default function Dashboard() {
           {/* CAMPAIGN BUILDER */}
           {activeTab === 'campaigns' && (
             <div className="max-w-5xl mx-auto">
+              {/* Show template selector if no template selected and no existing draft */}
+              {!selectedTemplate && !campaignDraftId && !campaignFormData.name && (
+                <div className="mb-8">
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h2 className="text-2xl font-bold mb-2">Choose a Template</h2>
+                      <p className="text-slate-400">Start with a proven campaign template or create from scratch</p>
+                    </div>
+                    <button
+                      onClick={() => setActiveTab('dashboard')}
+                      className="p-2 hover:bg-slate-800 rounded-lg transition-colors"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+                  
+                  {loadingTemplates ? (
+                    <div className="text-center py-12 text-slate-400">
+                      Loading templates...
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-3 gap-4">
+                      {/* Template Cards */}
+                      {templates.map((template: any) => (
+                        <button
+                          key={template.id}
+                          onClick={() => applyTemplate(template)}
+                          className="p-6 bg-slate-900/50 border border-slate-700 rounded-xl hover:border-violet-500 hover:bg-slate-800/50 transition-all text-left group"
+                        >
+                          <div className="text-4xl mb-4">{template.icon}</div>
+                          <h3 className="font-semibold text-lg mb-2 group-hover:text-violet-400 transition-colors">
+                            {template.name}
+                          </h3>
+                          <p className="text-sm text-slate-400 mb-4">{template.description}</p>
+                          
+                          {/* Template Stats */}
+                          <div className="flex flex-wrap gap-2 text-xs">
+                            <span className="px-2 py-1 bg-violet-500/20 text-violet-400 rounded">
+                              {template.objective === 'awareness' ? 'Awareness' :
+                               template.objective === 'traffic' ? 'Traffic' : 'Conversions'}
+                            </span>
+                          </div>
+                        </button>
+                      ))}
+                      
+                      {/* Start from Scratch Option */}
+                      <button
+                        onClick={() => {
+                          setSelectedTemplate({ id: 'blank', name: 'Custom' });
+                        }}
+                        className="p-6 bg-slate-900/50 border border-slate-700 rounded-xl hover:border-violet-500 hover:bg-slate-800/50 transition-all text-left group"
+                      >
+                        <div className="text-4xl mb-4">✨</div>
+                        <h3 className="font-semibold text-lg mb-2 group-hover:text-violet-400 transition-colors">
+                          Start from Scratch
+                        </h3>
+                        <p className="text-sm text-slate-400 mb-4">Build your own custom campaign from the ground up</p>
+                        <span className="text-xs px-2 py-1 bg-slate-700 text-slate-300 rounded">
+                          Custom
+                        </span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+              
+              {/* Rest of Campaign Builder Form (only show if template selected or draft exists) */}
+              {(selectedTemplate || campaignDraftId || campaignFormData.name) && (
+                <>
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
                   <button onClick={() => setActiveTab('dashboard')} className="p-2 rounded-lg hover:bg-slate-800 transition-colors">
@@ -1850,6 +2128,8 @@ export default function Dashboard() {
                   </button>
                 </div>
               </div>
+                </>
+              )}
             </div>
           )}
 
@@ -2896,6 +3176,95 @@ export default function Dashboard() {
                 <h3 className="text-sm font-semibold text-slate-400 mb-3">Platform</h3>
                 <p className="text-sm">{selectedCampaign.platform}</p>
               </div>
+              
+              {/* Campaign Analytics Section */}
+              {selectedCampaign.status === 'active' && (
+                <div>
+                  <h3 className="text-sm font-semibold text-slate-400 mb-4">Performance Metrics</h3>
+                  
+                  {loadingMetrics ? (
+                    <div className="text-center py-6 text-slate-400">
+                      Loading metrics...
+                    </div>
+                  ) : campaignMetrics[selectedCampaign.id] ? (
+                    <>
+                      {/* Key Metrics Grid */}
+                      <div className="grid grid-cols-4 gap-3 mb-4">
+                        <div className="p-3 bg-slate-800/50 rounded-lg border border-slate-700">
+                          <div className="text-xs text-slate-500 mb-1">Impressions</div>
+                          <div className="text-lg font-semibold">
+                            {(campaignMetrics[selectedCampaign.id].impressions || 0).toLocaleString()}
+                          </div>
+                        </div>
+                        <div className="p-3 bg-slate-800/50 rounded-lg border border-slate-700">
+                          <div className="text-xs text-slate-500 mb-1">Clicks</div>
+                          <div className="text-lg font-semibold">
+                            {(campaignMetrics[selectedCampaign.id].clicks || 0).toLocaleString()}
+                          </div>
+                        </div>
+                        <div className="p-3 bg-slate-800/50 rounded-lg border border-slate-700">
+                          <div className="text-xs text-slate-500 mb-1">CTR</div>
+                          <div className="text-lg font-semibold text-emerald-400">
+                            {(campaignMetrics[selectedCampaign.id].ctr || 0).toFixed(2)}%
+                          </div>
+                        </div>
+                        <div className="p-3 bg-slate-800/50 rounded-lg border border-slate-700">
+                          <div className="text-xs text-slate-500 mb-1">Conversions</div>
+                          <div className="text-lg font-semibold text-violet-400">
+                            {(campaignMetrics[selectedCampaign.id].conversions || 0).toLocaleString()}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Additional Metrics */}
+                      <div className="grid grid-cols-3 gap-3 mb-4">
+                        <div className="p-3 bg-slate-800/30 rounded-lg">
+                          <div className="text-xs text-slate-500 mb-1">Total Spend</div>
+                          <div className="font-semibold">
+                            ${(campaignMetrics[selectedCampaign.id].spend || 0).toLocaleString()}
+                          </div>
+                        </div>
+                        <div className="p-3 bg-slate-800/30 rounded-lg">
+                          <div className="text-xs text-slate-500 mb-1">Cost per Click</div>
+                          <div className="font-semibold">
+                            ${(campaignMetrics[selectedCampaign.id].cpc || 0).toFixed(2)}
+                          </div>
+                        </div>
+                        <div className="p-3 bg-slate-800/30 rounded-lg">
+                          <div className="text-xs text-slate-500 mb-1">Conversion Rate</div>
+                          <div className="font-semibold text-emerald-400">
+                            {(campaignMetrics[selectedCampaign.id].cvr || 0).toFixed(2)}%
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* AI Insights */}
+                      <div className="p-4 bg-cyan-500/10 rounded-lg border border-cyan-500/20">
+                        <div className="flex items-start gap-2">
+                          <Sparkles className="w-5 h-5 text-cyan-400 mt-0.5 shrink-0" />
+                          <div>
+                            <div className="text-sm font-semibold text-cyan-300 mb-1">AI Insight</div>
+                            <p className="text-sm text-cyan-200/80">
+                              {campaignMetrics[selectedCampaign.id].ctr > 5 
+                                ? "Your CTR is performing above average! Consider increasing your daily budget to capitalize on this high engagement."
+                                : campaignMetrics[selectedCampaign.id].ctr > 2
+                                ? "Your campaign is performing well. Try A/B testing different ad creatives to further improve CTR."
+                                : "Your CTR could be improved. Consider refining your targeting or updating your ad creative to better resonate with your audience."}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <button
+                      onClick={() => fetchCampaignMetrics(selectedCampaign.id)}
+                      className="w-full py-3 border border-slate-700 rounded-lg hover:bg-slate-800 transition-colors text-sm"
+                    >
+                      Load Performance Data
+                    </button>
+                  )}
+                </div>
+              )}
               
               {/* Actions */}
               <div className="flex gap-3 pt-4 border-t border-slate-800">
