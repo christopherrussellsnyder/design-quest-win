@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Sparkles, TrendingUp, Users, Mail, Target, Zap, ChevronDown, Play, Pause, Settings, Bell, Search, Plus, ArrowUpRight, ArrowDownRight, LayoutDashboard, FileText, Send, Megaphone, Calendar, ChevronRight, Image, Type, Video, Wand2, Copy, RefreshCw, Check, Filter, Download, Eye, MousePointer, DollarSign, ChevronLeft, BarChart3, LogOut, X } from 'lucide-react';
+import { Sparkles, TrendingUp, Users, Mail, Target, Zap, ChevronDown, Play, Pause, Settings, Bell, Search, Plus, ArrowUpRight, ArrowDownRight, LayoutDashboard, FileText, Send, Megaphone, Calendar, ChevronRight, Image, Type, Video, Wand2, Copy, RefreshCw, Check, Filter, Download, Eye, MousePointer, DollarSign, ChevronLeft, BarChart3, LogOut, X, Save, Star, Trash2 } from 'lucide-react';
 
 const performanceData = [
   { name: 'Mon', engagement: 4200, conversions: 240, reach: 18000 },
@@ -115,6 +115,20 @@ export default function Dashboard() {
   const [campaignMetrics, setCampaignMetrics] = useState<Record<string, any>>({});
   const [loadingMetrics, setLoadingMetrics] = useState(false);
   const [selectedMetricCampaign, setSelectedMetricCampaign] = useState<string | null>(null);
+  
+  // Content AI State
+  const [showContentAI, setShowContentAI] = useState(false);
+  const [aiContentType, setAiContentType] = useState('headline');
+  const [aiContentObjective, setAiContentObjective] = useState('awareness');
+  const [aiContentPlatform, setAiContentPlatform] = useState('facebook');
+  const [aiContentTone, setAiContentTone] = useState('professional');
+  const [aiContentLength, setAiContentLength] = useState('medium');
+  const [aiContentPrompt, setAiContentPrompt] = useState('');
+  const [generatedAiContent, setGeneratedAiContent] = useState<any[]>([]);
+  const [isGeneratingAi, setIsGeneratingAi] = useState(false);
+  const [contentLibrary, setContentLibrary] = useState<any[]>([]);
+  const [loadingLibrary, setLoadingLibrary] = useState(false);
+  const [selectedAiContent, setSelectedAiContent] = useState<any>(null);
 
   // Load dashboard data on mount
   useEffect(() => {
@@ -193,6 +207,13 @@ export default function Dashboard() {
       return () => clearInterval(interval);
     }
   }, [activeTab, campaignFormData]);
+  
+  // Load content library when Content AI tab is opened
+  useEffect(() => {
+    if (activeTab === 'content') {
+      loadContentLibrary();
+    }
+  }, [activeTab]);
 
   const fetchKpis = async () => {
     setKpisLoading(true);
@@ -893,6 +914,8 @@ export default function Dashboard() {
       });
 
       // Reset form and go back to dashboard
+      setSelectedTemplate(null);
+      
       setCampaignFormData({
         name: '',
         objective: 'awareness',
@@ -1043,6 +1066,282 @@ export default function Dashboard() {
     } finally {
       setSeeding(false);
     }
+  };
+
+  // Content AI Functions
+  const generateAIContent = async () => {
+    if (!aiContentPrompt.trim()) {
+      import('@/hooks/use-toast').then(({ toast }) => {
+        toast({
+          title: 'Validation Error',
+          description: 'Please enter a prompt or topic',
+          variant: 'destructive'
+        });
+      });
+      return;
+    }
+    
+    setIsGeneratingAi(true);
+    setGeneratedAiContent([]);
+    
+    try {
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      const variations = generateMockContent(
+        aiContentType,
+        aiContentObjective,
+        aiContentPlatform,
+        aiContentTone,
+        aiContentLength,
+        aiContentPrompt
+      );
+      
+      setGeneratedAiContent(variations);
+    } catch (error) {
+      console.error('Generate content error:', error);
+      import('@/hooks/use-toast').then(({ toast }) => {
+        toast({
+          title: 'Error',
+          description: 'Error generating content',
+          variant: 'destructive'
+        });
+      });
+    } finally {
+      setIsGeneratingAi(false);
+    }
+  };
+
+  const generateMockContent = (type: string, objective: string, platform: string, tone: string, length: string, prompt: string) => {
+    const templates: any = {
+      headline: {
+        awareness: [
+          `Discover ${prompt}: The Future is Here`,
+          `Why ${prompt} is Changing Everything`,
+          `The Ultimate Guide to ${prompt}`
+        ],
+        traffic: [
+          `Click to Learn More About ${prompt}`,
+          `Visit Now: ${prompt} Explained`,
+          `See How ${prompt} Can Help You`
+        ],
+        conversions: [
+          `Get ${prompt} Today - Limited Offer`,
+          `Buy ${prompt} Now and Save 20%`,
+          `Try ${prompt} Risk-Free`
+        ]
+      },
+      ad_copy: {
+        awareness: [
+          `Introducing ${prompt}. ${tone === 'professional' ? 'Transform your business' : 'Game-changing innovation'} with cutting-edge technology. Learn more about how we're revolutionizing the industry.`,
+          `${prompt} is here. ${tone === 'urgent' ? "Don't miss out" : 'Discover'} the next generation of solutions designed for modern businesses. Join thousands of satisfied customers.`,
+          `Experience ${prompt} like never before. Premium quality meets ${tone === 'friendly' ? 'friendly' : 'professional'} service. See what makes us different.`
+        ],
+        traffic: [
+          `Want to learn more about ${prompt}? Visit our website for exclusive insights, case studies, and expert tips. Click the link to explore now!`,
+          `${prompt} made simple. Head to our site for comprehensive guides, resources, and tutorials. Your journey starts with one click!`,
+          `Curious about ${prompt}? Our website has everything you need to know. Free resources, detailed guides, and more. Check it out today!`
+        ],
+        conversions: [
+          `Limited time offer on ${prompt}! Get 20% off your first purchase. Use code SAVE20 at checkout. Shop now before this deal expires!`,
+          `Ready to try ${prompt}? Start your free trial today - no credit card required. Cancel anytime. Join over 10,000 happy customers!`,
+          `${prompt} is on sale! Save big with our exclusive promotion. ${tone === 'urgent' ? 'Hurry, ends soon!' : 'Great value awaits'}. Order now!`
+        ]
+      },
+      social_post: {
+        awareness: [
+          `🚀 Big news! We're excited to announce ${prompt}. This is going to change the game! What do you think? #Innovation #${prompt.replace(/\s+/g, '')}`,
+          `✨ Say hello to ${prompt}! We've been working hard on this and can't wait to share it with you. Drop a 💙 if you're excited! #NewRelease`,
+          `💡 Did you know? ${prompt} is transforming how businesses operate. Learn more in our latest blog post! [Link] #BusinessTips`
+        ],
+        traffic: [
+          `Want to learn the secrets of ${prompt}? 🔥 We just published a comprehensive guide on our website. Check it out! Link in bio 👆 #Guide #LearnMore`,
+          `📚 New blog post alert! Everything you need to know about ${prompt}. Click the link to read now: [URL] #BlogPost #${prompt.replace(/\s+/g, '')}`,
+          `🎯 Curious about ${prompt}? Head over to our website for exclusive content, tips, and insights you won't find anywhere else! #ExclusiveContent`
+        ],
+        conversions: [
+          `⚡ FLASH SALE ALERT! Get ${prompt} at 20% off for the next 24 hours only! Use code FLASH20 at checkout. Shop now 🛒 #Sale #LimitedOffer`,
+          `🎁 Special offer just for you! Try ${prompt} risk-free with our 30-day money-back guarantee. What are you waiting for? Get started today! #SpecialOffer`,
+          `💰 Best deal of the year on ${prompt}! Don't let this opportunity slip away. Click to shop now and save big! ⏰ #Deal #SaveNow`
+        ]
+      },
+      email: {
+        awareness: [
+          `Subject: Introducing ${prompt} - You'll Love This\n\nHi there,\n\nWe're thrilled to introduce ${prompt}! After months of development, we're excited to share this innovation with you.\n\n${prompt} represents our commitment to excellence and innovation. We believe it will transform how you work.\n\nLearn more: [Link]\n\nBest regards,\nThe Team`,
+          `Subject: Big News About ${prompt}!\n\nHello,\n\nWe have exciting news to share! ${prompt} is finally here, and we couldn't be more excited.\n\nThis represents a major milestone for us, and we wanted you to be among the first to know.\n\nDiscover more: [Link]\n\nCheers,\nYour Team`
+        ],
+        traffic: [
+          `Subject: Your Complete Guide to ${prompt}\n\nHi there,\n\nWe just published an in-depth guide about ${prompt} on our blog.\n\nInside, you'll discover:\n• Key insights and tips\n• Expert recommendations\n• Real-world examples\n\nRead the full guide: [Link]\n\nHappy reading!\nThe Team`,
+          `Subject: Must-Read: Everything About ${prompt}\n\nHello,\n\nCurious about ${prompt}? We've got you covered!\n\nOur latest article breaks down everything you need to know in plain English.\n\nCheck it out here: [Link]\n\nBest,\nYour Team`
+        ],
+        conversions: [
+          `Subject: Exclusive 20% Off ${prompt} - Today Only!\n\nHi,\n\nWe're offering you an exclusive deal: 20% off ${prompt}!\n\nUse code SAVE20 at checkout. This offer expires at midnight, so don't wait!\n\nWhat you'll get:\n• Premium quality\n• 30-day guarantee\n• Free shipping\n\nShop now: [Link]\n\nCheers,\nThe Team`,
+          `Subject: Last Chance: ${prompt} Special Offer\n\nHello,\n\nThis is your final reminder about our special ${prompt} promotion.\n\nFor a limited time, save big on your purchase. Don't miss out on this incredible deal!\n\nClaim your discount: [Link]\n\nBest regards,\nYour Team`
+        ]
+      },
+      cta: {
+        awareness: ['Learn More', 'Discover Now', 'See How It Works', 'Find Out More', 'Explore Features'],
+        traffic: ['Read Full Article', 'Visit Our Website', 'Get Started', 'Click Here', 'Learn More Now'],
+        conversions: ['Buy Now', 'Shop Today', 'Get Your Discount', 'Claim Offer', 'Start Free Trial', 'Add to Cart']
+      }
+    };
+    
+    const contentArray = templates[type]?.[objective] || templates[type]?.awareness || ['Content generated'];
+    
+    return contentArray.slice(0, 3).map((content: string, index: number) => ({
+      id: `temp-${Date.now()}-${index}`,
+      content,
+      rating: 0,
+      is_favorite: false
+    }));
+  };
+
+  const saveToLibrary = async (content: string, rating: number = 0, isFavorite: boolean = false) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      
+      const { data, error } = await supabase
+        .from('content_library')
+        .insert({
+          user_id: user.id,
+          content_type: aiContentType,
+          objective: aiContentObjective,
+          platform: aiContentPlatform,
+          prompt: aiContentPrompt,
+          generated_content: content,
+          tone: aiContentTone,
+          length: aiContentLength,
+          rating: rating,
+          is_favorite: isFavorite
+        })
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('Save to library error:', error);
+        import('@/hooks/use-toast').then(({ toast }) => {
+          toast({
+            title: 'Error',
+            description: 'Error saving content',
+            variant: 'destructive'
+          });
+        });
+      } else {
+        import('@/hooks/use-toast').then(({ toast }) => {
+          toast({
+            title: 'Success!',
+            description: 'Content saved to library!',
+          });
+        });
+        loadContentLibrary();
+      }
+    } catch (error) {
+      console.error('Save to library error:', error);
+      import('@/hooks/use-toast').then(({ toast }) => {
+        toast({
+          title: 'Error',
+          description: 'Error saving content',
+          variant: 'destructive'
+        });
+      });
+    }
+  };
+
+  const loadContentLibrary = async () => {
+    setLoadingLibrary(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setLoadingLibrary(false);
+        return;
+      }
+      
+      const { data, error } = await supabase
+        .from('content_library')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error('Load library error:', error);
+      } else {
+        setContentLibrary(data || []);
+      }
+    } catch (error) {
+      console.error('Load library error:', error);
+    } finally {
+      setLoadingLibrary(false);
+    }
+  };
+
+  const updateContentRating = async (contentId: string, rating: number) => {
+    try {
+      const { error } = await supabase
+        .from('content_library')
+        .update({ rating })
+        .eq('id', contentId);
+      
+      if (error) {
+        console.error('Update rating error:', error);
+      } else {
+        loadContentLibrary();
+      }
+    } catch (error) {
+      console.error('Update rating error:', error);
+    }
+  };
+
+  const toggleFavorite = async (contentId: string, currentFavorite: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('content_library')
+        .update({ is_favorite: !currentFavorite })
+        .eq('id', contentId);
+      
+      if (error) {
+        console.error('Toggle favorite error:', error);
+      } else {
+        loadContentLibrary();
+      }
+    } catch (error) {
+      console.error('Toggle favorite error:', error);
+    }
+  };
+
+  const deleteContent = async (contentId: string) => {
+    if (!confirm('Delete this content from your library?')) return;
+    
+    try {
+      const { error } = await supabase
+        .from('content_library')
+        .delete()
+        .eq('id', contentId);
+      
+      if (error) {
+        console.error('Delete content error:', error);
+        import('@/hooks/use-toast').then(({ toast }) => {
+          toast({
+            title: 'Error',
+            description: 'Error deleting content',
+            variant: 'destructive'
+          });
+        });
+      } else {
+        loadContentLibrary();
+      }
+    } catch (error) {
+      console.error('Delete content error:', error);
+    }
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    import('@/hooks/use-toast').then(({ toast }) => {
+      toast({
+        title: 'Copied!',
+        description: 'Content copied to clipboard',
+      });
+    });
   };
 
   return (
@@ -2135,202 +2434,246 @@ export default function Dashboard() {
 
           {/* CONTENT AI */}
           {activeTab === 'content' && (
-            <div className="grid grid-cols-3 gap-6">
-              <div className="col-span-2 space-y-6">
-                <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
-                  <h2 className="font-semibold mb-4">AI Content Generator</h2>
-                  <div className="flex gap-2 mb-6">
-                    {[
-                      { id: 'text', icon: Type, label: 'Text' },
-                      { id: 'image', icon: Image, label: 'Image' },
-                      { id: 'video', icon: Video, label: 'Video' }
-                    ].map(t => {
-                      const TypeIcon = t.icon;
-                      return (
-                        <button 
-                          key={t.id} 
-                          onClick={() => { setContentType(t.id); setGenerated(false); }} 
-                          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm ${contentType === t.id ? 'bg-violet-500/20 text-violet-400 border border-violet-500/30' : 'text-slate-400 hover:bg-slate-800 border border-transparent'}`}
-                        >
-                          <TypeIcon className="w-4 h-4" />
-                          {t.label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="text-sm text-slate-400 mb-2 block">Content Goal</label>
-                      <select className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-violet-500">
-                        <option>Increase brand awareness</option>
-                        <option>Drive conversions</option>
-                        <option>Boost engagement</option>
-                        <option>Product launch</option>
-                      </select>
+            <div className="max-w-7xl mx-auto p-6">
+              <div className="grid grid-cols-3 gap-6">
+                {/* Left Panel - Generator */}
+                <div className="col-span-2 space-y-6">
+                  <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
+                    <div className="flex items-center gap-2 mb-6">
+                      <Wand2 className="w-6 h-6 text-violet-400" />
+                      <h2 className="text-2xl font-bold">AI Content Generator</h2>
                     </div>
-                    <div>
-                      <label className="text-sm text-slate-400 mb-2 block">Target Audience</label>
-                      <select className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-violet-500">
-                        <option>Young Professionals (25-34)</option>
-                        <option>Parents (30-45)</option>
-                        <option>Students (18-24)</option>
-                        <option>All segments</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="text-sm text-slate-400 mb-2 block">Tone & Style</label>
-                      <div className="flex flex-wrap gap-2">
-                        {['Professional', 'Casual', 'Humorous', 'Inspiring', 'Urgent'].map(tone => (
-                          <button key={tone} className="px-3 py-1.5 text-xs rounded-full border border-slate-700 hover:border-violet-500 hover:text-violet-400 transition-colors">
-                            {tone}
+                    
+                    {/* Content Type Selector */}
+                    <div className="mb-6">
+                      <label className="text-sm text-slate-400 block mb-3 font-medium">Content Type</label>
+                      <div className="grid grid-cols-5 gap-2">
+                        {[
+                          { value: 'headline', label: 'Headline', icon: '📰' },
+                          { value: 'ad_copy', label: 'Ad Copy', icon: '📝' },
+                          { value: 'social_post', label: 'Social Post', icon: '📱' },
+                          { value: 'email', label: 'Email', icon: '✉️' },
+                          { value: 'cta', label: 'CTA', icon: '🎯' }
+                        ].map(type => (
+                          <button
+                            key={type.value}
+                            onClick={() => setAiContentType(type.value)}
+                            className={`p-3 rounded-lg border transition-all text-center ${
+                              aiContentType === type.value
+                                ? 'border-violet-500 bg-violet-500/10'
+                                : 'border-slate-700 hover:border-slate-600'
+                            }`}
+                          >
+                            <div className="text-2xl mb-1">{type.icon}</div>
+                            <div className="text-xs font-medium">{type.label}</div>
                           </button>
                         ))}
                       </div>
                     </div>
-                    <div>
-                      <label className="text-sm text-slate-400 mb-2 block">Brief / Prompt</label>
-                      <textarea 
-                        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-sm h-24 resize-none focus:outline-none focus:border-violet-500" 
-                        placeholder="Describe what you want to create..."
-                        defaultValue="Create engaging social media posts for our summer product launch targeting young professionals."
+                    
+                    {/* Objective Selector */}
+                    <div className="mb-6">
+                      <label className="text-sm text-slate-400 block mb-3 font-medium">Campaign Objective</label>
+                      <div className="grid grid-cols-3 gap-3">
+                        {[
+                          { value: 'awareness', label: 'Awareness', icon: Eye },
+                          { value: 'traffic', label: 'Traffic', icon: MousePointer },
+                          { value: 'conversions', label: 'Conversions', icon: Target }
+                        ].map(obj => {
+                          const Icon = obj.icon;
+                          return (
+                            <button
+                              key={obj.value}
+                              onClick={() => setAiContentObjective(obj.value)}
+                              className={`p-3 rounded-lg border transition-all flex items-center gap-2 ${
+                                aiContentObjective === obj.value
+                                  ? 'border-violet-500 bg-violet-500/10'
+                                  : 'border-slate-700 hover:border-slate-600'
+                              }`}
+                            >
+                              <Icon className="w-4 h-4" />
+                              <span className="text-sm font-medium">{obj.label}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    
+                    {/* Platform Selector */}
+                    <div className="mb-6">
+                      <label className="text-sm text-slate-400 block mb-3 font-medium">Platform</label>
+                      <select
+                        value={aiContentPlatform}
+                        onChange={(e) => setAiContentPlatform(e.target.value)}
+                        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-violet-500"
+                      >
+                        <option value="facebook">Facebook</option>
+                        <option value="instagram">Instagram</option>
+                        <option value="google">Google Ads</option>
+                        <option value="linkedin">LinkedIn</option>
+                        <option value="twitter">Twitter/X</option>
+                        <option value="email">Email</option>
+                      </select>
+                    </div>
+                    
+                    {/* Tone & Length */}
+                    <div className="grid grid-cols-2 gap-4 mb-6">
+                      <div>
+                        <label className="text-sm text-slate-400 block mb-2 font-medium">Tone</label>
+                        <select
+                          value={aiContentTone}
+                          onChange={(e) => setAiContentTone(e.target.value)}
+                          className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-violet-500"
+                        >
+                          <option value="professional">Professional</option>
+                          <option value="casual">Casual</option>
+                          <option value="friendly">Friendly</option>
+                          <option value="urgent">Urgent</option>
+                          <option value="playful">Playful</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-sm text-slate-400 block mb-2 font-medium">Length</label>
+                        <select
+                          value={aiContentLength}
+                          onChange={(e) => setAiContentLength(e.target.value)}
+                          className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-violet-500"
+                        >
+                          <option value="short">Short</option>
+                          <option value="medium">Medium</option>
+                          <option value="long">Long</option>
+                        </select>
+                      </div>
+                    </div>
+                    
+                    {/* Prompt Input */}
+                    <div className="mb-6">
+                      <label className="text-sm text-slate-400 block mb-2 font-medium">
+                        Topic or Product Description
+                      </label>
+                      <textarea
+                        value={aiContentPrompt}
+                        onChange={(e) => setAiContentPrompt(e.target.value)}
+                        placeholder="e.g., Summer fitness program for busy professionals..."
+                        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-violet-500 resize-none"
+                        rows={4}
                       />
                     </div>
-                    <button 
-                      onClick={handleGenerate} 
-                      disabled={generating} 
-                      className="w-full py-3 bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-lg font-medium flex items-center justify-center gap-2 hover:opacity-90 disabled:opacity-50 transition-opacity"
+                    
+                    {/* Generate Button */}
+                    <button
+                      onClick={generateAIContent}
+                      disabled={isGeneratingAi || !aiContentPrompt.trim()}
+                      className="w-full py-3 bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-lg font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
-                      {generating ? (
+                      {isGeneratingAi ? (
                         <>
-                          <RefreshCw className="w-4 h-4 animate-spin" />
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                           Generating...
                         </>
                       ) : (
                         <>
-                          <Wand2 className="w-4 h-4" />
+                          <Sparkles className="w-4 h-4" />
                           Generate Content
                         </>
                       )}
                     </button>
                   </div>
-                </div>
-
-                {generated && (
-                  <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="font-semibold">Generated Content</h3>
-                      <div className="flex gap-2">
-                        <button className="p-2 rounded-lg hover:bg-slate-800 transition-colors">
-                          <Copy className="w-4 h-4 text-slate-400" />
-                        </button>
-                        <button className="p-2 rounded-lg hover:bg-slate-800 transition-colors">
-                          <RefreshCw className="w-4 h-4 text-slate-400" />
-                        </button>
+                  
+                  {/* Generated Results */}
+                  {generatedAiContent.length > 0 && (
+                    <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
+                      <h3 className="font-semibold mb-4">Generated Variations</h3>
+                      <div className="space-y-3">
+                        {generatedAiContent.map((item, index) => (
+                          <div
+                            key={item.id}
+                            className="p-4 bg-slate-800/50 rounded-lg border border-slate-700"
+                          >
+                            <div className="flex justify-between items-start mb-2">
+                              <span className="text-xs text-slate-500">Variation {index + 1}</span>
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() => copyToClipboard(item.content)}
+                                  className="p-1.5 hover:bg-slate-700 rounded transition-colors"
+                                  title="Copy to clipboard"
+                                >
+                                  <Copy className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => saveToLibrary(item.content)}
+                                  className="p-1.5 hover:bg-slate-700 rounded transition-colors"
+                                  title="Save to library"
+                                >
+                                  <Save className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </div>
+                            <p className="text-sm whitespace-pre-wrap">{item.content}</p>
+                          </div>
+                        ))}
                       </div>
                     </div>
-                    
-                    {contentType === 'text' && (
-                      <div className="space-y-4">
-                        {[
-                          '🚀 Ready to level up your productivity? Our new app helps you accomplish more in less time. Join 50,000+ professionals who\'ve already made the switch. Try it free today!',
-                          '💡 Work smarter, not harder. Discover the tool that\'s revolutionizing how teams collaborate. Your future self will thank you. Link in bio!',
-                          '⚡ Big news! We just launched something incredible. If you\'ve ever wished for more hours in your day, this is for you. Limited spots available — don\'t miss out!'
-                        ].map((text, i) => (
-                          <div key={i} className="p-4 bg-slate-800/50 rounded-lg border border-slate-700">
-                            <div className="flex items-start justify-between gap-4">
-                              <p className="text-sm leading-relaxed">{text}</p>
-                              <button className="p-1.5 rounded hover:bg-slate-700 shrink-0 transition-colors">
-                                <Check className="w-4 h-4 text-emerald-400" />
-                              </button>
-                            </div>
-                            <div className="flex items-center gap-4 mt-3 pt-3 border-t border-slate-700">
-                              <span className="text-xs text-slate-500">Variation {i + 1}</span>
-                              <span className="text-xs text-violet-400">AI Score: {92 - i * 3}%</span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {contentType === 'image' && (
-                      <div className="grid grid-cols-2 gap-4">
-                        {[1, 2, 3, 4].map(i => (
-                          <div key={i} className="aspect-square bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 rounded-lg border border-slate-700 flex items-center justify-center relative group">
-                            <div className="text-center">
-                              <Image className="w-8 h-8 text-slate-500 mx-auto mb-2" />
-                              <span className="text-xs text-slate-500">Generated Image {i}</span>
-                            </div>
-                            <div className="absolute inset-0 bg-slate-900/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                              <button className="p-2 rounded-lg bg-violet-500/20 hover:bg-violet-500/30 transition-colors">
-                                <Download className="w-4 h-4" />
-                              </button>
-                              <button className="p-2 rounded-lg bg-violet-500/20 hover:bg-violet-500/30 transition-colors">
-                                <RefreshCw className="w-4 h-4" />
-                              </button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {contentType === 'video' && (
-                      <div className="aspect-video bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 rounded-lg border border-slate-700 flex items-center justify-center">
-                        <div className="text-center">
-                          <div className="w-16 h-16 rounded-full bg-violet-500/20 flex items-center justify-center mx-auto mb-3">
-                            <Play className="w-6 h-6 text-violet-400" />
-                          </div>
-                          <span className="text-sm text-slate-400">Video preview ready</span>
-                          <p className="text-xs text-slate-500 mt-1">0:30 duration • 1080p</p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              <div className="space-y-6">
-                <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-5">
-                  <h3 className="font-semibold mb-4">Content Templates</h3>
-                  <div className="space-y-2">
-                    {[
-                      'Product Launch',
-                      'Sale Announcement',
-                      'Behind the Scenes',
-                      'Customer Testimonial',
-                      'How-To Guide',
-                      'Industry News'
-                    ].map(t => (
-                      <button key={t} className="w-full text-left px-4 py-3 rounded-lg hover:bg-slate-800 transition-colors text-sm flex items-center justify-between group">
-                        {t}
-                        <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-violet-400 transition-colors" />
-                      </button>
-                    ))}
-                  </div>
+                  )}
                 </div>
-
-                <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-5">
-                  <h3 className="font-semibold mb-4">Recent Generations</h3>
-                  <div className="space-y-3">
-                    {[
-                      { type: 'text', title: 'Summer promo copy', time: '2h ago' },
-                      { type: 'image', title: 'Product banner', time: '5h ago' },
-                      { type: 'text', title: 'Email subject lines', time: '1d ago' }
-                    ].map((item, i) => (
-                      <div key={i} className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-800 cursor-pointer transition-colors">
-                        <div className="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center">
-                          {item.type === 'text' ? (
-                            <Type className="w-4 h-4 text-slate-400" />
-                          ) : (
-                            <Image className="w-4 h-4 text-slate-400" />
-                          )}
+                
+                {/* Right Panel - Content Library */}
+                <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
+                  <h3 className="font-semibold mb-4">Content Library</h3>
+                  
+                  {loadingLibrary ? (
+                    <div className="text-center py-8 text-slate-400">
+                      Loading library...
+                    </div>
+                  ) : contentLibrary.length === 0 ? (
+                    <div className="text-center py-8 text-slate-400">
+                      <FileText className="w-12 h-12 mx-auto mb-3 text-slate-600" />
+                      <p className="text-sm">No saved content yet</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3 max-h-[calc(100vh-200px)] overflow-y-auto">
+                      {contentLibrary.map((item) => (
+                        <div
+                          key={item.id}
+                          className="p-3 bg-slate-800/50 rounded-lg border border-slate-700 hover:border-violet-500/50 transition-all"
+                        >
+                          <div className="flex justify-between items-start mb-2">
+                            <span className="text-xs px-2 py-0.5 bg-violet-500/20 text-violet-400 rounded">
+                              {item.content_type}
+                            </span>
+                            <div className="flex gap-1">
+                              <button
+                                onClick={() => toggleFavorite(item.id, item.is_favorite)}
+                                className={`p-1 rounded transition-colors ${
+                                  item.is_favorite ? 'text-yellow-400' : 'text-slate-500 hover:text-yellow-400'
+                                }`}
+                              >
+                                <Star className="w-3.5 h-3.5" fill={item.is_favorite ? 'currentColor' : 'none'} />
+                              </button>
+                              <button
+                                onClick={() => copyToClipboard(item.generated_content)}
+                                className="p-1 text-slate-500 hover:text-white rounded transition-colors"
+                              >
+                                <Copy className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                onClick={() => deleteContent(item.id)}
+                                className="p-1 text-slate-500 hover:text-red-400 rounded transition-colors"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+                          <p className="text-xs text-slate-300 line-clamp-3 mb-2">
+                            {item.generated_content}
+                          </p>
+                          <div className="text-xs text-slate-500">
+                            {new Date(item.created_at).toLocaleDateString()}
+                          </div>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm truncate">{item.title}</p>
-                          <p className="text-xs text-slate-500">{item.time}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
