@@ -101,6 +101,51 @@ export type Database = {
         }
         Relationships: []
       }
+      automation_rules: {
+        Row: {
+          actions: Json
+          created_at: string | null
+          description: string | null
+          execution_count: number | null
+          id: string
+          is_active: boolean | null
+          last_executed_at: string | null
+          name: string
+          trigger_config: Json
+          trigger_type: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          actions: Json
+          created_at?: string | null
+          description?: string | null
+          execution_count?: number | null
+          id?: string
+          is_active?: boolean | null
+          last_executed_at?: string | null
+          name: string
+          trigger_config: Json
+          trigger_type: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          actions?: Json
+          created_at?: string | null
+          description?: string | null
+          execution_count?: number | null
+          id?: string
+          is_active?: boolean | null
+          last_executed_at?: string | null
+          name?: string
+          trigger_config?: Json
+          trigger_type?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       campaign_drafts: {
         Row: {
           audience_segment: string | null
@@ -399,6 +444,75 @@ export type Database = {
           engagement?: number | null
           id?: string
           reach?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      scheduled_posts: {
+        Row: {
+          campaign_id: string | null
+          clicks: number | null
+          content: string
+          created_at: string | null
+          engagements: number | null
+          error_message: string | null
+          id: string
+          impressions: number | null
+          media_urls: string[] | null
+          platforms: string[]
+          post_type: string
+          published_at: string | null
+          recurrence: string | null
+          recurrence_end_date: string | null
+          scheduled_time: string
+          status: string
+          timezone: string | null
+          title: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          campaign_id?: string | null
+          clicks?: number | null
+          content: string
+          created_at?: string | null
+          engagements?: number | null
+          error_message?: string | null
+          id?: string
+          impressions?: number | null
+          media_urls?: string[] | null
+          platforms: string[]
+          post_type: string
+          published_at?: string | null
+          recurrence?: string | null
+          recurrence_end_date?: string | null
+          scheduled_time: string
+          status?: string
+          timezone?: string | null
+          title: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          campaign_id?: string | null
+          clicks?: number | null
+          content?: string
+          created_at?: string | null
+          engagements?: number | null
+          error_message?: string | null
+          id?: string
+          impressions?: number | null
+          media_urls?: string[] | null
+          platforms?: string[]
+          post_type?: string
+          published_at?: string | null
+          recurrence?: string | null
+          recurrence_end_date?: string | null
+          scheduled_time?: string
+          status?: string
+          timezone?: string | null
+          title?: string
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: []

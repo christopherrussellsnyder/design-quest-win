@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Sparkles, TrendingUp, Users, Mail, Target, Zap, ChevronDown, Play, Pause, Settings, Bell, Search, Plus, ArrowUpRight, ArrowDownRight, LayoutDashboard, FileText, Send, Megaphone, Calendar, ChevronRight, Image, Type, Video, Wand2, Copy, RefreshCw, Check, Filter, Download, Eye, MousePointer, DollarSign, ChevronLeft, BarChart3, LogOut, X, Save, Star, Trash2, Globe, TrendingDown, AlertCircle, Lightbulb } from 'lucide-react';
+import { Sparkles, TrendingUp, Users, Mail, Target, Zap, ChevronDown, Play, Pause, Settings, Bell, Search, Plus, ArrowUpRight, ArrowDownRight, LayoutDashboard, FileText, Send, Megaphone, Calendar, ChevronRight, Image, Type, Video, Wand2, Copy, RefreshCw, Check, Filter, Download, Eye, MousePointer, DollarSign, ChevronLeft, BarChart3, LogOut, X, Save, Star, Trash2, Globe, TrendingDown, AlertCircle, Lightbulb, Clock } from 'lucide-react';
 
 const performanceData = [
   { name: 'Mon', engagement: 4200, conversions: 240, reach: 18000 },
@@ -163,6 +163,38 @@ export default function Dashboard() {
   const [comparisonData, setComparisonData] = useState<any>(null);
   const [platformBreakdown, setPlatformBreakdown] = useState<any[]>([]);
 
+  // Scheduler State
+  const [scheduledPosts, setScheduledPosts] = useState<any[]>([]);
+  const [loadingSchedule, setLoadingSchedule] = useState(false);
+  const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [calendarView, setCalendarView] = useState('month'); // 'day', 'week', 'month'
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [scheduleFormData, setScheduleFormData] = useState({
+    title: '',
+    content: '',
+    post_type: 'social',
+    platforms: [] as string[],
+    scheduled_time: '',
+    timezone: 'UTC',
+    recurrence: 'once',
+    recurrence_end_date: '',
+    campaign_id: null as string | null
+  });
+
+  // Automation State
+  const [automationRules, setAutomationRules] = useState<any[]>([]);
+  const [loadingAutomation, setLoadingAutomation] = useState(false);
+  const [showAutomationModal, setShowAutomationModal] = useState(false);
+  const [editingRule, setEditingRule] = useState<any>(null);
+  const [automationFormData, setAutomationFormData] = useState({
+    name: '',
+    description: '',
+    is_active: true,
+    trigger_type: 'time',
+    trigger_config: {},
+    actions: []
+  });
+
   // Load dashboard data on mount
   useEffect(() => {
     const loadDashboardData = async () => {
@@ -261,6 +293,14 @@ export default function Dashboard() {
       loadAnalytics();
     }
   }, [activeTab, analyticsDateRange]);
+
+  // Load scheduler data when Scheduler tab is opened
+  useEffect(() => {
+    if (activeTab === 'scheduler') {
+      fetchScheduledPosts();
+      fetchAutomationRules();
+    }
+  }, [activeTab]);
 
   const fetchKpis = async () => {
     setKpisLoading(true);
@@ -1861,6 +1901,310 @@ export default function Dashboard() {
         description: 'Analytics exported successfully!',
       });
     });
+  };
+
+  // Scheduler Functions
+  // Fetch scheduled posts
+  const fetchScheduledPosts = async () => {
+    setLoadingSchedule(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        setLoadingSchedule(false);
+        return;
+      }
+      
+      const { data, error } = await supabase
+        .from('scheduled_posts')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('scheduled_time', { ascending: true });
+      
+      if (error) {
+        console.error('Fetch scheduled posts error:', error);
+      } else {
+        setScheduledPosts(data || []);
+        console.log('Scheduled posts loaded:', data?.length);
+      }
+    } catch (error) {
+      console.error('Fetch scheduled posts error:', error);
+    } finally {
+      setLoadingSchedule(false);
+    }
+  };
+
+  // Create scheduled post
+  const createScheduledPost = async () => {
+    if (!scheduleFormData.title.trim() || !scheduleFormData.content.trim()) {
+      import('@/hooks/use-toast').then(({ toast }) => {
+        toast({
+          title: 'Validation Error',
+          description: 'Please enter title and content',
+          variant: 'destructive'
+        });
+      });
+      return;
+    }
+    
+    if (!scheduleFormData.scheduled_time) {
+      import('@/hooks/use-toast').then(({ toast }) => {
+        toast({
+          title: 'Validation Error',
+          description: 'Please select a date and time',
+          variant: 'destructive'
+        });
+      });
+      return;
+    }
+    
+    if (scheduleFormData.platforms.length === 0) {
+      import('@/hooks/use-toast').then(({ toast }) => {
+        toast({
+          title: 'Validation Error',
+          description: 'Please select at least one platform',
+          variant: 'destructive'
+        });
+      });
+      return;
+    }
+    
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        import('@/hooks/use-toast').then(({ toast }) => {
+          toast({
+            title: 'Error',
+            description: 'You must be logged in',
+            variant: 'destructive'
+          });
+        });
+        return;
+      }
+      
+      const { error } = await supabase
+        .from('scheduled_posts')
+        .insert({
+          user_id: user.id,
+          ...scheduleFormData,
+          status: 'scheduled'
+        });
+      
+      if (error) {
+        console.error('Create scheduled post error:', error);
+        import('@/hooks/use-toast').then(({ toast }) => {
+          toast({
+            title: 'Error',
+            description: 'Error scheduling post: ' + error.message,
+            variant: 'destructive'
+          });
+        });
+        return;
+      }
+      
+      import('@/hooks/use-toast').then(({ toast }) => {
+        toast({
+          title: 'Success!',
+          description: 'Post scheduled successfully!',
+        });
+      });
+      resetScheduleForm();
+      setShowScheduleModal(false);
+      fetchScheduledPosts();
+      
+    } catch (error) {
+      console.error('Create scheduled post error:', error);
+      import('@/hooks/use-toast').then(({ toast }) => {
+        toast({
+          title: 'Error',
+          description: 'Error scheduling post',
+          variant: 'destructive'
+        });
+      });
+    }
+  };
+
+  // Cancel scheduled post
+  const cancelScheduledPost = async (postId: string) => {
+    if (!confirm('Cancel this scheduled post?')) return;
+    
+    try {
+      const { error } = await supabase
+        .from('scheduled_posts')
+        .update({ status: 'cancelled' })
+        .eq('id', postId);
+      
+      if (error) {
+        console.error('Cancel post error:', error);
+        import('@/hooks/use-toast').then(({ toast }) => {
+          toast({
+            title: 'Error',
+            description: 'Error cancelling post',
+            variant: 'destructive'
+          });
+        });
+      } else {
+        import('@/hooks/use-toast').then(({ toast }) => {
+          toast({
+            title: 'Success!',
+            description: 'Post cancelled successfully!',
+          });
+        });
+        fetchScheduledPosts();
+      }
+    } catch (error) {
+      console.error('Cancel post error:', error);
+    }
+  };
+
+  // Delete scheduled post
+  const deleteScheduledPost = async (postId: string) => {
+    if (!confirm('Delete this scheduled post?')) return;
+    
+    try {
+      const { error } = await supabase
+        .from('scheduled_posts')
+        .delete()
+        .eq('id', postId);
+      
+      if (error) {
+        console.error('Delete post error:', error);
+        import('@/hooks/use-toast').then(({ toast }) => {
+          toast({
+            title: 'Error',
+            description: 'Error deleting post',
+            variant: 'destructive'
+          });
+        });
+      } else {
+        import('@/hooks/use-toast').then(({ toast }) => {
+          toast({
+            title: 'Success!',
+            description: 'Post deleted successfully!',
+          });
+        });
+        fetchScheduledPosts();
+      }
+    } catch (error) {
+      console.error('Delete post error:', error);
+    }
+  };
+
+  // Reset schedule form
+  const resetScheduleForm = () => {
+    setScheduleFormData({
+      title: '',
+      content: '',
+      post_type: 'social',
+      platforms: [],
+      scheduled_time: '',
+      timezone: 'UTC',
+      recurrence: 'once',
+      recurrence_end_date: '',
+      campaign_id: null
+    });
+  };
+
+  // Get posts for specific date
+  const getPostsForDate = (date: Date) => {
+    const dateStr = date.toISOString().split('T')[0];
+    return scheduledPosts.filter(post => {
+      const postDate = new Date(post.scheduled_time).toISOString().split('T')[0];
+      return postDate === dateStr;
+    });
+  };
+
+  // Format time for display
+  const formatScheduledTime = (timestamp: string) => {
+    const date = new Date(timestamp);
+    return date.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+  };
+
+  // Fetch automation rules
+  const fetchAutomationRules = async () => {
+    setLoadingAutomation(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        setLoadingAutomation(false);
+        return;
+      }
+      
+      const { data, error } = await supabase
+        .from('automation_rules')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error('Fetch automation rules error:', error);
+      } else {
+        setAutomationRules(data || []);
+      }
+    } catch (error) {
+      console.error('Fetch automation rules error:', error);
+    } finally {
+      setLoadingAutomation(false);
+    }
+  };
+
+  // Toggle automation rule
+  const toggleAutomationRule = async (ruleId: string, currentStatus: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('automation_rules')
+        .update({ is_active: !currentStatus })
+        .eq('id', ruleId);
+      
+      if (error) {
+        console.error('Toggle rule error:', error);
+      } else {
+        fetchAutomationRules();
+      }
+    } catch (error) {
+      console.error('Toggle rule error:', error);
+    }
+  };
+
+  // Delete automation rule
+  const deleteAutomationRule = async (ruleId: string) => {
+    if (!confirm('Delete this automation rule?')) return;
+    
+    try {
+      const { error } = await supabase
+        .from('automation_rules')
+        .delete()
+        .eq('id', ruleId);
+      
+      if (error) {
+        console.error('Delete rule error:', error);
+        import('@/hooks/use-toast').then(({ toast }) => {
+          toast({
+            title: 'Error',
+            description: 'Error deleting rule',
+            variant: 'destructive'
+          });
+        });
+      } else {
+        import('@/hooks/use-toast').then(({ toast }) => {
+          toast({
+            title: 'Success!',
+            description: 'Rule deleted successfully!',
+          });
+        });
+        fetchAutomationRules();
+      }
+    } catch (error) {
+      console.error('Delete rule error:', error);
+    }
   };
 
   return (
@@ -4166,292 +4510,230 @@ export default function Dashboard() {
 
           {/* SCHEDULER */}
           {activeTab === 'scheduler' && (
-            <div className="grid grid-cols-3 gap-6">
-              {/* Left Panel - Calendar & Scheduled Posts */}
-              <div className="col-span-2 space-y-6">
-                {/* Calendar View */}
-                <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-5">
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="font-semibold">Content Calendar</h2>
-                    <div className="flex items-center gap-2">
-                      <button className="p-2 rounded-lg hover:bg-slate-800 transition-colors">
-                        <ChevronLeft className="w-4 h-4 text-slate-400" />
-                      </button>
-                      <span className="text-sm font-medium px-3">November 2024</span>
-                      <button className="p-2 rounded-lg hover:bg-slate-800 transition-colors">
-                        <ChevronRight className="w-4 h-4 text-slate-400" />
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Calendar Grid */}
-                  <div className="grid grid-cols-7 gap-2">
-                    {/* Day Headers */}
-                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                      <div key={day} className="text-center text-xs text-slate-500 font-medium py-2">
-                        {day}
-                      </div>
-                    ))}
+            <div className="max-w-7xl mx-auto p-6">
+              <div className="flex justify-between items-center mb-6">
+                <div>
+                  <h2 className="text-2xl font-bold mb-2">Content Scheduler</h2>
+                  <p className="text-slate-400">Schedule posts and automate your marketing campaigns</p>
+                </div>
+                <button
+                  onClick={() => {
+                    resetScheduleForm();
+                    setShowScheduleModal(true);
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-lg font-medium hover:opacity-90"
+                >
+                  <Plus className="w-4 h-4" />
+                  Schedule Post
+                </button>
+              </div>
+              
+              <div className="grid grid-cols-3 gap-6">
+                {/* Left Column - Scheduled Posts Queue */}
+                <div className="col-span-2 space-y-6">
+                  {/* Upcoming Posts */}
+                  <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
+                    <h3 className="text-lg font-semibold mb-4">Upcoming Posts</h3>
                     
-                    {/* Calendar Days */}
-                    {Array.from({ length: 35 }, (_, i) => {
-                      const day = i - 2; // Start from day -2 to show previous month
-                      const isCurrentMonth = day > 0 && day <= 30;
-                      const hasPost = [5, 8, 12, 15, 19, 22, 26].includes(day);
-                      const isToday = day === 21;
-                      
-                      return (
-                        <div
-                          key={i}
-                          className={`aspect-square rounded-lg border p-2 text-xs transition-all cursor-pointer ${
-                            isToday
-                              ? 'border-violet-500 bg-violet-500/10'
-                              : isCurrentMonth
-                              ? 'border-slate-700 hover:border-slate-600 bg-slate-800/30'
-                              : 'border-slate-800 bg-slate-900/30 text-slate-600'
-                          }`}
+                    {loadingSchedule ? (
+                      <div className="text-center py-8 text-slate-400">
+                        Loading schedule...
+                      </div>
+                    ) : scheduledPosts.filter(p => p.status === 'scheduled').length === 0 ? (
+                      <div className="text-center py-8">
+                        <Calendar className="w-12 h-12 mx-auto mb-3 text-slate-600" />
+                        <p className="text-slate-400 mb-4">No scheduled posts yet</p>
+                        <button
+                          onClick={() => setShowScheduleModal(true)}
+                          className="px-4 py-2 bg-violet-500 hover:bg-violet-600 rounded-lg text-sm"
                         >
-                          <div className="flex flex-col h-full">
-                            <span className={isToday ? 'text-violet-400 font-bold' : ''}>
-                              {day > 0 ? day : ''}
-                            </span>
-                            {hasPost && isCurrentMonth && (
-                              <div className="flex-1 flex items-end">
-                                <div className="flex gap-1">
-                                  <div className="w-1.5 h-1.5 rounded-full bg-violet-500"></div>
-                                  <div className="w-1.5 h-1.5 rounded-full bg-cyan-500"></div>
+                          Schedule First Post
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {scheduledPosts
+                          .filter(post => post.status === 'scheduled')
+                          .slice(0, 10)
+                          .map((post) => (
+                            <div
+                              key={post.id}
+                              className="p-4 bg-slate-800/50 rounded-lg border border-slate-700 hover:border-violet-500/50 transition-all"
+                            >
+                              <div className="flex justify-between items-start mb-2">
+                                <div className="flex-1">
+                                  <h4 className="font-semibold mb-1">{post.title}</h4>
+                                  <p className="text-sm text-slate-400 line-clamp-2">{post.content}</p>
+                                </div>
+                                <span className="text-xs px-2 py-1 bg-emerald-500/20 text-emerald-400 rounded ml-2 shrink-0">
+                                  {post.post_type}
+                                </span>
+                              </div>
+                              
+                              <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-700">
+                                <div className="flex items-center gap-4 text-sm text-slate-400">
+                                  <span className="flex items-center gap-1">
+                                    <Clock className="w-4 h-4" />
+                                    {formatScheduledTime(post.scheduled_time)}
+                                  </span>
+                                  <span className="flex gap-1">
+                                    {post.platforms.slice(0, 3).map((p: string) => (
+                                      <span key={p} className="text-xs px-2 py-0.5 bg-violet-500/20 text-violet-400 rounded">
+                                        {p}
+                                      </span>
+                                    ))}
+                                  </span>
+                                </div>
+                                
+                                <div className="flex gap-2">
+                                  <button
+                                    onClick={() => cancelScheduledPost(post.id)}
+                                    className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-slate-700 rounded transition-colors"
+                                    title="Cancel"
+                                  >
+                                    <X className="w-4 h-4" />
+                                  </button>
+                                  <button
+                                    onClick={() => deleteScheduledPost(post.id)}
+                                    className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-slate-700 rounded transition-colors"
+                                    title="Delete"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
                                 </div>
                               </div>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
+                            </div>
+                          ))}
+                      </div>
+                    )}
                   </div>
-
-                  {/* Legend */}
-                  <div className="flex items-center gap-6 mt-4 pt-4 border-t border-slate-800">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-violet-500"></div>
-                      <span className="text-xs text-slate-400">Scheduled</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-cyan-500"></div>
-                      <span className="text-xs text-slate-400">Published</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-amber-500"></div>
-                      <span className="text-xs text-slate-400">Draft</span>
-                    </div>
+                  
+                  {/* Published Posts History */}
+                  <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
+                    <h3 className="text-lg font-semibold mb-4">Recently Published</h3>
+                    
+                    {scheduledPosts.filter(p => p.status === 'published').length === 0 ? (
+                      <div className="text-center py-6 text-slate-400">
+                        <p className="text-sm">No published posts yet</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {scheduledPosts
+                          .filter(post => post.status === 'published')
+                          .slice(0, 5)
+                          .map((post) => (
+                            <div
+                              key={post.id}
+                              className="p-3 bg-slate-800/30 rounded-lg border border-slate-700/50"
+                            >
+                              <div className="flex justify-between items-start mb-2">
+                                <h4 className="font-medium text-sm">{post.title}</h4>
+                                <span className="text-xs px-2 py-0.5 bg-emerald-500/20 text-emerald-400 rounded">
+                                  Published
+                                </span>
+                              </div>
+                              <div className="text-xs text-slate-400">
+                                {formatScheduledTime(post.published_at)}
+                              </div>
+                            </div>
+                          ))}
+                      </div>
+                    )}
                   </div>
                 </div>
-
-                {/* Scheduled Posts List */}
-                <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-5">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-semibold">Upcoming Posts</h3>
-                    <button className="flex items-center gap-2 px-3 py-1.5 bg-violet-500/20 text-violet-400 rounded-lg text-sm border border-violet-500/30">
-                      <Plus className="w-4 h-4" />
-                      Schedule Post
-                    </button>
-                  </div>
-
-                  <div className="space-y-3">
-                    {[
-                      {
-                        id: 1,
-                        title: 'Summer Sale Announcement',
-                        platform: ['Facebook', 'Instagram'],
-                        time: 'Nov 22, 2024 • 9:00 AM',
-                        status: 'scheduled',
-                        preview: 'Get ready for our biggest sale of the year! 50% off...'
-                      },
-                      {
-                        id: 2,
-                        title: 'Product Feature Highlight',
-                        platform: ['Instagram', 'Twitter'],
-                        time: 'Nov 23, 2024 • 2:00 PM',
-                        status: 'scheduled',
-                        preview: 'Discover the amazing features that make our product stand out...'
-                      },
-                      {
-                        id: 3,
-                        title: 'Customer Testimonial',
-                        platform: ['Facebook', 'LinkedIn'],
-                        time: 'Nov 25, 2024 • 11:00 AM',
-                        status: 'scheduled',
-                        preview: 'Hear what our customers are saying about their experience...'
-                      },
-                      {
-                        id: 4,
-                        title: 'Behind the Scenes',
-                        platform: ['Instagram'],
-                        time: 'Nov 26, 2024 • 4:00 PM',
-                        status: 'draft',
-                        preview: 'Take a look at how we create our amazing products...'
-                      }
-                    ].map(post => (
-                      <div
-                        key={post.id}
-                        className="p-4 bg-slate-800/50 rounded-lg border border-slate-700 hover:border-slate-600 transition-colors"
+                
+                {/* Right Column - Automation Rules & Stats */}
+                <div className="space-y-6">
+                  <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-lg font-semibold">Automation Rules</h3>
+                      <button
+                        onClick={() => setShowAutomationModal(true)}
+                        className="p-1.5 hover:bg-slate-800 rounded transition-colors"
                       >
-                        <div className="flex items-start justify-between mb-2">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <h4 className="font-medium text-sm">{post.title}</h4>
-                              <span
-                                className={`px-2 py-0.5 rounded-full text-xs ${
-                                  post.status === 'scheduled'
-                                    ? 'bg-violet-500/20 text-violet-400'
-                                    : 'bg-amber-500/20 text-amber-400'
+                        <Plus className="w-4 h-4" />
+                      </button>
+                    </div>
+                    
+                    {loadingAutomation ? (
+                      <div className="text-center py-6 text-slate-400">
+                        Loading rules...
+                      </div>
+                    ) : automationRules.length === 0 ? (
+                      <div className="text-center py-6">
+                        <Zap className="w-10 h-10 mx-auto mb-2 text-slate-600" />
+                        <p className="text-sm text-slate-400 mb-3">No automation rules</p>
+                        <button
+                          onClick={() => setShowAutomationModal(true)}
+                          className="text-sm text-violet-400 hover:text-violet-300"
+                        >
+                          Create first rule
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {automationRules.map((rule) => (
+                          <div
+                            key={rule.id}
+                            className="p-3 bg-slate-800/50 rounded-lg border border-slate-700"
+                          >
+                            <div className="flex justify-between items-start mb-2">
+                              <div className="flex-1">
+                                <h4 className="font-medium text-sm mb-1">{rule.name}</h4>
+                                {rule.description && (
+                                  <p className="text-xs text-slate-400 line-clamp-2">{rule.description}</p>
+                                )}
+                              </div>
+                              <button
+                                onClick={() => toggleAutomationRule(rule.id, rule.is_active)}
+                                className={`p-1 rounded transition-colors ${
+                                  rule.is_active ? 'text-emerald-400' : 'text-slate-500'
                                 }`}
                               >
-                                {post.status}
+                                <Zap className="w-4 h-4" fill={rule.is_active ? 'currentColor' : 'none'} />
+                              </button>
+                            </div>
+                            
+                            <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-700/50">
+                              <span className="text-xs text-slate-500">
+                                {rule.trigger_type.replace('_', ' ')}
                               </span>
-                            </div>
-                            <p className="text-xs text-slate-400 mb-2">{post.preview}</p>
-                            <div className="flex items-center gap-3 text-xs text-slate-500">
-                              <div className="flex items-center gap-1">
-                                <Calendar className="w-3 h-3" />
-                                {post.time}
-                              </div>
-                              <div className="flex items-center gap-1">
-                                {post.platform.map((p, i) => (
-                                  <span
-                                    key={i}
-                                    className="px-2 py-0.5 bg-slate-700 rounded text-xs"
-                                  >
-                                    {p}
-                                  </span>
-                                ))}
-                              </div>
+                              <button
+                                onClick={() => deleteAutomationRule(rule.id)}
+                                className="text-xs text-slate-500 hover:text-red-400"
+                              >
+                                Delete
+                              </button>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2 ml-4">
-                            <button className="p-1.5 rounded hover:bg-slate-700 transition-colors">
-                              <Settings className="w-4 h-4 text-slate-400" />
-                            </button>
-                            <button className="p-1.5 rounded hover:bg-slate-700 transition-colors">
-                              <Copy className="w-4 h-4 text-slate-400" />
-                            </button>
-                          </div>
-                        </div>
+                        ))}
                       </div>
-                    ))}
+                    )}
                   </div>
-                </div>
-              </div>
-
-              {/* Right Panel - Quick Actions & Analytics */}
-              <div className="space-y-6">
-                {/* Best Times to Post */}
-                <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-5">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Sparkles className="w-4 h-4 text-fuchsia-400" />
-                    <h3 className="font-semibold text-sm">AI Recommendations</h3>
-                  </div>
-                  <div className="space-y-3">
-                    <div className="p-3 bg-violet-500/10 rounded-lg border border-violet-500/20">
-                      <div className="text-xs font-medium text-violet-400 mb-1">
-                        Best Time to Post
+                  
+                  {/* Quick Stats */}
+                  <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
+                    <h3 className="text-sm font-semibold text-slate-400 mb-4">Schedule Stats</h3>
+                    <div className="space-y-3">
+                      <div className="flex justify-between">
+                        <span className="text-sm text-slate-400">Scheduled</span>
+                        <span className="font-semibold">
+                          {scheduledPosts.filter(p => p.status === 'scheduled').length}
+                        </span>
                       </div>
-                      <div className="text-sm">Weekdays 7-9 PM EST</div>
-                      <div className="text-xs text-slate-400 mt-1">
-                        23% higher engagement
+                      <div className="flex justify-between">
+                        <span className="text-sm text-slate-400">Published</span>
+                        <span className="font-semibold text-emerald-400">
+                          {scheduledPosts.filter(p => p.status === 'published').length}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-slate-400">Active Rules</span>
+                        <span className="font-semibold text-violet-400">
+                          {automationRules.filter(r => r.is_active).length}
+                        </span>
                       </div>
                     </div>
-                    <div className="p-3 bg-cyan-500/10 rounded-lg border border-cyan-500/20">
-                      <div className="text-xs font-medium text-cyan-400 mb-1">
-                        Optimal Frequency
-                      </div>
-                      <div className="text-sm">3-4 posts per week</div>
-                      <div className="text-xs text-slate-400 mt-1">
-                        Based on your audience
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Post Performance */}
-                <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-5">
-                  <h3 className="font-semibold mb-4 text-sm">Scheduled Content</h3>
-                  <div className="space-y-4">
-                    <div>
-                      <div className="flex justify-between text-xs mb-2">
-                        <span className="text-slate-400">This Week</span>
-                        <span className="text-slate-300 font-medium">12 posts</span>
-                      </div>
-                      <div className="w-full bg-slate-700 rounded-full h-1.5">
-                        <div
-                          className="bg-violet-500 h-1.5 rounded-full"
-                          style={{ width: '75%' }}
-                        ></div>
-                      </div>
-                    </div>
-                    <div>
-                      <div className="flex justify-between text-xs mb-2">
-                        <span className="text-slate-400">Next Week</span>
-                        <span className="text-slate-300 font-medium">8 posts</span>
-                      </div>
-                      <div className="w-full bg-slate-700 rounded-full h-1.5">
-                        <div
-                          className="bg-cyan-500 h-1.5 rounded-full"
-                          style={{ width: '50%' }}
-                        ></div>
-                      </div>
-                    </div>
-                    <div>
-                      <div className="flex justify-between text-xs mb-2">
-                        <span className="text-slate-400">This Month</span>
-                        <span className="text-slate-300 font-medium">45 posts</span>
-                      </div>
-                      <div className="w-full bg-slate-700 rounded-full h-1.5">
-                        <div
-                          className="bg-emerald-500 h-1.5 rounded-full"
-                          style={{ width: '90%' }}
-                        ></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Platform Distribution */}
-                <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-5">
-                  <h3 className="font-semibold mb-4 text-sm">Platform Distribution</h3>
-                  <div className="space-y-3">
-                    {[
-                      { platform: 'Instagram', count: 18, color: 'bg-pink-500' },
-                      { platform: 'Facebook', count: 15, color: 'bg-blue-500' },
-                      { platform: 'Twitter', count: 8, color: 'bg-sky-500' },
-                      { platform: 'LinkedIn', count: 4, color: 'bg-indigo-500' }
-                    ].map((item, i) => (
-                      <div key={i} className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className={`w-2 h-2 rounded-full ${item.color}`}></div>
-                          <span className="text-sm text-slate-300">{item.platform}</span>
-                        </div>
-                        <span className="text-sm text-slate-400">{item.count} posts</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Quick Actions */}
-                <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-5">
-                  <h3 className="font-semibold mb-4 text-sm">Quick Actions</h3>
-                  <div className="space-y-2">
-                    <button className="w-full px-4 py-2.5 bg-violet-500/20 text-violet-400 rounded-lg text-sm border border-violet-500/30 hover:bg-violet-500/30 transition-colors text-left flex items-center justify-between">
-                      <span>Schedule Post</span>
-                      <Plus className="w-4 h-4" />
-                    </button>
-                    <button className="w-full px-4 py-2.5 text-slate-400 hover:bg-slate-800 rounded-lg text-sm transition-colors text-left flex items-center justify-between">
-                      <span>Bulk Upload</span>
-                      <Download className="w-4 h-4" />
-                    </button>
-                    <button className="w-full px-4 py-2.5 text-slate-400 hover:bg-slate-800 rounded-lg text-sm transition-colors text-left flex items-center justify-between">
-                      <span>Export Calendar</span>
-                      <Send className="w-4 h-4" />
-                    </button>
                   </div>
                 </div>
               </div>
@@ -4855,6 +5137,124 @@ export default function Dashboard() {
               >
                 {editingAudience ? 'Update Audience' : 'Create Audience'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Schedule Post Modal */}
+      {showScheduleModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center p-6 border-b border-slate-800">
+              <h2 className="text-2xl font-bold">Schedule Post</h2>
+              <button onClick={() => { setShowScheduleModal(false); resetScheduleForm(); }} className="p-2 hover:bg-slate-800 rounded-lg transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-6">
+              <div>
+                <label className="text-sm text-slate-400 block mb-3 font-medium">Post Type</label>
+                <div className="grid grid-cols-4 gap-2">
+                  {[
+                    { value: 'social', label: 'Social Post' },
+                    { value: 'ad', label: 'Advertisement' },
+                    { value: 'email', label: 'Email' },
+                    { value: 'blog', label: 'Blog Post' }
+                  ].map(type => (
+                    <button key={type.value} onClick={() => setScheduleFormData({...scheduleFormData, post_type: type.value})} className={`p-3 rounded-lg border text-sm transition-all ${scheduleFormData.post_type === type.value ? 'border-violet-500 bg-violet-500/10' : 'border-slate-700 hover:border-slate-600'}`}>
+                      {type.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              <div>
+                <label className="text-sm text-slate-400 block mb-2 font-medium">Title *</label>
+                <input type="text" value={scheduleFormData.title} onChange={(e) => setScheduleFormData({...scheduleFormData, title: e.target.value})} placeholder="Post title..." className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 focus:outline-none focus:border-violet-500" />
+              </div>
+              
+              <div>
+                <label className="text-sm text-slate-400 block mb-2 font-medium">Content *</label>
+                <textarea value={scheduleFormData.content} onChange={(e) => setScheduleFormData({...scheduleFormData, content: e.target.value})} placeholder="Write your post content here..." className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 focus:outline-none focus:border-violet-500 resize-none" rows={6} />
+              </div>
+              
+              <div>
+                <label className="text-sm text-slate-400 block mb-3 font-medium">Platforms *</label>
+                <div className="grid grid-cols-4 gap-2">
+                  {['Facebook', 'Instagram', 'Twitter', 'LinkedIn', 'TikTok', 'YouTube'].map(platform => (
+                    <button key={platform} onClick={() => setScheduleFormData({ ...scheduleFormData, platforms: scheduleFormData.platforms.includes(platform) ? scheduleFormData.platforms.filter(p => p !== platform) : [...scheduleFormData.platforms, platform] })} className={`p-2 rounded-lg border text-sm transition-all ${scheduleFormData.platforms.includes(platform) ? 'border-violet-500 bg-violet-500/10' : 'border-slate-700 hover:border-slate-600'}`}>
+                      {platform}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm text-slate-400 block mb-2 font-medium">Date & Time *</label>
+                  <input type="datetime-local" value={scheduleFormData.scheduled_time} onChange={(e) => setScheduleFormData({...scheduleFormData, scheduled_time: e.target.value})} min={new Date().toISOString().slice(0, 16)} className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 focus:outline-none focus:border-violet-500" />
+                </div>
+                
+                <div>
+                  <label className="text-sm text-slate-400 block mb-2 font-medium">Recurrence</label>
+                  <select value={scheduleFormData.recurrence} onChange={(e) => setScheduleFormData({...scheduleFormData, recurrence: e.target.value})} className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 focus:outline-none focus:border-violet-500">
+                    <option value="once">Once</option>
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly">Monthly</option>
+                  </select>
+                </div>
+              </div>
+              
+              {campaigns.length > 0 && (
+                <div>
+                  <label className="text-sm text-slate-400 block mb-2 font-medium">Link to Campaign (Optional)</label>
+                  <select value={scheduleFormData.campaign_id || ''} onChange={(e) => setScheduleFormData({...scheduleFormData, campaign_id: e.target.value || null})} className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 focus:outline-none focus:border-violet-500">
+                    <option value="">No campaign</option>
+                    {campaigns.map((campaign: any) => (
+                      <option key={campaign.id} value={campaign.id}>{campaign.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
+            
+            <div className="flex gap-3 p-6 border-t border-slate-800">
+              <button onClick={() => { setShowScheduleModal(false); resetScheduleForm(); }} className="flex-1 px-6 py-2.5 border border-slate-700 hover:bg-slate-800 rounded-lg transition-colors">
+                Cancel
+              </button>
+              <button onClick={createScheduledPost} className="flex-1 px-6 py-2.5 bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:opacity-90 rounded-lg transition-opacity">
+                Schedule Post
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Automation Rule Modal */}
+      {showAutomationModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-xl max-w-lg w-full">
+            <div className="flex justify-between items-center p-6 border-b border-slate-800">
+              <h2 className="text-xl font-bold">Automation Rules</h2>
+              <button onClick={() => setShowAutomationModal(false)} className="p-2 hover:bg-slate-800 rounded-lg">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="p-6">
+              <div className="text-center py-8">
+                <Zap className="w-16 h-16 mx-auto mb-4 text-violet-400" />
+                <h3 className="text-lg font-semibold mb-2">Automation Coming Soon</h3>
+                <p className="text-slate-400 mb-4">
+                  Advanced automation rules will be available in the next update. You'll be able to create triggers and actions to automate your marketing workflows.
+                </p>
+                <button onClick={() => setShowAutomationModal(false)} className="px-6 py-2 bg-violet-500 hover:bg-violet-600 rounded-lg">
+                  Got it
+                </button>
+              </div>
             </div>
           </div>
         </div>
