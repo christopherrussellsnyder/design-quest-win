@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Sparkles, TrendingUp, Users, Mail, Target, Zap, ChevronDown, Play, Pause, Settings, Bell, Search, Plus, ArrowUpRight, ArrowDownRight, LayoutDashboard, FileText, Send, Megaphone, Calendar, ChevronRight, Image, Type, Video, Wand2, Copy, RefreshCw, Check, Filter, Download, Eye, MousePointer, DollarSign, ChevronLeft, BarChart3, LogOut, X, Save, Star, Trash2 } from 'lucide-react';
+import { Sparkles, TrendingUp, Users, Mail, Target, Zap, ChevronDown, Play, Pause, Settings, Bell, Search, Plus, ArrowUpRight, ArrowDownRight, LayoutDashboard, FileText, Send, Megaphone, Calendar, ChevronRight, Image, Type, Video, Wand2, Copy, RefreshCw, Check, Filter, Download, Eye, MousePointer, DollarSign, ChevronLeft, BarChart3, LogOut, X, Save, Star, Trash2, Globe } from 'lucide-react';
 
 const performanceData = [
   { name: 'Mon', engagement: 4200, conversions: 240, reach: 18000 },
@@ -130,6 +130,31 @@ export default function Dashboard() {
   const [loadingLibrary, setLoadingLibrary] = useState(false);
   const [selectedAiContent, setSelectedAiContent] = useState<any>(null);
 
+  // Audience Management State
+  const [audiences, setAudiences] = useState<any[]>([]);
+  const [loadingAudiences, setLoadingAudiences] = useState(false);
+  const [selectedAudience, setSelectedAudience] = useState<any>(null);
+  const [showAudienceModal, setShowAudienceModal] = useState(false);
+  const [editingAudience, setEditingAudience] = useState<string | null>(null);
+  const [audienceFormData, setAudienceFormData] = useState({
+    name: '',
+    description: '',
+    age_min: 18,
+    age_max: 65,
+    gender: [] as string[],
+    languages: [] as string[],
+    countries: [] as string[],
+    regions: [] as string[],
+    cities: [] as string[],
+    interests: [] as string[],
+    behaviors: [] as string[],
+    job_titles: [] as string[],
+    industries: [] as string[],
+    platforms: [] as string[],
+    estimated_size_min: 0,
+    estimated_size_max: 0
+  });
+
   // Load dashboard data on mount
   useEffect(() => {
     const loadDashboardData = async () => {
@@ -212,6 +237,13 @@ export default function Dashboard() {
   useEffect(() => {
     if (activeTab === 'content') {
       loadContentLibrary();
+    }
+  }, [activeTab]);
+
+  // Load audiences when Audience tab is opened
+  useEffect(() => {
+    if (activeTab === 'audience') {
+      fetchAudiences();
     }
   }, [activeTab]);
 
@@ -1342,6 +1374,326 @@ export default function Dashboard() {
         description: 'Content copied to clipboard',
       });
     });
+  };
+
+  // Audience Management Functions
+  const fetchAudiences = async () => {
+    setLoadingAudiences(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        setLoadingAudiences(false);
+        return;
+      }
+      
+      const { data, error } = await supabase
+        .from('audiences')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error('Fetch audiences error:', error);
+      } else {
+        setAudiences(data || []);
+        console.log('Audiences loaded:', data?.length);
+      }
+    } catch (error) {
+      console.error('Fetch audiences error:', error);
+    } finally {
+      setLoadingAudiences(false);
+    }
+  };
+
+  const createAudience = async () => {
+    if (!audienceFormData.name.trim()) {
+      import('@/hooks/use-toast').then(({ toast }) => {
+        toast({
+          title: 'Required Field',
+          description: 'Please enter an audience name',
+          variant: 'destructive'
+        });
+      });
+      return;
+    }
+    
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        import('@/hooks/use-toast').then(({ toast }) => {
+          toast({
+            title: 'Error',
+            description: 'You must be logged in',
+            variant: 'destructive'
+          });
+        });
+        return;
+      }
+      
+      const estimatedSize = calculateAudienceSize(audienceFormData);
+      
+      const { error } = await supabase
+        .from('audiences')
+        .insert({
+          user_id: user.id,
+          ...audienceFormData,
+          estimated_size_min: estimatedSize.min,
+          estimated_size_max: estimatedSize.max
+        });
+      
+      if (error) {
+        console.error('Create audience error:', error);
+        import('@/hooks/use-toast').then(({ toast }) => {
+          toast({
+            title: 'Error',
+            description: `Error creating audience: ${error.message}`,
+            variant: 'destructive'
+          });
+        });
+        return;
+      }
+      
+      import('@/hooks/use-toast').then(({ toast }) => {
+        toast({
+          title: 'Success!',
+          description: 'Audience created successfully!',
+        });
+      });
+      resetAudienceForm();
+      setShowAudienceModal(false);
+      fetchAudiences();
+      
+    } catch (error) {
+      console.error('Create audience error:', error);
+      import('@/hooks/use-toast').then(({ toast }) => {
+        toast({
+          title: 'Error',
+          description: 'Error creating audience',
+          variant: 'destructive'
+        });
+      });
+    }
+  };
+
+  const updateAudience = async () => {
+    if (!editingAudience) return;
+    
+    if (!audienceFormData.name.trim()) {
+      import('@/hooks/use-toast').then(({ toast }) => {
+        toast({
+          title: 'Required Field',
+          description: 'Please enter an audience name',
+          variant: 'destructive'
+        });
+      });
+      return;
+    }
+    
+    try {
+      const estimatedSize = calculateAudienceSize(audienceFormData);
+      
+      const { error } = await supabase
+        .from('audiences')
+        .update({
+          ...audienceFormData,
+          estimated_size_min: estimatedSize.min,
+          estimated_size_max: estimatedSize.max
+        })
+        .eq('id', editingAudience);
+      
+      if (error) {
+        console.error('Update audience error:', error);
+        import('@/hooks/use-toast').then(({ toast }) => {
+          toast({
+            title: 'Error',
+            description: `Error updating audience: ${error.message}`,
+            variant: 'destructive'
+          });
+        });
+        return;
+      }
+      
+      import('@/hooks/use-toast').then(({ toast }) => {
+        toast({
+          title: 'Success!',
+          description: 'Audience updated successfully!',
+        });
+      });
+      resetAudienceForm();
+      setShowAudienceModal(false);
+      setEditingAudience(null);
+      fetchAudiences();
+      
+    } catch (error) {
+      console.error('Update audience error:', error);
+      import('@/hooks/use-toast').then(({ toast }) => {
+        toast({
+          title: 'Error',
+          description: 'Error updating audience',
+          variant: 'destructive'
+        });
+      });
+    }
+  };
+
+  const deleteAudience = async (audienceId: string) => {
+    if (!confirm('Are you sure you want to delete this audience?')) {
+      return;
+    }
+    
+    try {
+      const { error } = await supabase
+        .from('audiences')
+        .delete()
+        .eq('id', audienceId);
+      
+      if (error) {
+        console.error('Delete audience error:', error);
+        import('@/hooks/use-toast').then(({ toast }) => {
+          toast({
+            title: 'Error',
+            description: 'Error deleting audience',
+            variant: 'destructive'
+          });
+        });
+      } else {
+        import('@/hooks/use-toast').then(({ toast }) => {
+          toast({
+            title: 'Success!',
+            description: 'Audience deleted successfully!',
+          });
+        });
+        fetchAudiences();
+        if (selectedAudience?.id === audienceId) {
+          setSelectedAudience(null);
+        }
+      }
+    } catch (error) {
+      console.error('Delete audience error:', error);
+      import('@/hooks/use-toast').then(({ toast }) => {
+        toast({
+          title: 'Error',
+          description: 'Error deleting audience',
+          variant: 'destructive'
+        });
+      });
+    }
+  };
+
+  const toggleAudienceFavorite = async (audienceId: string, currentFavorite: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('audiences')
+        .update({ is_favorite: !currentFavorite })
+        .eq('id', audienceId);
+      
+      if (error) {
+        console.error('Toggle favorite error:', error);
+      } else {
+        fetchAudiences();
+      }
+    } catch (error) {
+      console.error('Toggle favorite error:', error);
+    }
+  };
+
+  const calculateAudienceSize = (formData: typeof audienceFormData) => {
+    let baseSize = 10000000;
+    
+    const ageRange = (formData.age_max - formData.age_min) / 100;
+    baseSize *= ageRange;
+    
+    if (formData.gender.length > 0 && formData.gender.length < 3) {
+      baseSize *= (formData.gender.length / 3);
+    }
+    
+    if (formData.countries.length > 0) {
+      baseSize *= Math.min(formData.countries.length / 5, 1);
+    }
+    
+    if (formData.interests.length > 0) {
+      baseSize *= Math.max(0.3, 1 - (formData.interests.length * 0.1));
+    }
+    
+    if (formData.platforms.length > 0) {
+      baseSize *= Math.min(formData.platforms.length / 3, 1);
+    }
+    
+    const min = Math.floor(baseSize * 0.8);
+    const max = Math.floor(baseSize * 1.2);
+    
+    return { min, max };
+  };
+
+  const resetAudienceForm = () => {
+    setAudienceFormData({
+      name: '',
+      description: '',
+      age_min: 18,
+      age_max: 65,
+      gender: [],
+      languages: [],
+      countries: [],
+      regions: [],
+      cities: [],
+      interests: [],
+      behaviors: [],
+      job_titles: [],
+      industries: [],
+      platforms: [],
+      estimated_size_min: 0,
+      estimated_size_max: 0
+    });
+  };
+
+  const openEditAudience = (audience: any) => {
+    setEditingAudience(audience.id);
+    setAudienceFormData({
+      name: audience.name,
+      description: audience.description || '',
+      age_min: audience.age_min || 18,
+      age_max: audience.age_max || 65,
+      gender: audience.gender || [],
+      languages: audience.languages || [],
+      countries: audience.countries || [],
+      regions: audience.regions || [],
+      cities: audience.cities || [],
+      interests: audience.interests || [],
+      behaviors: audience.behaviors || [],
+      job_titles: audience.job_titles || [],
+      industries: audience.industries || [],
+      platforms: audience.platforms || [],
+      estimated_size_min: audience.estimated_size_min || 0,
+      estimated_size_max: audience.estimated_size_max || 0
+    });
+    setShowAudienceModal(true);
+  };
+
+  const applyAudienceToCampaign = (audience: any) => {
+    setCampaignFormData({
+      ...campaignFormData,
+      audience_segment: audience.name,
+      locations: audience.countries?.join(', ') || '',
+      interests: audience.interests || [],
+      platforms: audience.platforms || []
+    });
+    setActiveTab('campaigns');
+    import('@/hooks/use-toast').then(({ toast }) => {
+      toast({
+        title: 'Success!',
+        description: 'Audience applied to campaign!',
+      });
+    });
+  };
+
+  const toggleArrayItem = (array: string[], item: string) => {
+    if (array.includes(item)) {
+      return array.filter(i => i !== item);
+    } else {
+      return [...array, item];
+    }
   };
 
   return (
@@ -2910,6 +3262,135 @@ export default function Dashboard() {
             </div>
           )}
 
+          {/* AUDIENCE MANAGEMENT */}
+          {activeTab === 'audience' && (
+            <div className="max-w-7xl mx-auto p-6">
+              <div className="flex justify-between items-center mb-6">
+                <div>
+                  <h2 className="text-2xl font-bold mb-2">Audience Management</h2>
+                  <p className="text-slate-400">Create and manage target audiences for your campaigns</p>
+                </div>
+                <button
+                  onClick={() => {
+                    resetAudienceForm();
+                    setEditingAudience(null);
+                    setShowAudienceModal(true);
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-lg font-medium hover:opacity-90"
+                >
+                  <Plus className="w-4 h-4" />
+                  Create Audience
+                </button>
+              </div>
+              
+              {loadingAudiences ? (
+                <div className="text-center py-12 text-slate-400">
+                  Loading audiences...
+                </div>
+              ) : audiences.length === 0 ? (
+                <div className="text-center py-12">
+                  <Users className="w-16 h-16 mx-auto mb-4 text-slate-600" />
+                  <p className="text-slate-400 mb-4">No audiences yet. Create your first audience to get started!</p>
+                  <button
+                    onClick={() => setShowAudienceModal(true)}
+                    className="px-6 py-2 bg-violet-500 hover:bg-violet-600 rounded-lg transition-colors"
+                  >
+                    Create First Audience
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-3 gap-4">
+                  {audiences.map((audience: any) => (
+                    <div
+                      key={audience.id}
+                      className="bg-slate-900/50 border border-slate-800 rounded-xl p-5 hover:border-violet-500/50 transition-all cursor-pointer"
+                      onClick={() => {
+                        setSelectedAudience(audience);
+                      }}
+                    >
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="flex-1">
+                          <h3 className="font-semibold mb-1">{audience.name}</h3>
+                          {audience.description && (
+                            <p className="text-sm text-slate-400 line-clamp-2">{audience.description}</p>
+                          )}
+                        </div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleAudienceFavorite(audience.id, audience.is_favorite);
+                          }}
+                          className={`p-1 rounded transition-colors ${
+                            audience.is_favorite ? 'text-yellow-400' : 'text-slate-500 hover:text-yellow-400'
+                          }`}
+                        >
+                          <Star className="w-4 h-4" fill={audience.is_favorite ? 'currentColor' : 'none'} />
+                        </button>
+                      </div>
+                      
+                      <div className="space-y-2 mb-4">
+                        <div className="flex items-center gap-2 text-sm text-slate-400">
+                          <Users className="w-4 h-4" />
+                          <span>Age {audience.age_min}-{audience.age_max}</span>
+                        </div>
+                        
+                        {audience.countries && audience.countries.length > 0 && (
+                          <div className="flex items-center gap-2 text-sm text-slate-400">
+                            <Globe className="w-4 h-4" />
+                            <span>{audience.countries.slice(0, 2).join(', ')}{audience.countries.length > 2 ? '...' : ''}</span>
+                          </div>
+                        )}
+                        
+                        {audience.interests && audience.interests.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-2">
+                            {audience.interests.slice(0, 3).map((interest: string) => (
+                              <span key={interest} className="text-xs px-2 py-0.5 bg-violet-500/20 text-violet-400 rounded">
+                                {interest}
+                              </span>
+                            ))}
+                            {audience.interests.length > 3 && (
+                              <span className="text-xs px-2 py-0.5 bg-slate-700 text-slate-400 rounded">
+                                +{audience.interests.length - 3}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="pt-3 border-t border-slate-700">
+                        <div className="text-xs text-slate-500 mb-1">Estimated Reach</div>
+                        <div className="text-sm font-semibold">
+                          {(audience.estimated_size_min || 0).toLocaleString()} - {(audience.estimated_size_max || 0).toLocaleString()}
+                        </div>
+                      </div>
+                      
+                      <div className="flex gap-2 mt-3 pt-3 border-t border-slate-700">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openEditAudience(audience);
+                          }}
+                          className="flex-1 px-3 py-1.5 text-sm border border-slate-700 hover:bg-slate-800 rounded transition-colors"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            applyAudienceToCampaign(audience);
+                          }}
+                          className="flex-1 px-3 py-1.5 text-sm bg-violet-500 hover:bg-violet-600 rounded transition-colors"
+                        >
+                          Use in Campaign
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* ANALYTICS */}
           {activeTab === 'analytics' && (
             <div className="space-y-6">
@@ -3630,6 +4111,230 @@ export default function Dashboard() {
                   Delete
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Audience Builder Modal */}
+      {showAudienceModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="flex justify-between items-center p-6 border-b border-slate-800">
+              <h2 className="text-2xl font-bold">
+                {editingAudience ? 'Edit Audience' : 'Create New Audience'}
+              </h2>
+              <button
+                onClick={() => {
+                  setShowAudienceModal(false);
+                  setEditingAudience(null);
+                  resetAudienceForm();
+                }}
+                className="p-2 hover:bg-slate-800 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            {/* Modal Body */}
+            <div className="p-6 space-y-6">
+              {/* Basic Info */}
+              <div>
+                <h3 className="text-sm font-semibold text-slate-400 mb-4">Basic Information</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm text-slate-400 block mb-2">Audience Name *</label>
+                    <input
+                      type="text"
+                      value={audienceFormData.name}
+                      onChange={(e) => setAudienceFormData({...audienceFormData, name: e.target.value})}
+                      placeholder="e.g., Young Professionals"
+                      className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 focus:outline-none focus:border-violet-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm text-slate-400 block mb-2">Description</label>
+                    <textarea
+                      value={audienceFormData.description}
+                      onChange={(e) => setAudienceFormData({...audienceFormData, description: e.target.value})}
+                      placeholder="Describe this audience..."
+                      className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 focus:outline-none focus:border-violet-500 resize-none"
+                      rows={3}
+                    />
+                  </div>
+                </div>
+              </div>
+              
+              {/* Demographics */}
+              <div>
+                <h3 className="text-sm font-semibold text-slate-400 mb-4">Demographics</h3>
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label className="text-sm text-slate-400 block mb-2">Min Age</label>
+                    <input
+                      type="number"
+                      min="13"
+                      max="100"
+                      value={audienceFormData.age_min}
+                      onChange={(e) => setAudienceFormData({...audienceFormData, age_min: parseInt(e.target.value)})}
+                      className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 focus:outline-none focus:border-violet-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm text-slate-400 block mb-2">Max Age</label>
+                    <input
+                      type="number"
+                      min="13"
+                      max="100"
+                      value={audienceFormData.age_max}
+                      onChange={(e) => setAudienceFormData({...audienceFormData, age_max: parseInt(e.target.value)})}
+                      className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 focus:outline-none focus:border-violet-500"
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="text-sm text-slate-400 block mb-2">Gender</label>
+                  <div className="flex gap-2">
+                    {['Male', 'Female', 'Other'].map((g) => (
+                      <button
+                        key={g}
+                        onClick={() => setAudienceFormData({
+                          ...audienceFormData,
+                          gender: toggleArrayItem(audienceFormData.gender, g.toLowerCase())
+                        })}
+                        className={`px-4 py-2 rounded-lg border transition-all ${
+                          audienceFormData.gender.includes(g.toLowerCase())
+                            ? 'border-violet-500 bg-violet-500/10'
+                            : 'border-slate-700 hover:border-slate-600'
+                        }`}
+                      >
+                        {g}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              
+              {/* Geographic */}
+              <div>
+                <h3 className="text-sm font-semibold text-slate-400 mb-4">Geographic Targeting</h3>
+                <div>
+                  <label className="text-sm text-slate-400 block mb-2">Countries</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {['United States', 'Canada', 'United Kingdom', 'Australia', 'Germany', 'France'].map((country) => (
+                      <button
+                        key={country}
+                        onClick={() => setAudienceFormData({
+                          ...audienceFormData,
+                          countries: toggleArrayItem(audienceFormData.countries, country)
+                        })}
+                        className={`px-3 py-2 rounded-lg border text-sm transition-all ${
+                          audienceFormData.countries.includes(country)
+                            ? 'border-violet-500 bg-violet-500/10'
+                            : 'border-slate-700 hover:border-slate-600'
+                        }`}
+                      >
+                        {country}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              
+              {/* Interests */}
+              <div>
+                <h3 className="text-sm font-semibold text-slate-400 mb-4">Interests</h3>
+                <div className="grid grid-cols-4 gap-2">
+                  {[
+                    'Technology', 'Business', 'Fitness', 'Travel',
+                    'Fashion', 'Food', 'Sports', 'Gaming',
+                    'Music', 'Art', 'Health', 'Education'
+                  ].map((interest) => (
+                    <button
+                      key={interest}
+                      onClick={() => setAudienceFormData({
+                        ...audienceFormData,
+                        interests: toggleArrayItem(audienceFormData.interests, interest)
+                      })}
+                      className={`px-3 py-2 rounded-lg border text-sm transition-all ${
+                        audienceFormData.interests.includes(interest)
+                          ? 'border-violet-500 bg-violet-500/10'
+                          : 'border-slate-700 hover:border-slate-600'
+                      }`}
+                    >
+                      {interest}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Platforms */}
+              <div>
+                <h3 className="text-sm font-semibold text-slate-400 mb-4">Target Platforms</h3>
+                <div className="grid grid-cols-4 gap-2">
+                  {['Facebook', 'Instagram', 'Twitter', 'LinkedIn', 'TikTok', 'YouTube', 'Google Ads', 'Email'].map((platform) => (
+                    <button
+                      key={platform}
+                      onClick={() => setAudienceFormData({
+                        ...audienceFormData,
+                        platforms: toggleArrayItem(audienceFormData.platforms, platform)
+                      })}
+                      className={`px-3 py-2 rounded-lg border text-sm transition-all ${
+                        audienceFormData.platforms.includes(platform)
+                          ? 'border-violet-500 bg-violet-500/10'
+                          : 'border-slate-700 hover:border-slate-600'
+                      }`}
+                    >
+                      {platform}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Estimated Reach */}
+              <div className="p-4 bg-cyan-500/10 rounded-lg border border-cyan-500/20">
+                <div className="flex items-center gap-2 mb-2">
+                  <TrendingUp className="w-5 h-5 text-cyan-400" />
+                  <span className="font-semibold text-cyan-300">Estimated Reach</span>
+                </div>
+                <p className="text-2xl font-bold text-cyan-200">
+                  {(() => {
+                    const size = calculateAudienceSize(audienceFormData);
+                    return `${size.min.toLocaleString()} - ${size.max.toLocaleString()}`;
+                  })()}
+                </p>
+                <p className="text-sm text-cyan-300/70 mt-1">potential audience members</p>
+              </div>
+            </div>
+            
+            {/* Modal Footer */}
+            <div className="flex gap-3 p-6 border-t border-slate-800">
+              <button
+                onClick={() => {
+                  setShowAudienceModal(false);
+                  setEditingAudience(null);
+                  resetAudienceForm();
+                }}
+                className="flex-1 px-6 py-2.5 border border-slate-700 hover:bg-slate-800 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              {editingAudience && (
+                <button
+                  onClick={() => deleteAudience(editingAudience)}
+                  className="px-6 py-2.5 border border-red-500/50 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                >
+                  Delete
+                </button>
+              )}
+              <button
+                onClick={() => editingAudience ? updateAudience() : createAudience()}
+                className="flex-1 px-6 py-2.5 bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:opacity-90 rounded-lg transition-opacity"
+              >
+                {editingAudience ? 'Update Audience' : 'Create Audience'}
+              </button>
             </div>
           </div>
         </div>

@@ -14,6 +14,93 @@ export type Database = {
   }
   public: {
     Tables: {
+      audiences: {
+        Row: {
+          age_max: number | null
+          age_min: number | null
+          behaviors: string[] | null
+          cities: string[] | null
+          countries: string[] | null
+          created_at: string | null
+          description: string | null
+          education_levels: string[] | null
+          estimated_size_max: number | null
+          estimated_size_min: number | null
+          gender: string[] | null
+          id: string
+          income_ranges: string[] | null
+          industries: string[] | null
+          interests: string[] | null
+          is_favorite: boolean | null
+          job_titles: string[] | null
+          languages: string[] | null
+          last_used_at: string | null
+          name: string
+          platforms: string[] | null
+          radius_km: number | null
+          regions: string[] | null
+          updated_at: string | null
+          used_in_campaigns: number | null
+          user_id: string
+        }
+        Insert: {
+          age_max?: number | null
+          age_min?: number | null
+          behaviors?: string[] | null
+          cities?: string[] | null
+          countries?: string[] | null
+          created_at?: string | null
+          description?: string | null
+          education_levels?: string[] | null
+          estimated_size_max?: number | null
+          estimated_size_min?: number | null
+          gender?: string[] | null
+          id?: string
+          income_ranges?: string[] | null
+          industries?: string[] | null
+          interests?: string[] | null
+          is_favorite?: boolean | null
+          job_titles?: string[] | null
+          languages?: string[] | null
+          last_used_at?: string | null
+          name: string
+          platforms?: string[] | null
+          radius_km?: number | null
+          regions?: string[] | null
+          updated_at?: string | null
+          used_in_campaigns?: number | null
+          user_id: string
+        }
+        Update: {
+          age_max?: number | null
+          age_min?: number | null
+          behaviors?: string[] | null
+          cities?: string[] | null
+          countries?: string[] | null
+          created_at?: string | null
+          description?: string | null
+          education_levels?: string[] | null
+          estimated_size_max?: number | null
+          estimated_size_min?: number | null
+          gender?: string[] | null
+          id?: string
+          income_ranges?: string[] | null
+          industries?: string[] | null
+          interests?: string[] | null
+          is_favorite?: boolean | null
+          job_titles?: string[] | null
+          languages?: string[] | null
+          last_used_at?: string | null
+          name?: string
+          platforms?: string[] | null
+          radius_km?: number | null
+          regions?: string[] | null
+          updated_at?: string | null
+          used_in_campaigns?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       campaign_drafts: {
         Row: {
           audience_segment: string | null
