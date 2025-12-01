@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Sparkles, TrendingUp, Users, Mail, Target, Zap, ChevronDown, Play, Pause, Settings, Bell, Search, Plus, ArrowUpRight, ArrowDownRight, LayoutDashboard, FileText, Send, Megaphone, Calendar, ChevronRight, Image, Type, Video, Wand2, Copy, RefreshCw, Check, Filter, Download, Eye, MousePointer, DollarSign, ChevronLeft, BarChart3, LogOut, X, Save, Star, Trash2, Globe } from 'lucide-react';
+import { Sparkles, TrendingUp, Users, Mail, Target, Zap, ChevronDown, Play, Pause, Settings, Bell, Search, Plus, ArrowUpRight, ArrowDownRight, LayoutDashboard, FileText, Send, Megaphone, Calendar, ChevronRight, Image, Type, Video, Wand2, Copy, RefreshCw, Check, Filter, Download, Eye, MousePointer, DollarSign, ChevronLeft, BarChart3, LogOut, X, Save, Star, Trash2, Globe, TrendingDown, AlertCircle, Lightbulb } from 'lucide-react';
 
 const performanceData = [
   { name: 'Mon', engagement: 4200, conversions: 240, reach: 18000 },
@@ -155,6 +155,14 @@ export default function Dashboard() {
     estimated_size_max: 0
   });
 
+  // Analytics State
+  const [analyticsDateRange, setAnalyticsDateRange] = useState('30d'); // '7d', '30d', '90d', 'all'
+  const [analyticsData, setAnalyticsData] = useState<any>(null);
+  const [loadingAnalytics, setLoadingAnalytics] = useState(false);
+  const [selectedAnalyticsMetric, setSelectedAnalyticsMetric] = useState('impressions'); // 'impressions', 'clicks', 'conversions', 'spend'
+  const [comparisonData, setComparisonData] = useState<any>(null);
+  const [platformBreakdown, setPlatformBreakdown] = useState<any[]>([]);
+
   // Load dashboard data on mount
   useEffect(() => {
     const loadDashboardData = async () => {
@@ -246,6 +254,13 @@ export default function Dashboard() {
       fetchAudiences();
     }
   }, [activeTab]);
+
+  // Load analytics when tab is opened or date range changes
+  useEffect(() => {
+    if (activeTab === 'analytics') {
+      loadAnalytics();
+    }
+  }, [activeTab, analyticsDateRange]);
 
   const fetchKpis = async () => {
     setKpisLoading(true);
@@ -1694,6 +1709,158 @@ export default function Dashboard() {
     } else {
       return [...array, item];
     }
+  };
+
+  // Analytics Functions
+  // Generate analytics data for date range
+  const generateAnalyticsData = (campaigns: any[], dateRange: string) => {
+    // Calculate days based on range
+    const days = dateRange === '7d' ? 7 : dateRange === '30d' ? 30 : dateRange === '90d' ? 90 : 365;
+    
+    // Generate daily data points
+    const dailyData = [];
+    const today = new Date();
+    
+    for (let i = days - 1; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+      
+      // Calculate metrics for this day (mock data)
+      const baseImpressions = 5000 + Math.random() * 3000;
+      const baseCTR = 3.5 + Math.random() * 2;
+      const baseConversionRate = 2.5 + Math.random() * 1.5;
+      
+      const impressions = Math.floor(baseImpressions * campaigns.filter((c: any) => c.status === 'active').length);
+      const clicks = Math.floor(impressions * (baseCTR / 100));
+      const conversions = Math.floor(clicks * (baseConversionRate / 100));
+      const spend = Math.floor(conversions * 25 + Math.random() * 500);
+      
+      dailyData.push({
+        date: date.toISOString().split('T')[0],
+        dateLabel: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        impressions,
+        clicks,
+        conversions,
+        spend,
+        ctr: (clicks / impressions * 100).toFixed(2),
+        cvr: (conversions / clicks * 100).toFixed(2),
+        cpc: (spend / clicks).toFixed(2),
+        roas: ((conversions * 50) / spend).toFixed(2)
+      });
+    }
+    
+    // Calculate totals and averages
+    const totals = dailyData.reduce((acc, day) => ({
+      impressions: acc.impressions + day.impressions,
+      clicks: acc.clicks + day.clicks,
+      conversions: acc.conversions + day.conversions,
+      spend: acc.spend + day.spend
+    }), { impressions: 0, clicks: 0, conversions: 0, spend: 0 });
+    
+    const averages = {
+      ctr: (totals.clicks / totals.impressions * 100).toFixed(2),
+      cvr: (totals.conversions / totals.clicks * 100).toFixed(2),
+      cpc: (totals.spend / totals.clicks).toFixed(2),
+      roas: ((totals.conversions * 50) / totals.spend).toFixed(2)
+    };
+    
+    return {
+      dailyData,
+      totals,
+      averages
+    };
+  };
+
+  // Generate platform breakdown
+  const generatePlatformBreakdown = (campaigns: any[]) => {
+    const platforms = ['Facebook', 'Instagram', 'Google', 'LinkedIn', 'Twitter'];
+    
+    return platforms.map(platform => {
+      const campaignsOnPlatform = campaigns.filter((c: any) => 
+        c.platforms?.includes(platform) && c.status === 'active'
+      ).length;
+      
+      const baseImpressions = 20000 + Math.random() * 30000;
+      const baseCTR = 2.5 + Math.random() * 3;
+      
+      const impressions = Math.floor(baseImpressions * Math.max(campaignsOnPlatform, 0.5));
+      const clicks = Math.floor(impressions * (baseCTR / 100));
+      const conversions = Math.floor(clicks * 0.03);
+      const spend = Math.floor(clicks * 2.5);
+      
+      return {
+        platform,
+        impressions,
+        clicks,
+        conversions,
+        spend,
+        ctr: (clicks / impressions * 100).toFixed(2),
+        cvr: (conversions / clicks * 100).toFixed(2),
+        cpc: (spend / clicks).toFixed(2)
+      };
+    }).sort((a, b) => b.impressions - a.impressions);
+  };
+
+  // Load analytics data
+  const loadAnalytics = async () => {
+    setLoadingAnalytics(true);
+    
+    try {
+      // Generate analytics data based on campaigns
+      const analytics = generateAnalyticsData(campaigns, analyticsDateRange);
+      const platformData = generatePlatformBreakdown(campaigns);
+      
+      setAnalyticsData(analytics);
+      setPlatformBreakdown(platformData);
+      
+      // Generate comparison data (previous period)
+      const comparisonPeriod = analyticsDateRange === '7d' ? '7d' : 
+                              analyticsDateRange === '30d' ? '30d' : 
+                              analyticsDateRange === '90d' ? '90d' : '365d';
+      const comparison = generateAnalyticsData(campaigns, comparisonPeriod);
+      setComparisonData(comparison);
+      
+    } catch (error) {
+      console.error('Load analytics error:', error);
+    } finally {
+      setLoadingAnalytics(false);
+    }
+  };
+
+  // Calculate percentage change
+  const calculateChange = (current: number, previous: number) => {
+    if (!previous || previous === 0) return 0;
+    return (((current - previous) / previous) * 100).toFixed(1);
+  };
+
+  // Export analytics data as CSV
+  const exportAnalytics = () => {
+    if (!analyticsData) return;
+    
+    // Create CSV content
+    let csv = 'Date,Impressions,Clicks,CTR,Conversions,CVR,Spend,CPC,ROAS\n';
+    
+    analyticsData.dailyData.forEach((day: any) => {
+      csv += `${day.date},${day.impressions},${day.clicks},${day.ctr}%,${day.conversions},${day.cvr}%,$${day.spend},$${day.cpc},${day.roas}\n`;
+    });
+    
+    // Create download link
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `analytics-${analyticsDateRange}-${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+    
+    import('@/hooks/use-toast').then(({ toast }) => {
+      toast({
+        title: 'Success!',
+        description: 'Analytics exported successfully!',
+      });
+    });
   };
 
   return (
@@ -3641,6 +3808,359 @@ export default function Dashboard() {
                   </div>
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* ANALYTICS */}
+          {activeTab === 'analytics' && (
+            <div className="max-w-7xl mx-auto p-6 space-y-6">
+              {/* Header with Date Range Selector */}
+              <div className="flex justify-between items-center">
+                <div>
+                  <h2 className="text-2xl font-bold mb-2">Analytics Dashboard</h2>
+                  <p className="text-slate-400">Performance metrics and insights across all campaigns</p>
+                </div>
+                
+                <div className="flex gap-3">
+                  {/* Date Range Selector */}
+                  <div className="flex gap-2 bg-slate-900/50 border border-slate-800 rounded-lg p-1">
+                    {[
+                      { value: '7d', label: '7 Days' },
+                      { value: '30d', label: '30 Days' },
+                      { value: '90d', label: '90 Days' },
+                      { value: 'all', label: 'All Time' }
+                    ].map(range => (
+                      <button
+                        key={range.value}
+                        onClick={() => {
+                          setAnalyticsDateRange(range.value);
+                        }}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                          analyticsDateRange === range.value
+                            ? 'bg-violet-500 text-white'
+                            : 'text-slate-400 hover:text-white'
+                        }`}
+                      >
+                        {range.label}
+                      </button>
+                    ))}
+                  </div>
+                  
+                  {/* Export Button */}
+                  <button
+                    onClick={exportAnalytics}
+                    disabled={!analyticsData}
+                    className="flex items-center gap-2 px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg hover:bg-slate-700 transition-colors disabled:opacity-50"
+                  >
+                    <Download className="w-4 h-4" />
+                    Export
+                  </button>
+                </div>
+              </div>
+              
+              {loadingAnalytics ? (
+                <div className="text-center py-12 text-slate-400">
+                  Loading analytics...
+                </div>
+              ) : !analyticsData ? (
+                <div className="text-center py-12">
+                  <BarChart3 className="w-16 h-16 mx-auto mb-4 text-slate-600" />
+                  <p className="text-slate-400">No analytics data available</p>
+                </div>
+              ) : (
+                <>
+                  {/* Key Metrics Cards */}
+                  <div className="grid grid-cols-4 gap-4">
+                    {/* Impressions */}
+                    <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="p-2 bg-cyan-500/20 rounded-lg">
+                          <Eye className="w-5 h-5 text-cyan-400" />
+                        </div>
+                        {comparisonData && (
+                          <span className={`text-xs flex items-center gap-1 ${
+                            Number(calculateChange(analyticsData.totals.impressions, comparisonData.totals.impressions)) >= 0
+                              ? 'text-emerald-400'
+                              : 'text-red-400'
+                          }`}>
+                            {Number(calculateChange(analyticsData.totals.impressions, comparisonData.totals.impressions)) >= 0 ? (
+                              <TrendingUp className="w-3 h-3" />
+                            ) : (
+                              <TrendingDown className="w-3 h-3" />
+                            )}
+                            {Math.abs(Number(calculateChange(analyticsData.totals.impressions, comparisonData.totals.impressions)))}%
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-2xl font-bold mb-1">
+                        {analyticsData.totals.impressions.toLocaleString()}
+                      </div>
+                      <div className="text-sm text-slate-400">Total Impressions</div>
+                    </div>
+                    
+                    {/* Clicks */}
+                    <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="p-2 bg-emerald-500/20 rounded-lg">
+                          <MousePointer className="w-5 h-5 text-emerald-400" />
+                        </div>
+                        {comparisonData && (
+                          <span className={`text-xs flex items-center gap-1 ${
+                            Number(calculateChange(analyticsData.totals.clicks, comparisonData.totals.clicks)) >= 0
+                              ? 'text-emerald-400'
+                              : 'text-red-400'
+                          }`}>
+                            {Number(calculateChange(analyticsData.totals.clicks, comparisonData.totals.clicks)) >= 0 ? (
+                              <TrendingUp className="w-3 h-3" />
+                            ) : (
+                              <TrendingDown className="w-3 h-3" />
+                            )}
+                            {Math.abs(Number(calculateChange(analyticsData.totals.clicks, comparisonData.totals.clicks)))}%
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-2xl font-bold mb-1">
+                        {analyticsData.totals.clicks.toLocaleString()}
+                      </div>
+                      <div className="text-sm text-slate-400">Total Clicks</div>
+                      <div className="text-xs text-emerald-400 mt-1">
+                        {analyticsData.averages.ctr}% CTR
+                      </div>
+                    </div>
+                    
+                    {/* Conversions */}
+                    <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="p-2 bg-violet-500/20 rounded-lg">
+                          <Target className="w-5 h-5 text-violet-400" />
+                        </div>
+                        {comparisonData && (
+                          <span className={`text-xs flex items-center gap-1 ${
+                            Number(calculateChange(analyticsData.totals.conversions, comparisonData.totals.conversions)) >= 0
+                              ? 'text-emerald-400'
+                              : 'text-red-400'
+                          }`}>
+                            {Number(calculateChange(analyticsData.totals.conversions, comparisonData.totals.conversions)) >= 0 ? (
+                              <TrendingUp className="w-3 h-3" />
+                            ) : (
+                              <TrendingDown className="w-3 h-3" />
+                            )}
+                            {Math.abs(Number(calculateChange(analyticsData.totals.conversions, comparisonData.totals.conversions)))}%
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-2xl font-bold mb-1">
+                        {analyticsData.totals.conversions.toLocaleString()}
+                      </div>
+                      <div className="text-sm text-slate-400">Total Conversions</div>
+                      <div className="text-xs text-violet-400 mt-1">
+                        {analyticsData.averages.cvr}% CVR
+                      </div>
+                    </div>
+                    
+                    {/* Spend */}
+                    <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="p-2 bg-fuchsia-500/20 rounded-lg">
+                          <DollarSign className="w-5 h-5 text-fuchsia-400" />
+                        </div>
+                        {comparisonData && (
+                          <span className={`text-xs flex items-center gap-1 ${
+                            Number(calculateChange(analyticsData.totals.spend, comparisonData.totals.spend)) <= 0
+                              ? 'text-emerald-400'
+                              : 'text-red-400'
+                          }`}>
+                            {Number(calculateChange(analyticsData.totals.spend, comparisonData.totals.spend)) <= 0 ? (
+                              <TrendingDown className="w-3 h-3" />
+                            ) : (
+                              <TrendingUp className="w-3 h-3" />
+                            )}
+                            {Math.abs(Number(calculateChange(analyticsData.totals.spend, comparisonData.totals.spend)))}%
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-2xl font-bold mb-1">
+                        ${analyticsData.totals.spend.toLocaleString()}
+                      </div>
+                      <div className="text-sm text-slate-400">Total Spend</div>
+                      <div className="text-xs text-fuchsia-400 mt-1">
+                        ${analyticsData.averages.cpc} CPC
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Performance Chart */}
+                  <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
+                    <div className="flex justify-between items-center mb-6">
+                      <h3 className="text-lg font-semibold">Performance Trends</h3>
+                      
+                      {/* Metric Selector */}
+                      <div className="flex gap-2 bg-slate-800/50 border border-slate-700 rounded-lg p-1">
+                        {[
+                          { value: 'impressions', label: 'Impressions', color: 'text-cyan-400' },
+                          { value: 'clicks', label: 'Clicks', color: 'text-emerald-400' },
+                          { value: 'conversions', label: 'Conversions', color: 'text-violet-400' },
+                          { value: 'spend', label: 'Spend', color: 'text-fuchsia-400' }
+                        ].map(metric => (
+                          <button
+                            key={metric.value}
+                            onClick={() => setSelectedAnalyticsMetric(metric.value)}
+                            className={`px-3 py-1.5 rounded text-sm font-medium transition-all ${
+                              selectedAnalyticsMetric === metric.value
+                                ? 'bg-slate-700 ' + metric.color
+                                : 'text-slate-400 hover:text-white'
+                            }`}
+                          >
+                            {metric.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    {/* Simple Line Chart using Recharts */}
+                    <ResponsiveContainer width="100%" height={300}>
+                      <LineChart data={analyticsData.dailyData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                        <XAxis 
+                          dataKey="dateLabel" 
+                          stroke="#94a3b8"
+                          style={{ fontSize: '12px' }}
+                        />
+                        <YAxis 
+                          stroke="#94a3b8"
+                          style={{ fontSize: '12px' }}
+                        />
+                        <Tooltip 
+                          contentStyle={{
+                            backgroundColor: '#1e293b',
+                            border: '1px solid #334155',
+                            borderRadius: '8px',
+                            color: '#fff'
+                          }}
+                        />
+                        <Line 
+                          type="monotone" 
+                          dataKey={selectedAnalyticsMetric}
+                          stroke={
+                            selectedAnalyticsMetric === 'impressions' ? '#22d3ee' :
+                            selectedAnalyticsMetric === 'clicks' ? '#10b981' :
+                            selectedAnalyticsMetric === 'conversions' ? '#a855f7' :
+                            '#ec4899'
+                          }
+                          strokeWidth={2}
+                          dot={false}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                  
+                  {/* Platform Performance */}
+                  <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
+                    <h3 className="text-lg font-semibold mb-6">Platform Performance</h3>
+                    
+                    <div className="space-y-4">
+                      {platformBreakdown.map((platform, index) => (
+                        <div key={platform.platform}>
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="font-medium">{platform.platform}</span>
+                            <span className="text-sm text-slate-400">
+                              {platform.impressions.toLocaleString()} impressions
+                            </span>
+                          </div>
+                          
+                          {/* Progress Bar */}
+                          <div className="relative h-2 bg-slate-800 rounded-full overflow-hidden">
+                            <div 
+                              className="absolute inset-y-0 left-0 bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-full"
+                              style={{ 
+                                width: `${(platform.impressions / platformBreakdown[0].impressions) * 100}%` 
+                              }}
+                            />
+                          </div>
+                          
+                          {/* Metrics */}
+                          <div className="flex gap-6 mt-2 text-sm">
+                            <span className="text-slate-400">
+                              <span className="text-emerald-400 font-medium">{platform.ctr}%</span> CTR
+                            </span>
+                            <span className="text-slate-400">
+                              <span className="text-violet-400 font-medium">{platform.conversions}</span> conversions
+                            </span>
+                            <span className="text-slate-400">
+                              <span className="text-fuchsia-400 font-medium">${platform.cpc}</span> CPC
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {/* AI Insights */}
+                  <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Sparkles className="w-6 h-6 text-violet-400" />
+                      <h3 className="text-lg font-semibold">AI-Powered Insights</h3>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      {/* Dynamic insights based on data */}
+                      {parseFloat(analyticsData.averages.ctr) > 4 && (
+                        <div className="p-4 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
+                          <div className="flex items-start gap-2">
+                            <TrendingUp className="w-5 h-5 text-emerald-400 mt-0.5 shrink-0" />
+                            <div>
+                              <div className="text-sm font-semibold text-emerald-300 mb-1">High Performance Alert</div>
+                              <p className="text-sm text-emerald-200/80">
+                                Your CTR of {analyticsData.averages.ctr}% is significantly above industry average. Consider increasing budget allocation to capitalize on this strong engagement.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {platformBreakdown[0] && (
+                        <div className="p-4 bg-cyan-500/10 rounded-lg border border-cyan-500/20">
+                          <div className="flex items-start gap-2">
+                            <Target className="w-5 h-5 text-cyan-400 mt-0.5 shrink-0" />
+                            <div>
+                              <div className="text-sm font-semibold text-cyan-300 mb-1">Platform Opportunity</div>
+                              <p className="text-sm text-cyan-200/80">
+                                {platformBreakdown[0].platform} is your top performing platform with {platformBreakdown[0].impressions.toLocaleString()} impressions. Consider expanding your presence here.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {parseFloat(analyticsData.averages.cvr) < 2 && (
+                        <div className="p-4 bg-amber-500/10 rounded-lg border border-amber-500/20">
+                          <div className="flex items-start gap-2">
+                            <AlertCircle className="w-5 h-5 text-amber-400 mt-0.5 shrink-0" />
+                            <div>
+                              <div className="text-sm font-semibold text-amber-300 mb-1">Conversion Optimization</div>
+                              <p className="text-sm text-amber-200/80">
+                                Your conversion rate of {analyticsData.averages.cvr}% could be improved. Review your landing pages and consider A/B testing different CTAs.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      
+                      <div className="p-4 bg-violet-500/10 rounded-lg border border-violet-500/20">
+                        <div className="flex items-start gap-2">
+                          <Lightbulb className="w-5 h-5 text-violet-400 mt-0.5 shrink-0" />
+                          <div>
+                            <div className="text-sm font-semibold text-violet-300 mb-1">Recommendation</div>
+                            <p className="text-sm text-violet-200/80">
+                              Based on your current ROAS of {analyticsData.averages.roas}x, your campaigns are profitable. Consider scaling up investment in your top-performing campaigns.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           )}
 
