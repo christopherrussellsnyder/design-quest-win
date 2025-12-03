@@ -195,6 +195,10 @@ export default function Dashboard() {
     actions: []
   });
 
+  // Social Connections State
+  const [socialConnections, setSocialConnections] = useState<any[]>([]);
+  const [loadingConnections, setLoadingConnections] = useState(false);
+
   // Load dashboard data on mount
   useEffect(() => {
     const loadDashboardData = async () => {
@@ -301,6 +305,49 @@ export default function Dashboard() {
       fetchAutomationRules();
     }
   }, [activeTab]);
+
+  // Load social connections when Settings tab is opened
+  useEffect(() => {
+    if (activeTab === 'settings') {
+      fetchSocialConnections();
+    }
+  }, [activeTab]);
+
+  // Handle OAuth callback
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tab = urlParams.get('tab');
+    const oauth = urlParams.get('oauth');
+    
+    if (tab) setActiveTab(tab);
+    
+    if (oauth === 'complete') {
+      const code = sessionStorage.getItem('oauth_code');
+      const platform = sessionStorage.getItem('oauth_platform');
+      
+      if (code && platform) {
+        handleOAuthCallback(code, platform);
+        sessionStorage.removeItem('oauth_code');
+        sessionStorage.removeItem('oauth_platform');
+        
+        // Clean URL
+        window.history.replaceState({}, '', '/dashboard?tab=settings');
+      }
+    } else if (oauth === 'error') {
+      const errorMsg = sessionStorage.getItem('oauth_error');
+      if (errorMsg) {
+        import('@/hooks/use-toast').then(({ toast }) => {
+          toast({
+            title: 'Connection Failed',
+            description: errorMsg,
+            variant: 'destructive'
+          });
+        });
+        sessionStorage.removeItem('oauth_error');
+        window.history.replaceState({}, '', '/dashboard?tab=settings');
+      }
+    }
+  }, []);
 
   const fetchKpis = async () => {
     setKpisLoading(true);
@@ -786,6 +833,7 @@ export default function Dashboard() {
     { id: 'audience', icon: Users, label: 'Audience' },
     { id: 'analytics', icon: BarChart3, label: 'Analytics' },
     { id: 'scheduler', icon: Calendar, label: 'Scheduler' },
+    { id: 'settings', icon: Settings, label: 'Settings' },
   ];
 
   const handleGenerate = () => {
@@ -2226,6 +2274,156 @@ export default function Dashboard() {
       }
     } catch (error) {
       console.error('Delete rule error:', error);
+    }
+  };
+
+  // Fetch social connections
+  const fetchSocialConnections = async () => {
+    setLoadingConnections(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setLoadingConnections(false);
+        return;
+      }
+      
+      const { data, error } = await supabase
+        .from('social_connections')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('is_active', true);
+      
+      if (error) {
+        console.error('Fetch connections error:', error);
+      } else {
+        setSocialConnections(data || []);
+        console.log('Social connections loaded:', data?.length);
+      }
+    } catch (error) {
+      console.error('Fetch connections error:', error);
+    } finally {
+      setLoadingConnections(false);
+    }
+  };
+
+  // Initiate Facebook OAuth
+  const connectFacebook = () => {
+    const appId = import.meta.env.VITE_FACEBOOK_APP_ID;
+    
+    if (!appId) {
+      import('@/hooks/use-toast').then(({ toast }) => {
+        toast({
+          title: 'Configuration Required',
+          description: 'Facebook App ID not configured. Please add VITE_FACEBOOK_APP_ID to your environment variables.',
+          variant: 'destructive'
+        });
+      });
+      return;
+    }
+    
+    const redirectUri = `${window.location.origin}/auth/callback`;
+    const scope = 'pages_manage_posts,pages_read_engagement,instagram_basic,instagram_content_publish';
+    
+    const authUrl = `https://www.facebook.com/v18.0/dialog/oauth?` +
+      `client_id=${appId}&` +
+      `redirect_uri=${encodeURIComponent(redirectUri)}&` +
+      `scope=${scope}&` +
+      `response_type=code&` +
+      `state=facebook`;
+    
+    window.location.href = authUrl;
+  };
+
+  // Handle OAuth callback
+  const handleOAuthCallback = async (code: string, platform: string) => {
+    try {
+      const redirectUri = `${window.location.origin}/auth/callback`;
+      
+      // Exchange code for token via Edge Function
+      const { data, error } = await supabase.functions.invoke('facebook-auth', {
+        body: { code, redirectUri }
+      });
+      
+      if (error) throw error;
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+      
+      // Save Facebook pages
+      if (data.pages && data.pages.length > 0) {
+        for (const page of data.pages) {
+          await supabase.from('social_connections').upsert({
+            user_id: user.id,
+            platform: 'facebook',
+            platform_user_id: page.id,
+            platform_username: page.name,
+            access_token: page.access_token,
+            account_name: page.name,
+            account_type: 'page',
+            is_active: true
+          }, { onConflict: 'user_id,platform,platform_user_id' });
+        }
+      }
+      
+      // Save Instagram accounts
+      if (data.instagramAccounts && data.instagramAccounts.length > 0) {
+        for (const igAccount of data.instagramAccounts) {
+          await supabase.from('social_connections').upsert({
+            user_id: user.id,
+            platform: 'instagram',
+            platform_user_id: igAccount.id,
+            platform_username: igAccount.username,
+            access_token: igAccount.page_access_token,
+            account_name: igAccount.username,
+            account_type: 'business',
+            profile_picture_url: igAccount.profile_picture_url,
+            follower_count: igAccount.followers_count,
+            is_active: true
+          }, { onConflict: 'user_id,platform,platform_user_id' });
+        }
+      }
+      
+      import('@/hooks/use-toast').then(({ toast }) => {
+        toast({
+          title: 'Success!',
+          description: 'Accounts connected successfully!',
+        });
+      });
+      fetchSocialConnections();
+      
+    } catch (error: any) {
+      console.error('OAuth callback error:', error);
+      import('@/hooks/use-toast').then(({ toast }) => {
+        toast({
+          title: 'Connection Failed',
+          description: error.message || 'Failed to connect accounts',
+          variant: 'destructive'
+        });
+      });
+    }
+  };
+
+  // Disconnect social account
+  const disconnectSocialAccount = async (connectionId: string) => {
+    if (!confirm('Disconnect this account?')) return;
+    
+    try {
+      const { error } = await supabase
+        .from('social_connections')
+        .update({ is_active: false })
+        .eq('id', connectionId);
+      
+      if (error) throw error;
+      
+      import('@/hooks/use-toast').then(({ toast }) => {
+        toast({
+          title: 'Disconnected',
+          description: 'Account disconnected successfully',
+        });
+      });
+      fetchSocialConnections();
+    } catch (error) {
+      console.error('Disconnect error:', error);
     }
   };
 
@@ -4759,6 +4957,168 @@ export default function Dashboard() {
                   </div>
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* SETTINGS */}
+          {activeTab === 'settings' && (
+            <div className="max-w-5xl mx-auto p-6">
+              <h2 className="text-2xl font-bold mb-6">Connected Accounts</h2>
+              
+              {/* Social Connections */}
+              <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6 mb-6">
+                <h3 className="text-lg font-semibold mb-4">Social Media Accounts</h3>
+                
+                <div className="space-y-4">
+                  {/* Facebook */}
+                  <div className="flex items-center justify-between p-4 bg-slate-800/50 rounded-lg border border-slate-700">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
+                        <span className="text-white font-bold">f</span>
+                      </div>
+                      <div>
+                        <h4 className="font-semibold">Facebook</h4>
+                        <p className="text-sm text-slate-400">
+                          {socialConnections.filter(c => c.platform === 'facebook').length} page(s) connected
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {socialConnections.some(c => c.platform === 'facebook') ? (
+                      <div className="flex gap-2 items-center">
+                        <span className="text-sm text-emerald-400 flex items-center gap-1">
+                          <Check className="w-4 h-4" />
+                          Connected
+                        </span>
+                        <button
+                          onClick={connectFacebook}
+                          className="text-sm text-violet-400 hover:text-violet-300 ml-2"
+                        >
+                          Add More
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={connectFacebook}
+                        className="px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded-lg text-sm"
+                      >
+                        Connect Facebook
+                      </button>
+                    )}
+                  </div>
+                  
+                  {/* Instagram */}
+                  <div className="flex items-center justify-between p-4 bg-slate-800/50 rounded-lg border border-slate-700">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 rounded-lg"></div>
+                      <div>
+                        <h4 className="font-semibold">Instagram</h4>
+                        <p className="text-sm text-slate-400">
+                          {socialConnections.filter(c => c.platform === 'instagram').length} account(s) connected
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {socialConnections.some(c => c.platform === 'instagram') ? (
+                      <span className="text-sm text-emerald-400 flex items-center gap-1">
+                        <Check className="w-4 h-4" />
+                        Connected
+                      </span>
+                    ) : (
+                      <button
+                        onClick={connectFacebook}
+                        className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:opacity-90 rounded-lg text-sm"
+                      >
+                        Connect Instagram
+                      </button>
+                    )}
+                  </div>
+                  
+                  {/* Twitter - Coming Soon */}
+                  <div className="flex items-center justify-between p-4 bg-slate-800/50 rounded-lg border border-slate-700 opacity-50">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-sky-500 rounded-lg flex items-center justify-center">
+                        <span className="text-white font-bold">𝕏</span>
+                      </div>
+                      <div>
+                        <h4 className="font-semibold">Twitter / X</h4>
+                        <p className="text-sm text-slate-400">Coming soon</p>
+                      </div>
+                    </div>
+                    <span className="text-sm text-slate-500">Coming Soon</span>
+                  </div>
+                  
+                  {/* LinkedIn - Coming Soon */}
+                  <div className="flex items-center justify-between p-4 bg-slate-800/50 rounded-lg border border-slate-700 opacity-50">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-blue-700 rounded-lg flex items-center justify-center">
+                        <span className="text-white font-bold">in</span>
+                      </div>
+                      <div>
+                        <h4 className="font-semibold">LinkedIn</h4>
+                        <p className="text-sm text-slate-400">Coming soon</p>
+                      </div>
+                    </div>
+                    <span className="text-sm text-slate-500">Coming Soon</span>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Connected Accounts List */}
+              {socialConnections.length > 0 && (
+                <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
+                  <h3 className="text-lg font-semibold mb-4">Active Connections</h3>
+                  
+                  {loadingConnections ? (
+                    <div className="text-center py-6 text-slate-400">
+                      Loading connections...
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {socialConnections.map(connection => (
+                        <div 
+                          key={connection.id}
+                          className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg border border-slate-700"
+                        >
+                          <div className="flex items-center gap-3">
+                            {connection.profile_picture_url ? (
+                              <img 
+                                src={connection.profile_picture_url} 
+                                alt={connection.account_name}
+                                className="w-10 h-10 rounded-full"
+                              />
+                            ) : (
+                              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                                connection.platform === 'facebook' ? 'bg-blue-500' :
+                                connection.platform === 'instagram' ? 'bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500' :
+                                'bg-slate-600'
+                              }`}>
+                                <span className="text-white font-semibold text-sm">
+                                  {connection.account_name?.charAt(0).toUpperCase() || '?'}
+                                </span>
+                              </div>
+                            )}
+                            <div>
+                              <h4 className="font-medium">{connection.account_name}</h4>
+                              <p className="text-sm text-slate-400">
+                                {connection.platform} • {connection.account_type}
+                                {connection.follower_count > 0 && ` • ${connection.follower_count.toLocaleString()} followers`}
+                              </p>
+                            </div>
+                          </div>
+                          
+                          <button
+                            onClick={() => disconnectSocialAccount(connection.id)}
+                            className="text-sm text-red-400 hover:text-red-300"
+                          >
+                            Disconnect
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </main>
