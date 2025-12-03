@@ -517,6 +517,66 @@ export type Database = {
         }
         Relationships: []
       }
+      social_connections: {
+        Row: {
+          access_token: string
+          account_name: string | null
+          account_type: string | null
+          created_at: string | null
+          error_message: string | null
+          follower_count: number | null
+          id: string
+          is_active: boolean | null
+          last_used_at: string | null
+          platform: string
+          platform_user_id: string
+          platform_username: string | null
+          profile_picture_url: string | null
+          refresh_token: string | null
+          token_expires_at: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          access_token: string
+          account_name?: string | null
+          account_type?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          follower_count?: number | null
+          id?: string
+          is_active?: boolean | null
+          last_used_at?: string | null
+          platform: string
+          platform_user_id: string
+          platform_username?: string | null
+          profile_picture_url?: string | null
+          refresh_token?: string | null
+          token_expires_at?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          access_token?: string
+          account_name?: string | null
+          account_type?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          follower_count?: number | null
+          id?: string
+          is_active?: boolean | null
+          last_used_at?: string | null
+          platform?: string
+          platform_user_id?: string
+          platform_username?: string | null
+          profile_picture_url?: string | null
+          refresh_token?: string | null
+          token_expires_at?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
