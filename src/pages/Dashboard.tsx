@@ -1155,7 +1155,7 @@ export default function Dashboard() {
     }
   };
 
-  // Content AI Functions
+  // Content AI Functions - Real AI Generation via Lovable AI
   const generateAIContent = async () => {
     if (!aiContentPrompt.trim()) {
       import('@/hooks/use-toast').then(({ toast }) => {
@@ -1172,24 +1172,46 @@ export default function Dashboard() {
     setGeneratedAiContent([]);
     
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Call the edge function for real AI content generation
+      const { data, error } = await supabase.functions.invoke('generate-content', {
+        body: {
+          contentType: aiContentType,
+          objective: aiContentObjective,
+          platform: aiContentPlatform,
+          tone: aiContentTone,
+          length: aiContentLength,
+          prompt: aiContentPrompt
+        }
+      });
       
-      const variations = generateMockContent(
-        aiContentType,
-        aiContentObjective,
-        aiContentPlatform,
-        aiContentTone,
-        aiContentLength,
-        aiContentPrompt
-      );
+      if (error) {
+        throw error;
+      }
       
-      setGeneratedAiContent(variations);
-    } catch (error) {
+      if (!data || !data.variations) {
+        throw new Error('No content generated');
+      }
+      
+      setGeneratedAiContent(data.variations);
+      console.log('Generated AI content:', data.variations.length, 'variations');
+      
+    } catch (error: any) {
       console.error('Generate content error:', error);
+      
+      // Handle specific error types
+      let errorMessage = 'Error generating content. ';
+      if (error.message?.includes('429') || error.message?.includes('rate limit')) {
+        errorMessage = 'Rate limit reached. Please try again in a few moments.';
+      } else if (error.message?.includes('402')) {
+        errorMessage = 'Usage limit reached. Please add credits to your workspace.';
+      } else {
+        errorMessage += error.message || 'Please try again.';
+      }
+      
       import('@/hooks/use-toast').then(({ toast }) => {
         toast({
           title: 'Error',
-          description: 'Error generating content',
+          description: errorMessage,
           variant: 'destructive'
         });
       });
