@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -11,14 +12,51 @@ serve(async (req) => {
   }
 
   try {
+    // Get auth token from request
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader) {
+      throw new Error('Missing authorization header')
+    }
+
+    // Create Supabase client with user's auth token
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    })
+
+    // Get the authenticated user
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    if (userError || !user) {
+      throw new Error('Unauthorized: Invalid user session')
+    }
+
     const { 
-      platform, 
-      accountId, 
-      accessToken, 
+      connectionId,  // Now we receive connection ID instead of raw token
       content, 
       mediaUrls = [],
       scheduledTime = null 
     } = await req.json()
+
+    if (!connectionId) {
+      throw new Error('Missing connectionId')
+    }
+
+    // Look up the connection from database - ensures user owns this connection
+    const { data: connection, error: connectionError } = await supabase
+      .from('social_connections')
+      .select('platform, platform_user_id, access_token')
+      .eq('id', connectionId)
+      .eq('user_id', user.id)  // Security: verify ownership
+      .eq('is_active', true)
+      .single()
+
+    if (connectionError || !connection) {
+      console.error('Connection lookup error:', connectionError)
+      throw new Error('Social connection not found or unauthorized')
+    }
+
+    const { platform, platform_user_id: accountId, access_token: accessToken } = connection
     
     console.log(`Posting to ${platform} account ${accountId}...`)
     
@@ -31,6 +69,12 @@ serve(async (req) => {
     } else {
       throw new Error(`Platform ${platform} not supported`)
     }
+    
+    // Update last_used_at timestamp
+    await supabase
+      .from('social_connections')
+      .update({ last_used_at: new Date().toISOString() })
+      .eq('id', connectionId)
     
     console.log('Post successful:', postResult)
     
@@ -45,7 +89,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ error: message }),
       { 
-        status: 500,
+        status: error instanceof Error && error.message.includes('Unauthorized') ? 401 : 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
     )
@@ -61,14 +105,13 @@ async function postToFacebookPage(
 ) {
   const url = `https://graph.facebook.com/v18.0/${pageId}/feed`
   
-  const body: any = {
+  const body: Record<string, unknown> = {
     message,
     access_token: accessToken
   }
   
   // Add media if provided
   if (mediaUrls && mediaUrls.length > 0) {
-    // For single image link
     if (mediaUrls.length === 1) {
       body.link = mediaUrls[0]
     }
@@ -114,7 +157,7 @@ async function postToInstagram(
   // Step 1: Create media container
   const containerUrl = `https://graph.facebook.com/v18.0/${accountId}/media`
   
-  const containerBody: any = {
+  const containerBody: Record<string, unknown> = {
     image_url: mediaUrls[0],
     caption,
     access_token: accessToken
@@ -139,7 +182,7 @@ async function postToInstagram(
   // Step 2: Publish the container
   const publishUrl = `https://graph.facebook.com/v18.0/${accountId}/media_publish`
   
-  const publishBody: any = {
+  const publishBody: Record<string, unknown> = {
     creation_id: containerData.id,
     access_token: accessToken
   }
