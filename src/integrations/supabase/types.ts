@@ -14,6 +14,96 @@ export type Database = {
   }
   public: {
     Tables: {
+      analytics: {
+        Row: {
+          audience_demographics: Json | null
+          campaign_id: string | null
+          click_through_rate: number | null
+          clicks: number | null
+          comments: number | null
+          created_at: string
+          detailed_metrics: Json | null
+          engagement: number | null
+          engagement_rate: number | null
+          id: string
+          impressions: number | null
+          likes: number | null
+          metric_date: string
+          platform: string
+          post_id: string | null
+          reach: number | null
+          saves: number | null
+          shares: number | null
+          updated_at: string
+          user_id: string
+          video_completion_rate: number | null
+          video_views: number | null
+        }
+        Insert: {
+          audience_demographics?: Json | null
+          campaign_id?: string | null
+          click_through_rate?: number | null
+          clicks?: number | null
+          comments?: number | null
+          created_at?: string
+          detailed_metrics?: Json | null
+          engagement?: number | null
+          engagement_rate?: number | null
+          id?: string
+          impressions?: number | null
+          likes?: number | null
+          metric_date: string
+          platform: string
+          post_id?: string | null
+          reach?: number | null
+          saves?: number | null
+          shares?: number | null
+          updated_at?: string
+          user_id: string
+          video_completion_rate?: number | null
+          video_views?: number | null
+        }
+        Update: {
+          audience_demographics?: Json | null
+          campaign_id?: string | null
+          click_through_rate?: number | null
+          clicks?: number | null
+          comments?: number | null
+          created_at?: string
+          detailed_metrics?: Json | null
+          engagement?: number | null
+          engagement_rate?: number | null
+          id?: string
+          impressions?: number | null
+          likes?: number | null
+          metric_date?: string
+          platform?: string
+          post_id?: string | null
+          reach?: number | null
+          saves?: number | null
+          shares?: number | null
+          updated_at?: string
+          user_id?: string
+          video_completion_rate?: number | null
+          video_views?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analytics_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "analytics_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audiences: {
         Row: {
           age_max: number | null
@@ -448,6 +538,68 @@ export type Database = {
         }
         Relationships: []
       }
+      posts: {
+        Row: {
+          campaign_id: string | null
+          content: string | null
+          created_at: string
+          engagement_data: Json | null
+          hashtags: string[] | null
+          id: string
+          last_synced_at: string | null
+          media_urls: Json | null
+          platform: string
+          platform_post_id: string | null
+          published_at: string | null
+          scheduled_for: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          campaign_id?: string | null
+          content?: string | null
+          created_at?: string
+          engagement_data?: Json | null
+          hashtags?: string[] | null
+          id?: string
+          last_synced_at?: string | null
+          media_urls?: Json | null
+          platform: string
+          platform_post_id?: string | null
+          published_at?: string | null
+          scheduled_for?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          campaign_id?: string | null
+          content?: string | null
+          created_at?: string
+          engagement_data?: Json | null
+          hashtags?: string[] | null
+          id?: string
+          last_synced_at?: string | null
+          media_urls?: Json | null
+          platform?: string
+          platform_post_id?: string | null
+          published_at?: string | null
+          scheduled_for?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "posts_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       scheduled_posts: {
         Row: {
           campaign_id: string | null
@@ -579,7 +731,52 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      campaign_analytics_summary: {
+        Row: {
+          avg_ctr: number | null
+          avg_engagement_rate: number | null
+          campaign_id: string | null
+          campaign_name: string | null
+          first_metric_date: string | null
+          last_metric_date: string | null
+          platform: string | null
+          total_clicks: number | null
+          total_comments: number | null
+          total_engagement: number | null
+          total_impressions: number | null
+          total_likes: number | null
+          total_reach: number | null
+          total_shares: number | null
+          user_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analytics_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      daily_performance_summary: {
+        Row: {
+          avg_ctr: number | null
+          avg_engagement_rate: number | null
+          campaigns_count: number | null
+          metric_date: string | null
+          posts_count: number | null
+          total_clicks: number | null
+          total_comments: number | null
+          total_engagement: number | null
+          total_impressions: number | null
+          total_likes: number | null
+          total_reach: number | null
+          total_shares: number | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never
