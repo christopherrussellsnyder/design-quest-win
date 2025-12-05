@@ -410,19 +410,71 @@ export type Database = {
         }
         Relationships: []
       }
+      content_folders: {
+        Row: {
+          color: string | null
+          created_at: string
+          icon: string | null
+          id: string
+          name: string
+          parent_folder_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          icon?: string | null
+          id?: string
+          name: string
+          parent_folder_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          icon?: string | null
+          id?: string
+          name?: string
+          parent_folder_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_folders_parent_folder_id_fkey"
+            columns: ["parent_folder_id"]
+            isOneToOne: false
+            referencedRelation: "content_folders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       content_library: {
         Row: {
           campaign_id: string | null
+          category: string | null
+          content_text: string | null
           content_type: string
           created_at: string | null
+          folder_id: string | null
           generated_content: string
+          hashtags: string[] | null
           id: string
           is_favorite: boolean | null
+          is_template: boolean | null
+          last_used_at: string | null
           length: string | null
+          media_urls: Json | null
           objective: string | null
+          performance_score: number | null
           platform: string | null
           prompt: string | null
           rating: number | null
+          tags: string[] | null
+          times_used: number | null
+          title: string | null
           tone: string | null
           updated_at: string | null
           used_in_campaign: boolean | null
@@ -430,16 +482,27 @@ export type Database = {
         }
         Insert: {
           campaign_id?: string | null
+          category?: string | null
+          content_text?: string | null
           content_type: string
           created_at?: string | null
+          folder_id?: string | null
           generated_content: string
+          hashtags?: string[] | null
           id?: string
           is_favorite?: boolean | null
+          is_template?: boolean | null
+          last_used_at?: string | null
           length?: string | null
+          media_urls?: Json | null
           objective?: string | null
+          performance_score?: number | null
           platform?: string | null
           prompt?: string | null
           rating?: number | null
+          tags?: string[] | null
+          times_used?: number | null
+          title?: string | null
           tone?: string | null
           updated_at?: string | null
           used_in_campaign?: boolean | null
@@ -447,16 +510,27 @@ export type Database = {
         }
         Update: {
           campaign_id?: string | null
+          category?: string | null
+          content_text?: string | null
           content_type?: string
           created_at?: string | null
+          folder_id?: string | null
           generated_content?: string
+          hashtags?: string[] | null
           id?: string
           is_favorite?: boolean | null
+          is_template?: boolean | null
+          last_used_at?: string | null
           length?: string | null
+          media_urls?: Json | null
           objective?: string | null
+          performance_score?: number | null
           platform?: string | null
           prompt?: string | null
           rating?: number | null
+          tags?: string[] | null
+          times_used?: number | null
+          title?: string | null
           tone?: string | null
           updated_at?: string | null
           used_in_campaign?: boolean | null
@@ -468,6 +542,13 @@ export type Database = {
             columns: ["campaign_id"]
             isOneToOne: false
             referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_library_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "content_folders"
             referencedColumns: ["id"]
           },
         ]

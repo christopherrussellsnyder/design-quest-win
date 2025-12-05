@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
+import ContentLibrary from "./pages/ContentLibrary";
 import OAuthCallback from "./pages/OAuthCallback";
 import NotFound from "./pages/NotFound";
 
@@ -34,6 +35,14 @@ const App = () => (
               }
             />
             <Route path="/auth/callback" element={<OAuthCallback />} />
+            <Route
+              path="/content-library"
+              element={
+                <ProtectedRoute>
+                  <ContentLibrary />
+                </ProtectedRoute>
+              }
+            />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
