@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Sparkles, TrendingUp, Users, Mail, Target, Zap, ChevronDown, Play, Pause, Settings, Bell, Search, Plus, ArrowUpRight, ArrowDownRight, LayoutDashboard, FileText, Send, Megaphone, Calendar, ChevronRight, Image, Type, Video, Wand2, Copy, RefreshCw, Check, Filter, Download, Eye, MousePointer, DollarSign, ChevronLeft, BarChart3, LogOut, X, Save, Star, Trash2, Globe, TrendingDown, AlertCircle, Lightbulb, Clock } from 'lucide-react';
+import { Sparkles, TrendingUp, Users, Mail, Target, Zap, ChevronDown, Play, Pause, Settings, Bell, Search, Plus, ArrowUpRight, ArrowDownRight, LayoutDashboard, FileText, Send, Megaphone, Calendar, ChevronRight, Image, Type, Video, Wand2, Copy, RefreshCw, Check, Filter, Download, Eye, MousePointer, DollarSign, ChevronLeft, BarChart3, LogOut, X, Save, Star, Trash2, Globe, TrendingDown, AlertCircle, Lightbulb, Clock, Library } from 'lucide-react';
 
 const performanceData = [
   { name: 'Mon', engagement: 4200, conversions: 240, reach: 18000 },
@@ -826,10 +827,13 @@ export default function Dashboard() {
     }
   };
 
+  const navigate = useNavigate();
+
   const navItems = [
     { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { id: 'campaigns', icon: Megaphone, label: 'Campaign Builder' },
     { id: 'content', icon: FileText, label: 'Content AI' },
+    { id: 'library', icon: Library, label: 'Content Library', href: '/content-library' },
     { id: 'audience', icon: Users, label: 'Audience' },
     { id: 'analytics', icon: BarChart3, label: 'Analytics' },
     { id: 'scheduler', icon: Calendar, label: 'Scheduler' },
@@ -2441,12 +2445,13 @@ export default function Dashboard() {
         <nav className="flex-1 space-y-1">
           {navItems.map(item => {
             const Icon = item.icon;
+            const isActive = item.href ? false : activeTab === item.id;
             return (
               <button
                 key={item.id}
-                onClick={() => setActiveTab(item.id)}
+                onClick={() => item.href ? navigate(item.href) : setActiveTab(item.id)}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
-                  activeTab === item.id 
+                  isActive 
                     ? 'bg-gradient-to-r from-violet-500/20 to-fuchsia-500/20 text-white border border-violet-500/30' 
                     : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
                 }`}
