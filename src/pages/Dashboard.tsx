@@ -832,7 +832,7 @@ export default function Dashboard() {
   const navItems = [
     { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { id: 'campaigns', icon: Megaphone, label: 'Campaign Builder' },
-    { id: 'content', icon: FileText, label: 'Content AI' },
+    { id: 'content', icon: FileText, label: 'Content AI', href: '/content-ai' },
     { id: 'library', icon: Library, label: 'Content Library', href: '/content-library' },
     { id: 'audience', icon: Users, label: 'Audience' },
     { id: 'analytics', icon: BarChart3, label: 'Analytics' },
