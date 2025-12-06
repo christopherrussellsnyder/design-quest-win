@@ -10,6 +10,7 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
 import ContentLibrary from "./pages/ContentLibrary";
+import ContentAI from "./pages/ContentAI";
 import OAuthCallback from "./pages/OAuthCallback";
 import NotFound from "./pages/NotFound";
 
@@ -40,6 +41,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <ContentLibrary />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/content-ai"
+              element={
+                <ProtectedRoute>
+                  <ContentAI />
                 </ProtectedRoute>
               }
             />
