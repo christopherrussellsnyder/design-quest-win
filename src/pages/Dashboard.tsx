@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Sparkles, TrendingUp, Users, Mail, Target, Zap, ChevronDown, Play, Pause, Settings, Bell, Search, Plus, ArrowUpRight, ArrowDownRight, LayoutDashboard, FileText, Send, Megaphone, Calendar, ChevronRight, Image, Type, Video, Wand2, Copy, RefreshCw, Check, Filter, Download, Eye, MousePointer, DollarSign, ChevronLeft, BarChart3, LogOut, X, Save, Star, Trash2, Globe, TrendingDown, AlertCircle, Lightbulb, Clock, Library } from 'lucide-react';
 
-const performanceData = [
+const samplePerformanceData = [
   { name: 'Mon', engagement: 4200, conversions: 240, reach: 18000 },
   { name: 'Tue', engagement: 3800, conversions: 198, reach: 16500 },
   { name: 'Wed', engagement: 5100, conversions: 320, reach: 22000 },
@@ -15,7 +15,7 @@ const performanceData = [
   { name: 'Sun', engagement: 3600, conversions: 165, reach: 15000 },
 ];
 
-const campaigns = [
+const sampleCampaigns = [
   { id: 1, name: 'Summer Sale Launch', status: 'active', platform: 'Multi-channel', spend: '$2,450', roi: '+187%', trend: 'up' },
   { id: 2, name: 'Product Awareness Q3', status: 'active', platform: 'Social', spend: '$1,820', roi: '+142%', trend: 'up' },
   { id: 3, name: 'Email Re-engagement', status: 'paused', platform: 'Email', spend: '$680', roi: '+89%', trend: 'down' },
