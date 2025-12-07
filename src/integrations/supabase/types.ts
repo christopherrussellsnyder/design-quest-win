@@ -683,6 +683,8 @@ export type Database = {
       }
       scheduled_posts: {
         Row: {
+          approval_status: string | null
+          best_time_suggestion: string | null
           campaign_id: string | null
           clicks: number | null
           content: string
@@ -691,20 +693,28 @@ export type Database = {
           error_message: string | null
           id: string
           impressions: number | null
+          is_recurring: boolean | null
           media_urls: string[] | null
+          parent_recurring_id: string | null
           platforms: string[]
           post_type: string
           published_at: string | null
+          queue_position: number | null
           recurrence: string | null
           recurrence_end_date: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
           scheduled_time: string
           status: string
           timezone: string | null
           title: string
           updated_at: string | null
           user_id: string
+          version: number | null
         }
         Insert: {
+          approval_status?: string | null
+          best_time_suggestion?: string | null
           campaign_id?: string | null
           clicks?: number | null
           content: string
@@ -713,20 +723,28 @@ export type Database = {
           error_message?: string | null
           id?: string
           impressions?: number | null
+          is_recurring?: boolean | null
           media_urls?: string[] | null
+          parent_recurring_id?: string | null
           platforms: string[]
           post_type: string
           published_at?: string | null
+          queue_position?: number | null
           recurrence?: string | null
           recurrence_end_date?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           scheduled_time: string
           status?: string
           timezone?: string | null
           title: string
           updated_at?: string | null
           user_id: string
+          version?: number | null
         }
         Update: {
+          approval_status?: string | null
+          best_time_suggestion?: string | null
           campaign_id?: string | null
           clicks?: number | null
           content?: string
@@ -735,20 +753,34 @@ export type Database = {
           error_message?: string | null
           id?: string
           impressions?: number | null
+          is_recurring?: boolean | null
           media_urls?: string[] | null
+          parent_recurring_id?: string | null
           platforms?: string[]
           post_type?: string
           published_at?: string | null
+          queue_position?: number | null
           recurrence?: string | null
           recurrence_end_date?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           scheduled_time?: string
           status?: string
           timezone?: string | null
           title?: string
           updated_at?: string | null
           user_id?: string
+          version?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "scheduled_posts_parent_recurring_id_fkey"
+            columns: ["parent_recurring_id"]
+            isOneToOne: false
+            referencedRelation: "scheduled_posts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       social_connections: {
         Row: {

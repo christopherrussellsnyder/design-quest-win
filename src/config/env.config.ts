@@ -24,7 +24,9 @@ export const ENV_CONFIG = {
   // Facebook/Instagram Configuration (Public App ID only)
   facebook: {
     appId: import.meta.env.VITE_FACEBOOK_APP_ID || '',
-    redirectUri: `${window.location.origin}/auth/callback`,
+    get redirectUri() {
+      return typeof window !== 'undefined' ? `${window.location.origin}/auth/callback` : '';
+    },
     apiVersion: 'v18.0',
   },
 
