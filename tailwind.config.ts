@@ -47,24 +47,6 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        violet: {
-          DEFAULT: "hsl(var(--violet))",
-        },
-        fuchsia: {
-          DEFAULT: "hsl(var(--fuchsia))",
-        },
-        cyan: {
-          DEFAULT: "hsl(var(--cyan))",
-        },
-        emerald: {
-          DEFAULT: "hsl(var(--emerald))",
-        },
-        amber: {
-          DEFAULT: "hsl(var(--amber))",
-        },
-        rose: {
-          DEFAULT: "hsl(var(--rose))",
-        },
         chart: {
           "1": "hsl(var(--chart-1))",
           "2": "hsl(var(--chart-2))",
@@ -72,6 +54,12 @@ export default {
           "4": "hsl(var(--chart-4))",
           "5": "hsl(var(--chart-5))",
         },
+        violet: "hsl(var(--violet))",
+        fuchsia: "hsl(var(--fuchsia))",
+        cyan: "hsl(var(--cyan))",
+        emerald: "hsl(var(--emerald))",
+        amber: "hsl(var(--amber))",
+        rose: "hsl(var(--rose))",
       },
       borderRadius: {
         lg: "var(--radius)",
