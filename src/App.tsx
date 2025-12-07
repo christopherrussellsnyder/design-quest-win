@@ -11,7 +11,6 @@ import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
 import ContentLibrary from "./pages/ContentLibrary";
 import ContentAI from "./pages/ContentAI";
-import Scheduler from "./pages/Scheduler";
 import OAuthCallback from "./pages/OAuthCallback";
 import NotFound from "./pages/NotFound";
 
@@ -50,14 +49,6 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <ContentAI />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/scheduler"
-              element={
-                <ProtectedRoute>
-                  <Scheduler />
                 </ProtectedRoute>
               }
             />

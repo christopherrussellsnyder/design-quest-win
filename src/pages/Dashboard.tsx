@@ -836,7 +836,7 @@ export default function Dashboard() {
     { id: 'library', icon: Library, label: 'Content Library', href: '/content-library' },
     { id: 'audience', icon: Users, label: 'Audience' },
     { id: 'analytics', icon: BarChart3, label: 'Analytics' },
-    { id: 'scheduler', icon: Calendar, label: 'Scheduler', href: '/scheduler' },
+    { id: 'scheduler', icon: Calendar, label: 'Scheduler' },
     { id: 'settings', icon: Settings, label: 'Settings' },
   ];
 
