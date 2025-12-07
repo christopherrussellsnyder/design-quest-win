@@ -8,7 +8,7 @@ const Index = () => {
         <div className="text-center mb-12">
           <div className="flex items-center justify-center gap-3 mb-6">
             <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-              <Sparkles className="w-8 h-8" />
+              <Sparkles className="w-8 h-8 text-primary-foreground" />
             </div>
             <span className="font-bold text-4xl">MarketAI</span>
           </div>
