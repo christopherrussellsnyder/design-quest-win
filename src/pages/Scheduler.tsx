@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
-import { Calendar, List, Plus, ChevronLeft, ChevronRight, LayoutDashboard, Facebook, Instagram, Twitter, Linkedin, Clock, Edit2, Trash2, X } from 'lucide-react';
+import { Calendar, List, Layers, Plus, ChevronLeft, ChevronRight, LayoutDashboard, Facebook, Instagram, Twitter, Linkedin, Clock, Edit2, Trash2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, isToday } from 'date-fns';
 import { DayDetailPanel } from '@/components/scheduler/DayDetailPanel';
 import { CalendarDateCell } from '@/components/scheduler/CalendarDateCell';
+import { QueueView } from '@/components/scheduler/QueueView';
 
 // Platform icons mapping
 const platformIcons: Record<string, React.ReactNode> = {
@@ -28,6 +29,7 @@ const initialMockPosts = [
     scheduled_time: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
     status: 'scheduled',
     title: 'Product Launch Announcement',
+    queue_position: 0,
   },
   {
     id: '2',
@@ -36,6 +38,7 @@ const initialMockPosts = [
     scheduled_time: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000 + 3600000).toISOString(),
     status: 'scheduled',
     title: 'BTS Content',
+    queue_position: 0,
   },
   {
     id: '3',
@@ -44,6 +47,7 @@ const initialMockPosts = [
     scheduled_time: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
     status: 'published',
     title: 'Marketing Tip',
+    queue_position: 0,
   },
   {
     id: '4',
@@ -52,6 +56,7 @@ const initialMockPosts = [
     scheduled_time: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
     status: 'draft',
     title: 'Hiring Announcement',
+    queue_position: 0,
   },
   {
     id: '5',
@@ -60,6 +65,7 @@ const initialMockPosts = [
     scheduled_time: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(),
     status: 'scheduled',
     title: 'Milestone Celebration',
+    queue_position: 1,
   },
   {
     id: '6',
@@ -68,6 +74,7 @@ const initialMockPosts = [
     scheduled_time: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
     status: 'scheduled',
     title: 'Collection Drop',
+    queue_position: 1,
   },
   {
     id: '7',
@@ -76,6 +83,7 @@ const initialMockPosts = [
     scheduled_time: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
     status: 'scheduled',
     title: 'Webinar Promotion',
+    queue_position: 0,
   },
   {
     id: '8',
@@ -84,10 +92,11 @@ const initialMockPosts = [
     scheduled_time: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString(),
     status: 'draft',
     title: 'Case Study Share',
+    queue_position: 1,
   },
 ];
 
-type ViewMode = 'calendar' | 'list';
+type ViewMode = 'calendar' | 'list' | 'queue';
 type DateFilter = 'week' | 'month' | 'all';
 
 interface ScheduledPost {
@@ -97,6 +106,7 @@ interface ScheduledPost {
   scheduled_time: string;
   status: string;
   title: string;
+  queue_position?: number;
 }
 
 export default function Scheduler() {
@@ -376,6 +386,17 @@ export default function Scheduler() {
                   <List className="w-4 h-4" />
                   <span className="hidden sm:inline">List</span>
                 </button>
+                <button
+                  onClick={() => setViewMode('queue')}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                    viewMode === 'queue'
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <Layers className="w-4 h-4" />
+                  <span className="hidden sm:inline">Queue</span>
+                </button>
               </div>
 
               {/* New Post Button */}
@@ -433,7 +454,23 @@ export default function Scheduler() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
-        {viewMode === 'calendar' ? (
+        {viewMode === 'queue' ? (
+          /* Queue View */
+          <QueueView
+            posts={filteredPosts}
+            onAddPost={(platform) => {
+              setFormData({ ...formData, platform });
+              setEditingPost(null);
+              setSelectedDate(null);
+              setShowCreateModal(true);
+            }}
+            onEditPost={handleEditPost}
+            onDeletePost={handleDeletePost}
+            onUpdatePost={(id, updates) => {
+              setPosts(posts.map(p => p.id === id ? { ...p, ...updates } : p));
+            }}
+          />
+        ) : viewMode === 'calendar' ? (
           /* Calendar View */
           <div className="bg-card rounded-xl border border-border p-4 sm:p-6">
             {/* Calendar Header */}
