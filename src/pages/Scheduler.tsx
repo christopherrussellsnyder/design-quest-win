@@ -1,6 +1,5 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Calendar, List, Plus, ChevronLeft, ChevronRight, LayoutDashboard, Facebook, Instagram, Twitter, Linkedin, Clock, Edit2, Trash2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -9,6 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, isToday } from 'date-fns';
+import { DayDetailPanel } from '@/components/scheduler/DayDetailPanel';
+import { CalendarDateCell } from '@/components/scheduler/CalendarDateCell';
 
 // Platform icons mapping
 const platformIcons: Record<string, React.ReactNode> = {
@@ -19,7 +20,7 @@ const platformIcons: Record<string, React.ReactNode> = {
 };
 
 // Mock scheduled posts data
-const mockPosts = [
+const initialMockPosts = [
   {
     id: '1',
     platform: 'facebook',
@@ -32,7 +33,7 @@ const mockPosts = [
     id: '2',
     platform: 'instagram',
     content: 'Behind the scenes look at our creative process. #behindthescenes #creative',
-    scheduled_time: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
+    scheduled_time: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000 + 3600000).toISOString(),
     status: 'scheduled',
     title: 'BTS Content',
   },
@@ -60,6 +61,30 @@ const mockPosts = [
     status: 'scheduled',
     title: 'Milestone Celebration',
   },
+  {
+    id: '6',
+    platform: 'instagram',
+    content: 'New collection dropping this Friday! Get ready to shop. 🛍️',
+    scheduled_time: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
+    status: 'scheduled',
+    title: 'Collection Drop',
+  },
+  {
+    id: '7',
+    platform: 'twitter',
+    content: 'Join our webinar on digital marketing trends for 2025. Register now!',
+    scheduled_time: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+    status: 'scheduled',
+    title: 'Webinar Promotion',
+  },
+  {
+    id: '8',
+    platform: 'linkedin',
+    content: 'Proud to share our latest case study on customer success.',
+    scheduled_time: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString(),
+    status: 'draft',
+    title: 'Case Study Share',
+  },
 ];
 
 type ViewMode = 'calendar' | 'list';
@@ -82,11 +107,14 @@ export default function Scheduler() {
   const [dateFilter, setDateFilter] = useState<DateFilter>('month');
   const [platformFilter, setPlatformFilter] = useState<string>('all');
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [posts, setPosts] = useState<ScheduledPost[]>(mockPosts);
+  const [posts, setPosts] = useState<ScheduledPost[]>(initialMockPosts);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [selectedDatePosts, setSelectedDatePosts] = useState<ScheduledPost[] | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [editingPost, setEditingPost] = useState<ScheduledPost | null>(null);
+  const [draggedPost, setDraggedPost] = useState<ScheduledPost | null>(null);
+  const [dragOverDate, setDragOverDate] = useState<Date | null>(null);
   
-  // Form state for new post
+  // Form state for new/edit post
   const [formData, setFormData] = useState({
     platform: '',
     content: '',
@@ -95,6 +123,30 @@ export default function Scheduler() {
     status: 'scheduled',
     title: '',
   });
+
+  // Reset form when modal opens/closes
+  useEffect(() => {
+    if (showCreateModal && !editingPost) {
+      setFormData({
+        platform: '',
+        content: '',
+        date: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
+        time: '09:00',
+        status: 'scheduled',
+        title: '',
+      });
+    } else if (editingPost) {
+      const editDate = new Date(editingPost.scheduled_time);
+      setFormData({
+        platform: editingPost.platform,
+        content: editingPost.content,
+        date: format(editDate, 'yyyy-MM-dd'),
+        time: format(editDate, 'HH:mm'),
+        status: editingPost.status,
+        title: editingPost.title,
+      });
+    }
+  }, [showCreateModal, editingPost, selectedDate]);
 
   // Calendar days
   const calendarDays = useMemo(() => {
@@ -120,8 +172,8 @@ export default function Scheduler() {
     return posts.filter(post => post.platform === platformFilter);
   }, [posts, platformFilter]);
 
-  // Handle create post
-  const handleCreatePost = () => {
+  // Handle create/update post
+  const handleSavePost = () => {
     if (!formData.platform || !formData.content || !formData.title) {
       toast({
         title: 'Error',
@@ -131,16 +183,42 @@ export default function Scheduler() {
       return;
     }
 
-    const newPost: ScheduledPost = {
-      id: Date.now().toString(),
-      platform: formData.platform,
-      content: formData.content,
-      scheduled_time: new Date(`${formData.date}T${formData.time}`).toISOString(),
-      status: formData.status,
-      title: formData.title,
-    };
+    if (editingPost) {
+      // Update existing post
+      setPosts(posts.map(p => 
+        p.id === editingPost.id
+          ? {
+              ...p,
+              platform: formData.platform,
+              content: formData.content,
+              scheduled_time: new Date(`${formData.date}T${formData.time}`).toISOString(),
+              status: formData.status,
+              title: formData.title,
+            }
+          : p
+      ));
+      toast({
+        title: 'Post Updated',
+        description: 'Your post has been updated successfully!',
+      });
+      setEditingPost(null);
+    } else {
+      // Create new post
+      const newPost: ScheduledPost = {
+        id: Date.now().toString(),
+        platform: formData.platform,
+        content: formData.content,
+        scheduled_time: new Date(`${formData.date}T${formData.time}`).toISOString(),
+        status: formData.status,
+        title: formData.title,
+      };
+      setPosts([...posts, newPost]);
+      toast({
+        title: 'Post Created',
+        description: 'Your post has been scheduled successfully!',
+      });
+    }
 
-    setPosts([...posts, newPost]);
     setShowCreateModal(false);
     setFormData({
       platform: '',
@@ -149,11 +227,6 @@ export default function Scheduler() {
       time: '09:00',
       status: 'scheduled',
       title: '',
-    });
-
-    toast({
-      title: 'Post Created',
-      description: 'Your post has been scheduled successfully!',
     });
   };
 
@@ -166,22 +239,103 @@ export default function Scheduler() {
     });
   };
 
+  // Handle duplicate post
+  const handleDuplicatePost = (post: ScheduledPost) => {
+    const newPost: ScheduledPost = {
+      ...post,
+      id: Date.now().toString(),
+      title: `${post.title} (Copy)`,
+      status: 'draft',
+    };
+    setPosts([...posts, newPost]);
+    toast({
+      title: 'Post Duplicated',
+      description: 'A copy of the post has been created as a draft.',
+    });
+  };
+
+  // Handle edit post
+  const handleEditPost = (post: ScheduledPost) => {
+    setEditingPost(post);
+    setShowCreateModal(true);
+  };
+
+  // Drag and drop handlers
+  const handleDragStart = (post: ScheduledPost) => {
+    if (post.status === 'published') return;
+    setDraggedPost(post);
+  };
+
+  const handleDragOver = (e: React.DragEvent, date: Date) => {
+    e.preventDefault();
+    setDragOverDate(date);
+  };
+
+  const handleDrop = (e: React.DragEvent, date: Date) => {
+    e.preventDefault();
+    if (!draggedPost) return;
+
+    // Get the original time and apply it to the new date
+    const originalTime = new Date(draggedPost.scheduled_time);
+    const newScheduledTime = new Date(date);
+    newScheduledTime.setHours(originalTime.getHours(), originalTime.getMinutes());
+
+    setPosts(posts.map(p =>
+      p.id === draggedPost.id
+        ? { ...p, scheduled_time: newScheduledTime.toISOString() }
+        : p
+    ));
+
+    toast({
+      title: 'Post Rescheduled',
+      description: `Moved to ${format(date, 'MMMM d, yyyy')}`,
+    });
+
+    setDraggedPost(null);
+    setDragOverDate(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedPost(null);
+    setDragOverDate(null);
+  };
+
+  // Quick add post for a specific date
+  const handleQuickAdd = (date: Date) => {
+    setSelectedDate(date);
+    setEditingPost(null);
+    setShowCreateModal(true);
+  };
+
   // Status badge styles
   const getStatusBadge = (status: string) => {
     const styles: Record<string, string> = {
-      scheduled: 'bg-violet-500/20 text-violet-400 border-violet-500/30',
+      scheduled: 'bg-primary/20 text-primary border-primary/30',
       published: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
-      draft: 'bg-slate-500/20 text-slate-400 border-slate-500/30',
+      draft: 'bg-muted text-muted-foreground border-border',
     };
     return styles[status] || styles.draft;
   };
 
+  // Close modals on escape key
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setSelectedDate(null);
+        setShowCreateModal(false);
+        setEditingPost(null);
+      }
+    };
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, []);
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background" onDragEnd={handleDragEnd}>
       {/* Header */}
       <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <Button
                 variant="ghost"
@@ -209,7 +363,7 @@ export default function Scheduler() {
                   }`}
                 >
                   <Calendar className="w-4 h-4" />
-                  Calendar
+                  <span className="hidden sm:inline">Calendar</span>
                 </button>
                 <button
                   onClick={() => setViewMode('list')}
@@ -220,23 +374,23 @@ export default function Scheduler() {
                   }`}
                 >
                   <List className="w-4 h-4" />
-                  List
+                  <span className="hidden sm:inline">List</span>
                 </button>
               </div>
 
               {/* New Post Button */}
-              <Button onClick={() => setShowCreateModal(true)} className="gap-2">
+              <Button onClick={() => { setEditingPost(null); setSelectedDate(null); setShowCreateModal(true); }} className="gap-2">
                 <Plus className="w-4 h-4" />
-                New Post
+                <span className="hidden sm:inline">New Post</span>
               </Button>
             </div>
           </div>
 
           {/* Filters */}
-          <div className="flex items-center gap-4 mt-4">
+          <div className="flex flex-wrap items-center gap-3 mt-4">
             {/* Date Filter */}
             <Select value={dateFilter} onValueChange={(v) => setDateFilter(v as DateFilter)}>
-              <SelectTrigger className="w-40">
+              <SelectTrigger className="w-32 sm:w-40">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -247,7 +401,7 @@ export default function Scheduler() {
             </Select>
 
             {/* Platform Filter */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <button
                 onClick={() => setPlatformFilter('all')}
                 className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
@@ -267,6 +421,7 @@ export default function Scheduler() {
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-muted text-muted-foreground hover:text-foreground'
                   }`}
+                  title={platform}
                 >
                   {icon}
                 </button>
@@ -277,10 +432,10 @@ export default function Scheduler() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-6 py-6">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
         {viewMode === 'calendar' ? (
           /* Calendar View */
-          <div className="bg-card rounded-xl border border-border p-6">
+          <div className="bg-card rounded-xl border border-border p-4 sm:p-6">
             {/* Calendar Header */}
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-semibold text-foreground">
@@ -314,7 +469,8 @@ export default function Scheduler() {
             <div className="grid grid-cols-7 gap-1 mb-2">
               {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
                 <div key={day} className="text-center text-sm font-medium text-muted-foreground py-2">
-                  {day}
+                  <span className="hidden sm:inline">{day}</span>
+                  <span className="sm:hidden">{day.charAt(0)}</span>
                 </div>
               ))}
             </div>
@@ -323,36 +479,28 @@ export default function Scheduler() {
             <div className="grid grid-cols-7 gap-1">
               {calendarDays.map((day, index) => {
                 if (!day) {
-                  return <div key={`empty-${index}`} className="aspect-square" />;
+                  return <div key={`empty-${index}`} className="min-h-[80px] sm:min-h-[100px]" />;
                 }
 
                 const dayPosts = getPostsForDay(day);
-                const isCurrentMonth = isSameMonth(day, currentMonth);
-                const isCurrentDay = isToday(day);
 
                 return (
-                  <button
+                  <CalendarDateCell
                     key={day.toISOString()}
-                    onClick={() => dayPosts.length > 0 && setSelectedDatePosts(dayPosts)}
-                    className={`aspect-square p-2 rounded-lg border transition-colors text-left flex flex-col ${
-                      isCurrentMonth
-                        ? 'bg-muted/30 border-border hover:bg-muted/50'
-                        : 'bg-transparent border-transparent text-muted-foreground/50'
-                    } ${isCurrentDay ? 'ring-2 ring-primary' : ''} ${
-                      dayPosts.length > 0 ? 'cursor-pointer' : 'cursor-default'
-                    }`}
-                  >
-                    <span className={`text-sm font-medium ${isCurrentDay ? 'text-primary' : ''}`}>
-                      {format(day, 'd')}
-                    </span>
-                    {dayPosts.length > 0 && (
-                      <div className="mt-auto">
-                        <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs font-medium">
-                          {dayPosts.length}
-                        </span>
-                      </div>
-                    )}
-                  </button>
+                    day={day}
+                    currentMonth={currentMonth}
+                    posts={dayPosts}
+                    isSelected={selectedDate ? isSameDay(day, selectedDate) : false}
+                    onSelect={(date) => {
+                      if (getPostsForDay(date).length > 0 || isToday(date)) {
+                        setSelectedDate(date);
+                      }
+                    }}
+                    onQuickAdd={handleQuickAdd}
+                    onDragOver={handleDragOver}
+                    onDrop={handleDrop}
+                    isDragOver={dragOverDate ? isSameDay(day, dragOverDate) : false}
+                  />
                 );
               })}
             </div>
@@ -360,80 +508,110 @@ export default function Scheduler() {
         ) : (
           /* List View */
           <div className="bg-card rounded-xl border border-border overflow-hidden">
-            <table className="w-full">
-              <thead className="bg-muted/50 border-b border-border">
-                <tr>
-                  <th className="text-left px-6 py-4 text-sm font-medium text-muted-foreground">Platform</th>
-                  <th className="text-left px-6 py-4 text-sm font-medium text-muted-foreground">Content</th>
-                  <th className="text-left px-6 py-4 text-sm font-medium text-muted-foreground">Scheduled</th>
-                  <th className="text-left px-6 py-4 text-sm font-medium text-muted-foreground">Status</th>
-                  <th className="text-right px-6 py-4 text-sm font-medium text-muted-foreground">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredPosts.length === 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-muted/50 border-b border-border">
                   <tr>
-                    <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground">
-                      No scheduled posts found
-                    </td>
+                    <th className="text-left px-4 sm:px-6 py-4 text-sm font-medium text-muted-foreground">Platform</th>
+                    <th className="text-left px-4 sm:px-6 py-4 text-sm font-medium text-muted-foreground">Content</th>
+                    <th className="text-left px-4 sm:px-6 py-4 text-sm font-medium text-muted-foreground hidden sm:table-cell">Scheduled</th>
+                    <th className="text-left px-4 sm:px-6 py-4 text-sm font-medium text-muted-foreground">Status</th>
+                    <th className="text-right px-4 sm:px-6 py-4 text-sm font-medium text-muted-foreground">Actions</th>
                   </tr>
-                ) : (
-                  filteredPosts.map(post => (
-                    <tr key={post.id} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          {platformIcons[post.platform]}
-                          <span className="text-sm capitalize text-foreground">{post.platform}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div>
-                          <p className="font-medium text-foreground">{post.title}</p>
-                          <p className="text-sm text-muted-foreground truncate max-w-md">
-                            {post.content.slice(0, 50)}...
-                          </p>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <Clock className="w-4 h-4" />
-                          <span className="text-sm">{format(new Date(post.scheduled_time), 'MMM d, yyyy h:mm a')}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium border ${getStatusBadge(post.status)}`}>
-                          {post.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center justify-end gap-2">
-                          <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
-                            <Edit2 className="w-4 h-4" />
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="text-muted-foreground hover:text-destructive"
-                            onClick={() => handleDeletePost(post.id)}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
+                </thead>
+                <tbody>
+                  {filteredPosts.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground">
+                        No scheduled posts found
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  ) : (
+                    filteredPosts.map(post => (
+                      <tr key={post.id} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
+                        <td className="px-4 sm:px-6 py-4">
+                          <div className="flex items-center gap-2">
+                            {platformIcons[post.platform]}
+                            <span className="text-sm capitalize text-foreground hidden sm:inline">{post.platform}</span>
+                          </div>
+                        </td>
+                        <td className="px-4 sm:px-6 py-4">
+                          <div>
+                            <p className="font-medium text-foreground">{post.title}</p>
+                            <p className="text-sm text-muted-foreground truncate max-w-[150px] sm:max-w-md">
+                              {post.content.slice(0, 50)}...
+                            </p>
+                          </div>
+                        </td>
+                        <td className="px-4 sm:px-6 py-4 hidden sm:table-cell">
+                          <div className="flex items-center gap-2 text-muted-foreground">
+                            <Clock className="w-4 h-4" />
+                            <span className="text-sm">{format(new Date(post.scheduled_time), 'MMM d, yyyy h:mm a')}</span>
+                          </div>
+                        </td>
+                        <td className="px-4 sm:px-6 py-4">
+                          <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium border ${getStatusBadge(post.status)}`}>
+                            {post.status}
+                          </span>
+                        </td>
+                        <td className="px-4 sm:px-6 py-4">
+                          <div className="flex items-center justify-end gap-1">
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="text-muted-foreground hover:text-foreground"
+                              onClick={() => handleEditPost(post)}
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="text-muted-foreground hover:text-destructive"
+                              onClick={() => handleDeletePost(post.id)}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </main>
 
-      {/* Create Post Modal */}
-      <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
+      {/* Day Detail Panel */}
+      {selectedDate && (
+        <>
+          <div 
+            className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40"
+            onClick={() => setSelectedDate(null)}
+          />
+          <DayDetailPanel
+            date={selectedDate}
+            posts={getPostsForDay(selectedDate)}
+            onClose={() => setSelectedDate(null)}
+            onAddPost={handleQuickAdd}
+            onEditPost={handleEditPost}
+            onDeletePost={handleDeletePost}
+            onDuplicatePost={handleDuplicatePost}
+            onDragStart={handleDragStart}
+          />
+        </>
+      )}
+
+      {/* Create/Edit Post Modal */}
+      <Dialog open={showCreateModal} onOpenChange={(open) => {
+        setShowCreateModal(open);
+        if (!open) setEditingPost(null);
+      }}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>Schedule New Post</DialogTitle>
+            <DialogTitle>{editingPost ? 'Edit Scheduled Post' : 'Schedule New Post'}</DialogTitle>
           </DialogHeader>
 
           <div className="space-y-4 mt-4">
@@ -526,42 +704,31 @@ export default function Scheduler() {
             </div>
 
             {/* Actions */}
-            <div className="flex justify-end gap-3 pt-4">
-              <Button variant="outline" onClick={() => setShowCreateModal(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleCreatePost}>
-                Schedule Post
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Day Posts Modal */}
-      <Dialog open={!!selectedDatePosts} onOpenChange={() => setSelectedDatePosts(null)}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Scheduled Posts</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3 mt-4">
-            {selectedDatePosts?.map(post => (
-              <div key={post.id} className="p-4 bg-muted/50 rounded-lg border border-border">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-2">
-                    {platformIcons[post.platform]}
-                    <span className="font-medium text-foreground">{post.title}</span>
-                  </div>
-                  <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium border ${getStatusBadge(post.status)}`}>
-                    {post.status}
-                  </span>
-                </div>
-                <p className="text-sm text-muted-foreground mt-2">{post.content}</p>
-                <p className="text-xs text-muted-foreground mt-2">
-                  {format(new Date(post.scheduled_time), 'h:mm a')}
-                </p>
+            <div className="flex justify-between pt-4">
+              {editingPost && (
+                <Button 
+                  variant="destructive" 
+                  onClick={() => {
+                    handleDeletePost(editingPost.id);
+                    setShowCreateModal(false);
+                    setEditingPost(null);
+                  }}
+                >
+                  Delete Post
+                </Button>
+              )}
+              <div className={`flex gap-3 ${editingPost ? '' : 'ml-auto'}`}>
+                <Button variant="outline" onClick={() => {
+                  setShowCreateModal(false);
+                  setEditingPost(null);
+                }}>
+                  Cancel
+                </Button>
+                <Button onClick={handleSavePost}>
+                  {editingPost ? 'Update Post' : 'Schedule Post'}
+                </Button>
               </div>
-            ))}
+            </div>
           </div>
         </DialogContent>
       </Dialog>
