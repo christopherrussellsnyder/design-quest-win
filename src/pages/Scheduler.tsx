@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
-import { Calendar, List, Layers, Plus, ChevronLeft, ChevronRight, LayoutDashboard, Facebook, Instagram, Twitter, Linkedin, Clock, Edit2, Trash2, X } from 'lucide-react';
+import { Calendar, List, Layers, Plus, ChevronLeft, ChevronRight, LayoutDashboard, Facebook, Instagram, Twitter, Linkedin, Clock, Edit2, Trash2, Lightbulb } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -11,6 +11,7 @@ import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSam
 import { DayDetailPanel } from '@/components/scheduler/DayDetailPanel';
 import { CalendarDateCell } from '@/components/scheduler/CalendarDateCell';
 import { QueueView } from '@/components/scheduler/QueueView';
+import { BestTimesPanel } from '@/components/scheduler/BestTimesPanel';
 
 // Platform icons mapping
 const platformIcons: Record<string, React.ReactNode> = {
@@ -123,6 +124,7 @@ export default function Scheduler() {
   const [editingPost, setEditingPost] = useState<ScheduledPost | null>(null);
   const [draggedPost, setDraggedPost] = useState<ScheduledPost | null>(null);
   const [dragOverDate, setDragOverDate] = useState<Date | null>(null);
+  const [showBestTimesPanel, setShowBestTimesPanel] = useState(false);
   
   // Form state for new/edit post
   const [formData, setFormData] = useState({
@@ -398,6 +400,16 @@ export default function Scheduler() {
                   <span className="hidden sm:inline">Queue</span>
                 </button>
               </div>
+
+              {/* Best Times Button */}
+              <Button 
+                variant="outline" 
+                onClick={() => setShowBestTimesPanel(true)}
+                className="gap-2 border-primary/50 hover:bg-primary/10"
+              >
+                <Lightbulb className="w-4 h-4 text-primary" />
+                <span className="hidden sm:inline">Best Times</span>
+              </Button>
 
               {/* New Post Button */}
               <Button onClick={() => { setEditingPost(null); setSelectedDate(null); setShowCreateModal(true); }} className="gap-2">
@@ -769,6 +781,58 @@ export default function Scheduler() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Best Times Panel */}
+      {showBestTimesPanel && (
+        <>
+          <div 
+            className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40"
+            onClick={() => setShowBestTimesPanel(false)}
+          />
+          <BestTimesPanel
+            onClose={() => setShowBestTimesPanel(false)}
+            onScheduleAtTime={(platform, day, time) => {
+              // Calculate the next occurrence of the specified day
+              const dayIndex = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].indexOf(day);
+              const today = new Date();
+              const todayIndex = today.getDay();
+              let daysToAdd = dayIndex - todayIndex;
+              if (daysToAdd <= 0) daysToAdd += 7;
+              
+              const targetDate = new Date(today);
+              targetDate.setDate(today.getDate() + daysToAdd);
+              
+              // Parse time (e.g., "2:00 PM" -> 14:00)
+              const timeMatch = time.match(/(\d+):(\d+)\s*(AM|PM)/i);
+              let hours = 9;
+              let minutes = 0;
+              if (timeMatch) {
+                hours = parseInt(timeMatch[1]);
+                minutes = parseInt(timeMatch[2]);
+                if (timeMatch[3].toUpperCase() === 'PM' && hours !== 12) hours += 12;
+                if (timeMatch[3].toUpperCase() === 'AM' && hours === 12) hours = 0;
+              }
+              
+              setFormData({
+                platform,
+                content: '',
+                date: format(targetDate, 'yyyy-MM-dd'),
+                time: `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`,
+                status: 'scheduled',
+                title: '',
+              });
+              setEditingPost(null);
+              setShowBestTimesPanel(false);
+              setShowCreateModal(true);
+              
+              toast({
+                title: 'Best Time Selected',
+                description: `Scheduling for ${day} at ${time}`,
+              });
+            }}
+          />
+        </>
+      )}
     </div>
   );
 }
