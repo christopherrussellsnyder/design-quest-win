@@ -16,6 +16,7 @@ import NotFound from "./pages/NotFound";
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const ContentLibrary = lazy(() => import("./pages/ContentLibrary"));
 const ContentAI = lazy(() => import("./pages/ContentAI"));
+const Scheduler = lazy(() => import("./pages/Scheduler"));
 
 const queryClient = new QueryClient();
 
@@ -63,6 +64,14 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <ContentAI />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/scheduler"
+                element={
+                  <ProtectedRoute>
+                    <Scheduler />
                   </ProtectedRoute>
                 }
               />
