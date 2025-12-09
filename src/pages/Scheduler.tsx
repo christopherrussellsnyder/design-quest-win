@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
-import { Calendar, List, Layers, Plus, ChevronLeft, ChevronRight, LayoutDashboard, Facebook, Instagram, Twitter, Linkedin, Clock, Edit2, Trash2, Lightbulb } from 'lucide-react';
+import { Calendar, List, Layers, Plus, ChevronLeft, ChevronRight, LayoutDashboard, Facebook, Instagram, Twitter, Linkedin, Clock, Edit2, Trash2, Lightbulb, Eye, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -12,6 +12,9 @@ import { DayDetailPanel } from '@/components/scheduler/DayDetailPanel';
 import { CalendarDateCell } from '@/components/scheduler/CalendarDateCell';
 import { QueueView } from '@/components/scheduler/QueueView';
 import { BestTimesPanel } from '@/components/scheduler/BestTimesPanel';
+import { PostPreviewPanel } from '@/components/scheduler/PostPreviewPanel';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 
 // Platform icons mapping
 const platformIcons: Record<string, React.ReactNode> = {
@@ -108,6 +111,10 @@ interface ScheduledPost {
   status: string;
   title: string;
   queue_position?: number;
+  is_recurring?: boolean;
+  recurrence?: 'daily' | 'weekly' | 'monthly' | 'custom';
+  recurrence_days?: string[];
+  recurrence_end_date?: string;
 }
 
 export default function Scheduler() {
@@ -125,6 +132,7 @@ export default function Scheduler() {
   const [draggedPost, setDraggedPost] = useState<ScheduledPost | null>(null);
   const [dragOverDate, setDragOverDate] = useState<Date | null>(null);
   const [showBestTimesPanel, setShowBestTimesPanel] = useState(false);
+  const [showPreviewPanel, setShowPreviewPanel] = useState(false);
   
   // Form state for new/edit post
   const [formData, setFormData] = useState({
@@ -134,6 +142,10 @@ export default function Scheduler() {
     time: '09:00',
     status: 'scheduled',
     title: '',
+    isRecurring: false,
+    recurrence: 'weekly' as 'daily' | 'weekly' | 'monthly' | 'custom',
+    recurrenceDays: [] as string[],
+    recurrenceEndDate: '',
   });
 
   // Reset form when modal opens/closes
@@ -146,6 +158,10 @@ export default function Scheduler() {
         time: '09:00',
         status: 'scheduled',
         title: '',
+        isRecurring: false,
+        recurrence: 'weekly',
+        recurrenceDays: [],
+        recurrenceEndDate: '',
       });
     } else if (editingPost) {
       const editDate = new Date(editingPost.scheduled_time);
@@ -156,6 +172,10 @@ export default function Scheduler() {
         time: format(editDate, 'HH:mm'),
         status: editingPost.status,
         title: editingPost.title,
+        isRecurring: editingPost.is_recurring || false,
+        recurrence: editingPost.recurrence || 'weekly',
+        recurrenceDays: editingPost.recurrence_days || [],
+        recurrenceEndDate: editingPost.recurrence_end_date || '',
       });
     }
   }, [showCreateModal, editingPost, selectedDate]);
@@ -206,6 +226,10 @@ export default function Scheduler() {
               scheduled_time: new Date(`${formData.date}T${formData.time}`).toISOString(),
               status: formData.status,
               title: formData.title,
+              is_recurring: formData.isRecurring,
+              recurrence: formData.isRecurring ? formData.recurrence : undefined,
+              recurrence_days: formData.isRecurring ? formData.recurrenceDays : undefined,
+              recurrence_end_date: formData.isRecurring ? formData.recurrenceEndDate : undefined,
             }
           : p
       ));
@@ -223,15 +247,22 @@ export default function Scheduler() {
         scheduled_time: new Date(`${formData.date}T${formData.time}`).toISOString(),
         status: formData.status,
         title: formData.title,
+        is_recurring: formData.isRecurring,
+        recurrence: formData.isRecurring ? formData.recurrence : undefined,
+        recurrence_days: formData.isRecurring ? formData.recurrenceDays : undefined,
+        recurrence_end_date: formData.isRecurring ? formData.recurrenceEndDate : undefined,
       };
       setPosts([...posts, newPost]);
       toast({
-        title: 'Post Created',
-        description: 'Your post has been scheduled successfully!',
+        title: formData.isRecurring ? 'Recurring Series Created' : 'Post Created',
+        description: formData.isRecurring 
+          ? `Your recurring ${formData.recurrence} post has been scheduled!`
+          : 'Your post has been scheduled successfully!',
       });
     }
 
     setShowCreateModal(false);
+    setShowPreviewPanel(false);
     setFormData({
       platform: '',
       content: '',
@@ -239,7 +270,21 @@ export default function Scheduler() {
       time: '09:00',
       status: 'scheduled',
       title: '',
+      isRecurring: false,
+      recurrence: 'weekly',
+      recurrenceDays: [],
+      recurrenceEndDate: '',
     });
+  };
+
+  // Toggle recurrence day
+  const toggleRecurrenceDay = (day: string) => {
+    setFormData(prev => ({
+      ...prev,
+      recurrenceDays: prev.recurrenceDays.includes(day)
+        ? prev.recurrenceDays.filter(d => d !== day)
+        : [...prev.recurrenceDays, day]
+    }));
   };
 
   // Handle delete post
@@ -738,6 +783,75 @@ export default function Scheduler() {
               </div>
             </div>
 
+            {/* Recurring Toggle */}
+            <div className="flex items-center justify-between py-2 px-3 bg-muted/50 rounded-lg">
+              <div className="flex items-center gap-2">
+                <RefreshCw className="w-4 h-4 text-primary" />
+                <Label htmlFor="recurring-toggle" className="text-sm font-medium">Make Recurring</Label>
+              </div>
+              <Switch
+                id="recurring-toggle"
+                checked={formData.isRecurring}
+                onCheckedChange={(checked) => setFormData({ ...formData, isRecurring: checked })}
+              />
+            </div>
+
+            {/* Recurring Settings */}
+            {formData.isRecurring && (
+              <div className="space-y-4 p-4 bg-muted/30 rounded-lg border border-border">
+                <div>
+                  <label className="text-sm font-medium text-foreground mb-2 block">Frequency</label>
+                  <Select 
+                    value={formData.recurrence} 
+                    onValueChange={(v) => setFormData({ ...formData, recurrence: v as typeof formData.recurrence })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="daily">Daily</SelectItem>
+                      <SelectItem value="weekly">Weekly</SelectItem>
+                      <SelectItem value="monthly">Monthly</SelectItem>
+                      <SelectItem value="custom">Custom</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {formData.recurrence === 'weekly' && (
+                  <div>
+                    <label className="text-sm font-medium text-foreground mb-2 block">Repeat on</label>
+                    <div className="flex flex-wrap gap-2">
+                      {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
+                        <button
+                          key={day}
+                          type="button"
+                          onClick={() => toggleRecurrenceDay(day)}
+                          className={`w-10 h-10 rounded-full text-sm font-medium transition-colors ${
+                            formData.recurrenceDays.includes(day)
+                              ? 'bg-primary text-primary-foreground'
+                              : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                          }`}
+                        >
+                          {day.charAt(0)}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div>
+                  <label className="text-sm font-medium text-foreground mb-2 block">End Date (optional)</label>
+                  <Input
+                    type="date"
+                    value={formData.recurrenceEndDate}
+                    onChange={(e) => setFormData({ ...formData, recurrenceEndDate: e.target.value })}
+                    placeholder="Never"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">Leave empty for no end date</p>
+                </div>
+              </div>
+            )}
+
             {/* Status */}
             <div>
               <label className="text-sm font-medium text-foreground mb-2 block">Status</label>
@@ -766,7 +880,16 @@ export default function Scheduler() {
                   Delete Post
                 </Button>
               )}
-              <div className={`flex gap-3 ${editingPost ? '' : 'ml-auto'}`}>
+              <div className={`flex gap-2 ${editingPost ? '' : 'ml-auto'}`}>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowPreviewPanel(true)}
+                  disabled={!formData.platform}
+                  className="gap-2"
+                >
+                  <Eye className="w-4 h-4" />
+                  Preview
+                </Button>
                 <Button variant="outline" onClick={() => {
                   setShowCreateModal(false);
                   setEditingPost(null);
@@ -774,13 +897,22 @@ export default function Scheduler() {
                   Cancel
                 </Button>
                 <Button onClick={handleSavePost}>
-                  {editingPost ? 'Update Post' : 'Schedule Post'}
+                  {editingPost ? 'Update' : formData.isRecurring ? 'Create Series' : 'Schedule'}
                 </Button>
               </div>
             </div>
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Post Preview Panel */}
+      {showPreviewPanel && (
+        <PostPreviewPanel
+          platform={formData.platform}
+          content={formData.content}
+          onClose={() => setShowPreviewPanel(false)}
+        />
+      )}
 
       {/* Best Times Panel */}
       {showBestTimesPanel && (
@@ -820,6 +952,10 @@ export default function Scheduler() {
                 time: `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`,
                 status: 'scheduled',
                 title: '',
+                isRecurring: false,
+                recurrence: 'weekly',
+                recurrenceDays: [],
+                recurrenceEndDate: '',
               });
               setEditingPost(null);
               setShowBestTimesPanel(false);
