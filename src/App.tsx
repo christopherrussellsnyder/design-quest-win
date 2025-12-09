@@ -17,6 +17,7 @@ const Dashboard = lazy(() => import("./pages/Dashboard"));
 const ContentLibrary = lazy(() => import("./pages/ContentLibrary"));
 const ContentAI = lazy(() => import("./pages/ContentAI"));
 const Scheduler = lazy(() => import("./pages/Scheduler"));
+const Analytics = lazy(() => import("./pages/Analytics"));
 
 const queryClient = new QueryClient();
 
@@ -72,6 +73,14 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <Scheduler />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/analytics"
+                element={
+                  <ProtectedRoute>
+                    <Analytics />
                   </ProtectedRoute>
                 }
               />
