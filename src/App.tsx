@@ -21,6 +21,7 @@ const Analytics = lazy(() => import("./pages/Analytics"));
 const Campaigns = lazy(() => import("./pages/Campaigns"));
 const CampaignDashboard = lazy(() => import("./pages/CampaignDashboard"));
 const CampaignBuilder = lazy(() => import("./pages/CampaignBuilder"));
+const Settings = lazy(() => import("./pages/Settings"));
 
 const queryClient = new QueryClient();
 
@@ -108,6 +109,14 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <CampaignBuilder />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/settings"
+                element={
+                  <ProtectedRoute>
+                    <Settings />
                   </ProtectedRoute>
                 }
               />
