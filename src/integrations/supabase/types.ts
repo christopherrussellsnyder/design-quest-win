@@ -236,6 +236,78 @@ export type Database = {
         }
         Relationships: []
       }
+      brand_settings: {
+        Row: {
+          accent_color: string | null
+          bio: string | null
+          brand_hashtags: string[] | null
+          business_name: string | null
+          created_at: string | null
+          facebook_url: string | null
+          id: string
+          instagram_url: string | null
+          key_messages: string[] | null
+          linkedin_url: string | null
+          logo_url: string | null
+          primary_color: string | null
+          secondary_color: string | null
+          tagline: string | null
+          tiktok_url: string | null
+          tone: string | null
+          twitter_url: string | null
+          updated_at: string | null
+          user_id: string
+          website_url: string | null
+          youtube_url: string | null
+        }
+        Insert: {
+          accent_color?: string | null
+          bio?: string | null
+          brand_hashtags?: string[] | null
+          business_name?: string | null
+          created_at?: string | null
+          facebook_url?: string | null
+          id?: string
+          instagram_url?: string | null
+          key_messages?: string[] | null
+          linkedin_url?: string | null
+          logo_url?: string | null
+          primary_color?: string | null
+          secondary_color?: string | null
+          tagline?: string | null
+          tiktok_url?: string | null
+          tone?: string | null
+          twitter_url?: string | null
+          updated_at?: string | null
+          user_id: string
+          website_url?: string | null
+          youtube_url?: string | null
+        }
+        Update: {
+          accent_color?: string | null
+          bio?: string | null
+          brand_hashtags?: string[] | null
+          business_name?: string | null
+          created_at?: string | null
+          facebook_url?: string | null
+          id?: string
+          instagram_url?: string | null
+          key_messages?: string[] | null
+          linkedin_url?: string | null
+          logo_url?: string | null
+          primary_color?: string | null
+          secondary_color?: string | null
+          tagline?: string | null
+          tiktok_url?: string | null
+          tone?: string | null
+          twitter_url?: string | null
+          updated_at?: string | null
+          user_id?: string
+          website_url?: string | null
+          youtube_url?: string | null
+        }
+        Relationships: []
+      }
       campaign_drafts: {
         Row: {
           audience_segment: string | null
@@ -839,6 +911,78 @@ export type Database = {
           token_expires_at?: string | null
           updated_at?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      user_preferences: {
+        Row: {
+          auto_hashtag_suggestions: boolean | null
+          auto_save_drafts: boolean | null
+          campaign_milestone_notification: boolean | null
+          created_at: string | null
+          date_format: string | null
+          default_post_status: string | null
+          email_notifications: boolean | null
+          error_notification: boolean | null
+          high_engagement_notification: boolean | null
+          id: string
+          language: string | null
+          make_profile_public: boolean | null
+          post_published_notification: boolean | null
+          share_analytics: boolean | null
+          show_best_time_suggestions: boolean | null
+          theme: string | null
+          time_format: string | null
+          timezone: string | null
+          updated_at: string | null
+          user_id: string
+          weekly_report_notification: boolean | null
+        }
+        Insert: {
+          auto_hashtag_suggestions?: boolean | null
+          auto_save_drafts?: boolean | null
+          campaign_milestone_notification?: boolean | null
+          created_at?: string | null
+          date_format?: string | null
+          default_post_status?: string | null
+          email_notifications?: boolean | null
+          error_notification?: boolean | null
+          high_engagement_notification?: boolean | null
+          id?: string
+          language?: string | null
+          make_profile_public?: boolean | null
+          post_published_notification?: boolean | null
+          share_analytics?: boolean | null
+          show_best_time_suggestions?: boolean | null
+          theme?: string | null
+          time_format?: string | null
+          timezone?: string | null
+          updated_at?: string | null
+          user_id: string
+          weekly_report_notification?: boolean | null
+        }
+        Update: {
+          auto_hashtag_suggestions?: boolean | null
+          auto_save_drafts?: boolean | null
+          campaign_milestone_notification?: boolean | null
+          created_at?: string | null
+          date_format?: string | null
+          default_post_status?: string | null
+          email_notifications?: boolean | null
+          error_notification?: boolean | null
+          high_engagement_notification?: boolean | null
+          id?: string
+          language?: string | null
+          make_profile_public?: boolean | null
+          post_published_notification?: boolean | null
+          share_analytics?: boolean | null
+          show_best_time_suggestions?: boolean | null
+          theme?: string | null
+          time_format?: string | null
+          timezone?: string | null
+          updated_at?: string | null
+          user_id?: string
+          weekly_report_notification?: boolean | null
         }
         Relationships: []
       }
