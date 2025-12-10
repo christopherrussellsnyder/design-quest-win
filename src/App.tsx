@@ -18,6 +18,9 @@ const ContentLibrary = lazy(() => import("./pages/ContentLibrary"));
 const ContentAI = lazy(() => import("./pages/ContentAI"));
 const Scheduler = lazy(() => import("./pages/Scheduler"));
 const Analytics = lazy(() => import("./pages/Analytics"));
+const Campaigns = lazy(() => import("./pages/Campaigns"));
+const CampaignDashboard = lazy(() => import("./pages/CampaignDashboard"));
+const CampaignBuilder = lazy(() => import("./pages/CampaignBuilder"));
 
 const queryClient = new QueryClient();
 
