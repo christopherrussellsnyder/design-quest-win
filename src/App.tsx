@@ -87,6 +87,30 @@ const App = () => (
                   </ProtectedRoute>
                 }
               />
+              <Route
+                path="/campaigns"
+                element={
+                  <ProtectedRoute>
+                    <Campaigns />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/campaigns/:id"
+                element={
+                  <ProtectedRoute>
+                    <CampaignDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/campaign-builder"
+                element={
+                  <ProtectedRoute>
+                    <CampaignBuilder />
+                  </ProtectedRoute>
+                }
+              />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
