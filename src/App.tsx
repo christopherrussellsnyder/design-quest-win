@@ -22,6 +22,8 @@ const Campaigns = lazy(() => import("./pages/Campaigns"));
 const CampaignDashboard = lazy(() => import("./pages/CampaignDashboard"));
 const CampaignBuilder = lazy(() => import("./pages/CampaignBuilder"));
 const Settings = lazy(() => import("./pages/Settings"));
+const Audience = lazy(() => import("./pages/Audience"));
+const AudienceDetail = lazy(() => import("./pages/AudienceDetail"));
 
 const queryClient = new QueryClient();
 
