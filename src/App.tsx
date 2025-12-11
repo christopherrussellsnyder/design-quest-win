@@ -122,6 +122,22 @@ const App = () => (
                   </ProtectedRoute>
                 }
               />
+              <Route
+                path="/audience"
+                element={
+                  <ProtectedRoute>
+                    <Audience />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/audience/:id"
+                element={
+                  <ProtectedRoute>
+                    <AudienceDetail />
+                  </ProtectedRoute>
+                }
+              />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
