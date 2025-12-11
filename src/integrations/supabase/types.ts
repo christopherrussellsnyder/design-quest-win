@@ -625,6 +625,148 @@ export type Database = {
           },
         ]
       }
+      media_folders: {
+        Row: {
+          color: string | null
+          created_at: string | null
+          icon: string | null
+          id: string
+          item_count: number | null
+          name: string
+          parent_folder_id: string | null
+          total_size: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string | null
+          icon?: string | null
+          id?: string
+          item_count?: number | null
+          name: string
+          parent_folder_id?: string | null
+          total_size?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string | null
+          icon?: string | null
+          id?: string
+          item_count?: number | null
+          name?: string
+          parent_folder_id?: string | null
+          total_size?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "media_folders_parent_folder_id_fkey"
+            columns: ["parent_folder_id"]
+            isOneToOne: false
+            referencedRelation: "media_folders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      media_library: {
+        Row: {
+          alt_text: string | null
+          avg_engagement_rate: number | null
+          color_palette: Json | null
+          description: string | null
+          duration: number | null
+          file_size: number
+          file_type: string
+          filename: string
+          folder_id: string | null
+          height: number | null
+          id: string
+          is_favorite: boolean | null
+          last_used_at: string | null
+          mime_type: string
+          original_filename: string
+          storage_url: string
+          tags: string[] | null
+          thumbnail_url: string | null
+          times_used: number | null
+          title: string | null
+          total_impressions: number | null
+          updated_at: string | null
+          uploaded_at: string | null
+          used_in_posts: string[] | null
+          user_id: string
+          width: number | null
+        }
+        Insert: {
+          alt_text?: string | null
+          avg_engagement_rate?: number | null
+          color_palette?: Json | null
+          description?: string | null
+          duration?: number | null
+          file_size: number
+          file_type: string
+          filename: string
+          folder_id?: string | null
+          height?: number | null
+          id?: string
+          is_favorite?: boolean | null
+          last_used_at?: string | null
+          mime_type: string
+          original_filename: string
+          storage_url: string
+          tags?: string[] | null
+          thumbnail_url?: string | null
+          times_used?: number | null
+          title?: string | null
+          total_impressions?: number | null
+          updated_at?: string | null
+          uploaded_at?: string | null
+          used_in_posts?: string[] | null
+          user_id: string
+          width?: number | null
+        }
+        Update: {
+          alt_text?: string | null
+          avg_engagement_rate?: number | null
+          color_palette?: Json | null
+          description?: string | null
+          duration?: number | null
+          file_size?: number
+          file_type?: string
+          filename?: string
+          folder_id?: string | null
+          height?: number | null
+          id?: string
+          is_favorite?: boolean | null
+          last_used_at?: string | null
+          mime_type?: string
+          original_filename?: string
+          storage_url?: string
+          tags?: string[] | null
+          thumbnail_url?: string | null
+          times_used?: number | null
+          title?: string | null
+          total_impressions?: number | null
+          updated_at?: string | null
+          uploaded_at?: string | null
+          used_in_posts?: string[] | null
+          user_id?: string
+          width?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "media_library_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "media_folders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       metrics_daily: {
         Row: {
           conversions: number | null

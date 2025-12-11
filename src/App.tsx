@@ -24,6 +24,7 @@ const CampaignBuilder = lazy(() => import("./pages/CampaignBuilder"));
 const Settings = lazy(() => import("./pages/Settings"));
 const Audience = lazy(() => import("./pages/Audience"));
 const AudienceDetail = lazy(() => import("./pages/AudienceDetail"));
+const MediaLibrary = lazy(() => import("./pages/MediaLibrary"));
 
 const queryClient = new QueryClient();
 
@@ -135,6 +136,14 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <AudienceDetail />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/media-library"
+                element={
+                  <ProtectedRoute>
+                    <MediaLibrary />
                   </ProtectedRoute>
                 }
               />
