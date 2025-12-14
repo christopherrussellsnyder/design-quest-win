@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      activity_logs: {
+        Row: {
+          action: string
+          created_at: string | null
+          details: Json | null
+          id: string
+          ip_address: string | null
+          location: string | null
+          resource_id: string | null
+          resource_type: string | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          ip_address?: string | null
+          location?: string | null
+          resource_id?: string | null
+          resource_type?: string | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          ip_address?: string | null
+          location?: string | null
+          resource_id?: string | null
+          resource_type?: string | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       analytics: {
         Row: {
           audience_demographics: Json | null
@@ -625,6 +664,54 @@ export type Database = {
           },
         ]
       }
+      login_sessions: {
+        Row: {
+          browser: string | null
+          city: string | null
+          country: string | null
+          created_at: string | null
+          device_type: string | null
+          expires_at: string | null
+          id: string
+          ip_address: string | null
+          is_current: boolean | null
+          last_active_at: string | null
+          os: string | null
+          session_token: string
+          user_id: string
+        }
+        Insert: {
+          browser?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string | null
+          device_type?: string | null
+          expires_at?: string | null
+          id?: string
+          ip_address?: string | null
+          is_current?: boolean | null
+          last_active_at?: string | null
+          os?: string | null
+          session_token?: string
+          user_id: string
+        }
+        Update: {
+          browser?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string | null
+          device_type?: string | null
+          expires_at?: string | null
+          id?: string
+          ip_address?: string | null
+          is_current?: boolean | null
+          last_active_at?: string | null
+          os?: string | null
+          session_token?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       media_folders: {
         Row: {
           color: string | null
@@ -1056,6 +1143,54 @@ export type Database = {
         }
         Relationships: []
       }
+      team_members: {
+        Row: {
+          accepted_at: string | null
+          created_at: string | null
+          id: string
+          invitation_email: string | null
+          invitation_expires_at: string | null
+          invitation_token: string | null
+          invited_by: string | null
+          permissions: Json | null
+          role: string
+          status: string
+          team_id: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string | null
+          id?: string
+          invitation_email?: string | null
+          invitation_expires_at?: string | null
+          invitation_token?: string | null
+          invited_by?: string | null
+          permissions?: Json | null
+          role?: string
+          status?: string
+          team_id: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string | null
+          id?: string
+          invitation_email?: string | null
+          invitation_expires_at?: string | null
+          invitation_token?: string | null
+          invited_by?: string | null
+          permissions?: Json | null
+          role?: string
+          status?: string
+          team_id?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       user_preferences: {
         Row: {
           auto_hashtag_suggestions: boolean | null
@@ -1128,6 +1263,78 @@ export type Database = {
         }
         Relationships: []
       }
+      user_profiles: {
+        Row: {
+          account_status: string | null
+          avatar_url: string | null
+          backup_codes: string[] | null
+          created_at: string | null
+          email_verified: boolean | null
+          full_name: string | null
+          id: string
+          last_login_at: string | null
+          phone_number: string | null
+          phone_verified: boolean | null
+          two_factor_enabled: boolean | null
+          two_factor_secret: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          account_status?: string | null
+          avatar_url?: string | null
+          backup_codes?: string[] | null
+          created_at?: string | null
+          email_verified?: boolean | null
+          full_name?: string | null
+          id?: string
+          last_login_at?: string | null
+          phone_number?: string | null
+          phone_verified?: boolean | null
+          two_factor_enabled?: boolean | null
+          two_factor_secret?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          account_status?: string | null
+          avatar_url?: string | null
+          backup_codes?: string[] | null
+          created_at?: string | null
+          email_verified?: boolean | null
+          full_name?: string | null
+          id?: string
+          last_login_at?: string | null
+          phone_number?: string | null
+          phone_verified?: boolean | null
+          two_factor_enabled?: boolean | null
+          two_factor_secret?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       campaign_analytics_summary: {
@@ -1178,9 +1385,16 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
+      app_role: "owner" | "admin" | "editor" | "viewer"
       campaign_status: "active" | "paused" | "draft"
       campaign_trend: "up" | "down" | "neutral"
     }
@@ -1310,6 +1524,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["owner", "admin", "editor", "viewer"],
       campaign_status: ["active", "paused", "draft"],
       campaign_trend: ["up", "down", "neutral"],
     },

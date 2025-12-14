@@ -15,10 +15,13 @@ import { Separator } from '@/components/ui/separator';
 import { 
   User, Palette, Link2, Bell, Settings as SettingsIcon, Shield, 
   CreditCard, Database, Info, Check, X, Loader2, Save, ArrowLeft,
-  Upload, Trash2, RefreshCw, ExternalLink, Download, AlertTriangle
+  Upload, Trash2, RefreshCw, ExternalLink, Download, AlertTriangle, Users
 } from 'lucide-react';
+import { TeamManagement } from '@/components/auth/TeamManagement';
+import { ActivityLog } from '@/components/auth/ActivityLog';
+import { SessionManagement } from '@/components/auth/SessionManagement';
 
-type SettingsTab = 'profile' | 'brand' | 'connections' | 'notifications' | 'preferences' | 'security' | 'billing' | 'data' | 'about';
+type SettingsTab = 'profile' | 'brand' | 'connections' | 'notifications' | 'preferences' | 'security' | 'team' | 'billing' | 'data' | 'about';
 
 interface UserProfile {
   fullName: string;
@@ -218,6 +221,7 @@ const Settings: React.FC = () => {
     { id: 'notifications' as const, label: 'Notifications', icon: Bell },
     { id: 'preferences' as const, label: 'Preferences', icon: SettingsIcon },
     { id: 'security' as const, label: 'Security & Privacy', icon: Shield },
+    { id: 'team' as const, label: 'Team', icon: Users },
     { id: 'billing' as const, label: 'Billing', icon: CreditCard },
     { id: 'data' as const, label: 'Data & Export', icon: Database },
     { id: 'about' as const, label: 'About', icon: Info },
@@ -947,55 +951,16 @@ const Settings: React.FC = () => {
           <CardTitle className="text-base">Password</CardTitle>
         </CardHeader>
         <CardContent>
-          <Button variant="outline">
+          <Button variant="outline" onClick={() => navigate('/forgot-password')}>
             <Shield className="w-4 h-4 mr-2" />
             Change Password
           </Button>
         </CardContent>
       </Card>
       
-      <Card className="bg-card border-border">
-        <CardHeader>
-          <CardTitle className="text-base">Two-Factor Authentication</CardTitle>
-          <CardDescription>Add an extra layer of security to your account</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Badge variant="secondary" className="bg-amber-500/20 text-amber-400">
-                <X className="w-3 h-3 mr-1" />
-                Disabled
-              </Badge>
-              <span className="text-sm text-muted-foreground">2FA is not enabled</span>
-            </div>
-            <Button size="sm">Enable 2FA</Button>
-          </div>
-        </CardContent>
-      </Card>
+      <SessionManagement />
       
-      <Card className="bg-card border-border">
-        <CardHeader>
-          <CardTitle className="text-base">Active Sessions</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
-                💻
-              </div>
-              <div>
-                <p className="font-medium text-sm">Chrome on MacOS</p>
-                <p className="text-xs text-muted-foreground">Bradenton, FL • Current session</p>
-              </div>
-            </div>
-            <Badge className="bg-emerald-500/20 text-emerald-400">Active</Badge>
-          </div>
-          
-          <Button variant="outline" size="sm" className="w-full">
-            Sign Out All Other Sessions
-          </Button>
-        </CardContent>
-      </Card>
+      <ActivityLog />
       
       <Card className="bg-card border-border">
         <CardHeader>
@@ -1342,6 +1307,16 @@ const Settings: React.FC = () => {
     </div>
   );
 
+  const renderTeamTab = () => (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-xl font-semibold text-foreground mb-1">Team Management</h2>
+        <p className="text-sm text-muted-foreground">Invite and manage team members</p>
+      </div>
+      <TeamManagement />
+    </div>
+  );
+
   const renderContent = () => {
     switch (activeTab) {
       case 'profile': return renderProfileTab();
@@ -1350,6 +1325,7 @@ const Settings: React.FC = () => {
       case 'notifications': return renderNotificationsTab();
       case 'preferences': return renderPreferencesTab();
       case 'security': return renderSecurityTab();
+      case 'team': return renderTeamTab();
       case 'billing': return renderBillingTab();
       case 'data': return renderDataTab();
       case 'about': return renderAboutTab();
