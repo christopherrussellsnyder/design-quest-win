@@ -28,6 +28,7 @@ const Settings = lazy(() => import("./pages/Settings"));
 const Audience = lazy(() => import("./pages/Audience"));
 const AudienceDetail = lazy(() => import("./pages/AudienceDetail"));
 const MediaLibrary = lazy(() => import("./pages/MediaLibrary"));
+const AIAnalytics = lazy(() => import("./pages/AIAnalytics"));
 
 const queryClient = new QueryClient();
 
@@ -150,6 +151,14 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <MediaLibrary />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/ai-analytics"
+                element={
+                  <ProtectedRoute>
+                    <AIAnalytics />
                   </ProtectedRoute>
                 }
               />

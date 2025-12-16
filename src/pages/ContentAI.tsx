@@ -2,11 +2,14 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { getAIService } from '@/services/aiService';
+import { UsageStatsBar } from '@/components/ai/UsageStatsBar';
 import { 
   Wand2, Sparkles, Copy, Save, RefreshCw, ChevronLeft, ChevronRight, 
   Eye, MousePointer, Target, Star, Trash2, Calendar, Edit2, Check, X,
   Hash, Smile, Clock, FileText, TrendingUp, Zap, BookOpen, Flame,
-  MessageSquare, Heart, ThumbsUp, Share2, Facebook, Instagram, Linkedin, Twitter
+  MessageSquare, Heart, ThumbsUp, Share2, Facebook, Instagram, Linkedin, Twitter,
+  BarChart3
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -142,6 +145,36 @@ export default function ContentAI() {
       return;
     }
 
+    if (!user?.id) {
+      toast({ title: 'Please log in to generate content', variant: 'destructive' });
+      return;
+    }
+
+    const aiService = getAIService(user.id);
+    const startTime = Date.now();
+
+    // Check quota first
+    const quota = await aiService.checkQuota();
+    if (!quota.allowed) {
+      toast({ 
+        title: 'Monthly limit reached', 
+        description: `You have ${quota.remaining} requests remaining. Upgrade for more.`,
+        variant: 'destructive' 
+      });
+      return;
+    }
+
+    // Check rate limit
+    const rateLimit = await aiService.checkRateLimit();
+    if (!rateLimit.allowed) {
+      toast({ 
+        title: 'Rate limit exceeded', 
+        description: 'Please wait a few minutes before generating more content.',
+        variant: 'destructive' 
+      });
+      return;
+    }
+
     setIsGenerating(true);
     try {
       const { data, error } = await supabase.functions.invoke('generate-content', {
@@ -158,6 +191,30 @@ export default function ContentAI() {
       if (error) throw error;
 
       const variations = data.content || data.variations || [];
+      const responseTime = Date.now() - startTime;
+      const responseText = variations.map((v: any) => typeof v === 'string' ? v : v.content).join('\n');
+      
+      // Estimate tokens (rough: 1 token ≈ 4 chars)
+      const promptTokens = Math.ceil(prompt.length / 4);
+      const completionTokens = Math.ceil(responseText.length / 4);
+      const totalTokens = promptTokens + completionTokens;
+      const cost = aiService.calculateCost('google/gemini-2.5-flash', promptTokens, completionTokens);
+
+      // Log usage
+      await aiService.logUsage({
+        requestType: 'content_generation',
+        model: 'google/gemini-2.5-flash',
+        promptLength: prompt.length,
+        promptTokens,
+        completionTokens,
+        totalTokens,
+        cost,
+        responseLength: responseText.length,
+        responseTime,
+        status: 'success',
+        feature: 'content_ai',
+      });
+
       const newContent = variations.map((content: any, idx: number) => ({
         id: `gen-${Date.now()}-${idx}`,
         content: typeof content === 'string' ? content : content.content,
@@ -183,9 +240,29 @@ export default function ContentAI() {
       setGenerationHistory(newHistory);
       localStorage.setItem('contentAI_history', JSON.stringify(newHistory));
       
-      toast({ title: 'Content generated successfully!' });
+      toast({ title: `Generated! (${totalTokens} tokens, $${cost.toFixed(5)})` });
     } catch (error: any) {
       console.error('Generation error:', error);
+      
+      // Log error
+      if (user?.id) {
+        const aiService = getAIService(user.id);
+        await aiService.logUsage({
+          requestType: 'content_generation',
+          model: 'google/gemini-2.5-flash',
+          promptLength: prompt.length,
+          promptTokens: 0,
+          completionTokens: 0,
+          totalTokens: 0,
+          cost: 0,
+          responseLength: 0,
+          responseTime: Date.now() - startTime,
+          status: 'error',
+          feature: 'content_ai',
+          errorMessage: error.message,
+        });
+      }
+      
       toast({ title: 'Failed to generate content', description: error.message, variant: 'destructive' });
     } finally {
       setIsGenerating(false);
@@ -386,6 +463,13 @@ export default function ContentAI() {
           </div>
           <div className="flex items-center gap-3">
             <button
+              onClick={() => navigate('/ai-analytics')}
+              className="px-4 py-2 text-sm border border-slate-700 rounded-lg hover:bg-slate-800 transition-colors flex items-center gap-2"
+            >
+              <BarChart3 className="w-4 h-4" />
+              AI Analytics
+            </button>
+            <button
               onClick={() => setShowHistory(!showHistory)}
               className="px-4 py-2 text-sm border border-slate-700 rounded-lg hover:bg-slate-800 transition-colors flex items-center gap-2"
             >
@@ -404,6 +488,8 @@ export default function ContentAI() {
       </header>
 
       <main className="max-w-7xl mx-auto p-6">
+        {/* AI Usage Stats */}
+        <UsageStatsBar />
         {/* Templates Carousel */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
