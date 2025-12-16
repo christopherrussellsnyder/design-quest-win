@@ -53,6 +53,105 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_usage_logs: {
+        Row: {
+          completion_tokens: number | null
+          created_at: string | null
+          error_message: string | null
+          estimated_cost: number | null
+          feature: string | null
+          id: string
+          metadata: Json | null
+          model: string
+          prompt_length: number | null
+          prompt_tokens: number | null
+          request_type: string
+          response_length: number | null
+          response_time_ms: number | null
+          status: string | null
+          total_tokens: number | null
+          user_id: string
+        }
+        Insert: {
+          completion_tokens?: number | null
+          created_at?: string | null
+          error_message?: string | null
+          estimated_cost?: number | null
+          feature?: string | null
+          id?: string
+          metadata?: Json | null
+          model: string
+          prompt_length?: number | null
+          prompt_tokens?: number | null
+          request_type: string
+          response_length?: number | null
+          response_time_ms?: number | null
+          status?: string | null
+          total_tokens?: number | null
+          user_id: string
+        }
+        Update: {
+          completion_tokens?: number | null
+          created_at?: string | null
+          error_message?: string | null
+          estimated_cost?: number | null
+          feature?: string | null
+          id?: string
+          metadata?: Json | null
+          model?: string
+          prompt_length?: number | null
+          prompt_tokens?: number | null
+          request_type?: string
+          response_length?: number | null
+          response_time_ms?: number | null
+          status?: string | null
+          total_tokens?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ai_user_quotas: {
+        Row: {
+          created_at: string | null
+          current_month_cost: number | null
+          current_month_requests: number | null
+          current_month_tokens: number | null
+          id: string
+          last_reset_at: string | null
+          monthly_request_limit: number | null
+          monthly_token_limit: number | null
+          plan_tier: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          current_month_cost?: number | null
+          current_month_requests?: number | null
+          current_month_tokens?: number | null
+          id?: string
+          last_reset_at?: string | null
+          monthly_request_limit?: number | null
+          monthly_token_limit?: number | null
+          plan_tier?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          current_month_cost?: number | null
+          current_month_requests?: number | null
+          current_month_tokens?: number | null
+          id?: string
+          last_reset_at?: string | null
+          monthly_request_limit?: number | null
+          monthly_token_limit?: number | null
+          plan_tier?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       analytics: {
         Row: {
           audience_demographics: Json | null
@@ -1391,6 +1490,15 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      increment_ai_usage: {
+        Args: {
+          p_cost: number
+          p_requests: number
+          p_tokens: number
+          p_user_id: string
+        }
+        Returns: undefined
       }
     }
     Enums: {
