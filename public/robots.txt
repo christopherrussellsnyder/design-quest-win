@@ -12,3 +12,14 @@ Allow: /
 
 User-agent: *
 Allow: /
+Disallow: /dashboard/
+Disallow: /settings/
+Disallow: /content-ai/
+Disallow: /content-library/
+Disallow: /ai-analytics/
+Disallow: /scheduler/
+Disallow: /campaigns/
+Disallow: /analytics/
+Disallow: /audience/
+
+Sitemap: https://yourdomain.com/sitemap.xml

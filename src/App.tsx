@@ -5,7 +5,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import { lazy, Suspense } from "react";
+import { ErrorFallback } from "@/components/ErrorFallback";
+import { usePageTracking } from "@/lib/analytics";
+import { lazy, Suspense, Component, ReactNode } from "react";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -29,8 +31,43 @@ const Audience = lazy(() => import("./pages/Audience"));
 const AudienceDetail = lazy(() => import("./pages/AudienceDetail"));
 const MediaLibrary = lazy(() => import("./pages/MediaLibrary"));
 const AIAnalytics = lazy(() => import("./pages/AIAnalytics"));
+const HealthCheck = lazy(() => import("./pages/HealthCheck"));
 
 const queryClient = new QueryClient();
+
+// Error Boundary Component
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+}
+
+class ErrorBoundary extends Component<{ children: ReactNode }, ErrorBoundaryState> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('Error caught by boundary:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError && this.state.error) {
+      return (
+        <ErrorFallback 
+          error={this.state.error} 
+          resetError={() => this.setState({ hasError: false, error: null })} 
+        />
+      );
+    }
+
+    return this.props.children;
+  }
+}
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -42,131 +79,142 @@ const LoadingFallback = () => (
   </div>
 );
 
+// Analytics tracker component
+const AnalyticsTracker = ({ children }: { children: ReactNode }) => {
+  usePageTracking();
+  return <>{children}</>;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <AuthProvider>
-          <Suspense fallback={<LoadingFallback />}>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<Signup />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/accept-invite/:token" element={<AcceptInvite />} />
-              <Route
-                path="/dashboard"
-                element={
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route path="/auth/callback" element={<OAuthCallback />} />
-              <Route
-                path="/content-library"
-                element={
-                  <ProtectedRoute>
-                    <ContentLibrary />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/content-ai"
-                element={
-                  <ProtectedRoute>
-                    <ContentAI />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/scheduler"
-                element={
-                  <ProtectedRoute>
-                    <Scheduler />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/analytics"
-                element={
-                  <ProtectedRoute>
-                    <Analytics />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/campaigns"
-                element={
-                  <ProtectedRoute>
-                    <Campaigns />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/campaigns/:id"
-                element={
-                  <ProtectedRoute>
-                    <CampaignDashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/campaign-builder"
-                element={
-                  <ProtectedRoute>
-                    <CampaignBuilder />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/settings"
-                element={
-                  <ProtectedRoute>
-                    <Settings />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/audience"
-                element={
-                  <ProtectedRoute>
-                    <Audience />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/audience/:id"
-                element={
-                  <ProtectedRoute>
-                    <AudienceDetail />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/media-library"
-                element={
-                  <ProtectedRoute>
-                    <MediaLibrary />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/ai-analytics"
-                element={
-                  <ProtectedRoute>
-                    <AIAnalytics />
-                  </ProtectedRoute>
-                }
-              />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Suspense>
-        </AuthProvider>
+        <ErrorBoundary>
+          <AuthProvider>
+            <AnalyticsTracker>
+              <Suspense fallback={<LoadingFallback />}>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/signup" element={<Signup />} />
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
+                  <Route path="/accept-invite/:token" element={<AcceptInvite />} />
+                  <Route path="/health" element={<HealthCheck />} />
+                  <Route
+                    path="/dashboard"
+                    element={
+                      <ProtectedRoute>
+                        <Dashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route path="/auth/callback" element={<OAuthCallback />} />
+                  <Route
+                    path="/content-library"
+                    element={
+                      <ProtectedRoute>
+                        <ContentLibrary />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/content-ai"
+                    element={
+                      <ProtectedRoute>
+                        <ContentAI />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/scheduler"
+                    element={
+                      <ProtectedRoute>
+                        <Scheduler />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/analytics"
+                    element={
+                      <ProtectedRoute>
+                        <Analytics />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/campaigns"
+                    element={
+                      <ProtectedRoute>
+                        <Campaigns />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/campaigns/:id"
+                    element={
+                      <ProtectedRoute>
+                        <CampaignDashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/campaign-builder"
+                    element={
+                      <ProtectedRoute>
+                        <CampaignBuilder />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/settings"
+                    element={
+                      <ProtectedRoute>
+                        <Settings />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/audience"
+                    element={
+                      <ProtectedRoute>
+                        <Audience />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/audience/:id"
+                    element={
+                      <ProtectedRoute>
+                        <AudienceDetail />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/media-library"
+                    element={
+                      <ProtectedRoute>
+                        <MediaLibrary />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/ai-analytics"
+                    element={
+                      <ProtectedRoute>
+                        <AIAnalytics />
+                      </ProtectedRoute>
+                    }
+                  />
+                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Suspense>
+            </AnalyticsTracker>
+          </AuthProvider>
+        </ErrorBoundary>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
