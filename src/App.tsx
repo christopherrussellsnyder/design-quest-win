@@ -33,6 +33,7 @@ const MediaLibrary = lazy(() => import("./pages/MediaLibrary"));
 const AIAnalytics = lazy(() => import("./pages/AIAnalytics"));
 const HealthCheck = lazy(() => import("./pages/HealthCheck"));
 const TestingDashboard = lazy(() => import("./pages/TestingDashboard"));
+const HelpCenter = lazy(() => import("./pages/HelpCenter"));
 
 const queryClient = new QueryClient();
 
@@ -217,6 +218,7 @@ const App = () => (
                       </ProtectedRoute>
                     }
                   />
+                  <Route path="/help" element={<HelpCenter />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
