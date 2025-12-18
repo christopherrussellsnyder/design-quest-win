@@ -32,6 +32,7 @@ const AudienceDetail = lazy(() => import("./pages/AudienceDetail"));
 const MediaLibrary = lazy(() => import("./pages/MediaLibrary"));
 const AIAnalytics = lazy(() => import("./pages/AIAnalytics"));
 const HealthCheck = lazy(() => import("./pages/HealthCheck"));
+const TestingDashboard = lazy(() => import("./pages/TestingDashboard"));
 
 const queryClient = new QueryClient();
 
@@ -205,6 +206,14 @@ const App = () => (
                     element={
                       <ProtectedRoute>
                         <AIAnalytics />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/testing"
+                    element={
+                      <ProtectedRoute>
+                        <TestingDashboard />
                       </ProtectedRoute>
                     }
                   />
