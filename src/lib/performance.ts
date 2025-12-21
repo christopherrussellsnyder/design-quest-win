@@ -113,3 +113,84 @@ export async function fetchWithMonitoring(
     throw error;
   }
 }
+
+// Query performance monitoring
+type QueryMetrics = {
+  name: string;
+  duration: number;
+  timestamp: number;
+  success: boolean;
+};
+
+class PerformanceMonitor {
+  private metrics: QueryMetrics[] = [];
+  private slowQueryThreshold = 1000; // 1 second
+
+  async trackQuery<T>(
+    queryName: string,
+    queryFn: () => Promise<T>
+  ): Promise<T> {
+    const start = performance.now();
+    let success = true;
+
+    try {
+      const result = await queryFn();
+      return result;
+    } catch (error) {
+      success = false;
+      throw error;
+    } finally {
+      const duration = performance.now() - start;
+
+      this.metrics.push({
+        name: queryName,
+        duration,
+        timestamp: Date.now(),
+        success
+      });
+
+      // Log slow queries
+      if (duration > this.slowQueryThreshold) {
+        console.warn(`[Slow Query] ${queryName}: ${duration.toFixed(2)}ms`);
+      }
+
+      // Keep only last 100 metrics
+      if (this.metrics.length > 100) {
+        this.metrics = this.metrics.slice(-100);
+      }
+    }
+  }
+
+  getMetrics() {
+    return [...this.metrics];
+  }
+
+  getAverageQueryTime(queryName?: string): number {
+    const filtered = queryName
+      ? this.metrics.filter(m => m.name === queryName)
+      : this.metrics;
+
+    if (filtered.length === 0) return 0;
+
+    const total = filtered.reduce((sum, m) => sum + m.duration, 0);
+    return total / filtered.length;
+  }
+
+  getSlowQueries(): QueryMetrics[] {
+    return this.metrics.filter(m => m.duration > this.slowQueryThreshold);
+  }
+
+  clearMetrics() {
+    this.metrics = [];
+  }
+}
+
+export const performanceMonitor = new PerformanceMonitor();
+
+// Convenience function for monitoring queries
+export async function monitorQuery<T>(
+  queryName: string,
+  queryFn: () => Promise<T>
+): Promise<T> {
+  return performanceMonitor.trackQuery(queryName, queryFn);
+}
