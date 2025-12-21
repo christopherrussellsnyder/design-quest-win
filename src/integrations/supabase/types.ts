@@ -1290,6 +1290,62 @@ export type Database = {
         }
         Relationships: []
       }
+      twitter_analytics: {
+        Row: {
+          created_at: string | null
+          engagements: number | null
+          fetched_at: string | null
+          id: string
+          impressions: number | null
+          likes: number | null
+          post_id: string | null
+          profile_clicks: number | null
+          replies: number | null
+          retweets: number | null
+          tweet_id: string
+          url_clicks: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          engagements?: number | null
+          fetched_at?: string | null
+          id?: string
+          impressions?: number | null
+          likes?: number | null
+          post_id?: string | null
+          profile_clicks?: number | null
+          replies?: number | null
+          retweets?: number | null
+          tweet_id: string
+          url_clicks?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          engagements?: number | null
+          fetched_at?: string | null
+          id?: string
+          impressions?: number | null
+          likes?: number | null
+          post_id?: string | null
+          profile_clicks?: number | null
+          replies?: number | null
+          retweets?: number | null
+          tweet_id?: string
+          url_clicks?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "twitter_analytics_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "scheduled_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_preferences: {
         Row: {
           auto_hashtag_suggestions: boolean | null
