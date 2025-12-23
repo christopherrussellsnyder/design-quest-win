@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,7 +13,7 @@ serve(async (req) => {
   }
 
   try {
-    const { contentType, objective, platform, tone, length, prompt } = await req.json();
+    const { contentType, objective, platform, tone, length, prompt, userId, includeHashtags } = await req.json();
     
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
@@ -20,9 +21,11 @@ serve(async (req) => {
     }
 
     // Build system prompt based on parameters
-    const systemPrompt = buildSystemPrompt(contentType, objective, platform, tone, length);
+    const systemPrompt = buildSystemPrompt(contentType, objective, platform, tone, length, includeHashtags);
 
-    console.log('Generating content with params:', { contentType, objective, platform, tone, length });
+    console.log('Generating content with params:', { contentType, objective, platform, tone, length, userId });
+
+    const startTime = Date.now();
 
     // Call Lovable AI Gateway
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
@@ -37,7 +40,6 @@ serve(async (req) => {
           { role: 'system', content: systemPrompt },
           { role: 'user', content: `Generate 3 different variations of ${contentType} content for the following topic/product: ${prompt}` }
         ],
-        stream: false
       })
     });
 
@@ -61,6 +63,7 @@ serve(async (req) => {
 
     const data = await response.json();
     const content = data.choices?.[0]?.message?.content;
+    const responseTime = Date.now() - startTime;
 
     if (!content) {
       throw new Error('No content generated');
@@ -69,10 +72,52 @@ serve(async (req) => {
     // Parse the variations from the response
     const variations = parseVariations(content, contentType);
 
-    console.log('Generated variations:', variations.length);
+    console.log('Generated variations:', variations.length, 'in', responseTime, 'ms');
+
+    // Log usage if userId is provided
+    if (userId) {
+      try {
+        const supabase = createClient(
+          Deno.env.get('SUPABASE_URL') ?? '',
+          Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+        );
+
+        const promptTokens = data.usage?.prompt_tokens || 0;
+        const completionTokens = data.usage?.completion_tokens || 0;
+        const totalTokens = data.usage?.total_tokens || promptTokens + completionTokens;
+
+        await supabase.from('ai_usage_logs').insert({
+          user_id: userId,
+          request_type: 'content_generation',
+          model: 'google/gemini-2.5-flash',
+          prompt_tokens: promptTokens,
+          completion_tokens: completionTokens,
+          total_tokens: totalTokens,
+          response_time_ms: responseTime,
+          status: 'success',
+          feature: 'content_ai',
+          prompt_length: prompt?.length || 0,
+          response_length: content.length
+        });
+
+        // Update user quotas
+        await supabase.rpc('increment_ai_usage', {
+          p_user_id: userId,
+          p_requests: 1,
+          p_tokens: totalTokens,
+          p_cost: 0
+        });
+      } catch (logError) {
+        console.error('Failed to log usage:', logError);
+      }
+    }
 
     return new Response(
-      JSON.stringify({ variations }),
+      JSON.stringify({ 
+        variations,
+        tokens: data.usage?.total_tokens || 0,
+        responseTime 
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
@@ -86,7 +131,7 @@ serve(async (req) => {
   }
 });
 
-function buildSystemPrompt(contentType: string, objective: string, platform: string, tone: string, length: string): string {
+function buildSystemPrompt(contentType: string, objective: string, platform: string, tone: string, length: string, includeHashtags?: boolean): string {
   const basePrompts: Record<string, string> = {
     headline: `You are an expert copywriter. Generate compelling ${tone} headlines for ${objective} campaigns on ${platform}.`,
     ad_copy: `You are an expert ad copywriter. Write ${tone} ad copy for ${objective} campaigns on ${platform}.`,
@@ -131,7 +176,7 @@ CRITICAL INSTRUCTIONS:
 - Match the ${tone} tone consistently
 ${contentType === 'headline' ? '- Headlines should be 5-15 words maximum' : ''}
 ${contentType === 'cta' ? '- CTAs should be 2-5 words maximum' : ''}
-${contentType === 'social_post' ? '- Include relevant hashtags at the end' : ''}
+${contentType === 'social_post' || includeHashtags ? '- Include 3-5 relevant hashtags at the end of each variation' : ''}
 ${contentType === 'email' ? '- Include a compelling subject line at the start' : ''}`;
 }
 
