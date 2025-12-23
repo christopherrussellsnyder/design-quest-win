@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Upload, Grid3X3, List, Search, Filter, FolderPlus, Star, Clock, 
@@ -6,7 +6,7 @@ import {
   X, Check, ChevronRight, Folder, Plus, Eye, ArrowLeft, ExternalLink,
   RotateCw, Crop, Sun, Contrast, Palette, Type, Maximize, ZoomIn, ZoomOut,
   FlipHorizontal, FlipVertical, RotateCcw, Sparkles, HardDrive, AlertCircle,
-  Play, Film, GalleryHorizontalEnd, Heart, ImagePlus, Camera
+  Play, Film, GalleryHorizontalEnd, Heart, ImagePlus, Camera, Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,6 +23,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { MediaUploader } from '@/components/MediaUploader';
 
 interface MediaItem {
   id: string;
@@ -59,206 +60,7 @@ interface MediaFolder {
   total_size: number;
 }
 
-// Mock data for demonstration
-const mockMedia: MediaItem[] = [
-  {
-    id: '1',
-    filename: 'product-launch-hero.jpg',
-    original_filename: 'product-launch-hero.jpg',
-    file_type: 'image',
-    mime_type: 'image/jpeg',
-    file_size: 2457600,
-    storage_url: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=1920&h=1080&fit=crop',
-    thumbnail_url: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=400&fit=crop',
-    width: 1920,
-    height: 1080,
-    tags: ['product', 'launch', 'hero'],
-    title: 'Product Launch Hero Image',
-    times_used: 5,
-    avg_engagement_rate: 6.2,
-    total_impressions: 45000,
-    is_favorite: true,
-    uploaded_at: '2024-11-15T10:30:00Z'
-  },
-  {
-    id: '2',
-    filename: 'team-photo-office.jpg',
-    original_filename: 'team-photo-office.jpg',
-    file_type: 'image',
-    mime_type: 'image/jpeg',
-    file_size: 1843200,
-    storage_url: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1920&h=1280&fit=crop',
-    thumbnail_url: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=400&h=400&fit=crop',
-    width: 1920,
-    height: 1280,
-    tags: ['team', 'office', 'culture'],
-    title: 'Team Photo - Office',
-    times_used: 3,
-    avg_engagement_rate: 5.8,
-    total_impressions: 32000,
-    is_favorite: false,
-    uploaded_at: '2024-11-10T14:20:00Z'
-  },
-  {
-    id: '3',
-    filename: 'social-promo-graphic.png',
-    original_filename: 'social-promo-graphic.png',
-    file_type: 'image',
-    mime_type: 'image/png',
-    file_size: 512000,
-    storage_url: 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=1080&h=1080&fit=crop',
-    thumbnail_url: 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=400&h=400&fit=crop',
-    width: 1080,
-    height: 1080,
-    tags: ['social', 'promo', 'graphic'],
-    title: 'Social Promo Graphic',
-    times_used: 8,
-    avg_engagement_rate: 7.5,
-    total_impressions: 78000,
-    is_favorite: true,
-    uploaded_at: '2024-11-08T09:15:00Z'
-  },
-  {
-    id: '4',
-    filename: 'product-showcase-video.mp4',
-    original_filename: 'product-showcase-video.mp4',
-    file_type: 'video',
-    mime_type: 'video/mp4',
-    file_size: 15728640,
-    storage_url: 'https://images.unsplash.com/photo-1536240478700-b869070f9279?w=1920&h=1080&fit=crop',
-    thumbnail_url: 'https://images.unsplash.com/photo-1536240478700-b869070f9279?w=400&h=400&fit=crop',
-    width: 1920,
-    height: 1080,
-    duration: 45,
-    tags: ['video', 'product', 'showcase'],
-    title: 'Product Showcase Video',
-    times_used: 2,
-    avg_engagement_rate: 8.9,
-    total_impressions: 125000,
-    is_favorite: false,
-    uploaded_at: '2024-11-05T16:45:00Z'
-  },
-  {
-    id: '5',
-    filename: 'behind-the-scenes.jpg',
-    original_filename: 'behind-the-scenes.jpg',
-    file_type: 'image',
-    mime_type: 'image/jpeg',
-    file_size: 1024000,
-    storage_url: 'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=1920&h=1280&fit=crop',
-    thumbnail_url: 'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=400&h=400&fit=crop',
-    width: 1920,
-    height: 1280,
-    tags: ['bts', 'office', 'work'],
-    title: 'Behind the Scenes',
-    times_used: 1,
-    avg_engagement_rate: 4.2,
-    total_impressions: 18000,
-    is_favorite: false,
-    uploaded_at: '2024-11-01T11:00:00Z'
-  },
-  {
-    id: '6',
-    filename: 'instagram-story-template.png',
-    original_filename: 'instagram-story-template.png',
-    file_type: 'image',
-    mime_type: 'image/png',
-    file_size: 358400,
-    storage_url: 'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=1080&h=1920&fit=crop',
-    thumbnail_url: 'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=400&h=400&fit=crop',
-    width: 1080,
-    height: 1920,
-    tags: ['instagram', 'story', 'template'],
-    title: 'Instagram Story Template',
-    times_used: 12,
-    avg_engagement_rate: 6.8,
-    total_impressions: 92000,
-    is_favorite: true,
-    uploaded_at: '2024-10-28T08:30:00Z'
-  },
-  {
-    id: '7',
-    filename: 'customer-testimonial.jpg',
-    original_filename: 'customer-testimonial.jpg',
-    file_type: 'image',
-    mime_type: 'image/jpeg',
-    file_size: 819200,
-    storage_url: 'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=1200&h=800&fit=crop',
-    thumbnail_url: 'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=400&h=400&fit=crop',
-    width: 1200,
-    height: 800,
-    tags: ['testimonial', 'customer', 'review'],
-    title: 'Customer Testimonial',
-    times_used: 4,
-    avg_engagement_rate: 5.5,
-    total_impressions: 28000,
-    is_favorite: false,
-    uploaded_at: '2024-10-25T13:15:00Z'
-  },
-  {
-    id: '8',
-    filename: 'brand-guidelines.pdf',
-    original_filename: 'brand-guidelines.pdf',
-    file_type: 'document',
-    mime_type: 'application/pdf',
-    file_size: 4194304,
-    storage_url: '#',
-    thumbnail_url: undefined,
-    tags: ['brand', 'guidelines', 'document'],
-    title: 'Brand Guidelines',
-    times_used: 0,
-    avg_engagement_rate: 0,
-    total_impressions: 0,
-    is_favorite: false,
-    uploaded_at: '2024-10-20T10:00:00Z'
-  },
-  {
-    id: '9',
-    filename: 'celebration-gif.gif',
-    original_filename: 'celebration-gif.gif',
-    file_type: 'gif',
-    mime_type: 'image/gif',
-    file_size: 2097152,
-    storage_url: 'https://images.unsplash.com/photo-1533227268428-f9ed0900fb3b?w=600&h=600&fit=crop',
-    thumbnail_url: 'https://images.unsplash.com/photo-1533227268428-f9ed0900fb3b?w=400&h=400&fit=crop',
-    width: 600,
-    height: 600,
-    tags: ['gif', 'celebration', 'fun'],
-    title: 'Celebration GIF',
-    times_used: 6,
-    avg_engagement_rate: 7.2,
-    total_impressions: 55000,
-    is_favorite: false,
-    uploaded_at: '2024-10-15T15:30:00Z'
-  },
-  {
-    id: '10',
-    filename: 'product-flat-lay.jpg',
-    original_filename: 'product-flat-lay.jpg',
-    file_type: 'image',
-    mime_type: 'image/jpeg',
-    file_size: 1536000,
-    storage_url: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=1200&h=1200&fit=crop',
-    thumbnail_url: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop',
-    width: 1200,
-    height: 1200,
-    tags: ['product', 'flatlay', 'minimalist'],
-    title: 'Product Flat Lay',
-    times_used: 7,
-    avg_engagement_rate: 6.9,
-    total_impressions: 67000,
-    is_favorite: true,
-    uploaded_at: '2024-10-10T09:45:00Z'
-  }
-];
-
-const mockFolders: MediaFolder[] = [
-  { id: 'f1', name: 'Product Photography', color: '#8B5CF6', item_count: 15, total_size: 25600000 },
-  { id: 'f2', name: 'Team & Culture', color: '#3B82F6', item_count: 8, total_size: 12800000 },
-  { id: 'f3', name: 'Marketing Materials', color: '#10B981', item_count: 12, total_size: 18400000 },
-  { id: 'f4', name: 'Social Graphics', color: '#F59E0B', item_count: 20, total_size: 8960000 },
-  { id: 'f5', name: 'Videos', color: '#EF4444', item_count: 5, total_size: 52428800 }
-];
+// Removed mock data - now using real Supabase data
 
 const formatFileSize = (bytes: number): string => {
   if (bytes === 0) return '0 B';
@@ -281,8 +83,9 @@ const MediaLibrary: React.FC = () => {
   const { user } = useAuth();
   
   // State
-  const [media, setMedia] = useState<MediaItem[]>(mockMedia);
-  const [folders, setFolders] = useState<MediaFolder[]>(mockFolders);
+  const [media, setMedia] = useState<MediaItem[]>([]);
+  const [folders, setFolders] = useState<MediaFolder[]>([]);
+  const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
@@ -297,9 +100,6 @@ const MediaLibrary: React.FC = () => {
   const [editorModalOpen, setEditorModalOpen] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
   
-  // Upload state
-  const [uploadingFiles, setUploadingFiles] = useState<{ file: File; progress: number; status: 'uploading' | 'complete' | 'error' }[]>([]);
-  
   // Editor state
   const [editorBrightness, setEditorBrightness] = useState(0);
   const [editorContrast, setEditorContrast] = useState(0);
@@ -310,6 +110,87 @@ const MediaLibrary: React.FC = () => {
   // Folder form state
   const [folderName, setFolderName] = useState('');
   const [folderColor, setFolderColor] = useState('#8B5CF6');
+
+  // Load media from Supabase
+  const loadMedia = useCallback(async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('media_library')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('uploaded_at', { ascending: false });
+
+      if (error) throw error;
+
+      const mappedMedia: MediaItem[] = (data || []).map(item => ({
+        id: item.id,
+        filename: item.filename,
+        original_filename: item.original_filename,
+        file_type: item.file_type as MediaItem['file_type'],
+        mime_type: item.mime_type,
+        file_size: Number(item.file_size),
+        storage_url: item.storage_url,
+        thumbnail_url: item.thumbnail_url || undefined,
+        width: item.width || undefined,
+        height: item.height || undefined,
+        duration: item.duration || undefined,
+        folder_id: item.folder_id || undefined,
+        tags: item.tags || [],
+        title: item.title || undefined,
+        description: item.description || undefined,
+        alt_text: item.alt_text || undefined,
+        times_used: item.times_used || 0,
+        last_used_at: item.last_used_at || undefined,
+        avg_engagement_rate: Number(item.avg_engagement_rate) || 0,
+        total_impressions: item.total_impressions || 0,
+        is_favorite: item.is_favorite || false,
+        uploaded_at: item.uploaded_at || new Date().toISOString()
+      }));
+
+      setMedia(mappedMedia);
+    } catch (error) {
+      console.error('Error loading media:', error);
+      toast.error('Failed to load media');
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
+
+  // Load folders from Supabase
+  const loadFolders = useCallback(async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('media_folders')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('name');
+
+      if (error) throw error;
+
+      const mappedFolders: MediaFolder[] = (data || []).map(folder => ({
+        id: folder.id,
+        name: folder.name,
+        color: folder.color || '#8B5CF6',
+        icon: folder.icon || undefined,
+        parent_folder_id: folder.parent_folder_id || undefined,
+        item_count: folder.item_count || 0,
+        total_size: Number(folder.total_size) || 0
+      }));
+
+      setFolders(mappedFolders);
+    } catch (error) {
+      console.error('Error loading folders:', error);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    loadMedia();
+    loadFolders();
+  }, [loadMedia, loadFolders]);
 
   // Calculate storage stats
   const totalStorage = useMemo(() => {
@@ -383,71 +264,63 @@ const MediaLibrary: React.FC = () => {
   }, [media, searchQuery, selectedFolder, selectedType, sortBy]);
 
   // Handlers
-  const handleFileUpload = (files: FileList | null) => {
-    if (!files) return;
+  const handleToggleFavorite = async (id: string) => {
+    const item = media.find(m => m.id === id);
+    if (!item) return;
     
-    const newUploads = Array.from(files).map(file => ({
-      file,
-      progress: 0,
-      status: 'uploading' as const
-    }));
+    try {
+      const { error } = await supabase
+        .from('media_library')
+        .update({ is_favorite: !item.is_favorite })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setMedia(prev => prev.map(m => 
+        m.id === id ? { ...m, is_favorite: !m.is_favorite } : m
+      ));
+      toast.success(item.is_favorite ? 'Removed from favorites' : 'Added to favorites');
+    } catch (error) {
+      console.error('Error updating favorite:', error);
+      toast.error('Failed to update favorites');
+    }
+  };
+
+  const handleDeleteMedia = async (id: string) => {
+    const item = media.find(m => m.id === id);
+    if (!item) return;
     
-    setUploadingFiles(prev => [...prev, ...newUploads]);
-    
-    // Simulate upload progress
-    newUploads.forEach((upload, index) => {
-      let progress = 0;
-      const interval = setInterval(() => {
-        progress += Math.random() * 20;
-        if (progress >= 100) {
-          progress = 100;
-          clearInterval(interval);
-          
-          setUploadingFiles(prev => prev.map((u, i) => 
-            u.file === upload.file ? { ...u, progress: 100, status: 'complete' } : u
-          ));
-          
-          // Add to media library
-          const newMedia: MediaItem = {
-            id: `new-${Date.now()}-${index}`,
-            filename: upload.file.name,
-            original_filename: upload.file.name,
-            file_type: upload.file.type.startsWith('image/') ? 'image' : 
-                       upload.file.type.startsWith('video/') ? 'video' : 
-                       upload.file.type === 'image/gif' ? 'gif' : 'document',
-            mime_type: upload.file.type,
-            file_size: upload.file.size,
-            storage_url: URL.createObjectURL(upload.file),
-            thumbnail_url: upload.file.type.startsWith('image/') ? URL.createObjectURL(upload.file) : undefined,
-            tags: [],
-            times_used: 0,
-            avg_engagement_rate: 0,
-            total_impressions: 0,
-            is_favorite: false,
-            uploaded_at: new Date().toISOString()
-          };
-          
-          setMedia(prev => [newMedia, ...prev]);
-        } else {
-          setUploadingFiles(prev => prev.map(u => 
-            u.file === upload.file ? { ...u, progress } : u
-          ));
+    try {
+      // Extract the file path from the storage URL
+      const urlParts = item.storage_url.split('/media/');
+      if (urlParts.length > 1) {
+        const filePath = urlParts[1];
+        
+        // Delete from storage
+        const { error: storageError } = await supabase.storage
+          .from('media')
+          .remove([filePath]);
+
+        if (storageError) {
+          console.warn('Storage delete error:', storageError);
         }
-      }, 200);
-    });
-  };
+      }
 
-  const handleToggleFavorite = (id: string) => {
-    setMedia(prev => prev.map(item => 
-      item.id === id ? { ...item, is_favorite: !item.is_favorite } : item
-    ));
-    toast.success('Updated favorites');
-  };
+      // Delete from database
+      const { error: dbError } = await supabase
+        .from('media_library')
+        .delete()
+        .eq('id', id);
 
-  const handleDeleteMedia = (id: string) => {
-    setMedia(prev => prev.filter(item => item.id !== id));
-    setSelectedItems(prev => prev.filter(itemId => itemId !== id));
-    toast.success('Media deleted');
+      if (dbError) throw dbError;
+
+      setMedia(prev => prev.filter(m => m.id !== id));
+      setSelectedItems(prev => prev.filter(itemId => itemId !== id));
+      toast.success('Media deleted');
+    } catch (error) {
+      console.error('Error deleting media:', error);
+      toast.error('Failed to delete media');
+    }
   };
 
   const handleCopyUrl = (url: string) => {
@@ -471,28 +344,57 @@ const MediaLibrary: React.FC = () => {
     }
   };
 
-  const handleBulkDelete = () => {
-    setMedia(prev => prev.filter(item => !selectedItems.includes(item.id)));
-    setSelectedItems([]);
-    toast.success(`${selectedItems.length} items deleted`);
+  const handleBulkDelete = async () => {
+    if (selectedItems.length === 0) return;
+    
+    try {
+      // Delete each selected item
+      for (const id of selectedItems) {
+        await handleDeleteMedia(id);
+      }
+      setSelectedItems([]);
+      toast.success(`${selectedItems.length} items deleted`);
+    } catch (error) {
+      console.error('Bulk delete error:', error);
+      toast.error('Failed to delete some items');
+    }
   };
 
-  const handleCreateFolder = () => {
-    if (!folderName.trim()) return;
+  const handleCreateFolder = async () => {
+    if (!folderName.trim() || !user) return;
     
-    const newFolder: MediaFolder = {
-      id: `folder-${Date.now()}`,
-      name: folderName,
-      color: folderColor,
-      item_count: 0,
-      total_size: 0
-    };
-    
-    setFolders(prev => [...prev, newFolder]);
-    setFolderName('');
-    setFolderColor('#8B5CF6');
-    setFolderModalOpen(false);
-    toast.success('Folder created');
+    try {
+      const { data, error } = await supabase
+        .from('media_folders')
+        .insert({
+          user_id: user.id,
+          name: folderName.trim(),
+          color: folderColor,
+          item_count: 0,
+          total_size: 0
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      const newFolder: MediaFolder = {
+        id: data.id,
+        name: data.name,
+        color: data.color || '#8B5CF6',
+        item_count: data.item_count || 0,
+        total_size: Number(data.total_size) || 0
+      };
+      
+      setFolders(prev => [...prev, newFolder]);
+      setFolderName('');
+      setFolderColor('#8B5CF6');
+      setFolderModalOpen(false);
+      toast.success('Folder created');
+    } catch (error) {
+      console.error('Error creating folder:', error);
+      toast.error('Failed to create folder');
+    }
   };
 
   const openMediaDetail = (item: MediaItem) => {
@@ -789,8 +691,33 @@ const MediaLibrary: React.FC = () => {
             )}
           </div>
 
+          {/* Loading State */}
+          {loading && (
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="w-8 h-8 animate-spin text-violet-500" />
+            </div>
+          )}
+
+          {/* Empty State */}
+          {!loading && filteredMedia.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+              <Image className="w-16 h-16 text-slate-600 mb-4" />
+              <h3 className="text-xl font-semibold mb-2">No media found</h3>
+              <p className="text-slate-400 mb-6">
+                {searchQuery ? 'Try a different search term' : 'Upload your first file to get started'}
+              </p>
+              <Button 
+                onClick={() => setUploadModalOpen(true)}
+                className="bg-violet-600 hover:bg-violet-700"
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                Upload Media
+              </Button>
+            </div>
+          )}
+
           {/* Media Grid */}
-          {viewMode === 'grid' && (
+          {!loading && filteredMedia.length > 0 && viewMode === 'grid' && (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
               {filteredMedia.map(item => (
                 <div
@@ -915,7 +842,7 @@ const MediaLibrary: React.FC = () => {
           )}
 
           {/* Media List View */}
-          {viewMode === 'list' && (
+          {!loading && filteredMedia.length > 0 && viewMode === 'list' && (
             <div className="bg-slate-900 rounded-lg border border-slate-800 overflow-hidden">
               <table className="w-full">
                 <thead className="bg-slate-800/50">
@@ -1060,53 +987,15 @@ const MediaLibrary: React.FC = () => {
           </DialogHeader>
           
           <div className="py-4">
-            {/* Drop Zone */}
-            <label className="block border-2 border-dashed border-slate-700 rounded-lg p-12 text-center cursor-pointer hover:border-violet-500 transition-colors">
-              <input
-                type="file"
-                multiple
-                accept="image/*,video/*,.pdf"
-                className="hidden"
-                onChange={(e) => handleFileUpload(e.target.files)}
-              />
-              <Upload className="w-12 h-12 text-slate-500 mx-auto mb-4" />
-              <p className="text-lg font-medium mb-2">Drag & drop files here or click to browse</p>
-              <p className="text-sm text-slate-400">
-                Supports: JPG, PNG, GIF, WebP, MP4, MOV, PDF • Max 100 MB per file
-              </p>
-            </label>
-            
-            {/* Upload Progress */}
-            {uploadingFiles.length > 0 && (
-              <div className="mt-6 space-y-3">
-                {uploadingFiles.map((upload, index) => (
-                  <div key={index} className="flex items-center gap-3 p-3 bg-slate-800 rounded-lg">
-                    <div className="w-10 h-10 rounded bg-slate-700 flex items-center justify-center">
-                      {upload.file.type.startsWith('image/') ? (
-                        <Image className="w-5 h-5 text-slate-400" />
-                      ) : upload.file.type.startsWith('video/') ? (
-                        <Video className="w-5 h-5 text-slate-400" />
-                      ) : (
-                        <FileText className="w-5 h-5 text-slate-400" />
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{upload.file.name}</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Progress value={upload.progress} className="flex-1 h-1.5" />
-                        <span className="text-xs text-slate-400">
-                          {upload.status === 'complete' ? (
-                            <Check className="w-4 h-4 text-green-400" />
-                          ) : (
-                            `${Math.round(upload.progress)}%`
-                          )}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+            <MediaUploader 
+              onMediaAdded={() => {
+                loadMedia();
+              }}
+              onUploadComplete={() => {
+                // Keep modal open to show completion
+              }}
+              maxSizeMB={100}
+            />
           </div>
           
           <DialogFooter>
