@@ -17,3 +17,6 @@ verify_jwt = true
 
 [functions.facebook-post]
 verify_jwt = true
+
+[functions.twitter-post]
+verify_jwt = true
