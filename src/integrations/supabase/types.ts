@@ -53,6 +53,39 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_generation_logs: {
+        Row: {
+          created_at: string | null
+          id: string
+          predicted_engagement: number | null
+          prompt: string
+          success_patterns_used: boolean | null
+          top_variant: string | null
+          user_id: string
+          variations_generated: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          predicted_engagement?: number | null
+          prompt: string
+          success_patterns_used?: boolean | null
+          top_variant?: string | null
+          user_id: string
+          variations_generated?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          predicted_engagement?: number | null
+          prompt?: string
+          success_patterns_used?: boolean | null
+          top_variant?: string | null
+          user_id?: string
+          variations_generated?: number | null
+        }
+        Relationships: []
+      }
       ai_usage_logs: {
         Row: {
           completion_tokens: number | null
@@ -1540,6 +1573,21 @@ export type Database = {
       }
     }
     Functions: {
+      analyze_content_patterns: {
+        Args: { p_platform: string; p_user_id: string }
+        Returns: Json
+      }
+      get_top_performing_posts: {
+        Args: { p_limit?: number; p_platform: string; p_user_id: string }
+        Returns: {
+          content: string
+          engagement_rate: number
+          id: string
+          impressions: number
+          published_at: string
+          total_engagement: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
