@@ -4,12 +4,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { getAIService } from '@/services/aiService';
 import { UsageStatsBar } from '@/components/ai/UsageStatsBar';
+import { EngagementScore } from '@/components/EngagementScore';
 import { 
   Wand2, Sparkles, Copy, Save, RefreshCw, ChevronLeft, ChevronRight, 
   Eye, MousePointer, Target, Star, Trash2, Calendar, Edit2, Check, X,
   Hash, Smile, Clock, FileText, TrendingUp, Zap, BookOpen, Flame,
   MessageSquare, Heart, ThumbsUp, Share2, Facebook, Instagram, Linkedin, Twitter,
-  BarChart3
+  BarChart3, Lightbulb, CheckCircle, Download
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -115,6 +116,35 @@ export default function ContentAI() {
   }>>([]);
   const [showHistory, setShowHistory] = useState(false);
 
+  // Enhanced Generation State
+  const [useEnhancedMode, setUseEnhancedMode] = useState(true);
+  const [enhancedResult, setEnhancedResult] = useState<{
+    recommended: {
+      content: string;
+      strategy: string;
+      predictedEngagement: string;
+      confidence: string;
+      scoreBreakdown: Array<{ factor: string; impact: string }>;
+    };
+    alternatives: Array<{
+      content: string;
+      strategy: string;
+      predictedEngagement: string;
+      predictedScore: number;
+    }>;
+    suggestions: Array<{
+      type: string;
+      suggestion: string;
+      expectedBoost: string;
+      example?: string;
+    }>;
+    insights: {
+      basedOnHistory: boolean;
+      postsAnalyzed: number;
+      yourAvgEngagement: string;
+    };
+  } | null>(null);
+
   // Load history from localStorage on mount
   useEffect(() => {
     const saved = localStorage.getItem('contentAI_history');
@@ -176,71 +206,86 @@ export default function ContentAI() {
     }
 
     setIsGenerating(true);
+    setEnhancedResult(null);
+    
     try {
-      const { data, error } = await supabase.functions.invoke('generate-content', {
-        body: {
-          contentType,
-          objective,
-          platform,
-          tone,
-          length,
-          prompt,
-        }
-      });
+      // Use enhanced generation if enabled
+      if (useEnhancedMode) {
+        const { data, error } = await supabase.functions.invoke('generate-content-enhanced', {
+          body: {
+            userId: user.id,
+            prompt,
+            tone,
+            length,
+            platform,
+            includeHashtags: true,
+          }
+        });
 
-      if (error) throw error;
+        if (error) throw error;
+        if (data.error) throw new Error(data.error);
 
-      const variations = data.content || data.variations || [];
-      const responseTime = Date.now() - startTime;
-      const responseText = variations.map((v: any) => typeof v === 'string' ? v : v.content).join('\n');
-      
-      // Estimate tokens (rough: 1 token ≈ 4 chars)
-      const promptTokens = Math.ceil(prompt.length / 4);
-      const completionTokens = Math.ceil(responseText.length / 4);
-      const totalTokens = promptTokens + completionTokens;
-      const cost = aiService.calculateCost('google/gemini-2.5-flash', promptTokens, completionTokens);
+        setEnhancedResult(data);
+        
+        // Also set the content for the standard display
+        const allContent = [
+          { content: data.recommended.content },
+          ...(data.alternatives || []).map((alt: any) => ({ content: alt.content }))
+        ];
+        
+        const newContent = allContent.map((item: any, idx: number) => ({
+          id: `gen-${Date.now()}-${idx}`,
+          content: item.content,
+          rating: 0,
+          isFavorite: false,
+          isEditing: false,
+          editedContent: '',
+        }));
+        
+        setGeneratedContent(newContent);
+        toast({ title: 'AI-optimized content generated with predictions!' });
+      } else {
+        // Standard generation
+        const { data, error } = await supabase.functions.invoke('generate-content', {
+          body: {
+            contentType,
+            objective,
+            platform,
+            tone,
+            length,
+            prompt,
+          }
+        });
 
-      // Log usage
-      await aiService.logUsage({
-        requestType: 'content_generation',
-        model: 'google/gemini-2.5-flash',
-        promptLength: prompt.length,
-        promptTokens,
-        completionTokens,
-        totalTokens,
-        cost,
-        responseLength: responseText.length,
-        responseTime,
-        status: 'success',
-        feature: 'content_ai',
-      });
+        if (error) throw error;
 
-      const newContent = variations.map((content: any, idx: number) => ({
-        id: `gen-${Date.now()}-${idx}`,
-        content: typeof content === 'string' ? content : content.content,
-        rating: 0,
-        isFavorite: false,
-        isEditing: false,
-        editedContent: '',
-      }));
+        const variations = data.content || data.variations || [];
+        const newContent = variations.map((content: any, idx: number) => ({
+          id: `gen-${Date.now()}-${idx}`,
+          content: typeof content === 'string' ? content : content.content,
+          rating: 0,
+          isFavorite: false,
+          isEditing: false,
+          editedContent: '',
+        }));
 
-      setGeneratedContent(newContent);
-      
+        setGeneratedContent(newContent);
+        toast({ title: 'Content generated!' });
+      }
+
       // Save to history
       const historyEntry = {
         id: `hist-${Date.now()}`,
         timestamp: new Date(),
         platform,
         template: selectedTemplate?.name || 'Custom',
-        preview: newContent[0]?.content?.slice(0, 50) || '',
+        preview: generatedContent[0]?.content?.slice(0, 50) || prompt.slice(0, 50),
         params: { contentType, objective, platform, tone, length, prompt },
       };
       
       const newHistory = [historyEntry, ...generationHistory].slice(0, 20);
       setGenerationHistory(newHistory);
       localStorage.setItem('contentAI_history', JSON.stringify(newHistory));
-      
-      toast({ title: `Generated! (${totalTokens} tokens, $${cost.toFixed(5)})` });
     } catch (error: any) {
       console.error('Generation error:', error);
       
@@ -681,6 +726,27 @@ export default function ContentAI() {
                 />
               </div>
 
+              {/* Enhanced Mode Toggle */}
+              <div className="mb-6 flex items-center justify-between p-4 bg-violet-500/10 border border-violet-500/30 rounded-lg">
+                <div className="flex items-center gap-3">
+                  <Zap className={`w-5 h-5 ${useEnhancedMode ? 'text-violet-400' : 'text-slate-500'}`} />
+                  <div>
+                    <div className="text-sm font-medium">Enhanced AI Mode</div>
+                    <div className="text-xs text-slate-400">Predictions, scoring & optimization tips</div>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setUseEnhancedMode(!useEnhancedMode)}
+                  className={`relative w-12 h-6 rounded-full transition-colors ${
+                    useEnhancedMode ? 'bg-violet-500' : 'bg-slate-600'
+                  }`}
+                >
+                  <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${
+                    useEnhancedMode ? 'left-7' : 'left-1'
+                  }`} />
+                </button>
+              </div>
+
               {/* Generate Button */}
               <button
                 onClick={generateContent}
@@ -690,19 +756,164 @@ export default function ContentAI() {
                 {isGenerating ? (
                   <>
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Generating...
+                    {useEnhancedMode ? 'Analyzing & Generating...' : 'Generating...'}
                   </>
                 ) : (
                   <>
                     <Sparkles className="w-4 h-4" />
-                    Generate Content
+                    {useEnhancedMode ? 'Generate AI-Optimized Content' : 'Generate Content'}
                   </>
                 )}
               </button>
             </div>
 
-            {/* Generated Results */}
-            {generatedContent.length > 0 && (
+            {/* Enhanced Results - Recommended */}
+            {enhancedResult && useEnhancedMode && (
+              <div className="space-y-6">
+                {/* Performance Insights */}
+                {enhancedResult.insights && (
+                  <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      <TrendingUp className="w-5 h-5 text-emerald-400" />
+                      <h3 className="font-semibold">Your Performance Insights</h3>
+                    </div>
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="bg-slate-800/50 rounded-lg p-3 text-center">
+                        <div className="text-2xl font-bold text-white">{enhancedResult.insights.postsAnalyzed}</div>
+                        <div className="text-xs text-slate-400">Posts Analyzed</div>
+                      </div>
+                      <div className="bg-slate-800/50 rounded-lg p-3 text-center">
+                        <div className="text-2xl font-bold text-emerald-400">{enhancedResult.insights.yourAvgEngagement}</div>
+                        <div className="text-xs text-slate-400">Avg Engagement</div>
+                      </div>
+                      <div className="bg-slate-800/50 rounded-lg p-3 text-center">
+                        <div className={`text-2xl font-bold ${enhancedResult.recommended.confidence === 'high' ? 'text-emerald-400' : 'text-amber-400'}`}>
+                          {enhancedResult.recommended.confidence.toUpperCase()}
+                        </div>
+                        <div className="text-xs text-slate-400">Confidence</div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Recommended Variation */}
+                <div className="bg-slate-900/50 border-2 border-violet-500 rounded-xl p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <Target className="w-5 h-5 text-violet-400" />
+                      <h3 className="font-semibold">Recommended</h3>
+                    </div>
+                    <div className="flex items-center gap-2 bg-violet-900/30 px-3 py-1 rounded-full">
+                      <BarChart3 className="w-4 h-4 text-violet-400" />
+                      <span className="text-violet-300 font-semibold">{enhancedResult.recommended.predictedEngagement}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-slate-800 rounded-lg p-4 mb-4">
+                    <p className="text-white text-lg leading-relaxed whitespace-pre-wrap">{enhancedResult.recommended.content}</p>
+                  </div>
+                  
+                  <div className="mb-4">
+                    <p className="text-sm text-slate-400 mb-2">Strategy: <span className="text-white">{enhancedResult.recommended.strategy}</span></p>
+                    <div className="flex flex-wrap gap-2">
+                      {enhancedResult.recommended.scoreBreakdown?.map((item, idx) => (
+                        <div key={idx} className="bg-slate-700 px-3 py-1 rounded-full text-xs flex items-center gap-1">
+                          <CheckCircle className="w-3 h-3 text-emerald-400" />
+                          <span className="text-slate-300">{item.factor}</span>
+                          <span className="text-emerald-400 font-semibold">{item.impact}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => copyToClipboard(enhancedResult.recommended.content)}
+                      className="flex-1 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600 flex items-center justify-center gap-2 transition-all"
+                    >
+                      <Copy className="w-4 h-4" />
+                      Copy
+                    </button>
+                    <button
+                      onClick={() => {
+                        localStorage.setItem('draft_content', enhancedResult.recommended.content);
+                        navigate('/scheduler');
+                      }}
+                      className="flex-1 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 flex items-center justify-center gap-2 transition-all"
+                    >
+                      <Download className="w-4 h-4" />
+                      Use in Post
+                    </button>
+                  </div>
+                </div>
+
+                {/* Optimization Tips */}
+                {enhancedResult.suggestions && enhancedResult.suggestions.length > 0 && (
+                  <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Lightbulb className="w-5 h-5 text-amber-400" />
+                      <h3 className="font-semibold">Optimization Tips</h3>
+                    </div>
+                    <div className="space-y-3">
+                      {enhancedResult.suggestions.map((suggestion, idx) => (
+                        <div key={idx} className="bg-slate-700/50 rounded-lg p-4 border-l-4 border-amber-400">
+                          <div className="flex items-start justify-between mb-2">
+                            <p className="text-white font-medium">{suggestion.suggestion}</p>
+                            <span className="text-emerald-400 text-sm font-semibold whitespace-nowrap ml-2">{suggestion.expectedBoost}</span>
+                          </div>
+                          {suggestion.example && (
+                            <p className="text-sm text-slate-400">💡 {suggestion.example}</p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Alternative Variations */}
+                {enhancedResult.alternatives && enhancedResult.alternatives.length > 0 && (
+                  <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
+                    <h3 className="font-semibold mb-4">Alternative Variations</h3>
+                    <div className="space-y-4">
+                      {enhancedResult.alternatives.map((variant, idx) => (
+                        <div key={idx} className="bg-slate-700 rounded-lg p-4 hover:bg-slate-600/70 transition-all">
+                          <div className="flex items-center justify-between mb-3">
+                            <span className="text-sm text-slate-400">{variant.strategy}</span>
+                            <div className="flex items-center gap-2 bg-slate-800 px-3 py-1 rounded-full">
+                              <BarChart3 className="w-3 h-3 text-violet-400" />
+                              <span className="text-violet-300 text-sm font-semibold">{variant.predictedEngagement}%</span>
+                            </div>
+                          </div>
+                          <p className="text-white mb-3 whitespace-pre-wrap">{variant.content}</p>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => copyToClipboard(variant.content)}
+                              className="px-3 py-1.5 bg-slate-800 text-white text-sm rounded-lg hover:bg-slate-700 flex items-center gap-1"
+                            >
+                              <Copy className="w-3 h-3" />
+                              Copy
+                            </button>
+                            <button
+                              onClick={() => {
+                                localStorage.setItem('draft_content', variant.content);
+                                navigate('/scheduler');
+                              }}
+                              className="px-3 py-1.5 bg-violet-600 text-white text-sm rounded-lg hover:bg-violet-700 flex items-center gap-1"
+                            >
+                              <Download className="w-3 h-3" />
+                              Use
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Standard Generated Results - Only show when not using enhanced mode */}
+            {generatedContent.length > 0 && !useEnhancedMode && (
               <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-semibold">Generated Variations ({generatedContent.length})</h3>
