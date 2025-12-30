@@ -275,6 +275,39 @@ export type Database = {
           },
         ]
       }
+      audience_activity_patterns: {
+        Row: {
+          avg_engagement_rate: number | null
+          day_of_week: number
+          hour_of_day: number
+          id: string
+          last_calculated: string | null
+          platform: string
+          sample_size: number | null
+          user_id: string
+        }
+        Insert: {
+          avg_engagement_rate?: number | null
+          day_of_week: number
+          hour_of_day: number
+          id?: string
+          last_calculated?: string | null
+          platform: string
+          sample_size?: number | null
+          user_id: string
+        }
+        Update: {
+          avg_engagement_rate?: number | null
+          day_of_week?: number
+          hour_of_day?: number
+          id?: string
+          last_calculated?: string | null
+          platform?: string
+          sample_size?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       audiences: {
         Row: {
           age_max: number | null
@@ -1576,6 +1609,32 @@ export type Database = {
       analyze_content_patterns: {
         Args: { p_platform: string; p_user_id: string }
         Returns: Json
+      }
+      calculate_audience_activity: {
+        Args: { p_platform: string; p_user_id: string }
+        Returns: {
+          avg_engagement_rate: number
+          day_of_week: number
+          hour_of_day: number
+          sample_size: number
+        }[]
+      }
+      find_schedule_gaps: {
+        Args: { p_days_ahead?: number; p_user_id: string }
+        Returns: {
+          gap_end: string
+          gap_hours: number
+          gap_start: string
+        }[]
+      }
+      get_optimal_time_slots: {
+        Args: { p_limit?: number; p_platform: string; p_user_id: string }
+        Returns: {
+          avg_engagement_rate: number
+          confidence: string
+          day_of_week: number
+          hour_of_day: number
+        }[]
       }
       get_top_performing_posts: {
         Args: { p_limit?: number; p_platform: string; p_user_id: string }
