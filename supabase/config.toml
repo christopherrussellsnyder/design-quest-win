@@ -12,6 +12,9 @@ verify_jwt = true
 [functions.generate-content]
 verify_jwt = true
 
+[functions.generate-content-enhanced]
+verify_jwt = true
+
 [functions.facebook-auth]
 verify_jwt = true
 
