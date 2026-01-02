@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -11,7 +12,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
 import { 
   ArrowLeft, ArrowRight, Check, Rocket, Target, Users, FileText, 
-  DollarSign, Calendar, Sparkles, ChevronRight, Save
+  DollarSign, Calendar, Sparkles, ChevronRight, Save, Zap, TrendingUp, CheckCircle
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -124,18 +125,65 @@ const steps = [
   { id: 3, name: 'Platforms', icon: Target },
   { id: 4, name: 'Goals', icon: Target },
   { id: 5, name: 'Content', icon: FileText },
-  { id: 6, name: 'Review', icon: Check }
+  { id: 6, name: 'Strategy', icon: Zap },
+  { id: 7, name: 'Review', icon: Check }
 ];
+
+interface Strategy {
+  overview: {
+    campaignType: string;
+    duration: number;
+    totalPosts: number;
+    postsPerWeek: number;
+    platforms: string[];
+  };
+  contentStrategy: {
+    recommendedType: string;
+    recommendedLength: string;
+    themes: string[];
+    postingFrequency: string;
+  };
+  timingStrategy: {
+    bestTimeOfDay: string;
+    optimalDays: string[];
+    avoidWeekends: boolean;
+  };
+  weeklyBreakdown: Array<{
+    week: number;
+    focus: string;
+    postsPlanned: number;
+    objectives: string[];
+  }>;
+  expectedResults: {
+    estimatedImpressions: number;
+    estimatedEngagement: number;
+    projectedEngagementRate: number;
+    confidence: string;
+  };
+  keyTactics: string[];
+  milestones: Array<{
+    day: number;
+    label: string;
+    targets: {
+      impressions: number;
+      engagement: number;
+      conversions: number;
+    };
+  }>;
+}
 
 export default function CampaignBuilder() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
+  const { user } = useAuth();
   
   const editId = searchParams.get('edit');
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [generatingStrategy, setGeneratingStrategy] = useState(false);
+  const [strategy, setStrategy] = useState<Strategy | null>(null);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -152,7 +200,8 @@ export default function CampaignBuilder() {
     target_clicks: '',
     posts_per_day: 2,
     content_types: ['images', 'text'] as string[],
-    hashtags: ''
+    hashtags: '',
+    autoGenerateContent: true
   });
 
   // Initialize dates
@@ -209,8 +258,55 @@ export default function CampaignBuilder() {
       case 3: return formData.platforms.length > 0;
       case 4: return true;
       case 5: return true;
-      case 6: return true;
+      case 6: return strategy !== null;
+      case 7: return true;
       default: return false;
+    }
+  };
+
+  const generateStrategy = async () => {
+    if (!user) return;
+    
+    setGeneratingStrategy(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('campaign-intelligence', {
+        body: {
+          userId: user.id,
+          action: 'generate_strategy',
+          campaignData: {
+            name: formData.name,
+            description: formData.description,
+            startDate: formData.start_date,
+            endDate: formData.end_date,
+            platforms: formData.platforms,
+            objective: formData.objective,
+            goals: {
+              impressions: parseInt(formData.target_impressions) || 10000,
+              engagement_rate: parseFloat(formData.target_engagement) || 3.5,
+              conversions: parseInt(formData.target_clicks) || 50
+            }
+          }
+        }
+      });
+
+      if (error) throw error;
+
+      if (data?.strategy) {
+        setStrategy(data.strategy);
+        toast({
+          title: 'Strategy Generated',
+          description: 'AI has created an optimized campaign strategy'
+        });
+      }
+    } catch (error) {
+      console.error('Strategy generation error:', error);
+      toast({
+        title: 'Strategy Generation Failed',
+        description: 'Could not generate strategy. Please try again.',
+        variant: 'destructive'
+      });
+    } finally {
+      setGeneratingStrategy(false);
     }
   };
 
@@ -226,7 +322,7 @@ export default function CampaignBuilder() {
   };
 
   const handleLaunchCampaign = async () => {
-    if (!formData.name) {
+    if (!formData.name || !user) {
       toast({
         title: 'Missing Information',
         description: 'Please provide a campaign name',
@@ -236,16 +332,47 @@ export default function CampaignBuilder() {
     }
 
     setSaving(true);
-    // Simulate creation
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    setSaving(false);
-    
-    toast({
-      title: '🎉 Campaign Created!',
-      description: 'Your campaign has been launched successfully'
-    });
-    
-    navigate('/campaigns');
+    try {
+      const { data, error } = await supabase.functions.invoke('campaign-intelligence', {
+        body: {
+          userId: user.id,
+          action: 'create_campaign',
+          campaignData: {
+            name: formData.name,
+            description: formData.description,
+            startDate: formData.start_date,
+            endDate: formData.end_date,
+            platforms: formData.platforms,
+            goals: {
+              impressions: parseInt(formData.target_impressions) || 10000,
+              engagement_rate: parseFloat(formData.target_engagement) || 3.5,
+              conversions: parseInt(formData.target_clicks) || 50
+            },
+            budget: parseFloat(formData.total_budget) || 0,
+            autoGenerateContent: formData.autoGenerateContent,
+            totalPosts: strategy?.overview?.totalPosts || 20
+          }
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: '🎉 Campaign Created!',
+        description: data?.message || 'Your campaign has been launched successfully'
+      });
+      
+      navigate('/campaigns');
+    } catch (error) {
+      console.error('Campaign creation error:', error);
+      toast({
+        title: 'Campaign Creation Failed',
+        description: 'Could not create campaign. Please try again.',
+        variant: 'destructive'
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const renderStepContent = () => {
@@ -557,6 +684,140 @@ export default function CampaignBuilder() {
 
       case 6:
         return (
+          <div className="space-y-6 max-w-4xl">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-foreground mb-2">AI Campaign Strategy</h2>
+                <p className="text-muted-foreground">Generate an optimized strategy based on your performance data</p>
+              </div>
+              <Button 
+                onClick={generateStrategy} 
+                disabled={generatingStrategy}
+                className="gap-2"
+              >
+                {generatingStrategy ? (
+                  <>
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <Zap className="h-4 w-4" />
+                    {strategy ? 'Regenerate Strategy' : 'Generate Strategy'}
+                  </>
+                )}
+              </Button>
+            </div>
+
+            {!strategy && !generatingStrategy && (
+              <Card className="bg-card border-border">
+                <CardContent className="p-8 text-center">
+                  <Zap className="h-12 w-12 mx-auto text-primary mb-4" />
+                  <h3 className="text-lg font-semibold text-foreground mb-2">Ready to Generate Your Strategy</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Our AI will analyze your past performance and create an optimized campaign strategy with timing recommendations, content tactics, and expected results.
+                  </p>
+                  <label className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                    <Checkbox 
+                      checked={formData.autoGenerateContent}
+                      onCheckedChange={(checked) => setFormData(prev => ({ ...prev, autoGenerateContent: checked as boolean }))}
+                    />
+                    Auto-generate content calendar with optimized posting times
+                  </label>
+                </CardContent>
+              </Card>
+            )}
+
+            {strategy && (
+              <div className="space-y-6">
+                {/* Overview Stats */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <Card className="bg-card border-border">
+                    <CardContent className="p-4 text-center">
+                      <p className="text-sm text-muted-foreground mb-1">Duration</p>
+                      <p className="text-2xl font-bold text-foreground">{strategy.overview.duration} days</p>
+                    </CardContent>
+                  </Card>
+                  <Card className="bg-card border-border">
+                    <CardContent className="p-4 text-center">
+                      <p className="text-sm text-muted-foreground mb-1">Total Posts</p>
+                      <p className="text-2xl font-bold text-foreground">{strategy.overview.totalPosts}</p>
+                    </CardContent>
+                  </Card>
+                  <Card className="bg-card border-border">
+                    <CardContent className="p-4 text-center">
+                      <p className="text-sm text-muted-foreground mb-1">Posts/Week</p>
+                      <p className="text-2xl font-bold text-foreground">{strategy.overview.postsPerWeek}</p>
+                    </CardContent>
+                  </Card>
+                  <Card className="bg-card border-border">
+                    <CardContent className="p-4 text-center">
+                      <p className="text-sm text-muted-foreground mb-1">Est. Engagement</p>
+                      <p className="text-2xl font-bold text-primary">{strategy.expectedResults.projectedEngagementRate.toFixed(1)}%</p>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Key Tactics */}
+                <Card className="bg-card border-border">
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <TrendingUp className="h-5 w-5 text-primary" />
+                      Key Tactics
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="space-y-2">
+                      {strategy.keyTactics.map((tactic, idx) => (
+                        <li key={idx} className="flex items-start gap-2 text-muted-foreground">
+                          <CheckCircle className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                          <span>{tactic}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
+
+                {/* Weekly Breakdown */}
+                <Card className="bg-card border-border">
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Calendar className="h-5 w-5 text-primary" />
+                      Weekly Breakdown
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {strategy.weeklyBreakdown.map((week, idx) => (
+                      <div key={idx} className="bg-secondary/50 rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="font-semibold text-foreground">Week {week.week}: {week.focus}</h4>
+                          <Badge variant="secondary">{week.postsPlanned} posts</Badge>
+                        </div>
+                        <ul className="text-sm text-muted-foreground space-y-1">
+                          {week.objectives.map((obj, oidx) => (
+                            <li key={oidx}>• {obj}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+
+                {/* Auto-generate toggle */}
+                <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer">
+                  <Checkbox 
+                    checked={formData.autoGenerateContent}
+                    onCheckedChange={(checked) => setFormData(prev => ({ ...prev, autoGenerateContent: checked as boolean }))}
+                  />
+                  Auto-generate {strategy.overview.totalPosts} draft posts scheduled to optimal times
+                </label>
+              </div>
+            )}
+          </div>
+        );
+
+      case 7:
+        return (
           <div className="space-y-6 max-w-2xl">
             <div>
               <h2 className="text-2xl font-bold text-foreground mb-2">Review & Launch</h2>
@@ -607,6 +868,22 @@ export default function CampaignBuilder() {
                   </div>
                 </div>
 
+                {strategy && (
+                  <div className="pt-4 border-t border-border">
+                    <p className="text-sm text-muted-foreground mb-2">AI Strategy Summary</p>
+                    <div className="flex flex-wrap gap-2">
+                      <Badge variant="default">{strategy.overview.totalPosts} posts planned</Badge>
+                      <Badge variant="secondary">{strategy.expectedResults.projectedEngagementRate.toFixed(1)}% expected engagement</Badge>
+                      <Badge variant="secondary">{strategy.expectedResults.confidence} confidence</Badge>
+                    </div>
+                    {formData.autoGenerateContent && (
+                      <p className="text-sm text-primary mt-2">
+                        ✓ {strategy.overview.totalPosts} draft posts will be auto-created
+                      </p>
+                    )}
+                  </div>
+                )}
+
                 {(formData.target_impressions || formData.target_engagement) && (
                   <div className="pt-4 border-t border-border">
                     <p className="text-sm text-muted-foreground mb-2">Goals</p>
@@ -649,7 +926,7 @@ export default function CampaignBuilder() {
               <h1 className="text-xl font-semibold text-foreground">
                 {editId ? 'Edit Campaign' : 'Create Campaign'}
               </h1>
-              <p className="text-sm text-muted-foreground">Step {currentStep} of 6</p>
+              <p className="text-sm text-muted-foreground">Step {currentStep} of 7</p>
             </div>
           </div>
           <Button variant="outline" onClick={handleSaveDraft} disabled={saving}>
@@ -695,7 +972,7 @@ export default function CampaignBuilder() {
               </div>
             ))}
           </div>
-          <Progress value={(currentStep / 6) * 100} className="h-1" />
+          <Progress value={(currentStep / 7) * 100} className="h-1" />
         </div>
       </div>
 
@@ -716,7 +993,7 @@ export default function CampaignBuilder() {
             Back
           </Button>
           
-          {currentStep < 6 ? (
+          {currentStep < 7 ? (
             <Button
               onClick={() => setCurrentStep(prev => prev + 1)}
               disabled={!canProceed()}
