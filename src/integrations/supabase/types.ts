@@ -14,6 +14,177 @@ export type Database = {
   }
   public: {
     Tables: {
+      ab_test_results: {
+        Row: {
+          ab_test_id: string | null
+          conversions: number | null
+          engagement: number | null
+          engagement_rate: number | null
+          id: string
+          impressions: number | null
+          post_id: string | null
+          published_at: string | null
+          recorded_at: string | null
+          variant_id: string | null
+        }
+        Insert: {
+          ab_test_id?: string | null
+          conversions?: number | null
+          engagement?: number | null
+          engagement_rate?: number | null
+          id?: string
+          impressions?: number | null
+          post_id?: string | null
+          published_at?: string | null
+          recorded_at?: string | null
+          variant_id?: string | null
+        }
+        Update: {
+          ab_test_id?: string | null
+          conversions?: number | null
+          engagement?: number | null
+          engagement_rate?: number | null
+          id?: string
+          impressions?: number | null
+          post_id?: string | null
+          published_at?: string | null
+          recorded_at?: string | null
+          variant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ab_test_results_ab_test_id_fkey"
+            columns: ["ab_test_id"]
+            isOneToOne: false
+            referencedRelation: "ab_tests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ab_test_results_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "scheduled_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ab_test_results_variant_id_fkey"
+            columns: ["variant_id"]
+            isOneToOne: false
+            referencedRelation: "ab_test_variants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ab_test_variants: {
+        Row: {
+          ab_test_id: string | null
+          avg_engagement_rate: number | null
+          content_template: string | null
+          conversion_count: number | null
+          conversion_rate: number | null
+          created_at: string | null
+          id: string
+          is_control: boolean | null
+          posts_published: number | null
+          total_engagement: number | null
+          total_impressions: number | null
+          variable_value: Json | null
+          variant_name: string
+        }
+        Insert: {
+          ab_test_id?: string | null
+          avg_engagement_rate?: number | null
+          content_template?: string | null
+          conversion_count?: number | null
+          conversion_rate?: number | null
+          created_at?: string | null
+          id?: string
+          is_control?: boolean | null
+          posts_published?: number | null
+          total_engagement?: number | null
+          total_impressions?: number | null
+          variable_value?: Json | null
+          variant_name: string
+        }
+        Update: {
+          ab_test_id?: string | null
+          avg_engagement_rate?: number | null
+          content_template?: string | null
+          conversion_count?: number | null
+          conversion_rate?: number | null
+          created_at?: string | null
+          id?: string
+          is_control?: boolean | null
+          posts_published?: number | null
+          total_engagement?: number | null
+          total_impressions?: number | null
+          variable_value?: Json | null
+          variant_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ab_test_variants_ab_test_id_fkey"
+            columns: ["ab_test_id"]
+            isOneToOne: false
+            referencedRelation: "ab_tests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ab_tests: {
+        Row: {
+          confidence_level: number | null
+          created_at: string | null
+          description: string | null
+          end_date: string | null
+          hypothesis: string | null
+          id: string
+          minimum_sample_size: number | null
+          name: string
+          results: Json | null
+          start_date: string | null
+          status: string | null
+          updated_at: string | null
+          user_id: string
+          variable_being_tested: string
+          winner_variant_id: string | null
+        }
+        Insert: {
+          confidence_level?: number | null
+          created_at?: string | null
+          description?: string | null
+          end_date?: string | null
+          hypothesis?: string | null
+          id?: string
+          minimum_sample_size?: number | null
+          name: string
+          results?: Json | null
+          start_date?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id: string
+          variable_being_tested: string
+          winner_variant_id?: string | null
+        }
+        Update: {
+          confidence_level?: number | null
+          created_at?: string | null
+          description?: string | null
+          end_date?: string | null
+          hypothesis?: string | null
+          id?: string
+          minimum_sample_size?: number | null
+          name?: string
+          results?: Json | null
+          start_date?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string
+          variable_being_tested?: string
+          winner_variant_id?: string | null
+        }
+        Relationships: []
+      }
       activity_logs: {
         Row: {
           action: string
@@ -1979,6 +2150,19 @@ export type Database = {
           content_id: string
           expected_engagement: number
           scheduled_time: string
+        }[]
+      }
+      auto_select_ab_winner: { Args: { p_test_id: string }; Returns: undefined }
+      calculate_ab_test_significance: {
+        Args: { p_test_id: string }
+        Returns: {
+          avg_engagement_rate: number
+          confidence_level: number
+          improvement_over_control: number
+          is_statistically_significant: boolean
+          sample_size: number
+          variant_id: string
+          variant_name: string
         }[]
       }
       calculate_audience_activity: {
