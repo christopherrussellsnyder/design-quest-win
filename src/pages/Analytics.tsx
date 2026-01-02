@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,6 +15,9 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   BarChart, Bar, PieChart as RechartsPie, Pie, Cell, AreaChart, Area, Legend
 } from "recharts";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { AnalyticsInsights } from "@/components/AnalyticsInsights";
 
 // Mock data generation
 const generateMockData = (days: number) => {
@@ -80,6 +83,7 @@ const timeHeatmapData = [
 
 const Analytics = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [dateRange, setDateRange] = useState('30');
   const [selectedPlatform, setSelectedPlatform] = useState('all');
   const [showImpressions, setShowImpressions] = useState(true);
@@ -87,8 +91,41 @@ const Analytics = () => {
   const [showEngagement, setShowEngagement] = useState(true);
   const [showClicks, setShowClicks] = useState(true);
   const [showBottomPosts, setShowBottomPosts] = useState(false);
+  const [aiAnalytics, setAiAnalytics] = useState<any>(null);
+  const [loadingAi, setLoadingAi] = useState(false);
 
   const chartData = useMemo(() => generateMockData(parseInt(dateRange)), [dateRange]);
+
+  // Load AI-powered analytics
+  useEffect(() => {
+    if (user?.id) {
+      loadAiAnalytics();
+    }
+  }, [user?.id, dateRange, selectedPlatform]);
+
+  const loadAiAnalytics = async () => {
+    if (!user?.id) return;
+    setLoadingAi(true);
+    try {
+      const days = parseInt(dateRange);
+      const dateTo = new Date().toISOString();
+      const dateFrom = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+
+      const { data, error } = await supabase.functions.invoke('analytics-intelligence', {
+        body: { userId: user.id, dateFrom, dateTo, platform: selectedPlatform }
+      });
+
+      if (error) {
+        console.error('AI analytics error:', error);
+      } else {
+        setAiAnalytics(data);
+      }
+    } catch (err) {
+      console.error('Failed to load AI analytics:', err);
+    } finally {
+      setLoadingAi(false);
+    }
+  };
 
   // Calculate totals
   const totals = useMemo(() => {
@@ -578,12 +615,85 @@ const Analytics = () => {
           </Card>
         </div>
 
-        {/* AI Insights */}
+        {/* AI-Powered Smart Insights */}
+        {aiAnalytics?.insights && aiAnalytics.insights.length > 0 && (
+          <AnalyticsInsights insights={aiAnalytics.insights} />
+        )}
+
+        {/* Industry Benchmarking */}
+        {aiAnalytics?.benchmarking && (
+          <Card className="bg-card border-border">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Target className="w-5 h-5 text-primary" />
+                Industry Benchmarking
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="p-4 rounded-lg bg-secondary/50">
+                  <h4 className="font-medium text-foreground mb-4">Engagement Rate</h4>
+                  <div className="flex items-end gap-8">
+                    <div className="text-center">
+                      <p className="text-3xl font-bold text-primary">{aiAnalytics.benchmarking.engagementRate.yours.toFixed(1)}%</p>
+                      <p className="text-sm text-muted-foreground">Your Average</p>
+                    </div>
+                    <div className="text-2xl text-muted-foreground">vs</div>
+                    <div className="text-center">
+                      <p className="text-3xl font-bold text-foreground">{aiAnalytics.benchmarking.engagementRate.industry.toFixed(1)}%</p>
+                      <p className="text-sm text-muted-foreground">Industry Average</p>
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <Badge 
+                      variant="secondary" 
+                      className={aiAnalytics.benchmarking.engagementRate.status === 'above' 
+                        ? 'bg-emerald-500/20 text-emerald-400' 
+                        : 'bg-amber-500/20 text-amber-400'
+                      }
+                    >
+                      {aiAnalytics.benchmarking.engagementRate.status === 'above' ? 'Above' : 'Below'} industry average 
+                      (Top {aiAnalytics.benchmarking.engagementRate.percentile}%)
+                    </Badge>
+                  </div>
+                </div>
+                <div className="p-4 rounded-lg bg-secondary/50">
+                  <h4 className="font-medium text-foreground mb-4">Posting Frequency</h4>
+                  <div className="flex items-end gap-8">
+                    <div className="text-center">
+                      <p className="text-3xl font-bold text-primary">{aiAnalytics.benchmarking.postFrequency.yours.toFixed(1)}</p>
+                      <p className="text-sm text-muted-foreground">Posts/Day</p>
+                    </div>
+                    <div className="text-2xl text-muted-foreground">vs</div>
+                    <div className="text-center">
+                      <p className="text-3xl font-bold text-foreground">{aiAnalytics.benchmarking.postFrequency.industry}</p>
+                      <p className="text-sm text-muted-foreground">Recommended</p>
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <Badge 
+                      variant="secondary" 
+                      className={aiAnalytics.benchmarking.postFrequency.status === 'good' 
+                        ? 'bg-emerald-500/20 text-emerald-400' 
+                        : 'bg-amber-500/20 text-amber-400'
+                      }
+                    >
+                      {aiAnalytics.benchmarking.postFrequency.status === 'good' ? 'Good frequency' : 'Consider posting more'}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* AI Insights - Static Cards */}
         <Card className="bg-card border-border">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Lightbulb className="w-5 h-5 text-amber-400" />
               AI-Powered Insights
+              {loadingAi && <RefreshCw className="w-4 h-4 animate-spin text-muted-foreground" />}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -593,7 +703,11 @@ const Analytics = () => {
                   <Trophy className="w-5 h-5 text-amber-400" />
                   <span className="font-medium text-foreground">Achievement</span>
                 </div>
-                <p className="text-sm text-muted-foreground">100K impressions milestone reached this month!</p>
+                <p className="text-sm text-muted-foreground">
+                  {aiAnalytics?.overview?.totalImpressions > 100000 
+                    ? `${(aiAnalytics.overview.totalImpressions / 1000).toFixed(0)}K impressions milestone reached!` 
+                    : '100K impressions milestone reached this month!'}
+                </p>
               </div>
               
               <div className="p-4 rounded-lg bg-primary/10 border border-primary/20">
@@ -601,7 +715,11 @@ const Analytics = () => {
                   <Target className="w-5 h-5 text-primary" />
                   <span className="font-medium text-foreground">Opportunity</span>
                 </div>
-                <p className="text-sm text-muted-foreground">Video content gets 200% more engagement - create more videos</p>
+                <p className="text-sm text-muted-foreground">
+                  {aiAnalytics?.contentAnalysis?.bestPerformingType 
+                    ? `${aiAnalytics.contentAnalysis.bestPerformingType} content performs best - create more!`
+                    : 'Video content gets 200% more engagement - create more videos'}
+                </p>
               </div>
               
               <div className="p-4 rounded-lg bg-amber-500/10 border border-amber-500/20">
@@ -609,7 +727,11 @@ const Analytics = () => {
                   <AlertTriangle className="w-5 h-5 text-amber-400" />
                   <span className="font-medium text-foreground">Warning</span>
                 </div>
-                <p className="text-sm text-muted-foreground">Facebook reach declining - try new content formats</p>
+                <p className="text-sm text-muted-foreground">
+                  {aiAnalytics?.trends?.engagement?.direction === 'down'
+                    ? `Engagement declining ${Math.abs(aiAnalytics.trends.engagement.change)}% - try new formats`
+                    : 'Facebook reach declining - try new content formats'}
+                </p>
               </div>
               
               <div className="p-4 rounded-lg bg-cyan-500/10 border border-cyan-500/20">
@@ -617,7 +739,11 @@ const Analytics = () => {
                   <Zap className="w-5 h-5 text-cyan-400" />
                   <span className="font-medium text-foreground">Trend</span>
                 </div>
-                <p className="text-sm text-muted-foreground">Engagement trending upward +25% over 30 days</p>
+                <p className="text-sm text-muted-foreground">
+                  {aiAnalytics?.trends?.engagement?.direction === 'up'
+                    ? `Engagement trending upward +${aiAnalytics.trends.engagement.change}%`
+                    : 'Engagement trending upward +25% over 30 days'}
+                </p>
               </div>
             </div>
           </CardContent>

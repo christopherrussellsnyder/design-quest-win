@@ -26,3 +26,6 @@ verify_jwt = true
 
 [functions.scheduler-intelligence]
 verify_jwt = true
+
+[functions.analytics-intelligence]
+verify_jwt = true
