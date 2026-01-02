@@ -877,6 +877,54 @@ export type Database = {
           },
         ]
       }
+      content_performance_patterns: {
+        Row: {
+          avg_engagement_rate: number | null
+          created_at: string | null
+          id: string
+          last_calculated: string | null
+          pattern_type: string
+          pattern_value: string
+          performance_score: number | null
+          platform: string
+          post_count: number | null
+          sample_posts: Json | null
+          total_engagement: number | null
+          total_impressions: number | null
+          user_id: string
+        }
+        Insert: {
+          avg_engagement_rate?: number | null
+          created_at?: string | null
+          id?: string
+          last_calculated?: string | null
+          pattern_type: string
+          pattern_value: string
+          performance_score?: number | null
+          platform: string
+          post_count?: number | null
+          sample_posts?: Json | null
+          total_engagement?: number | null
+          total_impressions?: number | null
+          user_id: string
+        }
+        Update: {
+          avg_engagement_rate?: number | null
+          created_at?: string | null
+          id?: string
+          last_calculated?: string | null
+          pattern_type?: string
+          pattern_value?: string
+          performance_score?: number | null
+          platform?: string
+          post_count?: number | null
+          sample_posts?: Json | null
+          total_engagement?: number | null
+          total_impressions?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       engagement_predictions: {
         Row: {
           actual_engagement_rate: number | null
@@ -1714,6 +1762,16 @@ export type Database = {
         Args: { p_platform: string; p_user_id: string }
         Returns: Json
       }
+      analyze_content_patterns_comprehensive: {
+        Args: { p_platform?: string; p_user_id: string }
+        Returns: {
+          avg_engagement_rate: number
+          pattern_type: string
+          pattern_value: string
+          performance_score: number
+          post_count: number
+        }[]
+      }
       analyze_content_performance_by_type: {
         Args: { p_platform?: string; p_user_id: string }
         Returns: {
@@ -1794,6 +1852,14 @@ export type Database = {
           avg_engagement: number
           date: string
           post_count: number
+        }[]
+      }
+      get_top_performing_elements: {
+        Args: { p_element_type: string; p_limit?: number; p_user_id: string }
+        Returns: {
+          avg_engagement: number
+          element: string
+          usage_count: number
         }[]
       }
       get_top_performing_posts: {

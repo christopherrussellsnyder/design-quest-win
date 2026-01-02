@@ -18,6 +18,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { AnalyticsInsights } from "@/components/AnalyticsInsights";
+import { PatternInsights } from "@/components/PatternInsights";
 
 // Mock data generation
 const generateMockData = (days: number) => {
@@ -748,6 +749,9 @@ const Analytics = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Content Performance Patterns */}
+        <PatternInsights platform={selectedPlatform} />
       </main>
     </div>
   );
