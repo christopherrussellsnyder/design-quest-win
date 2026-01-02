@@ -47,3 +47,6 @@ verify_jwt = true
 
 [functions.ab-testing]
 verify_jwt = true
+
+[functions.ml-model-training]
+verify_jwt = true

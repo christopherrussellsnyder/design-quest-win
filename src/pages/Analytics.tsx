@@ -20,6 +20,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { AnalyticsInsights } from "@/components/AnalyticsInsights";
 import { PatternInsights } from "@/components/PatternInsights";
 import { CompetitorBenchmarking } from "@/components/CompetitorBenchmarking";
+import { MLModelDashboard } from "@/components/MLModelDashboard";
 
 // Mock data generation
 const generateMockData = (days: number) => {
@@ -754,6 +755,9 @@ const Analytics = () => {
 
         {/* Content Performance Patterns */}
         <PatternInsights platform={selectedPlatform} />
+
+        {/* ML Model Dashboard */}
+        <MLModelDashboard />
 
         {/* Competitor Benchmarking */}
         <Card className="bg-card border-border">
