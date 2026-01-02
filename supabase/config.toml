@@ -29,3 +29,6 @@ verify_jwt = true
 
 [functions.analytics-intelligence]
 verify_jwt = true
+
+[functions.predict-engagement]
+verify_jwt = true

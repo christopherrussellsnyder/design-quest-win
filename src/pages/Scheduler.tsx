@@ -15,6 +15,8 @@ import { BestTimesPanel } from '@/components/scheduler/BestTimesPanel';
 import { PostPreviewPanel } from '@/components/scheduler/PostPreviewPanel';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { PredictionScore } from '@/components/PredictionScore';
+import { useAuth } from '@/contexts/AuthContext';
 
 // Platform icons mapping
 const platformIcons: Record<string, React.ReactNode> = {
@@ -120,6 +122,7 @@ interface ScheduledPost {
 export default function Scheduler() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
   
   const [viewMode, setViewMode] = useState<ViewMode>('calendar');
   const [dateFilter, setDateFilter] = useState<DateFilter>('month');
@@ -703,12 +706,14 @@ export default function Scheduler() {
         setShowCreateModal(open);
         if (!open) setEditingPost(null);
       }}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingPost ? 'Edit Scheduled Post' : 'Schedule New Post'}</DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4 mt-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
+            {/* Left Column - Form */}
+            <div className="space-y-4">
             {/* Title */}
             <div>
               <label className="text-sm font-medium text-foreground mb-2 block">Title</label>
@@ -900,6 +905,20 @@ export default function Scheduler() {
                   {editingPost ? 'Update' : formData.isRecurring ? 'Create Series' : 'Schedule'}
                 </Button>
               </div>
+            </div>
+            </div>
+            
+            {/* Right Column - Prediction Score */}
+            <div className="hidden lg:block">
+              {user && (
+                <PredictionScore
+                  userId={user.id}
+                  content={formData.content}
+                  platform={formData.platform || 'twitter'}
+                  mediaUrls={[]}
+                  scheduledTime={formData.date && formData.time ? `${formData.date}T${formData.time}` : undefined}
+                />
+              )}
             </div>
           </div>
         </DialogContent>
