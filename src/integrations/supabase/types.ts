@@ -632,6 +632,53 @@ export type Database = {
         }
         Relationships: []
       }
+      campaign_performance_tracking: {
+        Row: {
+          campaign_id: string | null
+          created_at: string | null
+          engagement_rate: number | null
+          goal_progress: Json | null
+          id: string
+          platform_breakdown: Json | null
+          posts_published: number | null
+          total_engagement: number | null
+          total_impressions: number | null
+          tracked_date: string
+        }
+        Insert: {
+          campaign_id?: string | null
+          created_at?: string | null
+          engagement_rate?: number | null
+          goal_progress?: Json | null
+          id?: string
+          platform_breakdown?: Json | null
+          posts_published?: number | null
+          total_engagement?: number | null
+          total_impressions?: number | null
+          tracked_date?: string
+        }
+        Update: {
+          campaign_id?: string | null
+          created_at?: string | null
+          engagement_rate?: number | null
+          goal_progress?: Json | null
+          id?: string
+          platform_breakdown?: Json | null
+          posts_published?: number | null
+          total_engagement?: number | null
+          total_impressions?: number | null
+          tracked_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_performance_tracking_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       campaign_templates: {
         Row: {
           category: string
@@ -673,10 +720,13 @@ export type Database = {
       }
       campaigns: {
         Row: {
+          budget: number | null
           created_at: string
           daily_limit: number | null
+          description: string | null
           end_date: string | null
           estimated_reach: number | null
+          goals: Json | null
           id: string
           name: string
           objective: string | null
@@ -693,10 +743,13 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          budget?: number | null
           created_at?: string
           daily_limit?: number | null
+          description?: string | null
           end_date?: string | null
           estimated_reach?: number | null
+          goals?: Json | null
           id?: string
           name: string
           objective?: string | null
@@ -713,10 +766,13 @@ export type Database = {
           user_id: string
         }
         Update: {
+          budget?: number | null
           created_at?: string
           daily_limit?: number | null
+          description?: string | null
           end_date?: string | null
           estimated_reach?: number | null
+          goals?: Json | null
           id?: string
           name?: string
           objective?: string | null
@@ -1797,6 +1853,16 @@ export type Database = {
           sample_size: number
         }[]
       }
+      calculate_campaign_performance: {
+        Args: { p_campaign_id: string }
+        Returns: {
+          avg_engagement_rate: number
+          goal_completion_rate: number
+          total_engagement: number
+          total_impressions: number
+          total_posts: number
+        }[]
+      }
       find_next_optimal_slot: {
         Args: {
           p_after_time?: string
@@ -1835,6 +1901,16 @@ export type Database = {
           total_likes: number
           total_posts: number
           total_shares: number
+        }[]
+      }
+      get_campaign_strategy_data: {
+        Args: { p_platform?: string; p_user_id: string }
+        Returns: {
+          avg_engagement_rate: number
+          best_content_length: string
+          best_content_type: string
+          best_posting_time: string
+          total_posts_analyzed: number
         }[]
       }
       get_optimal_time_slots: {
