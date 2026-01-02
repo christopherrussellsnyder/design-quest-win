@@ -41,3 +41,6 @@ verify_jwt = true
 
 [functions.campaign-intelligence]
 verify_jwt = true
+
+[functions.competitor-analysis]
+verify_jwt = true

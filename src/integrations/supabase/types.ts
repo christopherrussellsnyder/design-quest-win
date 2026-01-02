@@ -790,6 +790,104 @@ export type Database = {
         }
         Relationships: []
       }
+      competitor_benchmarks: {
+        Row: {
+          avg_engagement_rate: number | null
+          avg_post_length: number | null
+          avg_posts_per_week: number | null
+          benchmark_date: string
+          competitor_id: string | null
+          content_type_breakdown: Json | null
+          created_at: string | null
+          id: string
+          platform: string
+          posting_times: Json | null
+          strengths: string[] | null
+          top_hashtags: string[] | null
+          user_id: string
+          weaknesses: string[] | null
+        }
+        Insert: {
+          avg_engagement_rate?: number | null
+          avg_post_length?: number | null
+          avg_posts_per_week?: number | null
+          benchmark_date?: string
+          competitor_id?: string | null
+          content_type_breakdown?: Json | null
+          created_at?: string | null
+          id?: string
+          platform: string
+          posting_times?: Json | null
+          strengths?: string[] | null
+          top_hashtags?: string[] | null
+          user_id: string
+          weaknesses?: string[] | null
+        }
+        Update: {
+          avg_engagement_rate?: number | null
+          avg_post_length?: number | null
+          avg_posts_per_week?: number | null
+          benchmark_date?: string
+          competitor_id?: string | null
+          content_type_breakdown?: Json | null
+          created_at?: string | null
+          id?: string
+          platform?: string
+          posting_times?: Json | null
+          strengths?: string[] | null
+          top_hashtags?: string[] | null
+          user_id?: string
+          weaknesses?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "competitor_benchmarks_competitor_id_fkey"
+            columns: ["competitor_id"]
+            isOneToOne: false
+            referencedRelation: "competitors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      competitors: {
+        Row: {
+          created_at: string | null
+          id: string
+          industry: string | null
+          is_active: boolean | null
+          name: string
+          notes: string | null
+          social_handles: Json | null
+          updated_at: string | null
+          user_id: string
+          website: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          industry?: string | null
+          is_active?: boolean | null
+          name: string
+          notes?: string | null
+          social_handles?: Json | null
+          updated_at?: string | null
+          user_id: string
+          website?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          industry?: string | null
+          is_active?: boolean | null
+          name?: string
+          notes?: string | null
+          social_handles?: Json | null
+          updated_at?: string | null
+          user_id?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
       content_folders: {
         Row: {
           color: string | null
@@ -1036,6 +1134,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      industry_benchmarks: {
+        Row: {
+          avg_engagement_rate: number
+          avg_follower_growth: number | null
+          avg_posts_per_week: number
+          benchmark_month: string
+          created_at: string | null
+          id: string
+          industry: string
+          platform: string
+          sample_size: number | null
+          top_content_types: Json | null
+        }
+        Insert: {
+          avg_engagement_rate: number
+          avg_follower_growth?: number | null
+          avg_posts_per_week: number
+          benchmark_month: string
+          created_at?: string | null
+          id?: string
+          industry: string
+          platform: string
+          sample_size?: number | null
+          top_content_types?: Json | null
+        }
+        Update: {
+          avg_engagement_rate?: number
+          avg_follower_growth?: number | null
+          avg_posts_per_week?: number
+          benchmark_month?: string
+          created_at?: string | null
+          id?: string
+          industry?: string
+          platform?: string
+          sample_size?: number | null
+          top_content_types?: Json | null
+        }
+        Relationships: []
       }
       login_sessions: {
         Row: {
@@ -1863,6 +2000,16 @@ export type Database = {
           total_posts: number
         }[]
       }
+      compare_to_industry: {
+        Args: { p_industry: string; p_platform?: string; p_user_id: string }
+        Returns: {
+          industry_avg: number
+          metric: string
+          percentile: number
+          status: string
+          user_value: number
+        }[]
+      }
       find_next_optimal_slot: {
         Args: {
           p_after_time?: string
@@ -1883,6 +2030,16 @@ export type Database = {
           gap_end: string
           gap_hours: number
           gap_start: string
+        }[]
+      }
+      generate_competitive_insights: {
+        Args: { p_industry: string; p_user_id: string }
+        Returns: {
+          description: string
+          insight_type: string
+          priority: string
+          recommendation: string
+          title: string
         }[]
       }
       get_analytics_summary: {
