@@ -395,6 +395,54 @@ export type Database = {
         }
         Relationships: []
       }
+      auto_schedule_preferences: {
+        Row: {
+          auto_fill_queue: boolean | null
+          avoid_nights: boolean | null
+          avoid_weekends: boolean | null
+          created_at: string | null
+          custom_time_restrictions: Json | null
+          enabled: boolean | null
+          id: string
+          min_hours_between_posts: number | null
+          posts_per_day: number | null
+          posts_per_week: number | null
+          preferred_platforms: string[] | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          auto_fill_queue?: boolean | null
+          avoid_nights?: boolean | null
+          avoid_weekends?: boolean | null
+          created_at?: string | null
+          custom_time_restrictions?: Json | null
+          enabled?: boolean | null
+          id?: string
+          min_hours_between_posts?: number | null
+          posts_per_day?: number | null
+          posts_per_week?: number | null
+          preferred_platforms?: string[] | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          auto_fill_queue?: boolean | null
+          avoid_nights?: boolean | null
+          avoid_weekends?: boolean | null
+          created_at?: string | null
+          custom_time_restrictions?: Json | null
+          enabled?: boolean | null
+          id?: string
+          min_hours_between_posts?: number | null
+          posts_per_day?: number | null
+          posts_per_week?: number | null
+          preferred_platforms?: string[] | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       automation_rules: {
         Row: {
           actions: Json
@@ -1674,6 +1722,14 @@ export type Database = {
           post_count: number
         }[]
       }
+      auto_schedule_queued_content: {
+        Args: { p_user_id: string }
+        Returns: {
+          content_id: string
+          expected_engagement: number
+          scheduled_time: string
+        }[]
+      }
       calculate_audience_activity: {
         Args: { p_platform: string; p_user_id: string }
         Returns: {
@@ -1681,6 +1737,20 @@ export type Database = {
           day_of_week: number
           hour_of_day: number
           sample_size: number
+        }[]
+      }
+      find_next_optimal_slot: {
+        Args: {
+          p_after_time?: string
+          p_days_ahead?: number
+          p_platform: string
+          p_user_id: string
+        }
+        Returns: {
+          confidence: string
+          expected_engagement: number
+          reason: string
+          suggested_time: string
         }[]
       }
       find_schedule_gaps: {

@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
-import { Calendar, List, Layers, Plus, ChevronLeft, ChevronRight, LayoutDashboard, Facebook, Instagram, Twitter, Linkedin, Clock, Edit2, Trash2, Lightbulb, Eye, RefreshCw } from 'lucide-react';
+import { Calendar, List, Layers, Plus, ChevronLeft, ChevronRight, LayoutDashboard, Facebook, Instagram, Twitter, Linkedin, Clock, Edit2, Trash2, Lightbulb, Eye, RefreshCw, Zap, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -16,7 +16,11 @@ import { PostPreviewPanel } from '@/components/scheduler/PostPreviewPanel';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { PredictionScore } from '@/components/PredictionScore';
+import { AutoScheduleSettings } from '@/components/scheduler/AutoScheduleSettings';
+import { WeeklySchedulePreview } from '@/components/scheduler/WeeklySchedulePreview';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { toast as sonnerToast } from 'sonner';
 
 // Platform icons mapping
 const platformIcons: Record<string, React.ReactNode> = {
@@ -136,6 +140,8 @@ export default function Scheduler() {
   const [dragOverDate, setDragOverDate] = useState<Date | null>(null);
   const [showBestTimesPanel, setShowBestTimesPanel] = useState(false);
   const [showPreviewPanel, setShowPreviewPanel] = useState(false);
+  const [showAutoScheduleSettings, setShowAutoScheduleSettings] = useState(false);
+  const [optimizingTime, setOptimizingTime] = useState(false);
   
   // Form state for new/edit post
   const [formData, setFormData] = useState({
@@ -448,6 +454,16 @@ export default function Scheduler() {
                   <span className="hidden sm:inline">Queue</span>
                 </button>
               </div>
+
+              {/* Auto-Schedule Settings Button */}
+              <Button 
+                variant="outline" 
+                onClick={() => setShowAutoScheduleSettings(true)}
+                className="gap-2 border-primary/50 hover:bg-primary/10"
+              >
+                <Settings className="w-4 h-4 text-primary" />
+                <span className="hidden sm:inline">Auto-Schedule</span>
+              </Button>
 
               {/* Best Times Button */}
               <Button 
@@ -769,23 +785,78 @@ export default function Scheduler() {
             </div>
 
             {/* Date & Time */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium text-foreground mb-2 block">Date</label>
-                <Input
-                  type="date"
-                  value={formData.date}
-                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                />
+            <div className="space-y-2">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-foreground mb-2 block">Date</label>
+                  <Input
+                    type="date"
+                    value={formData.date}
+                    onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-foreground mb-2 block">Time</label>
+                  <Input
+                    type="time"
+                    value={formData.time}
+                    onChange={(e) => setFormData({ ...formData, time: e.target.value })}
+                  />
+                </div>
               </div>
-              <div>
-                <label className="text-sm font-medium text-foreground mb-2 block">Time</label>
-                <Input
-                  type="time"
-                  value={formData.time}
-                  onChange={(e) => setFormData({ ...formData, time: e.target.value })}
-                />
-              </div>
+              
+              {/* Auto-Optimize Button */}
+              {user && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={async () => {
+                    setOptimizingTime(true);
+                    try {
+                      const { data, error } = await supabase.functions.invoke('auto-optimize-timing', {
+                        body: { 
+                          userId: user.id, 
+                          action: 'find_optimal_slot',
+                          platform: formData.platform || 'all',
+                          afterTime: new Date().toISOString()
+                        }
+                      });
+                      if (error) throw error;
+                      
+                      if (data?.slot) {
+                        const optimalDate = new Date(data.slot.time);
+                        setFormData({
+                          ...formData,
+                          date: format(optimalDate, 'yyyy-MM-dd'),
+                          time: format(optimalDate, 'HH:mm')
+                        });
+                        sonnerToast.success(`Optimized! Expected ${data.slot.expectedEngagement?.toFixed(1)}% engagement`);
+                      } else {
+                        sonnerToast.info('No optimal slot found, using current time');
+                      }
+                    } catch (err) {
+                      console.error('Auto-optimize failed:', err);
+                      sonnerToast.error('Failed to find optimal time');
+                    } finally {
+                      setOptimizingTime(false);
+                    }
+                  }}
+                  disabled={optimizingTime}
+                  className="w-full gap-2"
+                >
+                  {optimizingTime ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+                      Finding optimal time...
+                    </>
+                  ) : (
+                    <>
+                      <Zap className="w-4 h-4 text-primary" />
+                      Auto-Optimize Time
+                    </>
+                  )}
+                </Button>
+              )}
             </div>
 
             {/* Recurring Toggle */}
@@ -988,6 +1059,19 @@ export default function Scheduler() {
           />
         </>
       )}
+
+      {/* Auto-Schedule Settings Modal */}
+      <Dialog open={showAutoScheduleSettings} onOpenChange={setShowAutoScheduleSettings}>
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Auto-Schedule Settings</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-6 mt-4">
+            <AutoScheduleSettings />
+            <WeeklySchedulePreview />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
