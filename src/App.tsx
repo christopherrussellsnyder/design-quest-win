@@ -33,6 +33,7 @@ const MediaLibrary = lazy(() => import("./pages/MediaLibrary"));
 const AIAnalytics = lazy(() => import("./pages/AIAnalytics"));
 const HealthCheck = lazy(() => import("./pages/HealthCheck"));
 const TestingDashboard = lazy(() => import("./pages/TestingDashboard"));
+const ABTesting = lazy(() => import("./pages/ABTesting"));
 const HelpCenter = lazy(() => import("./pages/HelpCenter"));
 const Templates = lazy(() => import("./pages/Templates"));
 
@@ -216,6 +217,14 @@ const App = () => (
                     element={
                       <ProtectedRoute>
                         <TestingDashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/ab-testing"
+                    element={
+                      <ProtectedRoute>
+                        <ABTesting />
                       </ProtectedRoute>
                     }
                   />
