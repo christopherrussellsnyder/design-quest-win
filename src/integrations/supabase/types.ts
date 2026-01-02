@@ -1610,6 +1610,14 @@ export type Database = {
         Args: { p_platform: string; p_user_id: string }
         Returns: Json
       }
+      analyze_content_performance_by_type: {
+        Args: { p_platform?: string; p_user_id: string }
+        Returns: {
+          avg_engagement_rate: number
+          content_type: string
+          post_count: number
+        }[]
+      }
       calculate_audience_activity: {
         Args: { p_platform: string; p_user_id: string }
         Returns: {
@@ -1627,6 +1635,24 @@ export type Database = {
           gap_start: string
         }[]
       }
+      get_analytics_summary: {
+        Args: {
+          p_date_from: string
+          p_date_to: string
+          p_platform?: string
+          p_user_id: string
+        }
+        Returns: {
+          avg_engagement_rate: number
+          total_clicks: number
+          total_comments: number
+          total_engagement: number
+          total_impressions: number
+          total_likes: number
+          total_posts: number
+          total_shares: number
+        }[]
+      }
       get_optimal_time_slots: {
         Args: { p_limit?: number; p_platform: string; p_user_id: string }
         Returns: {
@@ -1634,6 +1660,14 @@ export type Database = {
           confidence: string
           day_of_week: number
           hour_of_day: number
+        }[]
+      }
+      get_posting_trends: {
+        Args: { p_days?: number; p_user_id: string }
+        Returns: {
+          avg_engagement: number
+          date: string
+          post_count: number
         }[]
       }
       get_top_performing_posts: {
@@ -1645,6 +1679,17 @@ export type Database = {
           impressions: number
           published_at: string
           total_engagement: number
+        }[]
+      }
+      get_top_posts_analytics: {
+        Args: { p_limit?: number; p_platform?: string; p_user_id: string }
+        Returns: {
+          content: string
+          engagement_rate: number
+          engagement_total: number
+          id: string
+          platform: string
+          published_at: string
         }[]
       }
       has_role: {
