@@ -829,6 +829,62 @@ export type Database = {
           },
         ]
       }
+      engagement_predictions: {
+        Row: {
+          actual_engagement_rate: number | null
+          actual_impressions: number | null
+          content: string
+          created_at: string | null
+          id: string
+          platform: string
+          post_id: string | null
+          predicted_engagement_rate: number | null
+          predicted_impressions: number | null
+          predicted_score: number
+          prediction_accuracy: number | null
+          score_factors: Json | null
+          user_id: string
+        }
+        Insert: {
+          actual_engagement_rate?: number | null
+          actual_impressions?: number | null
+          content: string
+          created_at?: string | null
+          id?: string
+          platform: string
+          post_id?: string | null
+          predicted_engagement_rate?: number | null
+          predicted_impressions?: number | null
+          predicted_score: number
+          prediction_accuracy?: number | null
+          score_factors?: Json | null
+          user_id: string
+        }
+        Update: {
+          actual_engagement_rate?: number | null
+          actual_impressions?: number | null
+          content?: string
+          created_at?: string | null
+          id?: string
+          platform?: string
+          post_id?: string | null
+          predicted_engagement_rate?: number | null
+          predicted_impressions?: number | null
+          predicted_score?: number
+          prediction_accuracy?: number | null
+          score_factors?: Json | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "engagement_predictions_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "scheduled_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       login_sessions: {
         Row: {
           browser: string | null
@@ -1690,6 +1746,14 @@ export type Database = {
           id: string
           platform: string
           published_at: string
+        }[]
+      }
+      get_user_baseline_metrics: {
+        Args: { p_platform: string; p_user_id: string }
+        Returns: {
+          avg_engagement_rate: number
+          avg_impressions: number
+          total_posts: number
         }[]
       }
       has_role: {
