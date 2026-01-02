@@ -5,6 +5,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { getAIService } from '@/services/aiService';
 import { UsageStatsBar } from '@/components/ai/UsageStatsBar';
 import { EngagementScore } from '@/components/EngagementScore';
+import { ViralityPredictor } from '@/components/ViralityPredictor';
+import { TrendingTopics } from '@/components/TrendingTopics';
 import { 
   Wand2, Sparkles, Copy, Save, RefreshCw, ChevronLeft, ChevronRight, 
   Eye, MousePointer, Target, Star, Trash2, Calendar, Edit2, Check, X,
@@ -1061,8 +1063,14 @@ export default function ContentAI() {
             )}
           </div>
 
-          {/* Right Column - History Panel */}
+          {/* Right Column - Virality Predictor, Trending Topics & History */}
           <div className="space-y-6">
+            {/* Virality Predictor */}
+            <ViralityPredictor content={prompt} platform={platform} />
+            
+            {/* Trending Topics */}
+            <TrendingTopics />
+            
             <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-6">
               <h3 className="font-semibold mb-4 flex items-center gap-2">
                 <Clock className="w-4 h-4 text-violet-400" />

@@ -1059,6 +1059,65 @@ export type Database = {
         }
         Relationships: []
       }
+      content_embeddings: {
+        Row: {
+          content_text: string
+          created_at: string | null
+          embedding_vector: number[]
+          id: string
+          key_phrases: string[] | null
+          post_id: string | null
+          readability_score: number | null
+          sentence_count: number | null
+          sentiment_label: string | null
+          sentiment_score: number | null
+          topic_tags: string[] | null
+          user_id: string
+          virality_score: number | null
+          word_count: number | null
+        }
+        Insert: {
+          content_text: string
+          created_at?: string | null
+          embedding_vector: number[]
+          id?: string
+          key_phrases?: string[] | null
+          post_id?: string | null
+          readability_score?: number | null
+          sentence_count?: number | null
+          sentiment_label?: string | null
+          sentiment_score?: number | null
+          topic_tags?: string[] | null
+          user_id: string
+          virality_score?: number | null
+          word_count?: number | null
+        }
+        Update: {
+          content_text?: string
+          created_at?: string | null
+          embedding_vector?: number[]
+          id?: string
+          key_phrases?: string[] | null
+          post_id?: string | null
+          readability_score?: number | null
+          sentence_count?: number | null
+          sentiment_label?: string | null
+          sentiment_score?: number | null
+          topic_tags?: string[] | null
+          user_id?: string
+          virality_score?: number | null
+          word_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_embeddings_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "scheduled_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       content_folders: {
         Row: {
           color: string | null
@@ -1099,6 +1158,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      content_improvement_history: {
+        Row: {
+          applied: boolean | null
+          created_at: string | null
+          id: string
+          improved_content: string
+          improved_score: number | null
+          improvement_type: string
+          original_content: string
+          original_score: number | null
+          score_improvement: number | null
+          user_id: string
+        }
+        Insert: {
+          applied?: boolean | null
+          created_at?: string | null
+          id?: string
+          improved_content: string
+          improved_score?: number | null
+          improvement_type: string
+          original_content: string
+          original_score?: number | null
+          score_improvement?: number | null
+          user_id: string
+        }
+        Update: {
+          applied?: boolean | null
+          created_at?: string | null
+          id?: string
+          improved_content?: string
+          improved_score?: number | null
+          improvement_type?: string
+          original_content?: string
+          original_score?: number | null
+          score_improvement?: number | null
+          user_id?: string
+        }
+        Relationships: []
       }
       content_library: {
         Row: {
@@ -2044,6 +2142,42 @@ export type Database = {
         }
         Relationships: []
       }
+      trending_topics: {
+        Row: {
+          category: string | null
+          detected_at: string | null
+          growth_rate: number | null
+          id: string
+          last_updated: string | null
+          mention_count: number | null
+          related_keywords: string[] | null
+          topic: string
+          trend_score: number | null
+        }
+        Insert: {
+          category?: string | null
+          detected_at?: string | null
+          growth_rate?: number | null
+          id?: string
+          last_updated?: string | null
+          mention_count?: number | null
+          related_keywords?: string[] | null
+          topic: string
+          trend_score?: number | null
+        }
+        Update: {
+          category?: string | null
+          detected_at?: string | null
+          growth_rate?: number | null
+          id?: string
+          last_updated?: string | null
+          mention_count?: number | null
+          related_keywords?: string[] | null
+          topic?: string
+          trend_score?: number | null
+        }
+        Relationships: []
+      }
       twitter_analytics: {
         Row: {
           created_at: string | null
@@ -2244,6 +2378,57 @@ export type Database = {
         }
         Relationships: []
       }
+      virality_predictions: {
+        Row: {
+          actual_performance: Json | null
+          content_hash: string
+          content_text: string
+          created_at: string | null
+          id: string
+          improvement_suggestions: Json | null
+          predicted_engagement_rate: number | null
+          predicted_impressions: number | null
+          predicted_shares: number | null
+          success_factors: Json | null
+          trending_elements: string[] | null
+          user_id: string
+          virality_category: string
+          virality_score: number
+        }
+        Insert: {
+          actual_performance?: Json | null
+          content_hash: string
+          content_text: string
+          created_at?: string | null
+          id?: string
+          improvement_suggestions?: Json | null
+          predicted_engagement_rate?: number | null
+          predicted_impressions?: number | null
+          predicted_shares?: number | null
+          success_factors?: Json | null
+          trending_elements?: string[] | null
+          user_id: string
+          virality_category: string
+          virality_score: number
+        }
+        Update: {
+          actual_performance?: Json | null
+          content_hash?: string
+          content_text?: string
+          created_at?: string | null
+          id?: string
+          improvement_suggestions?: Json | null
+          predicted_engagement_rate?: number | null
+          predicted_impressions?: number | null
+          predicted_shares?: number | null
+          success_factors?: Json | null
+          trending_elements?: string[] | null
+          user_id?: string
+          virality_category?: string
+          virality_score?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       campaign_analytics_summary: {
@@ -2314,6 +2499,19 @@ export type Database = {
           avg_engagement_rate: number
           content_type: string
           post_count: number
+        }[]
+      }
+      analyze_content_structure: {
+        Args: { p_content: string }
+        Returns: {
+          avg_word_length: number
+          exclamation_count: number
+          punctuation_density: number
+          question_count: number
+          sentence_count: number
+          unique_words: number
+          uppercase_ratio: number
+          word_count: number
         }[]
       }
       auto_schedule_queued_content: {
