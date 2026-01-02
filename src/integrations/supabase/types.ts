@@ -1568,6 +1568,178 @@ export type Database = {
         }
         Relationships: []
       }
+      ml_model_versions: {
+        Row: {
+          accuracy_score: number | null
+          feature_importance: Json | null
+          id: string
+          is_active: boolean | null
+          mean_absolute_error: number | null
+          model_parameters: Json | null
+          model_version: string
+          trained_at: string | null
+          training_samples: number | null
+          user_id: string
+        }
+        Insert: {
+          accuracy_score?: number | null
+          feature_importance?: Json | null
+          id?: string
+          is_active?: boolean | null
+          mean_absolute_error?: number | null
+          model_parameters?: Json | null
+          model_version: string
+          trained_at?: string | null
+          training_samples?: number | null
+          user_id: string
+        }
+        Update: {
+          accuracy_score?: number | null
+          feature_importance?: Json | null
+          id?: string
+          is_active?: boolean | null
+          mean_absolute_error?: number | null
+          model_parameters?: Json | null
+          model_version?: string
+          trained_at?: string | null
+          training_samples?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ml_predictions_cache: {
+        Row: {
+          created_at: string | null
+          day_of_week: number
+          expires_at: string | null
+          feature_values: Json | null
+          hour_of_day: number
+          id: string
+          model_version_id: string | null
+          platform: string | null
+          predicted_engagement_rate: number | null
+          prediction_confidence: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          day_of_week: number
+          expires_at?: string | null
+          feature_values?: Json | null
+          hour_of_day: number
+          id?: string
+          model_version_id?: string | null
+          platform?: string | null
+          predicted_engagement_rate?: number | null
+          prediction_confidence?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          day_of_week?: number
+          expires_at?: string | null
+          feature_values?: Json | null
+          hour_of_day?: number
+          id?: string
+          model_version_id?: string | null
+          platform?: string | null
+          predicted_engagement_rate?: number | null
+          prediction_confidence?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ml_predictions_cache_model_version_id_fkey"
+            columns: ["model_version_id"]
+            isOneToOne: false
+            referencedRelation: "ml_model_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ml_training_data: {
+        Row: {
+          content_length: number | null
+          created_at: string | null
+          day_of_week: number
+          emoji_count: number | null
+          engagement_rate: number | null
+          has_image: boolean | null
+          has_media: boolean | null
+          has_question: boolean | null
+          has_video: boolean | null
+          hashtag_count: number | null
+          hour_of_day: number
+          id: string
+          impressions: number | null
+          is_holiday: boolean | null
+          is_weekend: boolean | null
+          month: number
+          platform: string | null
+          post_id: string | null
+          season: string | null
+          total_engagement: number | null
+          user_id: string
+          weather_condition: string | null
+        }
+        Insert: {
+          content_length?: number | null
+          created_at?: string | null
+          day_of_week: number
+          emoji_count?: number | null
+          engagement_rate?: number | null
+          has_image?: boolean | null
+          has_media?: boolean | null
+          has_question?: boolean | null
+          has_video?: boolean | null
+          hashtag_count?: number | null
+          hour_of_day: number
+          id?: string
+          impressions?: number | null
+          is_holiday?: boolean | null
+          is_weekend?: boolean | null
+          month: number
+          platform?: string | null
+          post_id?: string | null
+          season?: string | null
+          total_engagement?: number | null
+          user_id: string
+          weather_condition?: string | null
+        }
+        Update: {
+          content_length?: number | null
+          created_at?: string | null
+          day_of_week?: number
+          emoji_count?: number | null
+          engagement_rate?: number | null
+          has_image?: boolean | null
+          has_media?: boolean | null
+          has_question?: boolean | null
+          has_video?: boolean | null
+          hashtag_count?: number | null
+          hour_of_day?: number
+          id?: string
+          impressions?: number | null
+          is_holiday?: boolean | null
+          is_weekend?: boolean | null
+          month?: number
+          platform?: string | null
+          post_id?: string | null
+          season?: string | null
+          total_engagement?: number | null
+          user_id?: string
+          weather_condition?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ml_training_data_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "scheduled_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       performance_data: {
         Row: {
           conversions: number | null
@@ -2252,6 +2424,22 @@ export type Database = {
           best_content_type: string
           best_posting_time: string
           total_posts_analyzed: number
+        }[]
+      }
+      get_ml_training_dataset: {
+        Args: { p_user_id: string }
+        Returns: {
+          content_length: number
+          day_of_week: number
+          emoji_count: number
+          engagement_rate: number
+          has_media: boolean
+          has_question: boolean
+          has_video: boolean
+          hashtag_count: number
+          hour_of_day: number
+          is_weekend: boolean
+          month: number
         }[]
       }
       get_optimal_time_slots: {
