@@ -19,6 +19,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { AnalyticsInsights } from "@/components/AnalyticsInsights";
 import { PatternInsights } from "@/components/PatternInsights";
+import { CompetitorBenchmarking } from "@/components/CompetitorBenchmarking";
 
 // Mock data generation
 const generateMockData = (days: number) => {
@@ -94,6 +95,7 @@ const Analytics = () => {
   const [showBottomPosts, setShowBottomPosts] = useState(false);
   const [aiAnalytics, setAiAnalytics] = useState<any>(null);
   const [loadingAi, setLoadingAi] = useState(false);
+  const [selectedIndustry, setSelectedIndustry] = useState('technology');
 
   const chartData = useMemo(() => generateMockData(parseInt(dateRange)), [dateRange]);
 
@@ -752,6 +754,32 @@ const Analytics = () => {
 
         {/* Content Performance Patterns */}
         <PatternInsights platform={selectedPlatform} />
+
+        {/* Competitor Benchmarking */}
+        <Card className="bg-card border-border">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-foreground">Competitor Benchmarking</CardTitle>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Your Industry:</span>
+                <Select value={selectedIndustry} onValueChange={setSelectedIndustry}>
+                  <SelectTrigger className="w-40 bg-muted border-border">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="technology">Technology</SelectItem>
+                    <SelectItem value="ecommerce">E-commerce</SelectItem>
+                    <SelectItem value="saas">SaaS</SelectItem>
+                    <SelectItem value="marketing">Marketing</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <CompetitorBenchmarking industry={selectedIndustry} />
+          </CardContent>
+        </Card>
       </main>
     </div>
   );
