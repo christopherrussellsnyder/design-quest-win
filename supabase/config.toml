@@ -53,3 +53,6 @@ verify_jwt = true
 
 [functions.content-success-predictor]
 verify_jwt = true
+
+[functions.dynamic-optimization]
+verify_jwt = true

@@ -566,6 +566,47 @@ export type Database = {
         }
         Relationships: []
       }
+      auto_ab_tests: {
+        Row: {
+          ab_test_id: string | null
+          auto_pause_enabled: boolean | null
+          auto_winner_select: boolean | null
+          created_at: string | null
+          created_by_system: boolean | null
+          id: string
+          status: string | null
+          trigger_reason: string | null
+        }
+        Insert: {
+          ab_test_id?: string | null
+          auto_pause_enabled?: boolean | null
+          auto_winner_select?: boolean | null
+          created_at?: string | null
+          created_by_system?: boolean | null
+          id?: string
+          status?: string | null
+          trigger_reason?: string | null
+        }
+        Update: {
+          ab_test_id?: string | null
+          auto_pause_enabled?: boolean | null
+          auto_winner_select?: boolean | null
+          created_at?: string | null
+          created_by_system?: boolean | null
+          id?: string
+          status?: string | null
+          trigger_reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "auto_ab_tests_ab_test_id_fkey"
+            columns: ["ab_test_id"]
+            isOneToOne: false
+            referencedRelation: "ab_tests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       auto_schedule_preferences: {
         Row: {
           auto_fill_queue: boolean | null
@@ -1838,6 +1879,101 @@ export type Database = {
           },
         ]
       }
+      optimization_actions: {
+        Row: {
+          action_data: Json
+          action_type: string
+          created_at: string | null
+          executed_at: string | null
+          id: string
+          result: Json | null
+          rule_id: string | null
+          status: string | null
+          triggered_by: string | null
+          user_id: string
+        }
+        Insert: {
+          action_data: Json
+          action_type: string
+          created_at?: string | null
+          executed_at?: string | null
+          id?: string
+          result?: Json | null
+          rule_id?: string | null
+          status?: string | null
+          triggered_by?: string | null
+          user_id: string
+        }
+        Update: {
+          action_data?: Json
+          action_type?: string
+          created_at?: string | null
+          executed_at?: string | null
+          id?: string
+          result?: Json | null
+          rule_id?: string | null
+          status?: string | null
+          triggered_by?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "optimization_actions_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "optimization_rules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      optimization_rules: {
+        Row: {
+          action: Json
+          condition: Json
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          last_triggered: string | null
+          priority: number | null
+          rule_name: string
+          rule_type: string
+          success_count: number | null
+          trigger_count: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          action: Json
+          condition: Json
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_triggered?: string | null
+          priority?: number | null
+          rule_name: string
+          rule_type: string
+          success_count?: number | null
+          trigger_count?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          action?: Json
+          condition?: Json
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_triggered?: string | null
+          priority?: number | null
+          rule_name?: string
+          rule_type?: string
+          success_count?: number | null
+          trigger_count?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       performance_data: {
         Row: {
           conversions: number | null
@@ -1867,6 +2003,45 @@ export type Database = {
           engagement?: number | null
           id?: string
           reach?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      performance_monitoring: {
+        Row: {
+          alert_sent: boolean | null
+          baseline_value: number | null
+          id: string
+          metric_name: string
+          metric_value: number
+          monitored_at: string | null
+          status: string | null
+          threshold_max: number | null
+          threshold_min: number | null
+          user_id: string
+        }
+        Insert: {
+          alert_sent?: boolean | null
+          baseline_value?: number | null
+          id?: string
+          metric_name: string
+          metric_value: number
+          monitored_at?: string | null
+          status?: string | null
+          threshold_max?: number | null
+          threshold_min?: number | null
+          user_id: string
+        }
+        Update: {
+          alert_sent?: boolean | null
+          baseline_value?: number | null
+          id?: string
+          metric_name?: string
+          metric_value?: number
+          monitored_at?: string | null
+          status?: string | null
+          threshold_max?: number | null
+          threshold_min?: number | null
           user_id?: string
         }
         Relationships: []
@@ -2564,6 +2739,11 @@ export type Database = {
           user_value: number
         }[]
       }
+      evaluate_condition: {
+        Args: { p_condition: Json; p_hours: number; p_value: number }
+        Returns: boolean
+      }
+      execute_optimization_actions: { Args: never; Returns: number }
       find_next_optimal_slot: {
         Args: {
           p_after_time?: string
