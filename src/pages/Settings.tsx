@@ -15,13 +15,14 @@ import { Separator } from '@/components/ui/separator';
 import { 
   User, Palette, Link2, Bell, Settings as SettingsIcon, Shield, 
   CreditCard, Database, Info, Check, X, Loader2, Save, ArrowLeft,
-  Upload, Trash2, RefreshCw, ExternalLink, Download, AlertTriangle, Users
+  Upload, Trash2, RefreshCw, ExternalLink, Download, AlertTriangle, Users, Zap
 } from 'lucide-react';
 import { TeamManagement } from '@/components/auth/TeamManagement';
 import { ActivityLog } from '@/components/auth/ActivityLog';
 import { SessionManagement } from '@/components/auth/SessionManagement';
+import { DynamicOptimizationDashboard } from '@/components/DynamicOptimizationDashboard';
 
-type SettingsTab = 'profile' | 'brand' | 'connections' | 'notifications' | 'preferences' | 'security' | 'team' | 'billing' | 'data' | 'about';
+type SettingsTab = 'profile' | 'brand' | 'connections' | 'notifications' | 'preferences' | 'security' | 'team' | 'optimization' | 'billing' | 'data' | 'about';
 
 interface UserProfile {
   fullName: string;
@@ -222,6 +223,7 @@ const Settings: React.FC = () => {
     { id: 'preferences' as const, label: 'Preferences', icon: SettingsIcon },
     { id: 'security' as const, label: 'Security & Privacy', icon: Shield },
     { id: 'team' as const, label: 'Team', icon: Users },
+    { id: 'optimization' as const, label: 'Optimization', icon: Zap },
     { id: 'billing' as const, label: 'Billing', icon: CreditCard },
     { id: 'data' as const, label: 'Data & Export', icon: Database },
     { id: 'about' as const, label: 'About', icon: Info },
@@ -1317,6 +1319,16 @@ const Settings: React.FC = () => {
     </div>
   );
 
+  const renderOptimizationTab = () => (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-xl font-semibold text-foreground mb-1">Dynamic Optimization</h2>
+        <p className="text-sm text-muted-foreground">Configure automatic performance optimization rules</p>
+      </div>
+      <DynamicOptimizationDashboard />
+    </div>
+  );
+
   const renderContent = () => {
     switch (activeTab) {
       case 'profile': return renderProfileTab();
@@ -1326,6 +1338,7 @@ const Settings: React.FC = () => {
       case 'preferences': return renderPreferencesTab();
       case 'security': return renderSecurityTab();
       case 'team': return renderTeamTab();
+      case 'optimization': return renderOptimizationTab();
       case 'billing': return renderBillingTab();
       case 'data': return renderDataTab();
       case 'about': return renderAboutTab();
