@@ -157,21 +157,44 @@ export default function Scheduler() {
     recurrenceEndDate: '',
   });
 
+  // Check for draft content from Content AI page on mount
+  useEffect(() => {
+    const draftContent = localStorage.getItem('draft_content');
+    if (draftContent) {
+      setFormData(prev => ({
+        ...prev,
+        content: draftContent,
+        title: draftContent.slice(0, 50) + (draftContent.length > 50 ? '...' : ''),
+      }));
+      setShowCreateModal(true);
+      localStorage.removeItem('draft_content');
+      toast({
+        title: "Content imported",
+        description: "Your AI-generated content has been loaded. Select a platform and schedule time.",
+      });
+    }
+  }, []);
+
   // Reset form when modal opens/closes
   useEffect(() => {
     if (showCreateModal && !editingPost) {
-      setFormData({
-        platform: '',
-        content: '',
-        date: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
-        time: '09:00',
-        status: 'scheduled',
-        title: '',
-        isRecurring: false,
-        recurrence: 'weekly',
-        recurrenceDays: [],
-        recurrenceEndDate: '',
-      });
+      // Only reset if not coming from draft content
+      const draftContent = localStorage.getItem('draft_content');
+      if (!draftContent) {
+        setFormData(prev => ({
+          ...prev,
+          platform: prev.platform || '',
+          content: prev.content || '',
+          date: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
+          time: '09:00',
+          status: 'scheduled',
+          title: prev.title || '',
+          isRecurring: false,
+          recurrence: 'weekly',
+          recurrenceDays: [],
+          recurrenceEndDate: '',
+        }));
+      }
     } else if (editingPost) {
       const editDate = new Date(editingPost.scheduled_time);
       setFormData({
