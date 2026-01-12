@@ -142,6 +142,14 @@ interface CampaignData {
   goals?: Record<string, number>;
   budget?: number;
   objective?: string;
+  postsPerDay?: number;
+  contentTypes?: string[];
+  hashtags?: string;
+  targetImpressions?: number;
+  targetReach?: number;
+  targetEngagement?: number;
+  targetClicks?: number;
+  templateId?: string;
 }
 
 async function generateCampaignStrategy(userId: string, campaignData: CampaignData, supabase: any) {
@@ -149,7 +157,31 @@ async function generateCampaignStrategy(userId: string, campaignData: CampaignDa
   const { data: strategyData } = await supabase
     .rpc('get_campaign_strategy_data', {
       p_user_id: userId,
-      p_platform: 'all'
+      p_platform: campaignData.platforms?.[0] || 'all'
+    });
+  
+  // Get user's top performing content patterns
+  const { data: contentPatterns } = await supabase
+    .from('content_performance_patterns')
+    .select('*')
+    .eq('user_id', userId)
+    .order('avg_engagement_rate', { ascending: false })
+    .limit(10);
+  
+  // Get user's best performing hashtags
+  const { data: topHashtags } = await supabase
+    .rpc('get_top_performing_elements', {
+      p_user_id: userId,
+      p_element_type: 'hashtags',
+      p_limit: 10
+    });
+  
+  // Get optimal time slots
+  const { data: optimalSlots } = await supabase
+    .rpc('get_optimal_time_slots', {
+      p_user_id: userId,
+      p_platform: campaignData.platforms?.[0] || 'all',
+      p_limit: 5
     });
   
   const userData = strategyData?.[0] || {
@@ -165,57 +197,238 @@ async function generateCampaignStrategy(userId: string, campaignData: CampaignDa
   const endDate = new Date(campaignData.endDate);
   const duration = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
   
-  // Calculate posts based on duration
-  const postsPerDay = 1.5;
+  // Use user-specified posts per day or calculate based on campaign type
+  const postsPerDay = campaignData.postsPerDay || getPostsPerDayByObjective(campaignData.objective || 'awareness');
   const totalPosts = Math.ceil(duration * postsPerDay);
   
-  // Generate content themes based on objective
-  const themes = getContentThemes(campaignData.objective || 'awareness');
+  // Generate content themes based on objective AND content types selected
+  const themes = getContentThemesEnhanced(
+    campaignData.objective || 'awareness',
+    campaignData.contentTypes || ['images', 'text'],
+    campaignData.name
+  );
+  
+  // Build optimal days from user's actual performance data
+  const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const bestDays: string[] = optimalSlots?.length > 0
+    ? [...new Set(optimalSlots.slice(0, 5).map((s: any) => dayNames[s.day_of_week]))] as string[]
+    : ['Tuesday', 'Wednesday', 'Thursday'];
+  
+  // Determine best posting times from user data
+  const bestTimeSlots = optimalSlots?.slice(0, 3).map((s: any) => {
+    const hour = s.hour_of_day;
+    if (hour >= 6 && hour < 12) return 'morning';
+    if (hour >= 12 && hour < 17) return 'afternoon';
+    if (hour >= 17 && hour < 21) return 'evening';
+    return 'night';
+  }) || ['afternoon'];
+  const primaryTimeSlot = bestTimeSlots[0] || userData.best_posting_time;
+  
+  // Calculate budget-based recommendations
+  const hasBudget = (campaignData.budget || 0) > 0;
+  const budgetPerPost = hasBudget ? (campaignData.budget || 0) / totalPosts : 0;
+  
+  // Build personalized key tactics based on ALL user data
+  const keyTactics = generatePersonalizedTactics(
+    userData,
+    contentPatterns || [],
+    topHashtags || [],
+    campaignData,
+    primaryTimeSlot,
+    bestDays
+  );
+  
+  // Calculate expected results based on user's historical data and goals
+  const expectedMultiplier = userData.avg_engagement_rate / 2.5;
+  const targetImpressions = campaignData.targetImpressions || campaignData.goals?.impressions || 10000;
+  const targetEngagement = campaignData.targetEngagement || campaignData.goals?.engagement_rate || 3.5;
   
   // Build strategy
   const strategy = {
     overview: {
       campaignType: campaignData.objective || 'awareness',
+      campaignName: campaignData.name,
       duration: duration,
       totalPosts: totalPosts,
       postsPerWeek: Math.ceil(postsPerDay * 7),
-      platforms: campaignData.platforms || ['all']
+      platforms: campaignData.platforms || ['all'],
+      budget: campaignData.budget || 0,
+      budgetPerPost: Math.round(budgetPerPost * 100) / 100
     },
     
     contentStrategy: {
       recommendedType: userData.best_content_type,
       recommendedLength: userData.best_content_length,
+      selectedContentTypes: campaignData.contentTypes || ['images', 'text'],
       themes: themes,
-      postingFrequency: `${postsPerDay.toFixed(1)} posts per day`
+      postingFrequency: `${postsPerDay.toFixed(1)} posts per day`,
+      suggestedHashtags: topHashtags?.slice(0, 5).map((h: any) => h.element) || [],
+      userHashtags: campaignData.hashtags?.split(/[,\s]+/).filter(Boolean) || []
     },
     
     timingStrategy: {
-      bestTimeOfDay: userData.best_posting_time,
-      optimalDays: ['Tuesday', 'Wednesday', 'Thursday'],
-      avoidWeekends: userData.avg_engagement_rate < 3
+      bestTimeOfDay: primaryTimeSlot,
+      optimalDays: bestDays.slice(0, 4),
+      avoidWeekends: userData.avg_engagement_rate < 3,
+      specificHours: optimalSlots?.slice(0, 3).map((s: any) => `${s.hour_of_day}:00`) || [],
+      confidence: optimalSlots?.length >= 5 ? 'high' : optimalSlots?.length >= 2 ? 'medium' : 'low'
     },
     
-    weeklyBreakdown: generateWeeklyBreakdown(themes, duration, postsPerDay),
+    weeklyBreakdown: generateWeeklyBreakdownEnhanced(
+      themes, 
+      duration, 
+      postsPerDay,
+      campaignData.objective || 'awareness',
+      campaignData.platforms || []
+    ),
     
     expectedResults: {
-      estimatedImpressions: Math.round(totalPosts * 1000 * (userData.avg_engagement_rate / 2.5)),
-      estimatedEngagement: Math.round(totalPosts * 50 * (userData.avg_engagement_rate / 2.5)),
+      estimatedImpressions: Math.round(totalPosts * 1000 * expectedMultiplier),
+      estimatedEngagement: Math.round(totalPosts * 50 * expectedMultiplier),
       projectedEngagementRate: userData.avg_engagement_rate,
-      confidence: userData.total_posts_analyzed >= 20 ? 'high' : userData.total_posts_analyzed >= 10 ? 'medium' : 'low'
+      targetImpressions: targetImpressions,
+      targetEngagementRate: targetEngagement,
+      confidence: userData.total_posts_analyzed >= 20 ? 'high' : userData.total_posts_analyzed >= 10 ? 'medium' : 'low',
+      basedOnPosts: userData.total_posts_analyzed
     },
     
-    keyTactics: [
-      `Focus on ${userData.best_content_type} content (your best performer)`,
-      `Keep posts ${userData.best_content_length} length`,
-      `Post during ${userData.best_posting_time} for maximum engagement`,
-      'Include questions in 50% of posts to drive interaction',
-      'Use your top-performing hashtags consistently'
-    ],
+    keyTactics: keyTactics,
     
-    milestones: generateMilestones(duration, campaignData.goals || {})
+    milestones: generateMilestones(duration, {
+      impressions: targetImpressions,
+      engagement_rate: targetEngagement,
+      conversions: campaignData.targetClicks || campaignData.goals?.conversions || 50
+    }),
+    
+    platformSpecific: generatePlatformRecommendations(campaignData.platforms || [], contentPatterns || [])
   };
   
   return strategy;
+}
+
+function getPostsPerDayByObjective(objective: string): number {
+  const frequencyMap: Record<string, number> = {
+    awareness: 1.5,
+    engagement: 2.5,
+    conversions: 2,
+    traffic: 2,
+    leads: 1.5,
+    sales: 2.5,
+    event: 2
+  };
+  return frequencyMap[objective] || 1.5;
+}
+
+function generatePersonalizedTactics(
+  userData: any,
+  contentPatterns: any[],
+  topHashtags: any[],
+  campaignData: CampaignData,
+  primaryTimeSlot: string,
+  bestDays: string[]
+): string[] {
+  const tactics: string[] = [];
+  
+  // Content type recommendation
+  const bestContentPattern = contentPatterns.find(p => p.pattern_type === 'content_type');
+  if (bestContentPattern) {
+    tactics.push(`Focus on ${bestContentPattern.pattern_value} content - your engagement rate is ${bestContentPattern.avg_engagement_rate?.toFixed(1)}%`);
+  } else {
+    tactics.push(`Focus on ${userData.best_content_type} content (your best performer)`);
+  }
+  
+  // Length recommendation
+  const bestLengthPattern = contentPatterns.find(p => p.pattern_type === 'content_length');
+  if (bestLengthPattern) {
+    tactics.push(`Keep posts ${bestLengthPattern.pattern_value} length for optimal engagement`);
+  } else {
+    tactics.push(`Keep posts ${userData.best_content_length} length`);
+  }
+  
+  // Timing recommendation with specific data
+  if (bestDays.length > 0) {
+    tactics.push(`Post on ${bestDays.slice(0, 3).join(', ')} during ${primaryTimeSlot} for maximum reach`);
+  } else {
+    tactics.push(`Post during ${primaryTimeSlot} for maximum engagement`);
+  }
+  
+  // Question pattern recommendation
+  const questionPattern = contentPatterns.find(p => p.pattern_type === 'has_question' && p.pattern_value === 'yes');
+  if (questionPattern && questionPattern.avg_engagement_rate > userData.avg_engagement_rate) {
+    tactics.push(`Include questions - they get ${((questionPattern.avg_engagement_rate / userData.avg_engagement_rate - 1) * 100).toFixed(0)}% more engagement`);
+  } else {
+    tactics.push('Include questions in 50% of posts to drive interaction');
+  }
+  
+  // Hashtag recommendation
+  if (topHashtags.length > 0) {
+    tactics.push(`Use proven hashtags: ${topHashtags.slice(0, 3).map((h: any) => h.element).join(', ')}`);
+  } else if (campaignData.hashtags) {
+    tactics.push(`Use campaign hashtags: ${campaignData.hashtags}`);
+  }
+  
+  // Objective-specific tactics
+  const objectiveTactics = getObjectiveTactics(campaignData.objective || 'awareness');
+  tactics.push(...objectiveTactics.slice(0, 2));
+  
+  // Budget recommendation
+  if ((campaignData.budget || 0) > 0) {
+    tactics.push(`Allocate budget to boost top-performing posts for amplified reach`);
+  }
+  
+  return tactics.slice(0, 7);
+}
+
+function getObjectiveTactics(objective: string): string[] {
+  const tacticMap: Record<string, string[]> = {
+    awareness: ['Share behind-the-scenes content to humanize your brand', 'Collaborate with complementary accounts for cross-promotion'],
+    engagement: ['Run interactive polls and quizzes', 'Respond to comments within 1 hour to boost algorithm visibility'],
+    conversions: ['Include clear CTAs in every post', 'Use social proof and testimonials in carousel posts'],
+    traffic: ['Create curiosity gaps in captions that drive clicks', 'Use link stickers and bio links strategically'],
+    leads: ['Offer exclusive free resources', 'Showcase case studies and success stories'],
+    sales: ['Create urgency with limited-time offers', 'Feature customer reviews and unboxing content'],
+    event: ['Build countdown content leading to event', 'Feature speaker highlights and agenda teasers']
+  };
+  return tacticMap[objective] || tacticMap.awareness;
+}
+
+function generatePlatformRecommendations(platforms: string[], contentPatterns: any[]): Record<string, any> {
+  const recommendations: Record<string, any> = {};
+  
+  platforms.forEach(platform => {
+    const platformPatterns = contentPatterns.filter(p => p.platform === platform);
+    const bestPattern = platformPatterns.sort((a, b) => (b.avg_engagement_rate || 0) - (a.avg_engagement_rate || 0))[0];
+    
+    recommendations[platform] = {
+      bestContentType: bestPattern?.pattern_value || 'image',
+      recommendedFrequency: getPlatformFrequency(platform),
+      tips: getPlatformTips(platform)
+    };
+  });
+  
+  return recommendations;
+}
+
+function getPlatformFrequency(platform: string): string {
+  const freqMap: Record<string, string> = {
+    instagram: '1-2 posts/day, 5-7 stories',
+    facebook: '1-2 posts/day',
+    twitter: '3-5 tweets/day',
+    linkedin: '1 post/day',
+    tiktok: '1-3 videos/day'
+  };
+  return freqMap[platform] || '1-2 posts/day';
+}
+
+function getPlatformTips(platform: string): string[] {
+  const tipsMap: Record<string, string[]> = {
+    instagram: ['Use Reels for maximum reach', 'Carousels get highest saves', 'Engage with Stories polls'],
+    facebook: ['Video content gets priority', 'Share to relevant groups', 'Live videos boost engagement'],
+    twitter: ['Thread format for long content', 'Engage in trending conversations', 'Quote tweet with insights'],
+    linkedin: ['Native video preferred', 'Personal stories perform well', 'Tag relevant connections'],
+    tiktok: ['Hook viewers in first 2 seconds', 'Use trending sounds', 'Duet with related content']
+  };
+  return tipsMap[platform] || ['Optimize for platform algorithm', 'Engage with your community'];
 }
 
 function getContentThemes(objective: string): string[] {
@@ -230,6 +443,26 @@ function getContentThemes(objective: string): string[] {
   };
   
   return themeMap[objective] || themeMap.awareness;
+}
+
+function getContentThemesEnhanced(objective: string, contentTypes: string[], campaignName: string): string[] {
+  const baseThemes = getContentThemes(objective);
+  const enhancedThemes: string[] = [];
+  
+  // Add content type specific themes
+  if (contentTypes.includes('videos')) {
+    enhancedThemes.push('video_tutorials', 'behind_the_scenes_videos');
+  }
+  if (contentTypes.includes('carousels')) {
+    enhancedThemes.push('step_by_step_guides', 'before_after');
+  }
+  if (contentTypes.includes('images')) {
+    enhancedThemes.push('visual_quotes', 'product_showcase');
+  }
+  
+  // Mix base themes with enhanced ones
+  const allThemes = [...baseThemes, ...enhancedThemes];
+  return [...new Set(allThemes)].slice(0, 8);
 }
 
 function generateWeeklyBreakdown(themes: string[], durationDays: number, postsPerDay: number) {
@@ -249,6 +482,67 @@ function generateWeeklyBreakdown(themes: string[], durationDays: number, postsPe
   }
   
   return breakdown;
+}
+
+function generateWeeklyBreakdownEnhanced(
+  themes: string[], 
+  durationDays: number, 
+  postsPerDay: number,
+  objective: string,
+  platforms: string[]
+) {
+  const weeks = Math.ceil(durationDays / 7);
+  const breakdown = [];
+  
+  const phaseNames = getPhaseNamesByObjective(objective);
+  
+  for (let week = 1; week <= Math.min(weeks, 6); week++) {
+    const themeIndex = (week - 1) % themes.length;
+    const theme = themes[themeIndex] || 'general_content';
+    const phaseName = phaseNames[Math.min(week - 1, phaseNames.length - 1)];
+    
+    const weekObjectives = getEnhancedObjectives(theme, objective, week, weeks);
+    
+    breakdown.push({
+      week: week,
+      phase: phaseName,
+      focus: theme.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()),
+      postsPlanned: Math.ceil(postsPerDay * 7),
+      objectives: weekObjectives,
+      platforms: platforms,
+      milestoneCheck: week === Math.ceil(weeks / 2) || week === weeks
+    });
+  }
+  
+  return breakdown;
+}
+
+function getPhaseNamesByObjective(objective: string): string[] {
+  const phases: Record<string, string[]> = {
+    awareness: ['Launch & Introduce', 'Build Recognition', 'Expand Reach', 'Establish Presence', 'Maintain Visibility', 'Optimize & Grow'],
+    engagement: ['Warm Up', 'Activate Community', 'Deepen Interaction', 'Foster Loyalty', 'Celebrate Success', 'Sustain Momentum'],
+    conversions: ['Attract Attention', 'Build Interest', 'Create Desire', 'Drive Action', 'Convert & Close', 'Maximize ROI'],
+    traffic: ['Hook & Intrigue', 'Drive Curiosity', 'Amplify Clicks', 'Optimize Flow', 'Scale Traffic', 'Sustain Growth'],
+    leads: ['Attract Prospects', 'Nurture Interest', 'Qualify Leads', 'Convert Opportunities', 'Close & Follow Up', 'Optimize Pipeline'],
+    sales: ['Tease & Preview', 'Showcase Value', 'Build Urgency', 'Push to Purchase', 'Close Sales', 'Upsell & Retain'],
+    event: ['Announce & Excite', 'Build Anticipation', 'Drive Registrations', 'Final Push', 'Event Day', 'Post-Event Recap']
+  };
+  return phases[objective] || phases.awareness;
+}
+
+function getEnhancedObjectives(theme: string, objective: string, week: number, totalWeeks: number): string[] {
+  const baseObjectives = getThemeObjectives(theme);
+  
+  // Add week-specific objectives
+  if (week === 1) {
+    return [...baseObjectives, 'Set the tone for the campaign'];
+  } else if (week === Math.ceil(totalWeeks / 2)) {
+    return [...baseObjectives, 'Mid-campaign review and optimization'];
+  } else if (week === totalWeeks) {
+    return [...baseObjectives, 'Strong finish with clear CTA'];
+  }
+  
+  return baseObjectives;
 }
 
 function getThemeObjectives(theme: string): string[] {

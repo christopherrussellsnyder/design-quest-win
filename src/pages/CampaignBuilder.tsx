@@ -184,6 +184,7 @@ export default function CampaignBuilder() {
   const [saving, setSaving] = useState(false);
   const [generatingStrategy, setGeneratingStrategy] = useState(false);
   const [strategy, setStrategy] = useState<Strategy | null>(null);
+  const [loadingEdit, setLoadingEdit] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -214,6 +215,62 @@ export default function CampaignBuilder() {
       end_date: twoWeeksLater.toISOString().split('T')[0]
     }));
   }, []);
+
+  // Load campaign data if editing
+  useEffect(() => {
+    if (editId && user) {
+      loadCampaignForEdit();
+    }
+  }, [editId, user]);
+
+  const loadCampaignForEdit = async () => {
+    if (!editId || !user) return;
+    
+    setLoadingEdit(true);
+    try {
+      const { data: campaign, error } = await supabase
+        .from('campaigns')
+        .select('*')
+        .eq('id', editId)
+        .eq('user_id', user.id)
+        .single();
+
+      if (error) throw error;
+      
+      if (campaign) {
+        const goals = (campaign.goals as { impressions?: number; engagement_rate?: number; conversions?: number }) || {};
+        setFormData({
+          name: campaign.name || '',
+          description: campaign.description || '',
+          objective: campaign.objective || '',
+          start_date: campaign.start_date?.split('T')[0] || '',
+          end_date: campaign.end_date?.split('T')[0] || '',
+          total_budget: campaign.total_budget?.toString() || '',
+          color: '#8B5CF6',
+          platforms: campaign.platform ? [campaign.platform] : [],
+          target_impressions: goals.impressions?.toString() || '',
+          target_reach: '',
+          target_engagement: goals.engagement_rate?.toString() || '',
+          target_clicks: goals.conversions?.toString() || '',
+          posts_per_day: 2,
+          content_types: ['images', 'text'],
+          hashtags: '',
+          autoGenerateContent: false
+        });
+        setSelectedTemplate('scratch');
+        setCurrentStep(2); // Skip template selection when editing
+      }
+    } catch (error) {
+      console.error('Error loading campaign:', error);
+      toast({
+        title: 'Error',
+        description: 'Could not load campaign for editing',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoadingEdit(false);
+    }
+  };
 
   const handleTemplateSelect = (templateId: string) => {
     setSelectedTemplate(templateId);
@@ -280,6 +337,15 @@ export default function CampaignBuilder() {
             endDate: formData.end_date,
             platforms: formData.platforms,
             objective: formData.objective,
+            postsPerDay: formData.posts_per_day,
+            contentTypes: formData.content_types,
+            hashtags: formData.hashtags,
+            targetImpressions: parseInt(formData.target_impressions) || undefined,
+            targetReach: parseInt(formData.target_reach) || undefined,
+            targetEngagement: parseInt(formData.target_engagement) || undefined,
+            targetClicks: parseInt(formData.target_clicks) || undefined,
+            budget: parseFloat(formData.total_budget) || undefined,
+            templateId: selectedTemplate,
             goals: {
               impressions: parseInt(formData.target_impressions) || 10000,
               engagement_rate: parseFloat(formData.target_engagement) || 3.5,
@@ -295,7 +361,7 @@ export default function CampaignBuilder() {
         setStrategy(data.strategy);
         toast({
           title: 'Strategy Generated',
-          description: 'AI has created an optimized campaign strategy'
+          description: 'AI has created a personalized campaign strategy based on your data'
         });
       }
     } catch (error) {
@@ -311,14 +377,57 @@ export default function CampaignBuilder() {
   };
 
   const handleSaveDraft = async () => {
+    if (!user) return;
+    
     setSaving(true);
-    // Simulate save
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setSaving(false);
-    toast({
-      title: 'Draft Saved',
-      description: 'Your campaign draft has been saved'
-    });
+    try {
+      const campaignPayload = {
+        user_id: user.id,
+        name: formData.name || 'Untitled Campaign',
+        description: formData.description,
+        objective: formData.objective,
+        start_date: formData.start_date,
+        end_date: formData.end_date,
+        platform: formData.platforms[0] || 'all',
+        total_budget: parseFloat(formData.total_budget) || 0,
+        status: 'draft' as const,
+        goals: {
+          impressions: parseInt(formData.target_impressions) || 10000,
+          engagement_rate: parseFloat(formData.target_engagement) || 3.5,
+          conversions: parseInt(formData.target_clicks) || 50
+        }
+      };
+
+      if (editId) {
+        const { error } = await supabase
+          .from('campaigns')
+          .update(campaignPayload)
+          .eq('id', editId)
+          .eq('user_id', user.id);
+        
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('campaigns')
+          .insert(campaignPayload);
+        
+        if (error) throw error;
+      }
+
+      toast({
+        title: 'Draft Saved',
+        description: 'Your campaign draft has been saved'
+      });
+    } catch (error) {
+      console.error('Save error:', error);
+      toast({
+        title: 'Save Failed',
+        description: 'Could not save campaign draft',
+        variant: 'destructive'
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleLaunchCampaign = async () => {
@@ -333,47 +442,80 @@ export default function CampaignBuilder() {
 
     setSaving(true);
     try {
-      const { data, error } = await supabase.functions.invoke('campaign-intelligence', {
-        body: {
-          userId: user.id,
-          action: 'create_campaign',
-          campaignData: {
+      if (editId) {
+        // Update existing campaign
+        const { error } = await supabase
+          .from('campaigns')
+          .update({
             name: formData.name,
             description: formData.description,
-            startDate: formData.start_date,
-            endDate: formData.end_date,
-            platforms: formData.platforms,
+            objective: formData.objective,
+            start_date: formData.start_date,
+            end_date: formData.end_date,
+            platform: formData.platforms[0] || 'all',
+            total_budget: parseFloat(formData.total_budget) || 0,
+            status: 'active',
             goals: {
               impressions: parseInt(formData.target_impressions) || 10000,
               engagement_rate: parseFloat(formData.target_engagement) || 3.5,
               conversions: parseInt(formData.target_clicks) || 50
-            },
-            budget: parseFloat(formData.total_budget) || 0,
-            autoGenerateContent: formData.autoGenerateContent,
-            totalPosts: strategy?.overview?.totalPosts || 20
+            }
+          })
+          .eq('id', editId)
+          .eq('user_id', user.id);
+
+        if (error) throw error;
+
+        toast({
+          title: '✅ Campaign Updated!',
+          description: 'Your campaign changes have been saved'
+        });
+      } else {
+        // Create new campaign via edge function
+        const { data, error } = await supabase.functions.invoke('campaign-intelligence', {
+          body: {
+            userId: user.id,
+            action: 'create_campaign',
+            campaignData: {
+              name: formData.name,
+              description: formData.description,
+              startDate: formData.start_date,
+              endDate: formData.end_date,
+              platforms: formData.platforms,
+              objective: formData.objective,
+              goals: {
+                impressions: parseInt(formData.target_impressions) || 10000,
+                engagement_rate: parseFloat(formData.target_engagement) || 3.5,
+                conversions: parseInt(formData.target_clicks) || 50
+              },
+              budget: parseFloat(formData.total_budget) || 0,
+              autoGenerateContent: formData.autoGenerateContent,
+              totalPosts: strategy?.overview?.totalPosts || 20
+            }
           }
-        }
-      });
+        });
 
-      if (error) throw error;
+        if (error) throw error;
 
-      toast({
-        title: '🎉 Campaign Created!',
-        description: data?.message || 'Your campaign has been launched successfully'
-      });
+        toast({
+          title: '🎉 Campaign Launched!',
+          description: data?.message || 'Your campaign has been created successfully'
+        });
+      }
       
       navigate('/campaigns');
     } catch (error) {
-      console.error('Campaign creation error:', error);
+      console.error('Campaign save error:', error);
       toast({
-        title: 'Campaign Creation Failed',
-        description: 'Could not create campaign. Please try again.',
+        title: 'Error',
+        description: 'Could not save campaign. Please try again.',
         variant: 'destructive'
       });
     } finally {
       setSaving(false);
     }
   };
+
 
   const renderStepContent = () => {
     switch (currentStep) {
