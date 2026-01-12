@@ -105,7 +105,16 @@ const MediaLibrary: React.FC = () => {
   const [editorContrast, setEditorContrast] = useState(0);
   const [editorSaturation, setEditorSaturation] = useState(0);
   const [editorRotation, setEditorRotation] = useState(0);
+  const [editorFlipH, setEditorFlipH] = useState(false);
+  const [editorFlipV, setEditorFlipV] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState('none');
+  const [savingChanges, setSavingChanges] = useState(false);
+  
+  // Stock Images Modal
+  const [stockModalOpen, setStockModalOpen] = useState(false);
+  const [stockSearchQuery, setStockSearchQuery] = useState('');
+  const [stockImages, setStockImages] = useState<any[]>([]);
+  const [loadingStock, setLoadingStock] = useState(false);
   
   // Folder form state
   const [folderName, setFolderName] = useState('');
@@ -408,8 +417,160 @@ const MediaLibrary: React.FC = () => {
     setEditorContrast(0);
     setEditorSaturation(0);
     setEditorRotation(0);
+    setEditorFlipH(false);
+    setEditorFlipV(false);
     setSelectedFilter('none');
     setEditorModalOpen(true);
+  };
+
+  // Download media file
+  const handleDownload = async (item: MediaItem) => {
+    try {
+      toast.info('Starting download...');
+      
+      const response = await fetch(item.storage_url);
+      if (!response.ok) throw new Error('Failed to fetch file');
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = item.original_filename || item.filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      toast.success('Download started');
+    } catch (error) {
+      console.error('Download error:', error);
+      toast.error('Failed to download file');
+    }
+  };
+
+  // Save editor changes (applies CSS filters as metadata - for demo purposes)
+  const handleSaveEditorChanges = async () => {
+    if (!selectedMedia) return;
+    
+    setSavingChanges(true);
+    try {
+      // In a real app, you'd process the image server-side
+      // For now, we store the edit settings as metadata
+      const editSettings = {
+        brightness: editorBrightness,
+        contrast: editorContrast,
+        saturation: editorSaturation,
+        rotation: editorRotation,
+        flipH: editorFlipH,
+        flipV: editorFlipV,
+        filter: selectedFilter
+      };
+      
+      // Update media with description containing edit info
+      const { error } = await supabase
+        .from('media_library')
+        .update({ 
+          description: `Edited: ${JSON.stringify(editSettings)}`,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', selectedMedia.id);
+
+      if (error) throw error;
+
+      toast.success('Changes saved successfully');
+      setEditorModalOpen(false);
+      loadMedia();
+    } catch (error) {
+      console.error('Error saving changes:', error);
+      toast.error('Failed to save changes');
+    } finally {
+      setSavingChanges(false);
+    }
+  };
+
+  // Search stock images (using Picsum as a free placeholder - in production, use Unsplash/Pexels API)
+  const searchStockImages = async (query: string) => {
+    if (!query.trim()) {
+      setStockImages([]);
+      return;
+    }
+    
+    setLoadingStock(true);
+    try {
+      // Using Lorem Picsum for demo - in production, integrate with Unsplash or Pexels API
+      // This generates random images based on a seed from the search query
+      const images = Array.from({ length: 12 }, (_, i) => ({
+        id: `stock-${i}-${query}`,
+        url: `https://picsum.photos/seed/${encodeURIComponent(query)}${i}/400/300`,
+        downloadUrl: `https://picsum.photos/seed/${encodeURIComponent(query)}${i}/1920/1080`,
+        author: `Photographer ${i + 1}`,
+        description: `${query} - Stock image ${i + 1}`
+      }));
+      
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      setStockImages(images);
+    } catch (error) {
+      console.error('Stock search error:', error);
+      toast.error('Failed to search stock images');
+    } finally {
+      setLoadingStock(false);
+    }
+  };
+
+  // Import stock image to library
+  const handleImportStockImage = async (stockImage: any) => {
+    if (!user) return;
+    
+    try {
+      toast.info('Importing image...');
+      
+      // Fetch the image
+      const response = await fetch(stockImage.downloadUrl);
+      const blob = await response.blob();
+      
+      // Generate filename
+      const filename = `stock_${Date.now()}.jpg`;
+      const filePath = `${user.id}/${filename}`;
+      
+      // Upload to storage
+      const { error: uploadError } = await supabase.storage
+        .from('media')
+        .upload(filePath, blob, { contentType: 'image/jpeg' });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('media')
+        .getPublicUrl(filePath);
+
+      // Add to media library
+      const { error: dbError } = await supabase
+        .from('media_library')
+        .insert({
+          user_id: user.id,
+          filename: filename,
+          original_filename: filename,
+          file_type: 'image',
+          mime_type: 'image/jpeg',
+          file_size: blob.size,
+          storage_url: publicUrl,
+          title: stockImage.description,
+          tags: ['stock', 'imported'],
+          is_favorite: false,
+          times_used: 0
+        });
+
+      if (dbError) throw dbError;
+
+      toast.success('Image imported to library');
+      loadMedia();
+      setStockModalOpen(false);
+    } catch (error) {
+      console.error('Import error:', error);
+      toast.error('Failed to import image');
+    }
   };
 
   const getFileTypeIcon = (type: string) => {
@@ -446,9 +607,14 @@ const MediaLibrary: React.FC = () => {
       case 'warm': filters.push('hue-rotate(-30deg) saturate(120%)'); break;
     }
     
+    const transforms = [];
+    if (editorRotation !== 0) transforms.push(`rotate(${editorRotation}deg)`);
+    if (editorFlipH) transforms.push('scaleX(-1)');
+    if (editorFlipV) transforms.push('scaleY(-1)');
+    
     return {
       filter: filters.join(' ') || 'none',
-      transform: `rotate(${editorRotation}deg)`
+      transform: transforms.join(' ') || 'none'
     };
   };
 
@@ -530,6 +696,7 @@ const MediaLibrary: React.FC = () => {
             <Button 
               variant="outline"
               className="w-full border-slate-700 hover:bg-slate-800"
+              onClick={() => setStockModalOpen(true)}
             >
               <Camera className="w-4 h-4 mr-2" />
               Browse Stock Images
@@ -1123,7 +1290,11 @@ const MediaLibrary: React.FC = () => {
                         <Edit2 className="w-4 h-4 mr-2" /> Edit Image
                       </Button>
                     )}
-                    <Button variant="outline" className="w-full">
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => handleDownload(selectedMedia)}
+                    >
                       <Download className="w-4 h-4 mr-2" /> Download
                     </Button>
                     <Button 
@@ -1183,10 +1354,20 @@ const MediaLibrary: React.FC = () => {
                     >
                       <RotateCw className="w-4 h-4" />
                     </Button>
-                    <Button size="sm" variant="outline">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => setEditorFlipH(f => !f)}
+                      className={editorFlipH ? 'border-violet-500 bg-violet-500/20' : ''}
+                    >
                       <FlipHorizontal className="w-4 h-4" />
                     </Button>
-                    <Button size="sm" variant="outline">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => setEditorFlipV(f => !f)}
+                      className={editorFlipV ? 'border-violet-500 bg-violet-500/20' : ''}
+                    >
                       <FlipVertical className="w-4 h-4" />
                     </Button>
                   </div>
@@ -1268,13 +1449,27 @@ const MediaLibrary: React.FC = () => {
                       setEditorContrast(0);
                       setEditorSaturation(0);
                       setEditorRotation(0);
+                      setEditorFlipH(false);
+                      setEditorFlipV(false);
                       setSelectedFilter('none');
                     }}
                   >
                     Reset
                   </Button>
-                  <Button className="w-full bg-violet-600 hover:bg-violet-700">
-                    <Check className="w-4 h-4 mr-2" /> Save Changes
+                  <Button 
+                    className="w-full bg-violet-600 hover:bg-violet-700"
+                    onClick={handleSaveEditorChanges}
+                    disabled={savingChanges}
+                  >
+                    {savingChanges ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Check className="w-4 h-4 mr-2" /> Save Changes
+                      </>
+                    )}
                   </Button>
                 </div>
               </div>
@@ -1328,6 +1523,102 @@ const MediaLibrary: React.FC = () => {
               disabled={!folderName.trim()}
             >
               Create Folder
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Stock Images Modal */}
+      <Dialog open={stockModalOpen} onOpenChange={setStockModalOpen}>
+        <DialogContent className="max-w-4xl bg-slate-900 border-slate-800 max-h-[90vh]">
+          <DialogHeader>
+            <DialogTitle>Browse Stock Images</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Input
+                placeholder="Search for images (e.g., nature, business, technology)..."
+                value={stockSearchQuery}
+                onChange={(e) => setStockSearchQuery(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && searchStockImages(stockSearchQuery)}
+                className="pl-10 bg-slate-800 border-slate-700"
+              />
+              <Button 
+                size="sm"
+                className="absolute right-1 top-1/2 -translate-y-1/2 bg-violet-600 hover:bg-violet-700"
+                onClick={() => searchStockImages(stockSearchQuery)}
+                disabled={loadingStock}
+              >
+                {loadingStock ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Search'}
+              </Button>
+            </div>
+
+            {/* Quick Categories */}
+            <div className="flex flex-wrap gap-2">
+              {['Nature', 'Business', 'Technology', 'People', 'Abstract', 'Food', 'Travel'].map(cat => (
+                <Button
+                  key={cat}
+                  size="sm"
+                  variant="outline"
+                  className="border-slate-700 hover:bg-slate-800"
+                  onClick={() => {
+                    setStockSearchQuery(cat);
+                    searchStockImages(cat);
+                  }}
+                >
+                  {cat}
+                </Button>
+              ))}
+            </div>
+
+            {/* Results */}
+            <div className="max-h-[50vh] overflow-y-auto">
+              {loadingStock ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="w-8 h-8 animate-spin text-violet-500" />
+                </div>
+              ) : stockImages.length > 0 ? (
+                <div className="grid grid-cols-3 md:grid-cols-4 gap-3">
+                  {stockImages.map(img => (
+                    <div
+                      key={img.id}
+                      className="relative aspect-[4/3] rounded-lg overflow-hidden border border-slate-700 hover:border-violet-500 transition-colors cursor-pointer group"
+                      onClick={() => handleImportStockImage(img)}
+                    >
+                      <img
+                        src={img.url}
+                        alt={img.description}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <Button size="sm" className="bg-violet-600 hover:bg-violet-700">
+                          <Plus className="w-4 h-4 mr-1" /> Import
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : stockSearchQuery ? (
+                <div className="text-center py-12">
+                  <Image className="w-12 h-12 text-slate-600 mx-auto mb-3" />
+                  <p className="text-slate-400">No images found. Try a different search term.</p>
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <Camera className="w-12 h-12 text-slate-600 mx-auto mb-3" />
+                  <p className="text-slate-400">Search for stock images to import into your library</p>
+                  <p className="text-slate-500 text-sm mt-1">Try: "nature", "office", "technology"</p>
+                </div>
+              )}
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setStockModalOpen(false)}>
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>
