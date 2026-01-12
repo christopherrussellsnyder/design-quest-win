@@ -215,40 +215,157 @@ function identifyOpportunities(comparison: Array<{ metric: string; user_value: n
   
   const engagementMetric = comparison.find(m => m.metric === 'engagement_rate');
   
+  // Industry-specific base opportunities
+  const industryOpportunities: Record<string, Array<{
+    type: string;
+    title: string;
+    description: string;
+    actions: string[];
+    potentialImpact: string;
+  }>> = {
+    technology: [
+      {
+        type: 'content_strategy',
+        title: 'Technical Thought Leadership',
+        description: 'Technology audiences value in-depth technical content and industry insights',
+        actions: [
+          'Create technical deep-dive blog posts and threads',
+          'Share code snippets and development tips',
+          'Host or participate in tech discussions and AMAs',
+          'Create tutorial videos and how-to guides'
+        ],
+        potentialImpact: 'High'
+      },
+      {
+        type: 'engagement_focus',
+        title: 'Developer Community Building',
+        description: 'Tech communities respond well to authentic developer engagement',
+        actions: [
+          'Engage with open source projects',
+          'Share behind-the-scenes development updates',
+          'Participate in tech Twitter/LinkedIn discussions',
+          'Create developer-focused content series'
+        ],
+        potentialImpact: 'High'
+      }
+    ],
+    ecommerce: [
+      {
+        type: 'conversion_optimization',
+        title: 'Product-Focused Content Strategy',
+        description: 'E-commerce succeeds with visual product showcases and social proof',
+        actions: [
+          'Create high-quality product photography and videos',
+          'Share user-generated content and reviews',
+          'Implement shoppable posts where available',
+          'Run limited-time offers with countdown urgency'
+        ],
+        potentialImpact: 'High'
+      },
+      {
+        type: 'customer_engagement',
+        title: 'Customer Story Campaigns',
+        description: 'Showcase customer transformations and success stories',
+        actions: [
+          'Feature customer testimonials weekly',
+          'Create before/after content for products',
+          'Highlight customer unboxing experiences',
+          'Build a brand ambassador program'
+        ],
+        potentialImpact: 'Medium'
+      }
+    ],
+    saas: [
+      {
+        type: 'educational_content',
+        title: 'Educational Content Marketing',
+        description: 'SaaS audiences prefer educational and value-driven content',
+        actions: [
+          'Create detailed product tutorials and demos',
+          'Share industry reports and data insights',
+          'Host webinars and live Q&A sessions',
+          'Build a knowledge base and share excerpts'
+        ],
+        potentialImpact: 'High'
+      },
+      {
+        type: 'social_proof',
+        title: 'Case Study Showcases',
+        description: 'B2B buyers trust case studies and ROI demonstrations',
+        actions: [
+          'Publish monthly customer success stories',
+          'Share specific metrics and ROI examples',
+          'Create comparison content vs competitors',
+          'Feature integration partner spotlights'
+        ],
+        potentialImpact: 'High'
+      }
+    ],
+    marketing: [
+      {
+        type: 'visual_excellence',
+        title: 'Visual Content Mastery',
+        description: 'Marketing industry expects cutting-edge visual content',
+        actions: [
+          'Invest in premium graphic design and motion',
+          'Create Instagram-worthy branded content',
+          'Use trending formats like Reels and TikTok',
+          'Develop a consistent visual brand system'
+        ],
+        potentialImpact: 'High'
+      },
+      {
+        type: 'trend_leadership',
+        title: 'Trend Analysis & Insights',
+        description: 'Position as a go-to source for marketing trends',
+        actions: [
+          'Share weekly marketing trend updates',
+          'Analyze viral campaigns and their success factors',
+          'Create original research and reports',
+          'Offer predictions and forward-looking insights'
+        ],
+        potentialImpact: 'Medium'
+      }
+    ]
+  };
+  
+  // Add strength-based opportunity if user performs above average
   if (engagementMetric && engagementMetric.status === 'above') {
     opportunities.push({
       type: 'leverage_strength',
       title: 'Strong Engagement - Capitalize on it',
-      description: `Your ${engagementMetric.user_value}% engagement is ${Math.round((engagementMetric.user_value / engagementMetric.industry_avg - 1) * 100)}% above industry average`,
+      description: `Your ${engagementMetric.user_value.toFixed(1)}% engagement is ${Math.round((engagementMetric.user_value / engagementMetric.industry_avg - 1) * 100)}% above ${industry} industry average`,
       actions: [
         'Increase posting frequency to maximize reach',
-        'Repurpose top-performing content',
+        'Repurpose top-performing content across platforms',
+        'Create content series based on what works',
         'Cross-promote on other platforms'
       ],
       potentialImpact: 'High'
     });
   }
   
-  opportunities.push({
-    type: 'content_gap',
-    title: 'Underutilized Content Types',
-    description: `Industry data shows video content gets 40% more engagement in ${industry}`,
-    actions: [
-      'Create short-form videos (15-30 seconds)',
-      'Repurpose blog content into video',
-      'Use trending audio/music'
-    ],
-    potentialImpact: 'High'
-  });
+  // Add industry-specific opportunities
+  const industrySpecific = industryOpportunities[industry] || industryOpportunities['technology'];
+  opportunities.push(...industrySpecific);
+  
+  // Add timing optimization specific to industry
+  const timingDescriptions: Record<string, string> = {
+    technology: 'Tech audiences are most active during weekday mornings and late evenings',
+    ecommerce: 'Shoppers browse most during lunch breaks and evening hours',
+    saas: 'B2B decision makers engage most on Tuesday-Thursday mornings',
+    marketing: 'Marketing professionals are active across various peak social hours'
+  };
   
   opportunities.push({
     type: 'timing_optimization',
-    title: 'Posting Time Optimization',
-    description: 'Competitors in your industry see 25% better engagement at specific times',
+    title: 'Optimal Posting Times',
+    description: timingDescriptions[industry] || 'Optimize your posting schedule for maximum engagement',
     actions: [
-      'Analyze competitor posting patterns',
-      'Test morning vs afternoon posting',
-      'Use auto-scheduling for optimal times'
+      'Analyze your audience activity patterns',
+      'Use ML-powered optimal time predictions',
+      'Test different posting windows',
+      'Enable auto-scheduling for best times'
     ],
     potentialImpact: 'Medium'
   });
