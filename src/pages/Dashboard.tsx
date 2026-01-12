@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Sparkles, TrendingUp, Users, Mail, Target, Zap, ChevronDown, Play, Pause, Settings, Bell, Search, Plus, ArrowUpRight, ArrowDownRight, LayoutDashboard, FileText, Send, Megaphone, Calendar, ChevronRight, Image, Type, Video, Wand2, Copy, RefreshCw, Check, Filter, Download, Eye, MousePointer, DollarSign, ChevronLeft, BarChart3, LogOut, X, Save, Star, Trash2, Globe, TrendingDown, AlertCircle, Lightbulb, Clock, Library } from 'lucide-react';
+import { Sparkles, TrendingUp, Users, Mail, Target, Zap, ChevronDown, Play, Pause, Settings, Bell, Search, Plus, ArrowUpRight, ArrowDownRight, LayoutDashboard, FileText, Send, Megaphone, Calendar, ChevronRight, Image, Type, Video, Wand2, Copy, RefreshCw, Check, Filter, Download, Eye, MousePointer, DollarSign, ChevronLeft, BarChart3, LogOut, X, Save, Star, Trash2, Globe, TrendingDown, AlertCircle, Lightbulb, Clock, Library, HelpCircle, Menu } from 'lucide-react';
 import SearchBar from '@/components/dashboard/SearchBar';
 import NotificationsDropdown from '@/components/dashboard/NotificationsDropdown';
 import AISuggestionsModal from '@/components/dashboard/AISuggestionsModal';
@@ -68,6 +68,7 @@ export default function Dashboard() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showAISuggestionsModal, setShowAISuggestionsModal] = useState(false);
   const [contentType, setContentType] = useState('text');
   const [generating, setGenerating] = useState(false);
@@ -834,13 +835,15 @@ export default function Dashboard() {
 
   const navItems = [
     { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-    { id: 'campaigns', icon: Megaphone, label: 'Campaign Builder' },
-    { id: 'content', icon: FileText, label: 'Content AI', href: '/content-ai' },
-    { id: 'library', icon: Library, label: 'Content Library', href: '/content-library' },
-    { id: 'audience', icon: Users, label: 'Audience' },
-    { id: 'analytics', icon: BarChart3, label: 'Analytics' },
     { id: 'scheduler', icon: Calendar, label: 'Scheduler', href: '/scheduler' },
-    { id: 'settings', icon: Settings, label: 'Settings' },
+    { id: 'campaigns', icon: Megaphone, label: 'Campaigns', href: '/campaigns' },
+    { id: 'analytics', icon: BarChart3, label: 'Analytics', href: '/analytics' },
+    { id: 'abtesting', icon: Target, label: 'A/B Testing', href: '/ab-testing' },
+    { id: 'audience', icon: Users, label: 'Audience', href: '/audience' },
+    { id: 'content', icon: FileText, label: 'Content AI', href: '/content-ai' },
+    { id: 'media', icon: Image, label: 'Media Library', href: '/media-library' },
+    { id: 'aianalytics', icon: Sparkles, label: 'AI Analytics', href: '/ai-analytics' },
+    { id: 'help', icon: HelpCircle, label: 'Help', href: '/help' },
   ];
 
   const handleGenerate = () => {
@@ -2436,23 +2439,50 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-white flex">
+      {/* Mobile Overlay */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <div className="w-64 bg-slate-900/50 border-r border-slate-800 p-4 flex flex-col">
-        <div className="flex items-center gap-3 mb-8 px-2">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center">
-            <Sparkles className="w-5 h-5" />
+      <div className={`
+        fixed lg:static inset-y-0 left-0 z-50 w-64 bg-slate-900/95 lg:bg-slate-900/50 border-r border-slate-800 p-4 flex flex-col
+        transform transition-transform duration-300 ease-in-out
+        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+      `}>
+        <div className="flex items-center justify-between mb-8 px-2">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center">
+              <Sparkles className="w-5 h-5" />
+            </div>
+            <span className="font-semibold text-lg">MarketAI</span>
           </div>
-          <span className="font-semibold text-lg">MarketAI</span>
+          <button 
+            onClick={() => setSidebarOpen(false)} 
+            className="lg:hidden p-2 rounded-lg hover:bg-slate-800"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
         
-        <nav className="flex-1 space-y-1">
+        <nav className="flex-1 space-y-1 overflow-y-auto">
           {navItems.map(item => {
             const Icon = item.icon;
             const isActive = item.href ? false : activeTab === item.id;
             return (
               <button
                 key={item.id}
-                onClick={() => item.href ? navigate(item.href) : setActiveTab(item.id)}
+                onClick={() => {
+                  if (item.href) {
+                    navigate(item.href);
+                  } else {
+                    setActiveTab(item.id);
+                  }
+                  setSidebarOpen(false);
+                }}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
                   isActive 
                     ? 'bg-gradient-to-r from-violet-500/20 to-fuchsia-500/20 text-white border border-violet-500/30' 
@@ -2482,13 +2512,22 @@ export default function Dashboard() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-w-0">
         {/* Header */}
-        <header className="h-16 border-b border-slate-800 flex items-center justify-between px-6">
+        <header className="h-16 border-b border-slate-800 flex items-center justify-between px-4 lg:px-6">
           <div className="flex items-center gap-4">
-            <SearchBar />
+            {/* Mobile Menu Button */}
+            <button 
+              onClick={() => setSidebarOpen(true)}
+              className="lg:hidden p-2 rounded-lg hover:bg-slate-800 transition-colors"
+            >
+              <Menu className="w-5 h-5 text-slate-400" />
+            </button>
+            <div className="hidden sm:block">
+              <SearchBar />
+            </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <NotificationsDropdown />
             <button 
               onClick={() => navigate('/settings')}
@@ -2497,8 +2536,8 @@ export default function Dashboard() {
             >
               <Settings className="w-5 h-5 text-slate-400 hover:text-slate-200" />
             </button>
-            <div className="flex items-center gap-3 ml-2 pl-3 border-l border-slate-700">
-              <div className="text-right">
+            <div className="flex items-center gap-2 sm:gap-3 ml-2 pl-2 sm:pl-3 border-l border-slate-700">
+              <div className="text-right hidden sm:block">
                 <div className="text-sm text-slate-400">{user?.email}</div>
               </div>
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center font-semibold">
@@ -5133,6 +5172,43 @@ export default function Dashboard() {
             </div>
           )}
         </main>
+
+        {/* Footer */}
+        <footer className="border-t border-slate-800 py-4 px-6 mt-auto">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-4 text-sm text-slate-400">
+              <span>© {new Date().getFullYear()} MarketAI</span>
+            </div>
+            <div className="flex items-center gap-4 text-sm">
+              <button 
+                onClick={() => navigate('/help')}
+                className="text-slate-400 hover:text-white transition-colors"
+              >
+                Help & Support
+              </button>
+              <a 
+                href="https://docs.lovable.dev" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-slate-400 hover:text-white transition-colors"
+              >
+                Documentation
+              </a>
+              <button 
+                onClick={() => navigate('/settings')}
+                className="text-slate-400 hover:text-white transition-colors"
+              >
+                Terms
+              </button>
+              <button 
+                onClick={() => navigate('/settings')}
+                className="text-slate-400 hover:text-white transition-colors"
+              >
+                Privacy
+              </button>
+            </div>
+          </div>
+        </footer>
       </div>
       
       {/* Campaign Details Modal */}
