@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Brain, TrendingUp, Zap, BarChart3, RefreshCw, CheckCircle } from 'lucide-react';
+import { Brain, TrendingUp, Zap, BarChart3, RefreshCw, CheckCircle, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface MLModel {
   id: string;
@@ -40,12 +41,31 @@ export function MLModelDashboard() {
   const [predictions, setPredictions] = useState<Predictions | null>(null);
   const [training, setTraining] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [postCount, setPostCount] = useState<number | null>(null);
+  const [trainingProgress, setTrainingProgress] = useState(0);
   
   useEffect(() => {
     if (user) {
       loadModel();
+      loadPostCount();
     }
   }, [user]);
+  
+  const loadPostCount = async () => {
+    if (!user) return;
+    try {
+      const { count } = await supabase
+        .from('scheduled_posts')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('status', 'published')
+        .not('impressions', 'is', null)
+        .gt('impressions', 0);
+      setPostCount(count || 0);
+    } catch (error) {
+      console.error('Failed to load post count:', error);
+    }
+  };
   
   const loadModel = async () => {
     if (!user) return;
@@ -86,11 +106,28 @@ export function MLModelDashboard() {
   
   const trainNewModel = async () => {
     if (!user) return;
+    
+    // Check if enough posts
+    if (postCount !== null && postCount < 30) {
+      toast.error(`Need at least 30 published posts with engagement data. You have ${postCount}.`);
+      return;
+    }
+    
     setTraining(true);
+    setTrainingProgress(0);
+    
+    // Simulate progress
+    const progressInterval = setInterval(() => {
+      setTrainingProgress(prev => Math.min(prev + 10, 90));
+    }, 500);
+    
     try {
       const { data } = await supabase.functions.invoke('ml-model-training', {
         body: { userId: user.id, action: 'train_model' }
       });
+      
+      clearInterval(progressInterval);
+      setTrainingProgress(100);
       
       if (data?.success) {
         toast.success('ML model trained successfully!');
@@ -100,9 +137,11 @@ export function MLModelDashboard() {
         toast.error(data?.message || 'Failed to train model');
       }
     } catch (error) {
+      clearInterval(progressInterval);
       toast.error('Training failed: ' + (error as Error).message);
     } finally {
       setTraining(false);
+      setTrainingProgress(0);
     }
   };
   
@@ -158,6 +197,16 @@ export function MLModelDashboard() {
         </CardHeader>
         
         <CardContent>
+          {training && (
+            <div className="mb-4">
+              <div className="flex justify-between text-sm mb-2">
+                <span className="text-muted-foreground">Training progress</span>
+                <span className="text-foreground">{trainingProgress}%</span>
+              </div>
+              <Progress value={trainingProgress} className="h-2" />
+            </div>
+          )}
+          
           {model ? (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="bg-muted/50 rounded-lg p-4 text-center">
@@ -184,9 +233,35 @@ export function MLModelDashboard() {
               <p className="text-muted-foreground mb-4 max-w-md mx-auto">
                 Train a machine learning model to get AI-powered posting time predictions based on your historical performance.
               </p>
-              <p className="text-sm text-muted-foreground">
-                Requires at least 10 published posts with engagement data
-              </p>
+              
+              {postCount !== null && postCount < 30 ? (
+                <Alert variant="destructive" className="max-w-md mx-auto">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    Need 30+ published posts with engagement data to train model. You have {postCount}.
+                  </AlertDescription>
+                </Alert>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  Requires at least 30 published posts with engagement data
+                </p>
+              )}
+              
+              {postCount !== null && postCount >= 30 && (
+                <Button onClick={trainNewModel} disabled={training} className="mt-4 gap-2">
+                  {training ? (
+                    <>
+                      <RefreshCw className="h-4 w-4 animate-spin" />
+                      Training...
+                    </>
+                  ) : (
+                    <>
+                      <Zap className="h-4 w-4" />
+                      Train Model
+                    </>
+                  )}
+                </Button>
+              )}
             </div>
           )}
         </CardContent>

@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,7 +9,7 @@ import {
   ArrowLeft, Eye, Radio, MessageCircle, Heart, Users, TrendingUp, TrendingDown,
   Download, RefreshCw, Calendar, Filter, BarChart3, PieChart, Clock, Hash,
   Lightbulb, Trophy, Target, Zap, AlertTriangle, ChevronDown, ChevronUp,
-  Facebook, Instagram, Twitter, Linkedin
+  Facebook, Instagram, Twitter, Linkedin, Loader2, Check
 } from "lucide-react";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -21,6 +21,7 @@ import { AnalyticsInsights } from "@/components/AnalyticsInsights";
 import { PatternInsights } from "@/components/PatternInsights";
 import { CompetitorBenchmarking } from "@/components/CompetitorBenchmarking";
 import { MLModelDashboard } from "@/components/MLModelDashboard";
+import { toast } from "sonner";
 
 // Mock data generation
 const generateMockData = (days: number) => {
@@ -97,6 +98,9 @@ const Analytics = () => {
   const [aiAnalytics, setAiAnalytics] = useState<any>(null);
   const [loadingAi, setLoadingAi] = useState(false);
   const [selectedIndustry, setSelectedIndustry] = useState('technology');
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
 
   const chartData = useMemo(() => generateMockData(parseInt(dateRange)), [dateRange]);
 
@@ -130,6 +134,92 @@ const Analytics = () => {
       setLoadingAi(false);
     }
   };
+
+  // Handle refresh
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      await loadAiAnalytics();
+      setLastRefresh(new Date());
+      toast.success('Analytics refreshed successfully');
+    } catch (error) {
+      toast.error('Failed to refresh analytics');
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [user?.id, dateRange, selectedPlatform]);
+
+  // Handle export
+  const handleExport = useCallback(async () => {
+    setIsExporting(true);
+    toast.info('Generating export...');
+    
+    try {
+      // Gather all analytics data
+      const days = parseInt(dateRange);
+      const dateFrom = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+      const dateTo = new Date();
+      
+      // Create CSV content
+      const headers = ['Date', 'Impressions', 'Reach', 'Engagement', 'Clicks', 'Engagement Rate'];
+      const rows = chartData.map(row => [
+        row.date,
+        row.impressions,
+        row.reach,
+        row.engagement,
+        row.clicks,
+        ((row.engagement / row.impressions) * 100).toFixed(2) + '%'
+      ]);
+      
+      // Add summary section
+      const totals = chartData.reduce((acc, day) => ({
+        impressions: acc.impressions + day.impressions,
+        reach: acc.reach + day.reach,
+        engagement: acc.engagement + day.engagement,
+        clicks: acc.clicks + day.clicks,
+      }), { impressions: 0, reach: 0, engagement: 0, clicks: 0 });
+      
+      let csvContent = 'Analytics Export\n';
+      csvContent += `Date Range: ${dateFrom.toLocaleDateString()} - ${dateTo.toLocaleDateString()}\n`;
+      csvContent += `Platform: ${selectedPlatform === 'all' ? 'All Platforms' : selectedPlatform}\n\n`;
+      
+      csvContent += 'SUMMARY\n';
+      csvContent += `Total Impressions,${totals.impressions}\n`;
+      csvContent += `Total Reach,${totals.reach}\n`;
+      csvContent += `Total Engagement,${totals.engagement}\n`;
+      csvContent += `Total Clicks,${totals.clicks}\n`;
+      csvContent += `Average Engagement Rate,${((totals.engagement / totals.impressions) * 100).toFixed(2)}%\n\n`;
+      
+      csvContent += 'DAILY BREAKDOWN\n';
+      csvContent += headers.join(',') + '\n';
+      csvContent += rows.map(row => row.join(',')).join('\n');
+      
+      // Add platform performance
+      csvContent += '\n\nPLATFORM PERFORMANCE\n';
+      csvContent += 'Platform,Posts,Engagement Rate,Reach\n';
+      platformData.forEach(p => {
+        csvContent += `${p.name},${p.posts},${p.engagement}%,${p.reach}\n`;
+      });
+      
+      // Download file
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `analytics-export-${dateFrom.toISOString().split('T')[0]}-to-${dateTo.toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      toast.success('Export downloaded successfully');
+    } catch (error) {
+      console.error('Export failed:', error);
+      toast.error('Failed to export analytics');
+    } finally {
+      setIsExporting(false);
+    }
+  }, [chartData, dateRange, selectedPlatform]);
 
   // Calculate totals
   const totals = useMemo(() => {
@@ -207,13 +297,35 @@ const Analytics = () => {
                   <SelectItem value="tiktok">TikTok</SelectItem>
                 </SelectContent>
               </Select>
-              <Button variant="outline" size="sm" className="border-border">
-                <Download className="w-4 h-4 mr-2" />
-                Export
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="border-border"
+                onClick={handleExport}
+                disabled={isExporting}
+              >
+                {isExporting ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Download className="w-4 h-4 mr-2" />
+                )}
+                {isExporting ? 'Exporting...' : 'Export'}
               </Button>
-              <Button variant="ghost" size="icon">
-                <RefreshCw className="w-4 h-4" />
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={handleRefresh}
+                  disabled={isRefreshing}
+                >
+                  <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                </Button>
+                {lastRefresh && (
+                  <span className="text-xs text-muted-foreground">
+                    {lastRefresh.toLocaleTimeString()}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         </div>

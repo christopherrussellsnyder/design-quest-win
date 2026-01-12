@@ -97,6 +97,65 @@ serve(async (req) => {
       );
     }
     
+    if (action === 'pause_test') {
+      const { error } = await supabase
+        .from('ab_tests')
+        .update({
+          status: 'paused'
+        })
+        .eq('id', testId);
+      
+      if (error) throw error;
+      
+      return new Response(
+        JSON.stringify({ success: true, message: 'Test paused' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    if (action === 'resume_test') {
+      const { error } = await supabase
+        .from('ab_tests')
+        .update({
+          status: 'running'
+        })
+        .eq('id', testId);
+      
+      if (error) throw error;
+      
+      return new Response(
+        JSON.stringify({ success: true, message: 'Test resumed' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    if (action === 'delete_test') {
+      // Delete associated variants first
+      await supabase
+        .from('ab_test_variants')
+        .delete()
+        .eq('ab_test_id', testId);
+      
+      // Delete associated results
+      await supabase
+        .from('ab_test_results')
+        .delete()
+        .eq('ab_test_id', testId);
+      
+      // Delete the test
+      const { error } = await supabase
+        .from('ab_tests')
+        .delete()
+        .eq('id', testId);
+      
+      if (error) throw error;
+      
+      return new Response(
+        JSON.stringify({ success: true, message: 'Test deleted' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
     if (action === 'get_results') {
       const { data: test } = await supabase
         .from('ab_tests')

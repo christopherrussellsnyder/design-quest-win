@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Beaker, Plus, Play, BarChart3 } from 'lucide-react';
+import { Beaker, Plus, Play, BarChart3, Pause, Trash2, MoreVertical, PlayCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -7,6 +7,23 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { ABTestBuilder } from '@/components/ABTestBuilder';
 import { ABTestResults } from '@/components/ABTestResults';
 
@@ -39,6 +56,7 @@ export default function ABTestingPage() {
   const [loading, setLoading] = useState(true);
   const [showBuilder, setShowBuilder] = useState(false);
   const [selectedTest, setSelectedTest] = useState<string | null>(null);
+  const [deleteTestId, setDeleteTestId] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -72,6 +90,46 @@ export default function ABTestingPage() {
       loadTests();
     } catch (error) {
       toast.error('Failed to start test');
+    }
+  };
+
+  const pauseTest = async (testId: string) => {
+    try {
+      const { error } = await supabase.functions.invoke('ab-testing', {
+        body: { action: 'pause_test', testId }
+      });
+      if (error) throw error;
+      toast.success('Test paused');
+      loadTests();
+    } catch (error) {
+      toast.error('Failed to pause test');
+    }
+  };
+
+  const resumeTest = async (testId: string) => {
+    try {
+      const { error } = await supabase.functions.invoke('ab-testing', {
+        body: { action: 'resume_test', testId }
+      });
+      if (error) throw error;
+      toast.success('Test resumed');
+      loadTests();
+    } catch (error) {
+      toast.error('Failed to resume test');
+    }
+  };
+
+  const deleteTest = async (testId: string) => {
+    try {
+      const { error } = await supabase.functions.invoke('ab-testing', {
+        body: { action: 'delete_test', testId }
+      });
+      if (error) throw error;
+      toast.success('Test deleted');
+      setDeleteTestId(null);
+      loadTests();
+    } catch (error) {
+      toast.error('Failed to delete test');
     }
   };
 
@@ -125,6 +183,28 @@ export default function ABTestingPage() {
         </Dialog>
       </div>
 
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteTestId} onOpenChange={(open) => !open && setDeleteTestId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure you want to delete this test?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the A/B test
+              and all associated variants and results.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteTestId && deleteTest(deleteTestId)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {loading ? (
         <div className="grid gap-4 md:grid-cols-2">
           {[1, 2, 3, 4].map(i => (
@@ -155,18 +235,62 @@ export default function ABTestingPage() {
             const progress = Math.min((totalPosts / targetPosts) * 100, 100);
 
             return (
-              <Card key={test.id} className="hover:border-primary/50 transition-colors cursor-pointer" onClick={() => setSelectedTest(test.id)}>
+              <Card key={test.id} className="hover:border-primary/50 transition-colors">
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
-                    <div>
+                    <div 
+                      className="flex-1 cursor-pointer"
+                      onClick={() => setSelectedTest(test.id)}
+                    >
                       <CardTitle className="text-lg">{test.name}</CardTitle>
                       <p className="text-muted-foreground text-sm mt-1">
                         Testing: {test.variable_being_tested}
                       </p>
                     </div>
-                    <Badge variant="outline" className={`${getStatusColor(test.status)} bg-opacity-20`}>
-                      {test.status}
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className={`${getStatusColor(test.status)} bg-opacity-20`}>
+                        {test.status}
+                      </Badge>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => setSelectedTest(test.id)}>
+                            <BarChart3 className="w-4 h-4 mr-2" />
+                            View Results
+                          </DropdownMenuItem>
+                          {test.status === 'draft' && (
+                            <DropdownMenuItem onClick={() => startTest(test.id)}>
+                              <Play className="w-4 h-4 mr-2" />
+                              Start Test
+                            </DropdownMenuItem>
+                          )}
+                          {test.status === 'running' && (
+                            <DropdownMenuItem onClick={() => pauseTest(test.id)}>
+                              <Pause className="w-4 h-4 mr-2" />
+                              Pause Test
+                            </DropdownMenuItem>
+                          )}
+                          {test.status === 'paused' && (
+                            <DropdownMenuItem onClick={() => resumeTest(test.id)}>
+                              <PlayCircle className="w-4 h-4 mr-2" />
+                              Resume Test
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem 
+                            onClick={() => setDeleteTestId(test.id)}
+                            className="text-destructive focus:text-destructive"
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Delete Test
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -192,6 +316,25 @@ export default function ABTestingPage() {
                       >
                         <Play className="w-3 h-3 mr-1" />
                         Start
+                      </Button>
+                    )}
+                    {test.status === 'running' && (
+                      <Button 
+                        size="sm"
+                        variant="outline"
+                        onClick={(e) => { e.stopPropagation(); pauseTest(test.id); }}
+                      >
+                        <Pause className="w-3 h-3 mr-1" />
+                        Pause
+                      </Button>
+                    )}
+                    {test.status === 'paused' && (
+                      <Button 
+                        size="sm"
+                        onClick={(e) => { e.stopPropagation(); resumeTest(test.id); }}
+                      >
+                        <PlayCircle className="w-3 h-3 mr-1" />
+                        Resume
                       </Button>
                     )}
                     <Button 
