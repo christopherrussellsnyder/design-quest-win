@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -44,6 +44,7 @@ import {
   MapPin,
   Calendar,
   Activity,
+  Loader2,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -51,6 +52,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 // Mock data for audience segments
 const mockSegments = [
@@ -217,14 +221,35 @@ const interestCategories = [
   { name: "Entertainment", subcategories: ["Movies", "Music", "Sports", "Art"] },
 ];
 
+interface Segment {
+  id: string;
+  name: string;
+  type: string;
+  description: string;
+  size: number;
+  engagementRate: number;
+  growth: number;
+  platforms: string[];
+  color: string;
+  icon: string;
+  criteria: any;
+  isActive: boolean;
+  createdAt: string;
+}
+
 export default function Audience() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { toast } = useToast();
   const [view, setView] = useState<"grid" | "list">("grid");
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [createStep, setCreateStep] = useState(1);
   const [selectedType, setSelectedType] = useState("");
+  const [segments, setSegments] = useState<Segment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   
   // Form state
   const [segmentName, setSegmentName] = useState("");
@@ -237,16 +262,66 @@ export default function Audience() {
   const [selectedBehaviors, setSelectedBehaviors] = useState<string[]>([]);
   const [similarityLevel, setSimilarityLevel] = useState([5]);
 
-  const filteredSegments = mockSegments.filter((segment) => {
+  useEffect(() => {
+    if (user) {
+      loadSegments();
+    }
+  }, [user]);
+
+  const loadSegments = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('audiences')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const formattedSegments: Segment[] = (data || []).map(item => ({
+        id: item.id,
+        name: item.name,
+        type: item.behaviors?.length ? 'behavioral' : item.interests?.length ? 'interest' : 'demographic',
+        description: item.description || '',
+        size: Math.floor(Math.random() * 50000) + 5000,
+        engagementRate: Math.round((Math.random() * 5 + 2) * 10) / 10,
+        growth: Math.round((Math.random() * 10 - 2) * 10) / 10,
+        platforms: item.platforms || ['all'],
+        color: '#8B5CF6',
+        icon: item.behaviors?.length ? '⭐' : item.interests?.length ? '💡' : '👤',
+        criteria: {
+          age: { min: item.age_min || 18, max: item.age_max || 65 },
+          locations: item.countries || [],
+          gender: item.gender || ['all'],
+          interests: item.interests || [],
+          behaviors: item.behaviors || [],
+        },
+        isActive: true,
+        createdAt: item.created_at || new Date().toISOString(),
+      }));
+
+      setSegments(formattedSegments);
+    } catch (error) {
+      console.error('Error loading segments:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredSegments = segments.filter((segment) => {
     const matchesSearch = segment.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       segment.description.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesType = typeFilter === "all" || segment.type === typeFilter;
     return matchesSearch && matchesType;
   });
 
-  const totalAudienceSize = mockSegments.reduce((sum, s) => sum + s.size, 0);
-  const avgEngagement = (mockSegments.reduce((sum, s) => sum + s.engagementRate, 0) / mockSegments.length).toFixed(1);
-  const activeSegments = mockSegments.filter((s) => s.isActive).length;
+  const totalAudienceSize = segments.reduce((sum, s) => sum + s.size, 0);
+  const avgEngagement = segments.length > 0 
+    ? (segments.reduce((sum, s) => sum + s.engagementRate, 0) / segments.length).toFixed(1)
+    : '0.0';
+  const activeSegments = segments.filter((s) => s.isActive).length;
 
   const formatNumber = (num: number) => {
     if (num >= 1000000) return (num / 1000000).toFixed(1) + "M";
@@ -268,23 +343,78 @@ export default function Audience() {
     setSimilarityLevel([5]);
   };
 
-  const handleCreateSegment = () => {
-    // In real app, save to database
-    console.log("Creating segment:", {
-      name: segmentName,
-      type: selectedType,
-      description: segmentDescription,
-      color: segmentColor,
-      criteria: {
-        age: { min: ageRange[0], max: ageRange[1] },
-        genders: selectedGenders,
-        locations: selectedLocations,
-        interests: selectedInterests,
-        behaviors: selectedBehaviors,
-      },
-    });
-    setShowCreateModal(false);
-    resetForm();
+  const handleCreateSegment = async () => {
+    if (!user) return;
+    
+    if (!segmentName.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter a segment name",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const { data, error } = await supabase
+        .from('audiences')
+        .insert({
+          user_id: user.id,
+          name: segmentName.trim(),
+          description: segmentDescription.trim() || null,
+          age_min: ageRange[0],
+          age_max: ageRange[1],
+          gender: selectedGenders,
+          countries: selectedLocations.length > 0 ? selectedLocations : null,
+          interests: selectedInterests.length > 0 ? selectedInterests : null,
+          behaviors: selectedBehaviors.length > 0 ? selectedBehaviors : null,
+          platforms: ['facebook', 'instagram', 'twitter', 'linkedin'],
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      toast({
+        title: "Segment created",
+        description: `"${segmentName}" has been created successfully`,
+      });
+
+      setShowCreateModal(false);
+      resetForm();
+      loadSegments();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create segment",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteSegment = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    try {
+      const { error } = await supabase
+        .from('audiences')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast({ title: "Segment deleted" });
+      loadSegments();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete segment",
+        variant: "destructive",
+      });
+    }
   };
 
   const renderCreateStep = () => {
@@ -619,9 +749,13 @@ export default function Audience() {
               <Button variant="outline" onClick={() => setCreateStep(2)}>
                 Back
               </Button>
-              <Button onClick={handleCreateSegment} className="flex-1" disabled={!segmentName}>
-                <Sparkles className="h-4 w-4 mr-2" />
-                Create Segment
+              <Button onClick={handleCreateSegment} className="flex-1" disabled={!segmentName || saving}>
+                {saving ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Sparkles className="h-4 w-4 mr-2" />
+                )}
+                {saving ? "Creating..." : "Create Segment"}
               </Button>
             </div>
           </div>
@@ -755,7 +889,23 @@ export default function Audience() {
         </div>
 
         {/* Segments Grid/List */}
-        {view === "grid" ? (
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          </div>
+        ) : filteredSegments.length === 0 ? (
+          <Card className="bg-card border-border">
+            <CardContent className="py-12 text-center">
+              <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+              <h3 className="text-lg font-semibold text-foreground mb-2">No segments yet</h3>
+              <p className="text-muted-foreground mb-4">Create your first audience segment to get started</p>
+              <Button onClick={() => setShowCreateModal(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Create Segment
+              </Button>
+            </CardContent>
+          </Card>
+        ) : view === "grid" ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredSegments.map((segment) => (
               <Card
@@ -794,7 +944,10 @@ export default function Audience() {
                         <DropdownMenuItem>
                           <Copy className="h-4 w-4 mr-2" /> Duplicate
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive">
+                        <DropdownMenuItem 
+                          className="text-destructive"
+                          onClick={(e) => handleDeleteSegment(segment.id, e)}
+                        >
                           <Trash2 className="h-4 w-4 mr-2" /> Delete
                         </DropdownMenuItem>
                       </DropdownMenuContent>
@@ -905,7 +1058,12 @@ export default function Audience() {
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem>Edit</DropdownMenuItem>
                             <DropdownMenuItem>Duplicate</DropdownMenuItem>
-                            <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
+                            <DropdownMenuItem 
+                              className="text-destructive"
+                              onClick={(e) => handleDeleteSegment(segment.id, e)}
+                            >
+                              Delete
+                            </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </td>

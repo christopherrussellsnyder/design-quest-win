@@ -167,14 +167,6 @@ export default function AudienceDetail() {
             </div>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" className="gap-2">
-              <Sparkles className="h-4 w-4" />
-              Create Content
-            </Button>
-            <Button variant="outline" className="gap-2">
-              <Calendar className="h-4 w-4" />
-              Schedule Post
-            </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="icon">
