@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { 
   Plus, Grid, List, ArrowLeft, Search, Filter, MoreVertical, 
   Pause, Play, Copy, Archive, Trash2, TrendingUp, TrendingDown,
-  Calendar, Target, DollarSign, BarChart3, Eye, Settings
+  Calendar, Target, DollarSign, BarChart3, Eye, Settings, Loader2
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -20,104 +20,28 @@ import {
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 
-// Mock campaigns data
-const mockCampaigns = [
-  {
-    id: '1',
-    name: 'Summer Product Launch',
-    description: 'Launch new summer collection with maximum impact',
-    objective: 'awareness',
-    status: 'active',
-    start_date: '2025-06-01',
-    end_date: '2025-06-30',
-    total_budget: 5000,
-    spend: 3250,
-    platforms: ['facebook', 'instagram', 'twitter'],
-    color: '#8B5CF6',
-    posts_count: 45,
-    published_count: 30,
-    engagement: 12500,
-    reach: 85000,
-    impressions: 125000,
-    created_at: '2025-05-15'
-  },
-  {
-    id: '2',
-    name: 'Holiday Sale 2024',
-    description: 'Drive sales during holiday season',
-    objective: 'conversions',
-    status: 'completed',
-    start_date: '2024-12-01',
-    end_date: '2024-12-25',
-    total_budget: 10000,
-    spend: 9500,
-    platforms: ['facebook', 'instagram', 'twitter', 'linkedin'],
-    color: '#10B981',
-    posts_count: 60,
-    published_count: 60,
-    engagement: 25000,
-    reach: 150000,
-    impressions: 320000,
-    created_at: '2024-11-15'
-  },
-  {
-    id: '3',
-    name: 'Q1 2025 Brand Awareness',
-    description: 'Build brand recognition and reach',
-    objective: 'awareness',
-    status: 'active',
-    start_date: '2025-01-01',
-    end_date: '2025-03-31',
-    total_budget: 15000,
-    spend: 8250,
-    platforms: ['facebook', 'instagram', 'twitter', 'linkedin', 'tiktok'],
-    color: '#3B82F6',
-    posts_count: 120,
-    published_count: 80,
-    engagement: 35000,
-    reach: 250000,
-    impressions: 450000,
-    created_at: '2024-12-20'
-  },
-  {
-    id: '4',
-    name: 'Product Beta Launch',
-    description: 'Capture quality leads for beta program',
-    objective: 'leads',
-    status: 'paused',
-    start_date: '2024-11-01',
-    end_date: '2024-11-30',
-    total_budget: 3000,
-    spend: 1800,
-    platforms: ['linkedin', 'twitter'],
-    color: '#F59E0B',
-    posts_count: 20,
-    published_count: 15,
-    engagement: 4500,
-    reach: 45000,
-    impressions: 78000,
-    created_at: '2024-10-15'
-  },
-  {
-    id: '5',
-    name: 'Conference 2025 Promotion',
-    description: 'Promote and drive attendance to events',
-    objective: 'event',
-    status: 'draft',
-    start_date: '2025-03-01',
-    end_date: '2025-03-15',
-    total_budget: 5000,
-    spend: 0,
-    platforms: [],
-    color: '#EC4899',
-    posts_count: 0,
-    published_count: 0,
-    engagement: 0,
-    reach: 0,
-    impressions: 0,
-    created_at: '2025-01-01'
-  }
-];
+interface Campaign {
+  id: string;
+  name: string;
+  description: string | null;
+  objective: string | null;
+  status: string;
+  start_date: string | null;
+  end_date: string | null;
+  total_budget: number | null;
+  spend: number;
+  platform: string;
+  goals: any;
+  created_at: string;
+  // Computed fields
+  posts_count: number;
+  published_count: number;
+  engagement: number;
+  reach: number;
+  impressions: number;
+  color: string;
+  platforms: string[];
+}
 
 const objectiveLabels: Record<string, { label: string; icon: string }> = {
   awareness: { label: 'Brand Awareness', icon: '✨' },
@@ -142,17 +66,79 @@ const platformIcons: Record<string, string> = {
   instagram: '📸',
   twitter: '🐦',
   linkedin: '💼',
-  tiktok: '🎵'
+  tiktok: '🎵',
+  all: '🌐'
 };
+
+const colorPalette = ['#8B5CF6', '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#EC4899'];
 
 export default function Campaigns() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [campaigns, setCampaigns] = useState(mockCampaigns);
-  const [loading, setLoading] = useState(false);
+  const { user } = useAuth();
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    if (user) {
+      fetchCampaigns();
+    }
+  }, [user]);
+
+  const fetchCampaigns = async () => {
+    if (!user) return;
+    
+    setLoading(true);
+    try {
+      // Fetch campaigns
+      const { data: campaignsData, error: campaignsError } = await supabase
+        .from('campaigns')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (campaignsError) throw campaignsError;
+
+      // Fetch posts for each campaign to get stats
+      const campaignsWithStats = await Promise.all(
+        (campaignsData || []).map(async (campaign, index) => {
+          // Get post counts and stats
+          const { data: posts } = await supabase
+            .from('scheduled_posts')
+            .select('status, impressions, engagements')
+            .eq('campaign_id', campaign.id);
+
+          const postsArray = posts || [];
+          const publishedPosts = postsArray.filter(p => p.status === 'published');
+          
+          return {
+            ...campaign,
+            posts_count: postsArray.length,
+            published_count: publishedPosts.length,
+            engagement: publishedPosts.reduce((sum, p) => sum + (p.engagements || 0), 0),
+            reach: publishedPosts.reduce((sum, p) => sum + Math.floor((p.impressions || 0) * 0.7), 0),
+            impressions: publishedPosts.reduce((sum, p) => sum + (p.impressions || 0), 0),
+            color: colorPalette[index % colorPalette.length],
+            platforms: campaign.platform ? [campaign.platform] : []
+          };
+        })
+      );
+
+      setCampaigns(campaignsWithStats);
+    } catch (error) {
+      console.error('Error fetching campaigns:', error);
+      toast({
+        title: 'Error',
+        description: 'Could not load campaigns',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Calculate stats
   const stats = {
@@ -170,7 +156,8 @@ export default function Campaigns() {
     return matchesStatus && matchesSearch;
   });
 
-  const getProgressPercent = (campaign: typeof mockCampaigns[0]) => {
+  const getProgressPercent = (campaign: Campaign) => {
+    if (!campaign.start_date || !campaign.end_date) return 0;
     const start = new Date(campaign.start_date).getTime();
     const end = new Date(campaign.end_date).getTime();
     const now = Date.now();
@@ -179,22 +166,90 @@ export default function Campaigns() {
     return Math.round(((now - start) / (end - start)) * 100);
   };
 
-  const handleStatusChange = (campaignId: string, newStatus: string) => {
-    setCampaigns(prev => prev.map(c => 
-      c.id === campaignId ? { ...c, status: newStatus } : c
-    ));
-    toast({
-      title: 'Campaign Updated',
-      description: `Campaign status changed to ${newStatus}`
-    });
+  const handleStatusChange = async (campaignId: string, newStatus: string) => {
+    try {
+      const { error } = await supabase
+        .from('campaigns')
+        .update({ status: newStatus as any })
+        .eq('id', campaignId)
+        .eq('user_id', user?.id);
+
+      if (error) throw error;
+
+      setCampaigns(prev => prev.map(c => 
+        c.id === campaignId ? { ...c, status: newStatus } : c
+      ));
+      toast({
+        title: 'Campaign Updated',
+        description: `Campaign status changed to ${newStatus}`
+      });
+    } catch (error) {
+      console.error('Status update error:', error);
+      toast({
+        title: 'Error',
+        description: 'Could not update campaign status',
+        variant: 'destructive'
+      });
+    }
   };
 
-  const handleDeleteCampaign = (campaignId: string) => {
-    setCampaigns(prev => prev.filter(c => c.id !== campaignId));
-    toast({
-      title: 'Campaign Deleted',
-      description: 'Campaign has been deleted successfully'
-    });
+  const handleDeleteCampaign = async (campaignId: string) => {
+    try {
+      const { error } = await supabase
+        .from('campaigns')
+        .delete()
+        .eq('id', campaignId)
+        .eq('user_id', user?.id);
+
+      if (error) throw error;
+
+      setCampaigns(prev => prev.filter(c => c.id !== campaignId));
+      toast({
+        title: 'Campaign Deleted',
+        description: 'Campaign has been deleted successfully'
+      });
+    } catch (error) {
+      console.error('Delete error:', error);
+      toast({
+        title: 'Error',
+        description: 'Could not delete campaign',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const handleDuplicateCampaign = async (campaign: Campaign) => {
+    try {
+      const { error } = await supabase
+        .from('campaigns')
+        .insert({
+          user_id: user?.id,
+          name: `${campaign.name} (Copy)`,
+          description: campaign.description,
+          objective: campaign.objective,
+          platform: campaign.platform,
+          start_date: campaign.start_date,
+          end_date: campaign.end_date,
+          total_budget: campaign.total_budget,
+          goals: campaign.goals,
+          status: 'draft'
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: 'Campaign Duplicated',
+        description: 'A copy of the campaign has been created as a draft'
+      });
+      fetchCampaigns();
+    } catch (error) {
+      console.error('Duplicate error:', error);
+      toast({
+        title: 'Error',
+        description: 'Could not duplicate campaign',
+        variant: 'destructive'
+      });
+    }
   };
 
   const formatNumber = (num: number) => {
@@ -202,6 +257,14 @@ export default function Campaigns() {
     if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
     return num.toString();
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
