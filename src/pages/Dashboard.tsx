@@ -4,6 +4,9 @@ import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, R
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Sparkles, TrendingUp, Users, Mail, Target, Zap, ChevronDown, Play, Pause, Settings, Bell, Search, Plus, ArrowUpRight, ArrowDownRight, LayoutDashboard, FileText, Send, Megaphone, Calendar, ChevronRight, Image, Type, Video, Wand2, Copy, RefreshCw, Check, Filter, Download, Eye, MousePointer, DollarSign, ChevronLeft, BarChart3, LogOut, X, Save, Star, Trash2, Globe, TrendingDown, AlertCircle, Lightbulb, Clock, Library } from 'lucide-react';
+import SearchBar from '@/components/dashboard/SearchBar';
+import NotificationsDropdown from '@/components/dashboard/NotificationsDropdown';
+import AISuggestionsModal from '@/components/dashboard/AISuggestionsModal';
 
 const samplePerformanceData = [
   { name: 'Mon', engagement: 4200, conversions: 240, reach: 18000 },
@@ -63,7 +66,9 @@ const channelPerformance = [
 
 export default function Dashboard() {
   const { user, signOut } = useAuth();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [showAISuggestionsModal, setShowAISuggestionsModal] = useState(false);
   const [contentType, setContentType] = useState('text');
   const [generating, setGenerating] = useState(false);
   const [generated, setGenerated] = useState(false);
@@ -826,8 +831,6 @@ export default function Dashboard() {
       setPerformanceLoading(false);
     }
   };
-
-  const navigate = useNavigate();
 
   const navItems = [
     { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -2483,22 +2486,16 @@ export default function Dashboard() {
         {/* Header */}
         <header className="h-16 border-b border-slate-800 flex items-center justify-between px-6">
           <div className="flex items-center gap-4">
-            <div className="relative">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
-              <input 
-                type="text" 
-                placeholder="Search campaigns, content..." 
-                className="bg-slate-800/50 border border-slate-700 rounded-lg pl-10 pr-4 py-2 text-sm w-72 focus:outline-none focus:border-violet-500 transition-colors"
-              />
-            </div>
+            <SearchBar />
           </div>
           <div className="flex items-center gap-3">
-            <button className="p-2 rounded-lg hover:bg-slate-800 transition-colors relative">
-              <Bell className="w-5 h-5 text-slate-400" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-fuchsia-500 rounded-full"></span>
-            </button>
-            <button className="p-2 rounded-lg hover:bg-slate-800 transition-colors">
-              <Settings className="w-5 h-5 text-slate-400" />
+            <NotificationsDropdown />
+            <button 
+              onClick={() => navigate('/settings')}
+              className="p-2 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
+              title="Settings"
+            >
+              <Settings className="w-5 h-5 text-slate-400 hover:text-slate-200" />
             </button>
             <div className="flex items-center gap-3 ml-2 pl-3 border-l border-slate-700">
               <div className="text-right">
@@ -2517,6 +2514,12 @@ export default function Dashboard() {
             </div>
           </div>
         </header>
+        
+        {/* AI Suggestions Modal */}
+        <AISuggestionsModal 
+          isOpen={showAISuggestionsModal} 
+          onClose={() => setShowAISuggestionsModal(false)} 
+        />
 
         {/* Dashboard Content */}
         <main className="flex-1 p-6 overflow-auto">
@@ -2931,7 +2934,10 @@ export default function Dashboard() {
                       </div>
                     ))}
                   </div>
-                  <button className="w-full mt-3 py-2 text-sm text-violet-400 hover:bg-violet-500/10 rounded-lg transition-colors">
+                  <button 
+                    onClick={() => setShowAISuggestionsModal(true)}
+                    className="w-full mt-3 py-2 text-sm text-violet-400 hover:bg-violet-500/10 rounded-lg transition-colors cursor-pointer"
+                  >
                     View all suggestions →
                   </button>
                 </div>
