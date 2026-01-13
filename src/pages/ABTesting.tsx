@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Beaker, Plus, Play, BarChart3, Pause, Trash2, MoreVertical, PlayCircle } from 'lucide-react';
+import { Beaker, Plus, Play, BarChart3, Pause, Trash2, MoreVertical, PlayCircle, Brain } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,6 +27,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { ABTestBuilder } from '@/components/ABTestBuilder';
 import { ABTestResults } from '@/components/ABTestResults';
+import { ABTestInsightsDashboard } from '@/components/ABTestInsightsDashboard';
 
 interface Variant {
   id: string;
@@ -182,6 +184,20 @@ export default function ABTestingPage() {
           </DialogContent>
         </Dialog>
       </div>
+
+      <Tabs defaultValue="tests" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="tests">
+            <Beaker className="w-4 h-4 mr-2" />
+            My Tests
+          </TabsTrigger>
+          <TabsTrigger value="insights">
+            <Brain className="w-4 h-4 mr-2" />
+            AI Insights
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="tests">
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!deleteTestId} onOpenChange={(open) => !open && setDeleteTestId(null)}>
@@ -352,6 +368,12 @@ export default function ABTestingPage() {
           })}
         </div>
       )}
+        </TabsContent>
+
+        <TabsContent value="insights">
+          <ABTestInsightsDashboard />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
