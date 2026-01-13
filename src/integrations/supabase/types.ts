@@ -224,6 +224,81 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_generated_videos: {
+        Row: {
+          aspect_ratio: string
+          avatar_type: string | null
+          background_music: string | null
+          completed_at: string | null
+          created_at: string
+          duration: number
+          error_message: string | null
+          generation_cost: number | null
+          id: string
+          metadata: Json | null
+          processing_time_ms: number | null
+          script: string
+          status: string
+          storage_path: string | null
+          target_audience: string | null
+          text_overlay_enabled: boolean | null
+          thumbnail_url: string | null
+          title: string
+          updated_at: string
+          user_id: string
+          video_style: string
+          video_url: string | null
+        }
+        Insert: {
+          aspect_ratio?: string
+          avatar_type?: string | null
+          background_music?: string | null
+          completed_at?: string | null
+          created_at?: string
+          duration?: number
+          error_message?: string | null
+          generation_cost?: number | null
+          id?: string
+          metadata?: Json | null
+          processing_time_ms?: number | null
+          script: string
+          status?: string
+          storage_path?: string | null
+          target_audience?: string | null
+          text_overlay_enabled?: boolean | null
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+          video_style?: string
+          video_url?: string | null
+        }
+        Update: {
+          aspect_ratio?: string
+          avatar_type?: string | null
+          background_music?: string | null
+          completed_at?: string | null
+          created_at?: string
+          duration?: number
+          error_message?: string | null
+          generation_cost?: number | null
+          id?: string
+          metadata?: Json | null
+          processing_time_ms?: number | null
+          script?: string
+          status?: string
+          storage_path?: string | null
+          target_audience?: string | null
+          text_overlay_enabled?: boolean | null
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+          video_style?: string
+          video_url?: string | null
+        }
+        Relationships: []
+      }
       ai_generation_logs: {
         Row: {
           created_at: string | null
