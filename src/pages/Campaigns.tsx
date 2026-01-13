@@ -5,10 +5,11 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Plus, Grid, List, ArrowLeft, Search, Filter, MoreVertical, 
   Pause, Play, Copy, Archive, Trash2, TrendingUp, TrendingDown,
-  Calendar, Target, DollarSign, BarChart3, Eye, Settings, Loader2
+  Calendar, Target, DollarSign, BarChart3, Eye, Settings, Loader2, Brain
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -19,6 +20,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
+import { CampaignIntelligenceDashboard } from '@/components/CampaignIntelligenceDashboard';
 
 interface Campaign {
   id: string;

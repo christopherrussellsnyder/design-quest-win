@@ -121,6 +121,413 @@ serve(async (req) => {
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    // ========== NEW INTELLIGENCE ACTIONS ==========
+
+    if (action === 'get_platform_insights') {
+      const platform = campaignData.platform || 'instagram';
+      const niche = campaignData.niche || 'ecommerce';
+
+      // Get niche strategy
+      const { data: nicheStrategy } = await supabase
+        .from('niche_strategies')
+        .select('*')
+        .eq('platform', platform)
+        .eq('niche', niche)
+        .single();
+
+      // Get platform benchmarks
+      const { data: benchmarks } = await supabase
+        .from('platform_niche_benchmarks')
+        .select('*')
+        .eq('platform', platform)
+        .eq('niche', niche)
+        .single();
+
+      // Get user's historical performance on this platform
+      const { data: userPerformance } = await supabase
+        .from('campaigns')
+        .select('*, scheduled_posts(impressions, engagements, status)')
+        .eq('user_id', userId)
+        .eq('platform', platform)
+        .eq('status', 'completed')
+        .limit(10);
+
+      const platformInsights = generatePlatformInsights(
+        platform,
+        nicheStrategy,
+        benchmarks,
+        userPerformance || []
+      );
+
+      return new Response(
+        JSON.stringify({ success: true, insights: platformInsights }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (action === 'get_niche_recommendations') {
+      const niche = campaignData.niche || 'ecommerce';
+
+      // Get all strategies for this niche
+      const { data: strategies } = await supabase
+        .from('niche_strategies')
+        .select('*')
+        .eq('niche', niche)
+        .order('priority_score', { ascending: false });
+
+      // Get benchmarks for comparison
+      const { data: benchmarks } = await supabase
+        .from('platform_niche_benchmarks')
+        .select('*')
+        .eq('niche', niche);
+
+      // Get user's best performing platform
+      const { data: userCampaigns } = await supabase
+        .from('campaigns')
+        .select('platform, spend')
+        .eq('user_id', userId)
+        .eq('status', 'completed');
+
+      const recommendations = generateNicheRecommendations(
+        niche,
+        strategies || [],
+        benchmarks || [],
+        userCampaigns || [],
+        campaignData.goals || {}
+      );
+
+      return new Response(
+        JSON.stringify({ success: true, recommendations }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (action === 'get_campaign_learnings') {
+      // Get user's campaign learnings
+      const { data: learnings } = await supabase
+        .from('campaigns_learning')
+        .select('*')
+        .eq('user_id', userId)
+        .order('performance_impact', { ascending: false });
+
+      // Get platform-specific patterns
+      const platformPatterns: Record<string, any[]> = {};
+      for (const learning of learnings || []) {
+        if (!platformPatterns[learning.platform]) {
+          platformPatterns[learning.platform] = [];
+        }
+        platformPatterns[learning.platform].push(learning);
+      }
+
+      // Generate insights
+      const insights = generateLearningInsights(learnings || [], platformPatterns);
+
+      return new Response(
+        JSON.stringify({ success: true, learnings: learnings || [], insights }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (action === 'analyze_campaign') {
+      const campaignId = campaignData.campaignId;
+
+      // Get campaign with posts
+      const { data: campaign } = await supabase
+        .from('campaigns')
+        .select('*, scheduled_posts(*)')
+        .eq('id', campaignId)
+        .single();
+
+      if (!campaign) throw new Error('Campaign not found');
+
+      const posts = campaign.scheduled_posts || [];
+      const publishedPosts = posts.filter((p: any) => p.status === 'published');
+
+      // Analyze what worked
+      const analysis = analyzeWhatWorked(publishedPosts, campaign);
+
+      // Generate learnings and save them
+      const learningsToSave = generateCampaignLearnings(
+        userId,
+        campaignId,
+        campaign.platform,
+        campaign.niche,
+        analysis
+      );
+
+      // Save learnings
+      if (learningsToSave.length > 0) {
+        await supabase.from('campaigns_learning').insert(learningsToSave);
+      }
+
+      // Update campaign with post-campaign learnings
+      await supabase
+        .from('campaigns')
+        .update({
+          post_campaign_learnings: analysis,
+          actual_vs_predicted: calculateActualVsPredicted(campaign, publishedPosts)
+        })
+        .eq('id', campaignId);
+
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          analysis, 
+          learningsSaved: learningsToSave.length 
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (action === 'predict_performance') {
+      const platform = campaignData.platform || 'instagram';
+      const niche = campaignData.niche || 'ecommerce';
+
+      // Get benchmarks
+      const { data: benchmarks } = await supabase
+        .from('platform_niche_benchmarks')
+        .select('*')
+        .eq('platform', platform)
+        .eq('niche', niche)
+        .single();
+
+      // Get user's historical performance
+      const { data: userLearnings } = await supabase
+        .from('campaigns_learning')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('platform', platform);
+
+      // Get similar past campaigns
+      const { data: pastCampaigns } = await supabase
+        .from('campaigns')
+        .select('*, scheduled_posts(impressions, engagements)')
+        .eq('user_id', userId)
+        .eq('platform', platform)
+        .eq('status', 'completed')
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      const prediction = predictCampaignPerformance(
+        campaignData,
+        benchmarks,
+        userLearnings || [],
+        pastCampaigns || []
+      );
+
+      return new Response(
+        JSON.stringify({ success: true, prediction }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (action === 'get_optimization_suggestions') {
+      const campaignId = campaignData.campaignId;
+
+      // Get campaign with current performance
+      const { data: campaign } = await supabase
+        .from('campaigns')
+        .select('*, scheduled_posts(*)')
+        .eq('id', campaignId)
+        .single();
+
+      if (!campaign) throw new Error('Campaign not found');
+
+      // Get user's learnings
+      const { data: learnings } = await supabase
+        .from('campaigns_learning')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('platform', campaign.platform)
+        .order('performance_impact', { ascending: false })
+        .limit(10);
+
+      // Get platform best practices
+      const { data: nicheStrategy } = await supabase
+        .from('niche_strategies')
+        .select('*')
+        .eq('platform', campaign.platform)
+        .eq('niche', campaign.niche || 'ecommerce')
+        .single();
+
+      const suggestions = generateOptimizationSuggestions(
+        campaign,
+        learnings || [],
+        nicheStrategy
+      );
+
+      return new Response(
+        JSON.stringify({ success: true, suggestions }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (action === 'generate_ai_strategy') {
+      const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+      
+      if (!LOVABLE_API_KEY) {
+        // Return fallback strategy
+        const fallbackStrategy = generateFallbackAIStrategy(campaignData);
+        return new Response(
+          JSON.stringify({ success: true, strategy: fallbackStrategy }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Get user context
+      const { data: userLearnings } = await supabase
+        .from('campaigns_learning')
+        .select('*')
+        .eq('user_id', userId)
+        .order('performance_impact', { ascending: false })
+        .limit(20);
+
+      const { data: nicheStrategy } = await supabase
+        .from('niche_strategies')
+        .select('*')
+        .eq('platform', campaignData.platform || 'instagram')
+        .eq('niche', campaignData.niche || 'ecommerce')
+        .single();
+
+      const context = buildAIStrategyContext(campaignData, userLearnings || [], nicheStrategy);
+
+      const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'google/gemini-3-flash-preview',
+          messages: [
+            {
+              role: 'system',
+              content: `You are an expert social media campaign strategist. Generate comprehensive, actionable campaign strategies based on the user's business niche, target platform, and historical performance data.`
+            },
+            {
+              role: 'user',
+              content: context
+            }
+          ],
+          tools: [
+            {
+              type: 'function',
+              function: {
+                name: 'generate_campaign_strategy',
+                description: 'Generate a comprehensive campaign strategy',
+                parameters: {
+                  type: 'object',
+                  properties: {
+                    overview: {
+                      type: 'object',
+                      properties: {
+                        objective: { type: 'string' },
+                        duration: { type: 'string' },
+                        estimatedReach: { type: 'number' },
+                        confidenceLevel: { type: 'string' }
+                      }
+                    },
+                    weeklyThemes: {
+                      type: 'array',
+                      items: {
+                        type: 'object',
+                        properties: {
+                          week: { type: 'number' },
+                          theme: { type: 'string' },
+                          posts: { type: 'number' },
+                          contentTypes: { type: 'array', items: { type: 'string' } }
+                        }
+                      }
+                    },
+                    contentMix: {
+                      type: 'object',
+                      properties: {
+                        video: { type: 'number' },
+                        image: { type: 'number' },
+                        carousel: { type: 'number' },
+                        text: { type: 'number' }
+                      }
+                    },
+                    platformTactics: {
+                      type: 'array',
+                      items: { type: 'string' }
+                    },
+                    expectedBenchmarks: {
+                      type: 'object',
+                      properties: {
+                        engagementRate: { type: 'number' },
+                        impressions: { type: 'number' },
+                        reach: { type: 'number' }
+                      }
+                    },
+                    keyActions: {
+                      type: 'array',
+                      items: {
+                        type: 'object',
+                        properties: {
+                          action: { type: 'string' },
+                          priority: { type: 'string' },
+                          expectedImpact: { type: 'string' }
+                        }
+                      }
+                    }
+                  },
+                  required: ['overview', 'weeklyThemes', 'contentMix', 'platformTactics', 'keyActions']
+                }
+              }
+            }
+          ],
+          tool_choice: { type: 'function', function: { name: 'generate_campaign_strategy' } }
+        }),
+      });
+
+      if (!aiResponse.ok) {
+        const fallbackStrategy = generateFallbackAIStrategy(campaignData);
+        return new Response(
+          JSON.stringify({ success: true, strategy: fallbackStrategy }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const aiData = await aiResponse.json();
+      const toolCall = aiData.choices?.[0]?.message?.tool_calls?.[0];
+      
+      if (toolCall?.function?.arguments) {
+        const strategy = JSON.parse(toolCall.function.arguments);
+        return new Response(
+          JSON.stringify({ success: true, strategy }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const fallbackStrategy = generateFallbackAIStrategy(campaignData);
+      return new Response(
+        JSON.stringify({ success: true, strategy: fallbackStrategy }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (action === 'compare_platforms') {
+      // Get performance across all platforms
+      const { data: campaigns } = await supabase
+        .from('campaigns')
+        .select('platform, spend, status, scheduled_posts(impressions, engagements)')
+        .eq('user_id', userId)
+        .eq('status', 'completed');
+
+      const { data: benchmarks } = await supabase
+        .from('platform_niche_benchmarks')
+        .select('*')
+        .eq('niche', campaignData.niche || 'ecommerce');
+
+      const comparison = comparePlatformPerformance(campaigns || [], benchmarks || []);
+
+      return new Response(
+        JSON.stringify({ success: true, comparison }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
     
     throw new Error('Invalid action');
     
@@ -714,4 +1121,548 @@ function calculateTrend(dailyTracking: any[]): string {
   if (recentAvg > earlierAvg * 1.1) return 'improving';
   if (recentAvg < earlierAvg * 0.9) return 'declining';
   return 'stable';
+}
+
+// ========== NEW HELPER FUNCTIONS ==========
+
+function generatePlatformInsights(
+  platform: string,
+  nicheStrategy: any,
+  benchmarks: any,
+  userPerformance: any[]
+) {
+  const userMetrics = calculateUserMetrics(userPerformance);
+  
+  return {
+    platform,
+    bestPractices: nicheStrategy?.best_practices || getPlatformTips(platform),
+    recommendedContentTypes: nicheStrategy?.recommended_content_types || ['image', 'video'],
+    optimalContentMix: nicheStrategy?.optimal_content_mix || { video: 40, image: 40, text: 20 },
+    messagingThemes: nicheStrategy?.messaging_themes || ['value proposition', 'social proof'],
+    benchmarks: {
+      avgEngagementRate: benchmarks?.avg_engagement_rate || 2.5,
+      avgCTR: benchmarks?.avg_ctr || 1.0,
+      avgCPM: benchmarks?.avg_cpm || 10.0,
+      topContentTypes: benchmarks?.top_content_types || ['video'],
+      optimalTimes: benchmarks?.optimal_posting_times || [9, 12, 17],
+      optimalDays: benchmarks?.optimal_posting_days || [2, 3, 4]
+    },
+    userPerformance: userMetrics,
+    vsIndustry: {
+      engagementRate: userMetrics.avgEngagementRate - (benchmarks?.avg_engagement_rate || 2.5),
+      isAboveAverage: userMetrics.avgEngagementRate > (benchmarks?.avg_engagement_rate || 2.5)
+    },
+    recommendations: generatePlatformRecommendationsList(platform, userMetrics, benchmarks)
+  };
+}
+
+function calculateUserMetrics(campaigns: any[]) {
+  if (!campaigns || campaigns.length === 0) {
+    return { avgEngagementRate: 0, totalImpressions: 0, totalEngagement: 0, campaignCount: 0 };
+  }
+
+  let totalImpressions = 0;
+  let totalEngagement = 0;
+
+  for (const campaign of campaigns) {
+    for (const post of campaign.scheduled_posts || []) {
+      totalImpressions += post.impressions || 0;
+      totalEngagement += post.engagements || 0;
+    }
+  }
+
+  return {
+    avgEngagementRate: totalImpressions > 0 ? (totalEngagement / totalImpressions) * 100 : 0,
+    totalImpressions,
+    totalEngagement,
+    campaignCount: campaigns.length
+  };
+}
+
+function generatePlatformRecommendationsList(platform: string, userMetrics: any, benchmarks: any): string[] {
+  const recommendations: string[] = [];
+  
+  if (userMetrics.avgEngagementRate < (benchmarks?.avg_engagement_rate || 2.5)) {
+    recommendations.push('Focus on improving content quality to boost engagement');
+  }
+  
+  const tips = getPlatformTips(platform);
+  recommendations.push(...tips.slice(0, 2));
+  
+  return recommendations;
+}
+
+function generateNicheRecommendations(
+  niche: string,
+  strategies: any[],
+  benchmarks: any[],
+  userCampaigns: any[],
+  goals: any
+) {
+  // Sort platforms by priority
+  const platformPriority = strategies.sort((a, b) => b.priority_score - a.priority_score);
+  
+  // Calculate user's platform distribution
+  const platformSpend: Record<string, number> = {};
+  for (const campaign of userCampaigns) {
+    platformSpend[campaign.platform] = (platformSpend[campaign.platform] || 0) + (campaign.spend || 0);
+  }
+
+  const recommendations = {
+    niche,
+    topPlatforms: platformPriority.slice(0, 3).map(s => ({
+      platform: s.platform,
+      priorityScore: s.priority_score,
+      contentTypes: s.recommended_content_types,
+      frequency: s.recommended_posting_frequency,
+      bestPractices: s.best_practices?.slice(0, 3) || []
+    })),
+    platformComparison: benchmarks.map(b => ({
+      platform: b.platform,
+      avgEngagement: b.avg_engagement_rate,
+      avgCTR: b.avg_ctr,
+      recommended: platformPriority.find(p => p.platform === b.platform) ? true : false
+    })),
+    budgetAllocation: generateBudgetAllocation(platformPriority, goals),
+    contentThemes: platformPriority[0]?.messaging_themes || [],
+    nicheSpecificTips: generateNicheSpecificTips(niche)
+  };
+
+  return recommendations;
+}
+
+function generateBudgetAllocation(strategies: any[], goals: any): Record<string, number> {
+  if (strategies.length === 0) return {};
+  
+  const allocation: Record<string, number> = {};
+  const totalScore = strategies.slice(0, 3).reduce((sum, s) => sum + s.priority_score, 0);
+  
+  strategies.slice(0, 3).forEach(s => {
+    allocation[s.platform] = Math.round((s.priority_score / totalScore) * 100);
+  });
+  
+  return allocation;
+}
+
+function generateNicheSpecificTips(niche: string): string[] {
+  const tips: Record<string, string[]> = {
+    ecommerce: ['Use shoppable posts on Instagram', 'Leverage UGC for social proof', 'Create urgency with limited offers'],
+    saas: ['Focus on educational content', 'Share customer success stories', 'Demonstrate product value through tutorials'],
+    consulting: ['Position yourself as thought leader', 'Share case studies and results', 'Engage in industry discussions'],
+    fitness: ['Post transformation content', 'Use before/after visuals', 'Create workout challenges'],
+    local_business: ['Engage with local community', 'Highlight local partnerships', 'Share behind-the-scenes content']
+  };
+  
+  return tips[niche] || tips.ecommerce;
+}
+
+function generateLearningInsights(learnings: any[], platformPatterns: Record<string, any[]>) {
+  const insights: any[] = [];
+  
+  // Top performing patterns
+  const topPatterns = learnings.filter(l => l.performance_impact > 0).slice(0, 5);
+  if (topPatterns.length > 0) {
+    insights.push({
+      type: 'success',
+      title: 'Top Performing Patterns',
+      patterns: topPatterns.map(p => ({
+        type: p.learning_type,
+        value: p.pattern_value,
+        impact: `+${p.performance_impact.toFixed(1)}%`
+      }))
+    });
+  }
+  
+  // Underperforming patterns
+  const underPerformers = learnings.filter(l => l.performance_impact < -10);
+  if (underPerformers.length > 0) {
+    insights.push({
+      type: 'warning',
+      title: 'Patterns to Avoid',
+      patterns: underPerformers.map(p => ({
+        type: p.learning_type,
+        value: p.pattern_value,
+        impact: `${p.performance_impact.toFixed(1)}%`
+      }))
+    });
+  }
+  
+  // Platform-specific insights
+  for (const [platform, patterns] of Object.entries(platformPatterns)) {
+    if (patterns.length >= 3) {
+      const bestPattern = patterns.sort((a, b) => b.performance_impact - a.performance_impact)[0];
+      insights.push({
+        type: 'info',
+        title: `Best on ${platform}`,
+        message: `${bestPattern.learning_type}: ${bestPattern.pattern_value} (+${bestPattern.performance_impact.toFixed(1)}%)`
+      });
+    }
+  }
+  
+  return insights;
+}
+
+function analyzeWhatWorked(posts: any[], campaign: any) {
+  if (posts.length === 0) {
+    return { success: false, message: 'No published posts to analyze' };
+  }
+
+  // Sort by engagement
+  const sortedPosts = [...posts].sort((a, b) => (b.engagements || 0) - (a.engagements || 0));
+  const topPosts = sortedPosts.slice(0, Math.ceil(posts.length * 0.3));
+  const bottomPosts = sortedPosts.slice(-Math.ceil(posts.length * 0.3));
+
+  // Analyze patterns
+  const topPatterns = extractPatterns(topPosts);
+  const bottomPatterns = extractPatterns(bottomPosts);
+
+  return {
+    success: true,
+    totalPosts: posts.length,
+    avgEngagement: posts.reduce((sum, p) => sum + (p.engagements || 0), 0) / posts.length,
+    topPerformers: topPosts.slice(0, 3).map(p => ({
+      content: p.content?.substring(0, 100),
+      engagements: p.engagements,
+      impressions: p.impressions
+    })),
+    bottomPerformers: bottomPosts.slice(0, 3).map(p => ({
+      content: p.content?.substring(0, 100),
+      engagements: p.engagements,
+      impressions: p.impressions
+    })),
+    patterns: {
+      working: topPatterns,
+      notWorking: bottomPatterns
+    },
+    recommendations: generatePostCampaignRecommendations(topPatterns, bottomPatterns)
+  };
+}
+
+function extractPatterns(posts: any[]) {
+  const patterns: Record<string, any> = {
+    avgLength: 0,
+    hasMedia: 0,
+    hasQuestion: 0,
+    postingHours: [] as number[]
+  };
+  
+  for (const post of posts) {
+    patterns.avgLength += (post.content?.length || 0);
+    if (post.media_urls?.length > 0) patterns.hasMedia++;
+    if (post.content?.includes('?')) patterns.hasQuestion++;
+    if (post.scheduled_time) {
+      patterns.postingHours.push(new Date(post.scheduled_time).getHours());
+    }
+  }
+  
+  patterns.avgLength = patterns.avgLength / (posts.length || 1);
+  patterns.hasMedia = (patterns.hasMedia / (posts.length || 1)) * 100;
+  patterns.hasQuestion = (patterns.hasQuestion / (posts.length || 1)) * 100;
+  
+  return patterns;
+}
+
+function generatePostCampaignRecommendations(topPatterns: any, bottomPatterns: any): string[] {
+  const recommendations: string[] = [];
+  
+  if (topPatterns.hasQuestion > 50) {
+    recommendations.push('Questions drive engagement - continue asking your audience');
+  }
+  if (topPatterns.hasMedia > 70) {
+    recommendations.push('Media-rich posts perform better - prioritize visual content');
+  }
+  if (topPatterns.avgLength > bottomPatterns.avgLength) {
+    recommendations.push('Longer, more detailed posts resonated with your audience');
+  } else {
+    recommendations.push('Shorter, punchier content performed better');
+  }
+  
+  return recommendations;
+}
+
+function generateCampaignLearnings(
+  userId: string,
+  campaignId: string,
+  platform: string,
+  niche: string,
+  analysis: any
+) {
+  const learnings: any[] = [];
+  
+  if (analysis.patterns?.working) {
+    if (analysis.patterns.working.hasMedia > 60) {
+      learnings.push({
+        user_id: userId,
+        campaign_id: campaignId,
+        platform: platform || 'all',
+        niche: niche,
+        learning_type: 'content_type',
+        pattern_value: 'media_rich',
+        performance_impact: 15,
+        confidence_level: 'medium',
+        sample_size: analysis.totalPosts || 1
+      });
+    }
+    
+    if (analysis.patterns.working.hasQuestion > 40) {
+      learnings.push({
+        user_id: userId,
+        campaign_id: campaignId,
+        platform: platform || 'all',
+        niche: niche,
+        learning_type: 'content_type',
+        pattern_value: 'questions',
+        performance_impact: 12,
+        confidence_level: 'medium',
+        sample_size: analysis.totalPosts || 1
+      });
+    }
+  }
+  
+  return learnings;
+}
+
+function calculateActualVsPredicted(campaign: any, posts: any[]) {
+  const predicted = campaign.predicted_performance || {};
+  const actual = {
+    impressions: posts.reduce((sum, p) => sum + (p.impressions || 0), 0),
+    engagement: posts.reduce((sum, p) => sum + (p.engagements || 0), 0)
+  };
+  
+  return {
+    predicted,
+    actual,
+    accuracy: predicted.impressions 
+      ? Math.min(100, (actual.impressions / predicted.impressions) * 100)
+      : null
+  };
+}
+
+function predictCampaignPerformance(
+  campaignData: any,
+  benchmarks: any,
+  userLearnings: any[],
+  pastCampaigns: any[]
+) {
+  // Base prediction from benchmarks
+  let baseEngagement = benchmarks?.avg_engagement_rate || 2.5;
+  let baseImpressions = 10000;
+  let confidence = 0.5;
+  
+  // Adjust based on user's historical performance
+  if (pastCampaigns.length > 0) {
+    let totalImpressions = 0;
+    let totalEngagement = 0;
+    
+    for (const campaign of pastCampaigns) {
+      for (const post of campaign.scheduled_posts || []) {
+        totalImpressions += post.impressions || 0;
+        totalEngagement += post.engagements || 0;
+      }
+    }
+    
+    if (totalImpressions > 0) {
+      baseEngagement = (totalEngagement / totalImpressions) * 100;
+      baseImpressions = totalImpressions / pastCampaigns.length;
+      confidence = Math.min(0.9, 0.5 + (pastCampaigns.length * 0.1));
+    }
+  }
+  
+  // Apply learnings
+  let learningBoost = 0;
+  for (const learning of userLearnings.slice(0, 5)) {
+    learningBoost += learning.performance_impact * 0.1;
+  }
+  
+  const adjustedEngagement = baseEngagement * (1 + learningBoost / 100);
+  
+  return {
+    estimatedImpressions: Math.round(baseImpressions * 1.2),
+    estimatedEngagement: Math.round(adjustedEngagement * 100) / 100,
+    estimatedReach: Math.round(baseImpressions * 0.7),
+    confidence,
+    confidenceLevel: confidence >= 0.7 ? 'high' : confidence >= 0.5 ? 'medium' : 'low',
+    factors: [
+      `Based on ${pastCampaigns.length} past campaigns`,
+      `Industry benchmark: ${benchmarks?.avg_engagement_rate || 2.5}%`,
+      userLearnings.length > 0 ? `Applied ${userLearnings.length} learnings` : 'Limited historical data'
+    ]
+  };
+}
+
+function generateOptimizationSuggestions(campaign: any, learnings: any[], nicheStrategy: any) {
+  const suggestions: any[] = [];
+  const posts = campaign.scheduled_posts || [];
+  const publishedPosts = posts.filter((p: any) => p.status === 'published');
+  
+  // Content type suggestions
+  if (nicheStrategy?.recommended_content_types) {
+    suggestions.push({
+      type: 'content',
+      priority: 'high',
+      title: 'Optimize Content Types',
+      description: `Focus on ${nicheStrategy.recommended_content_types.slice(0, 2).join(' and ')} for best results`,
+      expectedImpact: '+15-25% engagement'
+    });
+  }
+  
+  // Timing suggestions
+  if (learnings.some(l => l.learning_type === 'timing' && l.performance_impact > 10)) {
+    const bestTiming = learnings.find(l => l.learning_type === 'timing');
+    suggestions.push({
+      type: 'timing',
+      priority: 'high',
+      title: 'Optimize Posting Times',
+      description: `Your best performing time: ${bestTiming?.pattern_value || 'afternoon'}`,
+      expectedImpact: '+10-15% reach'
+    });
+  }
+  
+  // Underperforming post suggestions
+  if (publishedPosts.length > 5) {
+    const avgEngagement = publishedPosts.reduce((sum: number, p: any) => sum + (p.engagements || 0), 0) / publishedPosts.length;
+    const underperforming = publishedPosts.filter((p: any) => (p.engagements || 0) < avgEngagement * 0.5);
+    
+    if (underperforming.length > 0) {
+      suggestions.push({
+        type: 'content',
+        priority: 'medium',
+        title: 'Improve Underperforming Posts',
+        description: `${underperforming.length} posts are below average. Consider updating or removing.`,
+        expectedImpact: 'Improved overall campaign performance'
+      });
+    }
+  }
+  
+  // Best practices from niche strategy
+  if (nicheStrategy?.best_practices) {
+    suggestions.push({
+      type: 'strategy',
+      priority: 'medium',
+      title: 'Apply Best Practices',
+      description: nicheStrategy.best_practices[0],
+      expectedImpact: 'Industry-proven tactics'
+    });
+  }
+  
+  return suggestions;
+}
+
+function generateFallbackAIStrategy(campaignData: any) {
+  const platform = campaignData.platform || 'instagram';
+  const duration = campaignData.duration || 30;
+  const weeks = Math.ceil(duration / 7);
+  
+  return {
+    overview: {
+      objective: campaignData.objective || 'engagement',
+      duration: `${duration} days`,
+      estimatedReach: 10000 + (duration * 500),
+      confidenceLevel: 'medium'
+    },
+    weeklyThemes: Array.from({ length: Math.min(weeks, 4) }, (_, i) => ({
+      week: i + 1,
+      theme: ['Launch', 'Educate', 'Engage', 'Convert'][i] || 'Maintain',
+      posts: Math.ceil(14 / weeks),
+      contentTypes: ['video', 'carousel', 'image'].slice(0, 2)
+    })),
+    contentMix: {
+      video: 40,
+      image: 35,
+      carousel: 20,
+      text: 5
+    },
+    platformTactics: getPlatformTips(platform),
+    expectedBenchmarks: {
+      engagementRate: 3.5,
+      impressions: 15000,
+      reach: 10000
+    },
+    keyActions: [
+      { action: 'Post consistently at optimal times', priority: 'high', expectedImpact: '+20% reach' },
+      { action: 'Use platform-specific content formats', priority: 'high', expectedImpact: '+15% engagement' },
+      { action: 'Engage with comments within 1 hour', priority: 'medium', expectedImpact: '+10% algorithm boost' }
+    ]
+  };
+}
+
+function buildAIStrategyContext(campaignData: any, learnings: any[], nicheStrategy: any) {
+  let context = `Generate a campaign strategy for:\n`;
+  context += `- Platform: ${campaignData.platform || 'instagram'}\n`;
+  context += `- Niche: ${campaignData.niche || 'ecommerce'}\n`;
+  context += `- Objective: ${campaignData.objective || 'engagement'}\n`;
+  context += `- Duration: ${campaignData.duration || 30} days\n`;
+  context += `- Budget: $${campaignData.budget || 0}\n\n`;
+  
+  if (learnings.length > 0) {
+    context += `Top performing patterns from past campaigns:\n`;
+    for (const learning of learnings.slice(0, 5)) {
+      context += `- ${learning.learning_type}: ${learning.pattern_value} (+${learning.performance_impact}%)\n`;
+    }
+    context += '\n';
+  }
+  
+  if (nicheStrategy) {
+    context += `Industry best practices:\n`;
+    for (const practice of (nicheStrategy.best_practices || []).slice(0, 3)) {
+      context += `- ${practice}\n`;
+    }
+  }
+  
+  return context;
+}
+
+function comparePlatformPerformance(campaigns: any[], benchmarks: any[]) {
+  const platformStats: Record<string, any> = {};
+  
+  for (const campaign of campaigns) {
+    const platform = campaign.platform || 'other';
+    if (!platformStats[platform]) {
+      platformStats[platform] = {
+        campaigns: 0,
+        totalImpressions: 0,
+        totalEngagement: 0,
+        totalSpend: 0
+      };
+    }
+    
+    platformStats[platform].campaigns++;
+    platformStats[platform].totalSpend += campaign.spend || 0;
+    
+    for (const post of campaign.scheduled_posts || []) {
+      platformStats[platform].totalImpressions += post.impressions || 0;
+      platformStats[platform].totalEngagement += post.engagements || 0;
+    }
+  }
+  
+  const comparison = Object.entries(platformStats).map(([platform, stats]) => {
+    const benchmark = benchmarks.find(b => b.platform === platform);
+    const engagementRate = stats.totalImpressions > 0 
+      ? (stats.totalEngagement / stats.totalImpressions) * 100 
+      : 0;
+    
+    return {
+      platform,
+      campaigns: stats.campaigns,
+      totalImpressions: stats.totalImpressions,
+      totalEngagement: stats.totalEngagement,
+      engagementRate: Math.round(engagementRate * 100) / 100,
+      roi: stats.totalSpend > 0 ? Math.round((stats.totalEngagement / stats.totalSpend) * 100) / 100 : 0,
+      vsBenchmark: benchmark 
+        ? Math.round((engagementRate - benchmark.avg_engagement_rate) * 100) / 100 
+        : null
+    };
+  });
+  
+  // Sort by ROI
+  comparison.sort((a, b) => b.roi - a.roi);
+  
+  return {
+    platforms: comparison,
+    recommended: comparison[0]?.platform || 'instagram',
+    budgetAllocation: comparison.reduce((acc, p) => {
+      acc[p.platform] = Math.round((p.roi / comparison.reduce((sum, c) => sum + c.roi, 0.01)) * 100);
+      return acc;
+    }, {} as Record<string, number>)
+  };
 }
