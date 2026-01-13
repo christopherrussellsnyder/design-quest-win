@@ -1108,6 +1108,167 @@ export type Database = {
         }
         Relationships: []
       }
+      campaign_ai_strategies: {
+        Row: {
+          business_profile_id: string | null
+          campaign_id: string | null
+          confidence_score: number | null
+          created_at: string | null
+          generation_progress: number | null
+          generation_status: string | null
+          id: string
+          niche: string | null
+          objective: string | null
+          platform: string
+          posts_generated: number | null
+          predicted_metrics: Json | null
+          strategy_data: Json
+          total_posts: number | null
+          updated_at: string | null
+          user_id: string
+          weekly_themes: Json | null
+        }
+        Insert: {
+          business_profile_id?: string | null
+          campaign_id?: string | null
+          confidence_score?: number | null
+          created_at?: string | null
+          generation_progress?: number | null
+          generation_status?: string | null
+          id?: string
+          niche?: string | null
+          objective?: string | null
+          platform: string
+          posts_generated?: number | null
+          predicted_metrics?: Json | null
+          strategy_data?: Json
+          total_posts?: number | null
+          updated_at?: string | null
+          user_id: string
+          weekly_themes?: Json | null
+        }
+        Update: {
+          business_profile_id?: string | null
+          campaign_id?: string | null
+          confidence_score?: number | null
+          created_at?: string | null
+          generation_progress?: number | null
+          generation_status?: string | null
+          id?: string
+          niche?: string | null
+          objective?: string | null
+          platform?: string
+          posts_generated?: number | null
+          predicted_metrics?: Json | null
+          strategy_data?: Json
+          total_posts?: number | null
+          updated_at?: string | null
+          user_id?: string
+          weekly_themes?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_ai_strategies_business_profile_id_fkey"
+            columns: ["business_profile_id"]
+            isOneToOne: false
+            referencedRelation: "business_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaign_ai_strategies_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      campaign_content_calendar: {
+        Row: {
+          actual_performance_metrics: Json | null
+          campaign_id: string | null
+          content_body: string | null
+          content_cta: string | null
+          content_hook: string | null
+          content_theme: string | null
+          content_type: string | null
+          created_at: string | null
+          day_number: number
+          expected_engagement_score: number | null
+          hashtags: string[] | null
+          id: string
+          media_suggestions: string | null
+          ml_confidence_score: number | null
+          platform: string
+          platform_specific_tips: string[] | null
+          post_date: string | null
+          post_status: string | null
+          post_time_recommended: string | null
+          reasoning: string | null
+          target_audience_segment: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          actual_performance_metrics?: Json | null
+          campaign_id?: string | null
+          content_body?: string | null
+          content_cta?: string | null
+          content_hook?: string | null
+          content_theme?: string | null
+          content_type?: string | null
+          created_at?: string | null
+          day_number: number
+          expected_engagement_score?: number | null
+          hashtags?: string[] | null
+          id?: string
+          media_suggestions?: string | null
+          ml_confidence_score?: number | null
+          platform: string
+          platform_specific_tips?: string[] | null
+          post_date?: string | null
+          post_status?: string | null
+          post_time_recommended?: string | null
+          reasoning?: string | null
+          target_audience_segment?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          actual_performance_metrics?: Json | null
+          campaign_id?: string | null
+          content_body?: string | null
+          content_cta?: string | null
+          content_hook?: string | null
+          content_theme?: string | null
+          content_type?: string | null
+          created_at?: string | null
+          day_number?: number
+          expected_engagement_score?: number | null
+          hashtags?: string[] | null
+          id?: string
+          media_suggestions?: string | null
+          ml_confidence_score?: number | null
+          platform?: string
+          platform_specific_tips?: string[] | null
+          post_date?: string | null
+          post_status?: string | null
+          post_time_recommended?: string | null
+          reasoning?: string | null
+          target_audience_segment?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_content_calendar_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       campaign_drafts: {
         Row: {
           audience_segment: string | null
