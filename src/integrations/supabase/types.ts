@@ -1183,39 +1183,54 @@ export type Database = {
       campaign_performance_tracking: {
         Row: {
           campaign_id: string | null
+          content_type_breakdown: Json | null
           created_at: string | null
           engagement_rate: number | null
           goal_progress: Json | null
           id: string
+          optimization_suggestions: Json | null
           platform_breakdown: Json | null
           posts_published: number | null
+          timing_breakdown: Json | null
+          top_performing_posts: Json | null
           total_engagement: number | null
           total_impressions: number | null
           tracked_date: string
+          underperforming_posts: Json | null
         }
         Insert: {
           campaign_id?: string | null
+          content_type_breakdown?: Json | null
           created_at?: string | null
           engagement_rate?: number | null
           goal_progress?: Json | null
           id?: string
+          optimization_suggestions?: Json | null
           platform_breakdown?: Json | null
           posts_published?: number | null
+          timing_breakdown?: Json | null
+          top_performing_posts?: Json | null
           total_engagement?: number | null
           total_impressions?: number | null
           tracked_date?: string
+          underperforming_posts?: Json | null
         }
         Update: {
           campaign_id?: string | null
+          content_type_breakdown?: Json | null
           created_at?: string | null
           engagement_rate?: number | null
           goal_progress?: Json | null
           id?: string
+          optimization_suggestions?: Json | null
           platform_breakdown?: Json | null
           posts_published?: number | null
+          timing_breakdown?: Json | null
+          top_performing_posts?: Json | null
           total_engagement?: number | null
           total_impressions?: number | null
           tracked_date?: string
+          underperforming_posts?: Json | null
         }
         Relationships: [
           {
@@ -1268,6 +1283,7 @@ export type Database = {
       }
       campaigns: {
         Row: {
+          actual_vs_predicted: Json | null
           budget: number | null
           created_at: string
           daily_limit: number | null
@@ -1276,10 +1292,15 @@ export type Database = {
           estimated_reach: number | null
           goals: Json | null
           id: string
+          learning_applied: boolean | null
           name: string
+          niche: string | null
           objective: string | null
+          optimization_score: number | null
           platform: string
+          post_campaign_learnings: Json | null
           predicted_conversions: number | null
+          predicted_performance: Json | null
           predicted_roi: string | null
           roi: string | null
           spend: number
@@ -1291,6 +1312,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          actual_vs_predicted?: Json | null
           budget?: number | null
           created_at?: string
           daily_limit?: number | null
@@ -1299,10 +1321,15 @@ export type Database = {
           estimated_reach?: number | null
           goals?: Json | null
           id?: string
+          learning_applied?: boolean | null
           name: string
+          niche?: string | null
           objective?: string | null
+          optimization_score?: number | null
           platform: string
+          post_campaign_learnings?: Json | null
           predicted_conversions?: number | null
+          predicted_performance?: Json | null
           predicted_roi?: string | null
           roi?: string | null
           spend?: number
@@ -1314,6 +1341,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          actual_vs_predicted?: Json | null
           budget?: number | null
           created_at?: string
           daily_limit?: number | null
@@ -1322,10 +1350,15 @@ export type Database = {
           estimated_reach?: number | null
           goals?: Json | null
           id?: string
+          learning_applied?: boolean | null
           name?: string
+          niche?: string | null
           objective?: string | null
+          optimization_score?: number | null
           platform?: string
+          post_campaign_learnings?: Json | null
           predicted_conversions?: number | null
+          predicted_performance?: Json | null
           predicted_roi?: string | null
           roi?: string | null
           spend?: number
@@ -1337,6 +1370,83 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      campaigns_learning: {
+        Row: {
+          applies_to_future: boolean | null
+          campaign_id: string | null
+          confidence_level: string | null
+          conversions_total: number | null
+          cpc: number | null
+          cpm: number | null
+          created_at: string | null
+          engagement_total: number | null
+          extracted_at: string | null
+          id: string
+          impressions_total: number | null
+          learning_type: string
+          niche: string | null
+          notes: string | null
+          pattern_value: string
+          performance_impact: number | null
+          platform: string
+          roas: number | null
+          sample_size: number | null
+          user_id: string
+        }
+        Insert: {
+          applies_to_future?: boolean | null
+          campaign_id?: string | null
+          confidence_level?: string | null
+          conversions_total?: number | null
+          cpc?: number | null
+          cpm?: number | null
+          created_at?: string | null
+          engagement_total?: number | null
+          extracted_at?: string | null
+          id?: string
+          impressions_total?: number | null
+          learning_type: string
+          niche?: string | null
+          notes?: string | null
+          pattern_value: string
+          performance_impact?: number | null
+          platform: string
+          roas?: number | null
+          sample_size?: number | null
+          user_id: string
+        }
+        Update: {
+          applies_to_future?: boolean | null
+          campaign_id?: string | null
+          confidence_level?: string | null
+          conversions_total?: number | null
+          cpc?: number | null
+          cpm?: number | null
+          created_at?: string | null
+          engagement_total?: number | null
+          extracted_at?: string | null
+          id?: string
+          impressions_total?: number | null
+          learning_type?: string
+          niche?: string | null
+          notes?: string | null
+          pattern_value?: string
+          performance_impact?: number | null
+          platform?: string
+          roas?: number | null
+          sample_size?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaigns_learning_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       competitor_benchmarks: {
         Row: {
@@ -2215,6 +2325,57 @@ export type Database = {
           },
         ]
       }
+      niche_strategies: {
+        Row: {
+          avg_engagement_benchmark: number | null
+          best_practices: string[] | null
+          created_at: string | null
+          id: string
+          messaging_themes: string[] | null
+          niche: string
+          optimal_content_mix: Json | null
+          platform: string
+          priority_score: number | null
+          recommended_content_types: string[] | null
+          recommended_posting_frequency: string | null
+          sample_strategies: Json | null
+          success_rate: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          avg_engagement_benchmark?: number | null
+          best_practices?: string[] | null
+          created_at?: string | null
+          id?: string
+          messaging_themes?: string[] | null
+          niche: string
+          optimal_content_mix?: Json | null
+          platform: string
+          priority_score?: number | null
+          recommended_content_types?: string[] | null
+          recommended_posting_frequency?: string | null
+          sample_strategies?: Json | null
+          success_rate?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          avg_engagement_benchmark?: number | null
+          best_practices?: string[] | null
+          created_at?: string | null
+          id?: string
+          messaging_themes?: string[] | null
+          niche?: string
+          optimal_content_mix?: Json | null
+          platform?: string
+          priority_score?: number | null
+          recommended_content_types?: string[] | null
+          recommended_posting_frequency?: string | null
+          sample_strategies?: Json | null
+          success_rate?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       optimization_actions: {
         Row: {
           action_data: Json
@@ -2379,6 +2540,60 @@ export type Database = {
           threshold_max?: number | null
           threshold_min?: number | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      platform_niche_benchmarks: {
+        Row: {
+          avg_cpc: number | null
+          avg_cpm: number | null
+          avg_ctr: number | null
+          avg_engagement_rate: number | null
+          avg_roas: number | null
+          created_at: string | null
+          id: string
+          last_updated: string | null
+          niche: string
+          optimal_posting_days: number[] | null
+          optimal_posting_times: number[] | null
+          platform: string
+          recommended_post_frequency: string | null
+          sample_size: number | null
+          top_content_types: string[] | null
+        }
+        Insert: {
+          avg_cpc?: number | null
+          avg_cpm?: number | null
+          avg_ctr?: number | null
+          avg_engagement_rate?: number | null
+          avg_roas?: number | null
+          created_at?: string | null
+          id?: string
+          last_updated?: string | null
+          niche: string
+          optimal_posting_days?: number[] | null
+          optimal_posting_times?: number[] | null
+          platform: string
+          recommended_post_frequency?: string | null
+          sample_size?: number | null
+          top_content_types?: string[] | null
+        }
+        Update: {
+          avg_cpc?: number | null
+          avg_cpm?: number | null
+          avg_ctr?: number | null
+          avg_engagement_rate?: number | null
+          avg_roas?: number | null
+          created_at?: string | null
+          id?: string
+          last_updated?: string | null
+          niche?: string
+          optimal_posting_days?: number[] | null
+          optimal_posting_times?: number[] | null
+          platform?: string
+          recommended_post_frequency?: string | null
+          sample_size?: number | null
+          top_content_types?: string[] | null
         }
         Relationships: []
       }
