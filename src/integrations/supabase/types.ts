@@ -14,41 +14,155 @@ export type Database = {
   }
   public: {
     Tables: {
+      ab_test_learning: {
+        Row: {
+          avg_confidence: number | null
+          avg_improvement: number | null
+          best_performing_day: number | null
+          best_performing_time: string | null
+          created_at: string | null
+          id: string
+          last_analyzed: string | null
+          loss_count: number | null
+          pattern_type: string
+          pattern_value: string
+          performance_trend: string | null
+          platform: string
+          sample_content: Json | null
+          total_tests: number | null
+          updated_at: string | null
+          user_id: string
+          win_count: number | null
+        }
+        Insert: {
+          avg_confidence?: number | null
+          avg_improvement?: number | null
+          best_performing_day?: number | null
+          best_performing_time?: string | null
+          created_at?: string | null
+          id?: string
+          last_analyzed?: string | null
+          loss_count?: number | null
+          pattern_type: string
+          pattern_value: string
+          performance_trend?: string | null
+          platform: string
+          sample_content?: Json | null
+          total_tests?: number | null
+          updated_at?: string | null
+          user_id: string
+          win_count?: number | null
+        }
+        Update: {
+          avg_confidence?: number | null
+          avg_improvement?: number | null
+          best_performing_day?: number | null
+          best_performing_time?: string | null
+          created_at?: string | null
+          id?: string
+          last_analyzed?: string | null
+          loss_count?: number | null
+          pattern_type?: string
+          pattern_value?: string
+          performance_trend?: string | null
+          platform?: string
+          sample_content?: Json | null
+          total_tests?: number | null
+          updated_at?: string | null
+          user_id?: string
+          win_count?: number | null
+        }
+        Relationships: []
+      }
       ab_test_results: {
         Row: {
           ab_test_id: string | null
+          comments: number | null
+          content_length: number | null
+          content_type: string | null
           conversions: number | null
           engagement: number | null
           engagement_rate: number | null
+          has_media: boolean | null
           id: string
           impressions: number | null
+          leads: number | null
+          likes: number | null
+          link_clicks: number | null
+          media_type: string | null
+          platform: string | null
           post_id: string | null
+          posting_day: number | null
+          posting_hour: number | null
+          profile_views: number | null
           published_at: string | null
+          reach: number | null
+          reactions: Json | null
           recorded_at: string | null
+          replies: number | null
+          retweets: number | null
+          saves: number | null
+          shares: number | null
           variant_id: string | null
         }
         Insert: {
           ab_test_id?: string | null
+          comments?: number | null
+          content_length?: number | null
+          content_type?: string | null
           conversions?: number | null
           engagement?: number | null
           engagement_rate?: number | null
+          has_media?: boolean | null
           id?: string
           impressions?: number | null
+          leads?: number | null
+          likes?: number | null
+          link_clicks?: number | null
+          media_type?: string | null
+          platform?: string | null
           post_id?: string | null
+          posting_day?: number | null
+          posting_hour?: number | null
+          profile_views?: number | null
           published_at?: string | null
+          reach?: number | null
+          reactions?: Json | null
           recorded_at?: string | null
+          replies?: number | null
+          retweets?: number | null
+          saves?: number | null
+          shares?: number | null
           variant_id?: string | null
         }
         Update: {
           ab_test_id?: string | null
+          comments?: number | null
+          content_length?: number | null
+          content_type?: string | null
           conversions?: number | null
           engagement?: number | null
           engagement_rate?: number | null
+          has_media?: boolean | null
           id?: string
           impressions?: number | null
+          leads?: number | null
+          likes?: number | null
+          link_clicks?: number | null
+          media_type?: string | null
+          platform?: string | null
           post_id?: string | null
+          posting_day?: number | null
+          posting_hour?: number | null
+          profile_views?: number | null
           published_at?: string | null
+          reach?: number | null
+          reactions?: Json | null
           recorded_at?: string | null
+          replies?: number | null
+          retweets?: number | null
+          saves?: number | null
+          shares?: number | null
           variant_id?: string | null
         }
         Relationships: [
@@ -133,14 +247,19 @@ export type Database = {
       }
       ab_tests: {
         Row: {
+          auto_optimize: boolean | null
           confidence_level: number | null
           created_at: string | null
           description: string | null
           end_date: string | null
           hypothesis: string | null
           id: string
+          learning_applied: boolean | null
           minimum_sample_size: number | null
           name: string
+          platform: string | null
+          predicted_winner_id: string | null
+          prediction_confidence: number | null
           results: Json | null
           start_date: string | null
           status: string | null
@@ -150,14 +269,19 @@ export type Database = {
           winner_variant_id: string | null
         }
         Insert: {
+          auto_optimize?: boolean | null
           confidence_level?: number | null
           created_at?: string | null
           description?: string | null
           end_date?: string | null
           hypothesis?: string | null
           id?: string
+          learning_applied?: boolean | null
           minimum_sample_size?: number | null
           name: string
+          platform?: string | null
+          predicted_winner_id?: string | null
+          prediction_confidence?: number | null
           results?: Json | null
           start_date?: string | null
           status?: string | null
@@ -167,14 +291,19 @@ export type Database = {
           winner_variant_id?: string | null
         }
         Update: {
+          auto_optimize?: boolean | null
           confidence_level?: number | null
           created_at?: string | null
           description?: string | null
           end_date?: string | null
           hypothesis?: string | null
           id?: string
+          learning_applied?: boolean | null
           minimum_sample_size?: number | null
           name?: string
+          platform?: string | null
+          predicted_winner_id?: string | null
+          prediction_confidence?: number | null
           results?: Json | null
           start_date?: string | null
           status?: string | null
@@ -703,31 +832,43 @@ export type Database = {
           ab_test_id: string | null
           auto_pause_enabled: boolean | null
           auto_winner_select: boolean | null
+          budget_reallocation: Json | null
           created_at: string | null
           created_by_system: boolean | null
           id: string
+          min_impressions_before_pause: number | null
+          performance_threshold: number | null
           status: string | null
           trigger_reason: string | null
+          underperforming_paused_at: string | null
         }
         Insert: {
           ab_test_id?: string | null
           auto_pause_enabled?: boolean | null
           auto_winner_select?: boolean | null
+          budget_reallocation?: Json | null
           created_at?: string | null
           created_by_system?: boolean | null
           id?: string
+          min_impressions_before_pause?: number | null
+          performance_threshold?: number | null
           status?: string | null
           trigger_reason?: string | null
+          underperforming_paused_at?: string | null
         }
         Update: {
           ab_test_id?: string | null
           auto_pause_enabled?: boolean | null
           auto_winner_select?: boolean | null
+          budget_reallocation?: Json | null
           created_at?: string | null
           created_by_system?: boolean | null
           id?: string
+          min_impressions_before_pause?: number | null
+          performance_threshold?: number | null
           status?: string | null
           trigger_reason?: string | null
+          underperforming_paused_at?: string | null
         }
         Relationships: [
           {
@@ -2237,6 +2378,69 @@ export type Database = {
           status?: string | null
           threshold_max?: number | null
           threshold_min?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      platform_performance_benchmarks: {
+        Row: {
+          avg_comments: number | null
+          avg_ctr: number | null
+          avg_engagement_rate: number | null
+          avg_likes: number | null
+          avg_reach: number | null
+          avg_shares: number | null
+          best_content_length_range: Json | null
+          content_type: string
+          created_at: string | null
+          id: string
+          last_calculated: string | null
+          optimal_posting_days: number[] | null
+          optimal_posting_hours: number[] | null
+          platform: string
+          sample_size: number | null
+          top_performing_ctas: string[] | null
+          top_performing_hashtags: string[] | null
+          user_id: string
+        }
+        Insert: {
+          avg_comments?: number | null
+          avg_ctr?: number | null
+          avg_engagement_rate?: number | null
+          avg_likes?: number | null
+          avg_reach?: number | null
+          avg_shares?: number | null
+          best_content_length_range?: Json | null
+          content_type: string
+          created_at?: string | null
+          id?: string
+          last_calculated?: string | null
+          optimal_posting_days?: number[] | null
+          optimal_posting_hours?: number[] | null
+          platform: string
+          sample_size?: number | null
+          top_performing_ctas?: string[] | null
+          top_performing_hashtags?: string[] | null
+          user_id: string
+        }
+        Update: {
+          avg_comments?: number | null
+          avg_ctr?: number | null
+          avg_engagement_rate?: number | null
+          avg_likes?: number | null
+          avg_reach?: number | null
+          avg_shares?: number | null
+          best_content_length_range?: Json | null
+          content_type?: string
+          created_at?: string | null
+          id?: string
+          last_calculated?: string | null
+          optimal_posting_days?: number[] | null
+          optimal_posting_hours?: number[] | null
+          platform?: string
+          sample_size?: number | null
+          top_performing_ctas?: string[] | null
+          top_performing_hashtags?: string[] | null
           user_id?: string
         }
         Relationships: []

@@ -62,3 +62,9 @@ verify_jwt = true
 
 [functions.send-team-invitation]
 verify_jwt = false
+
+[functions.analyze-audience-targeting]
+verify_jwt = true
+
+[functions.ab-test-optimization]
+verify_jwt = true
