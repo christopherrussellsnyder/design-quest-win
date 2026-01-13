@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
   DialogContent,
@@ -55,6 +56,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import SmartTargetingAssistant from "@/components/audience/SmartTargetingAssistant";
 
 // Mock data for audience segments
 const mockSegments = [
@@ -781,6 +783,25 @@ export default function Audience() {
           </Button>
         </div>
 
+        {/* Main Content Tabs */}
+        <Tabs defaultValue="segments" className="space-y-6">
+          <TabsList>
+            <TabsTrigger value="segments" className="gap-2">
+              <Users className="h-4 w-4" />
+              Segments
+            </TabsTrigger>
+            <TabsTrigger value="targeting" className="gap-2">
+              <Sparkles className="h-4 w-4" />
+              Smart Targeting
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="targeting">
+            <SmartTargetingAssistant />
+          </TabsContent>
+
+          <TabsContent value="segments" className="space-y-6">
+
         {/* Overview Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card className="bg-card border-border">
@@ -1111,6 +1132,8 @@ export default function Audience() {
             {renderCreateStep()}
           </DialogContent>
         </Dialog>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
