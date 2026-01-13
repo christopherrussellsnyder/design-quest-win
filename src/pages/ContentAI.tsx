@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { getAIService } from '@/services/aiService';
 import { UsageStatsBar } from '@/components/ai/UsageStatsBar';
+import { AIVideoGenerator } from '@/components/ai/AIVideoGenerator';
 import { EngagementScore } from '@/components/EngagementScore';
 import { ViralityPredictor } from '@/components/ViralityPredictor';
 import { TrendingTopics } from '@/components/TrendingTopics';
@@ -12,9 +13,10 @@ import {
   Eye, MousePointer, Target, Star, Trash2, Calendar, Edit2, Check, X,
   Hash, Smile, Clock, FileText, TrendingUp, Zap, BookOpen, Flame,
   MessageSquare, Heart, ThumbsUp, Share2, Facebook, Instagram, Linkedin, Twitter,
-  BarChart3, Lightbulb, CheckCircle, Download
+  BarChart3, Lightbulb, CheckCircle, Download, Video
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // Content Templates
 const CONTENT_TEMPLATES = [
@@ -537,6 +539,25 @@ export default function ContentAI() {
       <main className="max-w-7xl mx-auto p-6">
         {/* AI Usage Stats */}
         <UsageStatsBar />
+        
+        {/* Main Tabs for Text vs Video */}
+        <Tabs defaultValue="text" className="mb-8">
+          <TabsList className="bg-slate-800/50 border border-slate-700">
+            <TabsTrigger value="text" className="gap-2 data-[state=active]:bg-violet-500/20">
+              <Wand2 className="w-4 h-4" />
+              Text Content
+            </TabsTrigger>
+            <TabsTrigger value="video" className="gap-2 data-[state=active]:bg-violet-500/20">
+              <Video className="w-4 h-4" />
+              AI Video Generator
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="video" className="mt-6">
+            <AIVideoGenerator />
+          </TabsContent>
+          
+          <TabsContent value="text" className="mt-6">
         {/* Templates Carousel */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
@@ -1169,6 +1190,8 @@ export default function ContentAI() {
             )}
           </div>
         </div>
+          </TabsContent>
+        </Tabs>
       </main>
 
       {/* Save Modal */}
