@@ -79,6 +79,20 @@ export function TeamManagement() {
 
       if (error) throw error;
 
+      // Send invitation email
+      try {
+        await supabase.functions.invoke('send-team-invitation', {
+          body: {
+            email: inviteEmail.trim(),
+            invitationToken,
+            role: inviteRole,
+            inviterName: user.email
+          }
+        });
+      } catch (emailError) {
+        console.log('Email sending skipped or failed:', emailError);
+      }
+
       toast({
         title: 'Invitation sent',
         description: `Invitation sent to ${inviteEmail}`,
