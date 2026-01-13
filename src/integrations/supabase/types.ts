@@ -554,6 +554,63 @@ export type Database = {
         }
         Relationships: []
       }
+      audience_insights: {
+        Row: {
+          analysis_date: string | null
+          conversions: number | null
+          cost_per_action: number | null
+          created_at: string | null
+          engagements: number | null
+          id: string
+          impressions: number | null
+          insight_type: string
+          is_top_performer: boolean | null
+          performance_metrics: Json | null
+          platform: string
+          recommendation_score: number | null
+          return_on_ad_spend: number | null
+          targeting_parameters: Json | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          analysis_date?: string | null
+          conversions?: number | null
+          cost_per_action?: number | null
+          created_at?: string | null
+          engagements?: number | null
+          id?: string
+          impressions?: number | null
+          insight_type: string
+          is_top_performer?: boolean | null
+          performance_metrics?: Json | null
+          platform: string
+          recommendation_score?: number | null
+          return_on_ad_spend?: number | null
+          targeting_parameters?: Json | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          analysis_date?: string | null
+          conversions?: number | null
+          cost_per_action?: number | null
+          created_at?: string | null
+          engagements?: number | null
+          id?: string
+          impressions?: number | null
+          insight_type?: string
+          is_top_performer?: boolean | null
+          performance_metrics?: Json | null
+          platform?: string
+          recommendation_score?: number | null
+          return_on_ad_spend?: number | null
+          targeting_parameters?: Json | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       audiences: {
         Row: {
           age_max: number | null
@@ -844,6 +901,69 @@ export type Database = {
           user_id?: string
           website_url?: string | null
           youtube_url?: string | null
+        }
+        Relationships: []
+      }
+      business_profiles: {
+        Row: {
+          average_order_value: number | null
+          business_goals: string[] | null
+          business_name: string | null
+          competitor_names: string[] | null
+          created_at: string | null
+          id: string
+          industry: string | null
+          niche: string | null
+          price_point: string | null
+          products_services: string | null
+          target_age_max: number | null
+          target_age_min: number | null
+          target_genders: string[] | null
+          target_interests: string[] | null
+          target_locations: string[] | null
+          unique_selling_points: string[] | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          average_order_value?: number | null
+          business_goals?: string[] | null
+          business_name?: string | null
+          competitor_names?: string[] | null
+          created_at?: string | null
+          id?: string
+          industry?: string | null
+          niche?: string | null
+          price_point?: string | null
+          products_services?: string | null
+          target_age_max?: number | null
+          target_age_min?: number | null
+          target_genders?: string[] | null
+          target_interests?: string[] | null
+          target_locations?: string[] | null
+          unique_selling_points?: string[] | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          average_order_value?: number | null
+          business_goals?: string[] | null
+          business_name?: string | null
+          competitor_names?: string[] | null
+          created_at?: string | null
+          id?: string
+          industry?: string | null
+          niche?: string | null
+          price_point?: string | null
+          products_services?: string | null
+          target_age_max?: number | null
+          target_age_min?: number | null
+          target_genders?: string[] | null
+          target_interests?: string[] | null
+          target_locations?: string[] | null
+          unique_selling_points?: string[] | null
+          updated_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }
