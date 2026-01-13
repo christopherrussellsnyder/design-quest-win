@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { 
   User, Palette, Link2, Bell, Settings as SettingsIcon, Shield, 
   CreditCard, Database, Info, Check, X, Loader2, Save, ArrowLeft,
@@ -36,6 +37,7 @@ interface UserProfile {
   phone: string;
   website: string;
   location: string;
+  avatarUrl: string;
 }
 
 interface BrandSettings {
@@ -91,6 +93,14 @@ const Settings: React.FC = () => {
   const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
   const [isSaving, setIsSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'error' | null>(null);
+  const [showComingSoonModal, setShowComingSoonModal] = useState(false);
+  const [comingSoonPlatform, setComingSoonPlatform] = useState('');
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [exportingData, setExportingData] = useState<string | null>(null);
+  
+  const photoInputRef = useRef<HTMLInputElement>(null);
+  const logoInputRef = useRef<HTMLInputElement>(null);
   
   // Profile state
   const [profile, setProfile] = useState<UserProfile>({
@@ -104,7 +114,8 @@ const Settings: React.FC = () => {
     companySize: '1-10',
     phone: '+1 (555) 123-4567',
     website: 'https://andersonmarketing.com',
-    location: 'Bradenton, Florida, US'
+    location: 'Bradenton, Florida, US',
+    avatarUrl: ''
   });
   
   // Brand settings state
@@ -153,6 +164,28 @@ const Settings: React.FC = () => {
       fetchConnections();
     }
   }, [user, activeTab]);
+
+  // Apply theme changes
+  useEffect(() => {
+    const root = document.documentElement;
+    if (preferences.theme === 'light') {
+      root.classList.add('light');
+      root.classList.remove('dark');
+    } else if (preferences.theme === 'dark') {
+      root.classList.add('dark');
+      root.classList.remove('light');
+    } else {
+      // Auto - follow system preference
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (prefersDark) {
+        root.classList.add('dark');
+        root.classList.remove('light');
+      } else {
+        root.classList.add('light');
+        root.classList.remove('dark');
+      }
+    }
+  }, [preferences.theme]);
   
   const fetchConnections = async () => {
     if (!user) return;
@@ -181,22 +214,359 @@ const Settings: React.FC = () => {
       setLoadingConnections(false);
     }
   };
-  
-  // Auto-save with debounce
-  const autoSave = useCallback(async () => {
-    setSaveStatus('saving');
-    // Simulate save delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setSaveStatus('saved');
-    setTimeout(() => setSaveStatus(null), 2000);
-  }, []);
+
+  const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
+
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+    if (!allowedTypes.includes(file.type)) {
+      toast({
+        title: 'Invalid file type',
+        description: 'Please upload a JPG, PNG, or GIF image.',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: 'File too large',
+        description: 'Maximum file size is 5MB.',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    setUploadingPhoto(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/avatar.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('media')
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('media')
+        .getPublicUrl(fileName);
+
+      setProfile(prev => ({ ...prev, avatarUrl: publicUrl }));
+      
+      toast({
+        title: 'Photo uploaded',
+        description: 'Your profile photo has been updated.'
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Upload failed',
+        description: error.message || 'Failed to upload photo.',
+        variant: 'destructive'
+      });
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
+
+  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
+
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/svg+xml'];
+    if (!allowedTypes.includes(file.type)) {
+      toast({
+        title: 'Invalid file type',
+        description: 'Please upload a PNG, JPG, or SVG image.',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: 'File too large',
+        description: 'Maximum file size is 5MB.',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    setUploadingLogo(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/logo.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('media')
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('media')
+        .getPublicUrl(fileName);
+
+      setBrand(prev => ({ ...prev, logoUrl: publicUrl }));
+      
+      toast({
+        title: 'Logo uploaded',
+        description: 'Your brand logo has been updated.'
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Upload failed',
+        description: error.message || 'Failed to upload logo.',
+        variant: 'destructive'
+      });
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
+
+  const handleConnectPlatform = (platform: string) => {
+    const connection = connections.find(c => c.platform === platform);
+    if (connection?.isActive) {
+      return;
+    }
+    
+    // For Twitter, we could have OAuth setup
+    if (platform === 'twitter') {
+      // Could initiate OAuth here if configured
+      setComingSoonPlatform('Twitter');
+      setShowComingSoonModal(true);
+    } else {
+      setComingSoonPlatform(platform.charAt(0).toUpperCase() + platform.slice(1));
+      setShowComingSoonModal(true);
+    }
+  };
+
+  const handleDisconnectPlatform = async (connectionId: string) => {
+    try {
+      const { error } = await supabase
+        .from('social_connections')
+        .delete()
+        .eq('id', connectionId);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Disconnected',
+        description: 'Account has been disconnected.'
+      });
+      fetchConnections();
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to disconnect account.',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const exportPostsCSV = async () => {
+    if (!user) return;
+    setExportingData('posts');
+    
+    try {
+      const { data, error } = await supabase
+        .from('scheduled_posts')
+        .select('*')
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      const headers = ['Title', 'Content', 'Platforms', 'Status', 'Scheduled Time', 'Published At', 'Impressions', 'Engagements'];
+      const rows = (data || []).map(post => [
+        post.title,
+        post.content.replace(/"/g, '""'),
+        (post.platforms || []).join('; '),
+        post.status,
+        post.scheduled_time,
+        post.published_at || '',
+        post.impressions || 0,
+        post.engagements || 0
+      ]);
+
+      const csvContent = [
+        headers.join(','),
+        ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+      ].join('\n');
+
+      downloadFile(csvContent, 'posts_export.csv', 'text/csv');
+      
+      toast({
+        title: 'Export complete',
+        description: 'Your posts have been exported to CSV.'
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Export failed',
+        description: error.message || 'Failed to export posts.',
+        variant: 'destructive'
+      });
+    } finally {
+      setExportingData(null);
+    }
+  };
+
+  const exportAnalyticsJSON = async () => {
+    if (!user) return;
+    setExportingData('analytics');
+    
+    try {
+      const { data, error } = await supabase
+        .from('analytics')
+        .select('*')
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      const jsonContent = JSON.stringify(data || [], null, 2);
+      downloadFile(jsonContent, 'analytics_export.json', 'application/json');
+      
+      toast({
+        title: 'Export complete',
+        description: 'Your analytics have been exported to JSON.'
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Export failed',
+        description: error.message || 'Failed to export analytics.',
+        variant: 'destructive'
+      });
+    } finally {
+      setExportingData(null);
+    }
+  };
+
+  const exportContentLibraryJSON = async () => {
+    if (!user) return;
+    setExportingData('content');
+    
+    try {
+      const { data, error } = await supabase
+        .from('content_library')
+        .select('*')
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      const jsonContent = JSON.stringify(data || [], null, 2);
+      downloadFile(jsonContent, 'content_library_export.json', 'application/json');
+      
+      toast({
+        title: 'Export complete',
+        description: 'Your content library has been exported to JSON.'
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Export failed',
+        description: error.message || 'Failed to export content library.',
+        variant: 'destructive'
+      });
+    } finally {
+      setExportingData(null);
+    }
+  };
+
+  const exportFullData = async () => {
+    if (!user) return;
+    setExportingData('full');
+    
+    try {
+      const [postsResult, analyticsResult, contentResult, audiencesResult] = await Promise.all([
+        supabase.from('scheduled_posts').select('*').eq('user_id', user.id),
+        supabase.from('analytics').select('*').eq('user_id', user.id),
+        supabase.from('content_library').select('*').eq('user_id', user.id),
+        supabase.from('audiences').select('*').eq('user_id', user.id)
+      ]);
+
+      const fullExport = {
+        exportDate: new Date().toISOString(),
+        userId: user.id,
+        posts: postsResult.data || [],
+        analytics: analyticsResult.data || [],
+        contentLibrary: contentResult.data || [],
+        audiences: audiencesResult.data || []
+      };
+
+      const jsonContent = JSON.stringify(fullExport, null, 2);
+      downloadFile(jsonContent, 'marketai_full_export.json', 'application/json');
+      
+      toast({
+        title: 'Full export complete',
+        description: 'All your data has been exported.'
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Export failed',
+        description: error.message || 'Failed to export data.',
+        variant: 'destructive'
+      });
+    } finally {
+      setExportingData(null);
+    }
+  };
+
+  const downloadFile = (content: string, filename: string, mimeType: string) => {
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
   
   const handleSave = async () => {
     setIsSaving(true);
     setSaveStatus('saving');
     try {
-      // In production, save to database
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Save to database
+      if (user) {
+        await supabase.from('user_preferences').upsert({
+          user_id: user.id,
+          theme: preferences.theme,
+          timezone: preferences.timezone,
+          date_format: preferences.dateFormat,
+          time_format: preferences.timeFormat,
+          language: preferences.language,
+          email_notifications: preferences.emailNotifications,
+          post_published_notification: preferences.postPublishedNotification,
+          high_engagement_notification: preferences.highEngagementNotification,
+          campaign_milestone_notification: preferences.campaignMilestoneNotification,
+          weekly_report_notification: preferences.weeklyReportNotification,
+          error_notification: preferences.errorNotification,
+          default_post_status: preferences.defaultPostStatus,
+          auto_save_drafts: preferences.autoSaveDrafts,
+          auto_hashtag_suggestions: preferences.autoHashtagSuggestions,
+          show_best_time_suggestions: preferences.showBestTimeSuggestions,
+          make_profile_public: preferences.makeProfilePublic,
+          share_analytics: preferences.shareAnalytics,
+          updated_at: new Date().toISOString()
+        });
+
+        await supabase.from('brand_settings').upsert({
+          user_id: user.id,
+          business_name: brand.businessName,
+          tagline: brand.tagline,
+          bio: brand.bio,
+          website_url: brand.websiteUrl,
+          logo_url: brand.logoUrl,
+          primary_color: brand.primaryColor,
+          secondary_color: brand.secondaryColor,
+          accent_color: brand.accentColor,
+          tone: brand.tone,
+          key_messages: brand.keyMessages,
+          brand_hashtags: brand.brandHashtags,
+          updated_at: new Date().toISOString()
+        });
+      }
+
       setSaveStatus('saved');
       toast({
         title: "Settings saved",
@@ -251,13 +621,33 @@ const Settings: React.FC = () => {
           <CardTitle className="text-base">Profile Picture</CardTitle>
         </CardHeader>
         <CardContent className="flex items-center gap-4">
-          <div className="w-24 h-24 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-3xl font-bold text-white">
-            {profile.fullName.split(' ').map(n => n[0]).join('')}
+          <div className="w-24 h-24 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-3xl font-bold text-white overflow-hidden">
+            {profile.avatarUrl ? (
+              <img src={profile.avatarUrl} alt="Profile" className="w-full h-full object-cover" />
+            ) : (
+              profile.fullName.split(' ').map(n => n[0]).join('')
+            )}
           </div>
           <div className="space-y-2">
-            <Button variant="outline" size="sm">
-              <Upload className="w-4 h-4 mr-2" />
-              Change Photo
+            <input
+              type="file"
+              ref={photoInputRef}
+              onChange={handlePhotoUpload}
+              accept="image/jpeg,image/png,image/gif"
+              className="hidden"
+            />
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => photoInputRef.current?.click()}
+              disabled={uploadingPhoto}
+            >
+              {uploadingPhoto ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Upload className="w-4 h-4 mr-2" />
+              )}
+              {uploadingPhoto ? 'Uploading...' : 'Change Photo'}
             </Button>
             <p className="text-xs text-muted-foreground">JPG, PNG or GIF. Max 5MB.</p>
           </div>
@@ -426,13 +816,33 @@ const Settings: React.FC = () => {
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-4">
-            <div className="w-24 h-24 rounded-lg bg-slate-800 border-2 border-dashed border-slate-600 flex items-center justify-center">
-              <Upload className="w-8 h-8 text-muted-foreground" />
+            <div className="w-24 h-24 rounded-lg bg-slate-800 border-2 border-dashed border-slate-600 flex items-center justify-center overflow-hidden">
+              {brand.logoUrl ? (
+                <img src={brand.logoUrl} alt="Logo" className="w-full h-full object-contain" />
+              ) : (
+                <Upload className="w-8 h-8 text-muted-foreground" />
+              )}
             </div>
             <div className="space-y-2">
-              <Button variant="outline" size="sm">
-                <Upload className="w-4 h-4 mr-2" />
-                Upload Logo
+              <input
+                type="file"
+                ref={logoInputRef}
+                onChange={handleLogoUpload}
+                accept="image/jpeg,image/png,image/svg+xml"
+                className="hidden"
+              />
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => logoInputRef.current?.click()}
+                disabled={uploadingLogo}
+              >
+                {uploadingLogo ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Upload className="w-4 h-4 mr-2" />
+                )}
+                {uploadingLogo ? 'Uploading...' : 'Upload Logo'}
               </Button>
               <p className="text-xs text-muted-foreground">Recommended: 512x512px, PNG with transparency</p>
             </div>
@@ -444,16 +854,18 @@ const Settings: React.FC = () => {
       <Card className="bg-card border-border">
         <CardHeader>
           <CardTitle className="text-base">Brand Colors</CardTitle>
-          <CardDescription>Choose colors that represent your brand</CardDescription>
+          <CardDescription>Choose colors that represent your brand. Changes apply immediately across the app.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label>Primary Color</Label>
               <div className="flex gap-2">
-                <div 
+                <input 
+                  type="color"
+                  value={brand.primaryColor}
+                  onChange={(e) => setBrand({ ...brand, primaryColor: e.target.value })}
                   className="w-10 h-10 rounded-lg border border-border cursor-pointer"
-                  style={{ backgroundColor: brand.primaryColor }}
                 />
                 <Input 
                   value={brand.primaryColor}
@@ -465,9 +877,11 @@ const Settings: React.FC = () => {
             <div className="space-y-2">
               <Label>Secondary Color</Label>
               <div className="flex gap-2">
-                <div 
+                <input 
+                  type="color"
+                  value={brand.secondaryColor}
+                  onChange={(e) => setBrand({ ...brand, secondaryColor: e.target.value })}
                   className="w-10 h-10 rounded-lg border border-border cursor-pointer"
-                  style={{ backgroundColor: brand.secondaryColor }}
                 />
                 <Input 
                   value={brand.secondaryColor}
@@ -479,9 +893,11 @@ const Settings: React.FC = () => {
             <div className="space-y-2">
               <Label>Accent Color</Label>
               <div className="flex gap-2">
-                <div 
+                <input 
+                  type="color"
+                  value={brand.accentColor}
+                  onChange={(e) => setBrand({ ...brand, accentColor: e.target.value })}
                   className="w-10 h-10 rounded-lg border border-border cursor-pointer"
-                  style={{ backgroundColor: brand.accentColor }}
                 />
                 <Input 
                   value={brand.accentColor}
@@ -621,6 +1037,7 @@ const Settings: React.FC = () => {
       <Card className="bg-card border-border">
         <CardHeader>
           <CardTitle className="text-base">Display Preferences</CardTitle>
+          <CardDescription>Theme changes apply immediately across the entire app</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -734,12 +1151,21 @@ const Settings: React.FC = () => {
                         <RefreshCw className="w-3 h-3 mr-1" />
                         Sync
                       </Button>
-                      <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="text-destructive hover:text-destructive"
+                        onClick={() => handleDisconnectPlatform(connection.id)}
+                      >
                         Disconnect
                       </Button>
                     </>
                   ) : (
-                    <Button size="sm" className="bg-primary hover:bg-primary/90">
+                    <Button 
+                      size="sm" 
+                      className="bg-primary hover:bg-primary/90"
+                      onClick={() => handleConnectPlatform(platform)}
+                    >
                       <Link2 className="w-3 h-3 mr-1" />
                       Connect {platform.charAt(0).toUpperCase() + platform.slice(1)}
                     </Button>
@@ -872,69 +1298,41 @@ const Settings: React.FC = () => {
               <SelectContent>
                 <SelectItem value="draft">Draft</SelectItem>
                 <SelectItem value="scheduled">Scheduled</SelectItem>
-                <SelectItem value="publish">Publish Immediately</SelectItem>
               </SelectContent>
             </Select>
           </div>
           
-          <Separator />
-          
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <Label>Auto-suggest hashtags</Label>
-                <p className="text-sm text-muted-foreground">Get AI-powered hashtag suggestions</p>
-              </div>
-              <Switch 
-                checked={preferences.autoHashtagSuggestions}
-                onCheckedChange={(checked) => setPreferences({ ...preferences, autoHashtagSuggestions: checked })}
-              />
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <div>
-                <Label>Show best time suggestions</Label>
-                <p className="text-sm text-muted-foreground">See optimal posting times in scheduler</p>
-              </div>
-              <Switch 
-                checked={preferences.showBestTimeSuggestions}
-                onCheckedChange={(checked) => setPreferences({ ...preferences, showBestTimeSuggestions: checked })}
-              />
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <div>
-                <Label>Auto-save drafts</Label>
-                <p className="text-sm text-muted-foreground">Automatically save drafts every 30 seconds</p>
-              </div>
-              <Switch 
-                checked={preferences.autoSaveDrafts}
-                onCheckedChange={(checked) => setPreferences({ ...preferences, autoSaveDrafts: checked })}
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-      
-      <Card className="bg-card border-border">
-        <CardHeader>
-          <CardTitle className="text-base">Accessibility</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
           <div className="flex items-center justify-between">
             <div>
-              <Label>Reduce animations</Label>
-              <p className="text-sm text-muted-foreground">Minimize motion effects</p>
+              <Label>Auto-save drafts</Label>
+              <p className="text-sm text-muted-foreground">Automatically save changes while editing</p>
             </div>
-            <Switch />
+            <Switch 
+              checked={preferences.autoSaveDrafts}
+              onCheckedChange={(checked) => setPreferences({ ...preferences, autoSaveDrafts: checked })}
+            />
           </div>
           
           <div className="flex items-center justify-between">
             <div>
-              <Label>High contrast mode</Label>
-              <p className="text-sm text-muted-foreground">Increase visual contrast</p>
+              <Label>Auto-suggest hashtags</Label>
+              <p className="text-sm text-muted-foreground">Get hashtag suggestions based on content</p>
             </div>
-            <Switch />
+            <Switch 
+              checked={preferences.autoHashtagSuggestions}
+              onCheckedChange={(checked) => setPreferences({ ...preferences, autoHashtagSuggestions: checked })}
+            />
+          </div>
+          
+          <div className="flex items-center justify-between">
+            <div>
+              <Label>Show best time suggestions</Label>
+              <p className="text-sm text-muted-foreground">Display optimal posting times</p>
+            </div>
+            <Switch 
+              checked={preferences.showBestTimeSuggestions}
+              onCheckedChange={(checked) => setPreferences({ ...preferences, showBestTimeSuggestions: checked })}
+            />
           </div>
         </CardContent>
       </Card>
@@ -1126,8 +1524,17 @@ const Settings: React.FC = () => {
               <p className="font-medium">Export Posts</p>
               <p className="text-sm text-muted-foreground">All your scheduled and published posts</p>
             </div>
-            <Button variant="outline" size="sm">
-              <Download className="w-4 h-4 mr-2" />
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={exportPostsCSV}
+              disabled={exportingData === 'posts'}
+            >
+              {exportingData === 'posts' ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Download className="w-4 h-4 mr-2" />
+              )}
               Export CSV
             </Button>
           </div>
@@ -1137,9 +1544,18 @@ const Settings: React.FC = () => {
               <p className="font-medium">Export Analytics</p>
               <p className="text-sm text-muted-foreground">Performance data and metrics</p>
             </div>
-            <Button variant="outline" size="sm">
-              <Download className="w-4 h-4 mr-2" />
-              Export CSV
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={exportAnalyticsJSON}
+              disabled={exportingData === 'analytics'}
+            >
+              {exportingData === 'analytics' ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Download className="w-4 h-4 mr-2" />
+              )}
+              Export JSON
             </Button>
           </div>
           
@@ -1148,8 +1564,17 @@ const Settings: React.FC = () => {
               <p className="font-medium">Export Content Library</p>
               <p className="text-sm text-muted-foreground">All saved content and templates</p>
             </div>
-            <Button variant="outline" size="sm">
-              <Download className="w-4 h-4 mr-2" />
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={exportContentLibraryJSON}
+              disabled={exportingData === 'content'}
+            >
+              {exportingData === 'content' ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Download className="w-4 h-4 mr-2" />
+              )}
               Export JSON
             </Button>
           </div>
@@ -1162,12 +1587,20 @@ const Settings: React.FC = () => {
           <CardDescription>Download all your data in one package</CardDescription>
         </CardHeader>
         <CardContent>
-          <Button className="bg-primary hover:bg-primary/90">
-            <Download className="w-4 h-4 mr-2" />
-            Request Full Data Export
+          <Button 
+            className="bg-primary hover:bg-primary/90"
+            onClick={exportFullData}
+            disabled={exportingData === 'full'}
+          >
+            {exportingData === 'full' ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <Download className="w-4 h-4 mr-2" />
+            )}
+            {exportingData === 'full' ? 'Generating Export...' : 'Request Full Data Export'}
           </Button>
           <p className="text-sm text-muted-foreground mt-2">
-            We'll prepare your data and email you when it's ready (usually within 24 hours).
+            This will download all your posts, analytics, content library, and audience data.
           </p>
         </CardContent>
       </Card>
@@ -1270,15 +1703,17 @@ const Settings: React.FC = () => {
         </CardHeader>
         <CardContent className="space-y-2">
           {[
-            { icon: '📖', label: 'Documentation', url: '#' },
-            { icon: '🎥', label: 'Video Tutorials', url: '#' },
-            { icon: '💡', label: 'Feature Requests', url: '#' },
-            { icon: '🐛', label: 'Report a Bug', url: '#' },
-            { icon: '💬', label: 'Support Chat', url: '#' },
+            { icon: '📖', label: 'Documentation', url: '/help' },
+            { icon: '🎥', label: 'Video Tutorials', url: 'https://youtube.com/@marketai' },
+            { icon: '💡', label: 'Feature Requests', url: 'https://feedback.marketai.com' },
+            { icon: '🐛', label: 'Report a Bug', url: 'mailto:support@marketai.com?subject=Bug%20Report' },
+            { icon: '💬', label: 'Support Chat', url: '/help' },
           ].map((item) => (
             <a 
               key={item.label}
               href={item.url}
+              target={item.url.startsWith('http') || item.url.startsWith('mailto') ? '_blank' : undefined}
+              rel={item.url.startsWith('http') ? 'noopener noreferrer' : undefined}
               className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 transition-colors"
             >
               <span className="flex items-center gap-2 text-sm">
@@ -1296,15 +1731,15 @@ const Settings: React.FC = () => {
           <CardTitle className="text-base">Legal</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
-          <a href="#" className="block text-sm text-primary hover:underline">Terms of Service</a>
-          <a href="#" className="block text-sm text-primary hover:underline">Privacy Policy</a>
-          <a href="#" className="block text-sm text-primary hover:underline">Cookie Policy</a>
+          <Link to="/terms" target="_blank" className="block text-sm text-primary hover:underline">Terms of Service</Link>
+          <Link to="/privacy" target="_blank" className="block text-sm text-primary hover:underline">Privacy Policy</Link>
+          <Link to="/cookies" target="_blank" className="block text-sm text-primary hover:underline">Cookie Policy</Link>
         </CardContent>
       </Card>
       
       <div className="text-center text-sm text-muted-foreground">
         <p>Built with ❤️ by MarketAI Team</p>
-        <p className="mt-1">Powered by Supabase • OpenAI • Lovable</p>
+        <p className="mt-1">Powered by Lovable Cloud</p>
       </div>
     </div>
   );
@@ -1348,6 +1783,21 @@ const Settings: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Coming Soon Modal */}
+      <Dialog open={showComingSoonModal} onOpenChange={setShowComingSoonModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Integration Coming Soon</DialogTitle>
+            <DialogDescription>
+              {comingSoonPlatform} integration is currently under development. We're working hard to bring you this feature soon!
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end">
+            <Button onClick={() => setShowComingSoonModal(false)}>Got it</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Header */}
       <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -1387,26 +1837,29 @@ const Settings: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Sidebar Navigation */}
-          <nav className="w-full lg:w-60 shrink-0">
-            <div className="lg:sticky lg:top-24 space-y-1">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors ${
-                    activeTab === tab.id
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                  }`}
-                >
-                  <tab.icon className="w-5 h-5" />
-                  <span className="text-sm font-medium">{tab.label}</span>
-                </button>
-              ))}
+          <nav className="lg:w-64 flex-shrink-0">
+            <div className="sticky top-24 space-y-1">
+              {tabs.map((tab) => {
+                const Icon = tab.icon;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left transition-colors ${
+                      activeTab === tab.id
+                        ? 'bg-primary/10 text-primary border-l-2 border-primary'
+                        : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
+                    }`}
+                  >
+                    <Icon className="w-5 h-5" />
+                    <span className="font-medium">{tab.label}</span>
+                  </button>
+                );
+              })}
             </div>
           </nav>
           
-          {/* Content Area */}
+          {/* Main Content */}
           <main className="flex-1 min-w-0">
             {renderContent()}
           </main>

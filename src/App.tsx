@@ -34,6 +34,9 @@ const AIAnalytics = lazy(() => import("./pages/AIAnalytics"));
 const HealthCheck = lazy(() => import("./pages/HealthCheck"));
 const ABTesting = lazy(() => import("./pages/ABTesting"));
 const HelpCenter = lazy(() => import("./pages/HelpCenter"));
+const Terms = lazy(() => import("./pages/Terms"));
+const Privacy = lazy(() => import("./pages/Privacy"));
+const Cookies = lazy(() => import("./pages/Cookies"));
 
 const queryClient = new QueryClient();
 
@@ -219,6 +222,9 @@ const App = () => (
                     }
                   />
                   <Route path="/help" element={<HelpCenter />} />
+                  <Route path="/terms" element={<Terms />} />
+                  <Route path="/privacy" element={<Privacy />} />
+                  <Route path="/cookies" element={<Cookies />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
