@@ -290,108 +290,122 @@ export default function Campaigns() {
       </header>
 
       <main className="container px-4 py-6">
-        {/* Stats Summary */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <Card className="bg-card border-border">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-primary/10">
-                  <Target className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-foreground">{stats.active}</p>
-                  <p className="text-sm text-muted-foreground">Active Campaigns</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="bg-card border-border">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-cyan-500/10">
-                  <Calendar className="h-5 w-5 text-cyan-400" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-foreground">{formatNumber(stats.totalPosts)}</p>
-                  <p className="text-sm text-muted-foreground">Total Posts</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="bg-card border-border">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-emerald-500/10">
-                  <BarChart3 className="h-5 w-5 text-emerald-400" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-foreground">{formatNumber(stats.totalEngagement)}</p>
-                  <p className="text-sm text-muted-foreground">Total Engagement</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="bg-card border-border">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-fuchsia-500/10">
-                  <DollarSign className="h-5 w-5 text-fuchsia-400" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-foreground">${formatNumber(stats.totalSpend)}</p>
-                  <p className="text-sm text-muted-foreground">Total Spend</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        {/* Main Tabs */}
+        <Tabs defaultValue="campaigns" className="space-y-6">
+          <TabsList className="bg-card border border-border">
+            <TabsTrigger value="campaigns" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <Target className="h-4 w-4 mr-2" />
+              My Campaigns
+            </TabsTrigger>
+            <TabsTrigger value="intelligence" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <Brain className="h-4 w-4 mr-2" />
+              AI Intelligence
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-6">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search campaigns..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-card border-border"
-            />
-          </div>
-          <div className="flex gap-2">
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-2 rounded-lg bg-card border border-border text-foreground text-sm"
-            >
-              <option value="all">All Status</option>
-              <option value="active">Active</option>
-              <option value="paused">Paused</option>
-              <option value="completed">Completed</option>
-              <option value="draft">Draft</option>
-              <option value="archived">Archived</option>
-            </select>
-            <div className="flex rounded-lg border border-border overflow-hidden">
-              <Button
-                variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
-                size="icon"
-                onClick={() => setViewMode('grid')}
-                className="rounded-none"
-              >
-                <Grid className="h-4 w-4" />
-              </Button>
-              <Button
-                variant={viewMode === 'list' ? 'secondary' : 'ghost'}
-                size="icon"
-                onClick={() => setViewMode('list')}
-                className="rounded-none"
-              >
-                <List className="h-4 w-4" />
-              </Button>
+          <TabsContent value="campaigns" className="space-y-6">
+            {/* Stats Summary */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <Card className="bg-card border-border">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-primary/10">
+                      <Target className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-foreground">{stats.active}</p>
+                      <p className="text-sm text-muted-foreground">Active Campaigns</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="bg-card border-border">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-cyan-500/10">
+                      <Calendar className="h-5 w-5 text-cyan-400" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-foreground">{formatNumber(stats.totalPosts)}</p>
+                      <p className="text-sm text-muted-foreground">Total Posts</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="bg-card border-border">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-emerald-500/10">
+                      <BarChart3 className="h-5 w-5 text-emerald-400" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-foreground">{formatNumber(stats.totalEngagement)}</p>
+                      <p className="text-sm text-muted-foreground">Total Engagement</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="bg-card border-border">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-fuchsia-500/10">
+                      <DollarSign className="h-5 w-5 text-fuchsia-400" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-foreground">${formatNumber(stats.totalSpend)}</p>
+                      <p className="text-sm text-muted-foreground">Total Spend</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
-          </div>
-        </div>
 
-        {/* Campaigns Grid/List */}
+            {/* Filters */}
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search campaigns..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 bg-card border-border"
+                />
+              </div>
+              <div className="flex gap-2">
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="px-3 py-2 rounded-lg bg-card border border-border text-foreground text-sm"
+                >
+                  <option value="all">All Status</option>
+                  <option value="active">Active</option>
+                  <option value="paused">Paused</option>
+                  <option value="completed">Completed</option>
+                  <option value="draft">Draft</option>
+                  <option value="archived">Archived</option>
+                </select>
+                <div className="flex rounded-lg border border-border overflow-hidden">
+                  <Button
+                    variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
+                    size="icon"
+                    onClick={() => setViewMode('grid')}
+                    className="rounded-none"
+                  >
+                    <Grid className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+                    size="icon"
+                    onClick={() => setViewMode('list')}
+                    className="rounded-none"
+                  >
+                    <List className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Campaigns Grid/List */}
         {filteredCampaigns.length === 0 ? (
           <Card className="bg-card border-border">
             <CardContent className="py-16 text-center">
@@ -627,6 +641,12 @@ export default function Campaigns() {
             </div>
           </Card>
         )}
+          </TabsContent>
+
+          <TabsContent value="intelligence">
+            <CampaignIntelligenceDashboard />
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );
