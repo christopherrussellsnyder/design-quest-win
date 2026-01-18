@@ -1,7 +1,76 @@
 import { Link } from 'react-router-dom';
-import { Sparkles, TrendingUp, Target, Zap } from 'lucide-react';
+import { Sparkles, TrendingUp, Target, Zap, Download } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
 const Index = () => {
+  const downloadLogoPNG = async () => {
+    const size = 1024;
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    
+    if (!ctx) {
+      toast.error('Could not create canvas context');
+      return;
+    }
+
+    // Create the SVG as a string (1024x1024 version)
+    const svgString = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+        <defs>
+          <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#8B5CF6"/>
+            <stop offset="100%" stop-color="#D946EF"/>
+          </linearGradient>
+        </defs>
+        <rect width="1024" height="1024" rx="192" fill="url(#logoGradient)"/>
+        <g transform="translate(256, 256)" fill="white">
+          <path d="M256 0L297.6 153.6L451.2 195.2L297.6 236.8L256 390.4L214.4 236.8L60.8 195.2L214.4 153.6L256 0Z"/>
+          <path d="M128 256L153.6 332.8L230.4 358.4L153.6 384L128 460.8L102.4 384L25.6 358.4L102.4 332.8L128 256Z" opacity="0.8"/>
+          <path d="M384 320L409.6 396.8L486.4 422.4L409.6 448L384 524.8L358.4 448L281.6 422.4L358.4 396.8L384 320Z" opacity="0.6"/>
+        </g>
+      </svg>
+    `;
+
+    // Convert SVG to blob and create image
+    const blob = new Blob([svgString], { type: 'image/svg+xml' });
+    const url = URL.createObjectURL(blob);
+    const img = new Image();
+    
+    img.onload = () => {
+      ctx.drawImage(img, 0, 0, size, size);
+      URL.revokeObjectURL(url);
+      
+      // Convert canvas to PNG and download
+      canvas.toBlob((pngBlob) => {
+        if (!pngBlob) {
+          toast.error('Could not generate PNG');
+          return;
+        }
+        
+        const downloadUrl = URL.createObjectURL(pngBlob);
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        a.download = 'marketai-logo-1024x1024.png';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(downloadUrl);
+        
+        toast.success('Logo downloaded successfully!');
+      }, 'image/png');
+    };
+    
+    img.onerror = () => {
+      toast.error('Could not load SVG');
+      URL.revokeObjectURL(url);
+    };
+    
+    img.src = url;
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="max-w-6xl mx-auto px-4 py-16">
@@ -18,7 +87,7 @@ const Index = () => {
           <p className="text-xl text-muted-foreground mb-8">
             Transform your marketing with intelligent insights and automation
           </p>
-          <div className="flex items-center justify-center gap-4">
+          <div className="flex items-center justify-center gap-4 flex-wrap">
             <Link
               to="/signup"
               className="px-8 py-4 bg-gradient-to-r from-primary to-accent text-primary-foreground font-semibold rounded-lg hover:opacity-90 transition-opacity"
@@ -31,6 +100,21 @@ const Index = () => {
             >
               Sign In
             </Link>
+          </div>
+          
+          {/* Logo Download Section */}
+          <div className="mt-8 pt-6 border-t border-border/50">
+            <Button
+              onClick={downloadLogoPNG}
+              variant="outline"
+              className="gap-2"
+            >
+              <Download className="w-4 h-4" />
+              Download Logo (1024x1024 PNG)
+            </Button>
+            <p className="text-xs text-muted-foreground mt-2">
+              Transparent background • Optimized PNG format
+            </p>
           </div>
         </div>
 
