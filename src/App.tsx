@@ -37,6 +37,11 @@ const HelpCenter = lazy(() => import("./pages/HelpCenter"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const Cookies = lazy(() => import("./pages/Cookies"));
+const TikTokAuthorize = lazy(() => import("./pages/TikTokAuthorize"));
+const TwitterAuthorize = lazy(() => import("./pages/TwitterAuthorize"));
+const FacebookAuthorize = lazy(() => import("./pages/FacebookAuthorize"));
+const InstagramAuthorize = lazy(() => import("./pages/InstagramAuthorize"));
+const LinkedInAuthorize = lazy(() => import("./pages/LinkedInAuthorize"));
 
 const queryClient = new QueryClient();
 
@@ -225,6 +230,12 @@ const App = () => (
                   <Route path="/terms" element={<Terms />} />
                   <Route path="/privacy" element={<Privacy />} />
                   <Route path="/cookies" element={<Cookies />} />
+                  {/* OAuth Authorization Pages */}
+                  <Route path="/auth/tiktok/authorize" element={<TikTokAuthorize />} />
+                  <Route path="/auth/twitter/authorize" element={<TwitterAuthorize />} />
+                  <Route path="/auth/facebook/authorize" element={<FacebookAuthorize />} />
+                  <Route path="/auth/instagram/authorize" element={<InstagramAuthorize />} />
+                  <Route path="/auth/linkedin/authorize" element={<LinkedInAuthorize />} />
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
