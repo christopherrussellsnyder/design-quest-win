@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { 
   User, Palette, Link2, Bell, Settings as SettingsIcon, Shield, 
   CreditCard, Database, Info, Check, X, Loader2, Save, ArrowLeft,
@@ -22,6 +22,7 @@ import { TeamManagement } from '@/components/auth/TeamManagement';
 import { ActivityLog } from '@/components/auth/ActivityLog';
 import { SessionManagement } from '@/components/auth/SessionManagement';
 import { DynamicOptimizationDashboard } from '@/components/DynamicOptimizationDashboard';
+import { useSocialConnections } from '@/hooks/useSocialConnections';
 
 type SettingsTab = 'profile' | 'brand' | 'connections' | 'notifications' | 'preferences' | 'security' | 'team' | 'optimization' | 'billing' | 'data' | 'about';
 
@@ -93,11 +94,20 @@ const Settings: React.FC = () => {
   const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
   const [isSaving, setIsSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'error' | null>(null);
-  const [showComingSoonModal, setShowComingSoonModal] = useState(false);
-  const [comingSoonPlatform, setComingSoonPlatform] = useState('');
+  const [showDisconnectModal, setShowDisconnectModal] = useState(false);
+  const [disconnectPlatform, setDisconnectPlatformState] = useState('');
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [exportingData, setExportingData] = useState<string | null>(null);
+  
+  // Social connections hook
+  const { 
+    connections: socialConnections, 
+    connectPlatform, 
+    disconnectPlatform: disconnectSocialPlatform, 
+    isConnected,
+    loadConnections 
+  } = useSocialConnections();
   
   const photoInputRef = useRef<HTMLInputElement>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
@@ -326,20 +336,8 @@ const Settings: React.FC = () => {
   };
 
   const handleConnectPlatform = (platform: string) => {
-    const connection = connections.find(c => c.platform === platform);
-    if (connection?.isActive) {
-      return;
-    }
-    
-    // For Twitter, we could have OAuth setup
-    if (platform === 'twitter') {
-      // Could initiate OAuth here if configured
-      setComingSoonPlatform('Twitter');
-      setShowComingSoonModal(true);
-    } else {
-      setComingSoonPlatform(platform.charAt(0).toUpperCase() + platform.slice(1));
-      setShowComingSoonModal(true);
-    }
+    // Use the new OAuth popup flow for all platforms
+    connectPlatform(platform);
   };
 
   const handleDisconnectPlatform = async (connectionId: string) => {
@@ -1102,96 +1100,129 @@ const Settings: React.FC = () => {
     </div>
   );
 
-  const renderConnectionsTab = () => (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-xl font-semibold text-foreground mb-1">Connected Accounts</h2>
-        <p className="text-sm text-muted-foreground">Manage your social media platform connections</p>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {['facebook', 'instagram', 'twitter', 'linkedin', 'tiktok', 'youtube'].map((platform) => {
-          const connection = connections.find(c => c.platform === platform);
-          const isConnected = !!connection && connection.isActive;
-          
-          return (
-            <Card key={platform} className={`bg-card border-border ${isConnected ? 'border-l-4 border-l-emerald-500' : ''}`}>
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl">{platformIcons[platform]}</span>
-                    <div>
-                      <h3 className="font-medium capitalize">{platform}</h3>
-                      {isConnected ? (
-                        <div className="text-sm text-muted-foreground">
-                          <p className="text-emerald-400">@{connection.platformUsername || connection.accountName}</p>
-                          <p>{connection.followerCount.toLocaleString()} followers</p>
-                        </div>
-                      ) : (
-                        <p className="text-sm text-muted-foreground">Not connected</p>
-                      )}
+  const renderConnectionsTab = () => {
+    const anyConnected = Object.values(socialConnections).some(c => c.connected);
+    
+    return (
+      <div className="space-y-6">
+        {/* Demo Mode Indicator */}
+        {anyConnected && (
+          <div className="flex justify-end">
+            <Badge variant="outline" className="text-xs text-muted-foreground border-muted-foreground/30">
+              Demo Mode - For Review Video
+            </Badge>
+          </div>
+        )}
+        
+        <div>
+          <h2 className="text-xl font-semibold text-foreground mb-1">Connected Accounts</h2>
+          <p className="text-sm text-muted-foreground">Manage your social media platform connections</p>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {['tiktok', 'twitter', 'facebook', 'instagram', 'linkedin', 'youtube'].map((platform) => {
+            const connection = socialConnections[platform];
+            const connected = connection?.connected || false;
+            
+            const getPlatformColor = (p: string) => {
+              switch (p) {
+                case 'tiktok': return '#FE2C55';
+                case 'twitter': return '#1DA1F2';
+                case 'facebook': return '#1877F2';
+                case 'instagram': return '#E4405F';
+                case 'linkedin': return '#0A66C2';
+                case 'youtube': return '#FF0000';
+                default: return '#8B5CF6';
+              }
+            };
+            
+            return (
+              <Card key={platform} className={`bg-card border-border transition-all duration-300 ${connected ? 'border-l-4' : ''}`} style={connected ? { borderLeftColor: getPlatformColor(platform) } : {}}>
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">{platformIcons[platform]}</span>
+                      <div>
+                        <h3 className="font-medium capitalize">{platform === 'twitter' ? 'X (Twitter)' : platform}</h3>
+                        {connected ? (
+                          <div className="text-sm text-muted-foreground">
+                            <p className="text-emerald-400 flex items-center gap-1">
+                              {connection.username}
+                            </p>
+                            <p className="text-xs">Connected {connection.connectedAt ? new Date(connection.connectedAt).toLocaleDateString() : 'today'}</p>
+                          </div>
+                        ) : (
+                          <p className="text-sm text-muted-foreground">Not connected</p>
+                        )}
+                      </div>
                     </div>
+                    <Badge 
+                      variant={connected ? 'default' : 'secondary'} 
+                      className={`transition-all duration-300 ${connected ? 'bg-emerald-500/20 text-emerald-400 animate-pulse' : ''}`}
+                    >
+                      {connected ? (
+                        <>
+                          <Check className="w-3 h-3 mr-1" />
+                          Connected
+                        </>
+                      ) : (
+                        'Disconnected'
+                      )}
+                    </Badge>
                   </div>
-                  <Badge variant={isConnected ? 'default' : 'secondary'} className={isConnected ? 'bg-emerald-500/20 text-emerald-400' : ''}>
-                    {isConnected ? (
+                  
+                  <div className="mt-4 flex gap-2">
+                    {connected ? (
                       <>
-                        <Check className="w-3 h-3 mr-1" />
-                        Connected
+                        <Button variant="outline" size="sm">
+                          <RefreshCw className="w-3 h-3 mr-1" />
+                          Sync
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                          onClick={() => {
+                            setDisconnectPlatformState(platform);
+                            setShowDisconnectModal(true);
+                          }}
+                        >
+                          Disconnect
+                        </Button>
                       </>
                     ) : (
-                      'Disconnected'
-                    )}
-                  </Badge>
-                </div>
-                
-                <div className="mt-4 flex gap-2">
-                  {isConnected ? (
-                    <>
-                      <Button variant="outline" size="sm">
-                        <RefreshCw className="w-3 h-3 mr-1" />
-                        Sync
-                      </Button>
                       <Button 
-                        variant="outline" 
                         size="sm" 
-                        className="text-destructive hover:text-destructive"
-                        onClick={() => handleDisconnectPlatform(connection.id)}
+                        className="bg-primary hover:bg-primary/90 transition-all duration-300 hover:scale-105"
+                        onClick={() => handleConnectPlatform(platform)}
                       >
-                        Disconnect
+                        <Link2 className="w-3 h-3 mr-1" />
+                        Connect {platform === 'twitter' ? 'X' : platform.charAt(0).toUpperCase() + platform.slice(1)}
                       </Button>
-                    </>
-                  ) : (
-                    <Button 
-                      size="sm" 
-                      className="bg-primary hover:bg-primary/90"
-                      onClick={() => handleConnectPlatform(platform)}
-                    >
-                      <Link2 className="w-3 h-3 mr-1" />
-                      Connect {platform.charAt(0).toUpperCase() + platform.slice(1)}
-                    </Button>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+        
+        <Card className="bg-card border-border">
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Info className="w-4 h-4" />
+              Connection Help
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="text-sm text-muted-foreground space-y-2">
+            <p>• <strong>Token expired?</strong> Click "Sync" to refresh your connection.</p>
+            <p>• <strong>Permission issues?</strong> Disconnect and reconnect with full permissions.</p>
+            <p>• <strong>Instagram</strong> requires a connected Facebook page for business features.</p>
+          </CardContent>
+        </Card>
       </div>
-      
-      <Card className="bg-card border-border">
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <Info className="w-4 h-4" />
-            Connection Help
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="text-sm text-muted-foreground space-y-2">
-          <p>• <strong>Token expired?</strong> Click "Sync" to refresh your connection.</p>
-          <p>• <strong>Permission issues?</strong> Disconnect and reconnect with full permissions.</p>
-          <p>• <strong>Instagram</strong> requires a connected Facebook page for business features.</p>
-        </CardContent>
-      </Card>
-    </div>
-  );
+    );
+  };
 
   const renderNotificationsTab = () => (
     <div className="space-y-6">
@@ -1783,18 +1814,27 @@ const Settings: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Coming Soon Modal */}
-      <Dialog open={showComingSoonModal} onOpenChange={setShowComingSoonModal}>
+      {/* Disconnect Confirmation Modal */}
+      <Dialog open={showDisconnectModal} onOpenChange={setShowDisconnectModal}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Integration Coming Soon</DialogTitle>
+            <DialogTitle>Disconnect {disconnectPlatform.charAt(0).toUpperCase() + disconnectPlatform.slice(1)}?</DialogTitle>
             <DialogDescription>
-              {comingSoonPlatform} integration is currently under development. We're working hard to bring you this feature soon!
+              Are you sure you want to disconnect your {disconnectPlatform} account? This will cancel all scheduled {disconnectPlatform} posts.
             </DialogDescription>
           </DialogHeader>
-          <div className="flex justify-end">
-            <Button onClick={() => setShowComingSoonModal(false)}>Got it</Button>
-          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDisconnectModal(false)}>Cancel</Button>
+            <Button 
+              variant="destructive" 
+              onClick={async () => {
+                await disconnectSocialPlatform(disconnectPlatform);
+                setShowDisconnectModal(false);
+              }}
+            >
+              Disconnect
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
