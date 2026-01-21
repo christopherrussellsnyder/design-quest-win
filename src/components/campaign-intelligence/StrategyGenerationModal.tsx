@@ -24,42 +24,42 @@ interface StrategyGenerationModalProps {
 
 const GENERATION_STEPS: GenerationStep[] = [
   { 
-    id: 'profile', 
+    id: 'analyzing', 
     label: 'Analyzing Business Profile', 
     description: 'Understanding your business, audience, and goals',
     icon: Users,
     status: 'pending'
   },
   { 
-    id: 'research', 
+    id: 'patterns', 
     label: 'Researching Platform Best Practices', 
     description: 'Gathering platform-specific strategies and trends',
     icon: Target,
     status: 'pending'
   },
   { 
-    id: 'themes', 
+    id: 'generating', 
     label: 'Generating Content Themes', 
     description: 'Creating weekly themes aligned with your objectives',
     icon: Sparkles,
     status: 'pending'
   },
   { 
-    id: 'posts', 
+    id: 'calendar', 
     label: 'Creating Daily Posts', 
     description: 'Writing 30 unique, optimized posts',
     icon: Calendar,
     status: 'pending'
   },
   { 
-    id: 'optimize', 
+    id: 'optimizing', 
     label: 'Optimizing Posting Schedule', 
     description: 'Using ML to find optimal posting times',
     icon: BarChart3,
     status: 'pending'
   },
   { 
-    id: 'finalize', 
+    id: 'complete', 
     label: 'Finalizing Strategy', 
     description: 'Packaging your complete 30-day campaign',
     icon: Check,

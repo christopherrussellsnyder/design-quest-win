@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { CampaignIntelligenceDashboard } from '@/components/CampaignIntelligenceDashboard';
+import { CampaignIntelligenceFullDashboard } from '@/components/campaign-intelligence/FullDashboard';
 
 interface Campaign {
   id: string;
@@ -644,7 +644,7 @@ export default function Campaigns() {
           </TabsContent>
 
           <TabsContent value="intelligence">
-            <CampaignIntelligenceDashboard />
+            <CampaignIntelligenceFullDashboard onNavigateToCampaignBuilder={() => navigate('/campaign-builder')} />
           </TabsContent>
         </Tabs>
       </main>
