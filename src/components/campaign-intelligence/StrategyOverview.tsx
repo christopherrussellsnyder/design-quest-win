@@ -1,6 +1,6 @@
 import { 
   Calendar, Target, TrendingUp, DollarSign, Users,
-  BarChart3, Clock, Sparkles, Award, Zap
+  BarChart3, Clock, Sparkles, Award, Zap, CheckCircle2
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -22,6 +22,13 @@ interface PredictedMetrics {
   confidence: number;
 }
 
+interface KeyAction {
+  action: string;
+  priority: string;
+  expected_impact: string;
+  timing?: string;
+}
+
 interface StrategyOverviewProps {
   strategy: {
     overview: {
@@ -29,10 +36,11 @@ interface StrategyOverviewProps {
       estimated_reach: number;
       confidence_level: string;
       total_posts: number;
-      investment_recommendation: string;
+      investment_recommendation?: string;
     };
     weekly_themes: WeeklyTheme[];
     predicted_metrics: PredictedMetrics;
+    key_actions?: KeyAction[];
     platform: string;
     niche: string;
   };
@@ -54,7 +62,7 @@ const PLATFORM_ICONS: Record<string, string> = {
 };
 
 export function StrategyOverview({ strategy }: StrategyOverviewProps) {
-  const { overview, weekly_themes, predicted_metrics, platform, niche } = strategy;
+  const { overview, weekly_themes, predicted_metrics, key_actions, platform, niche } = strategy;
 
   const formatNumber = (num: number) => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
@@ -131,7 +139,7 @@ export function StrategyOverview({ strategy }: StrategyOverviewProps) {
       {/* Platform & Niche Context */}
       <Card>
         <CardContent className="p-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-4">
               <div className="text-3xl">{PLATFORM_ICONS[platform] || '📱'}</div>
               <div>
@@ -139,59 +147,109 @@ export function StrategyOverview({ strategy }: StrategyOverviewProps) {
                 <p className="text-sm text-muted-foreground capitalize">{niche?.replace(/_/g, ' ')} Industry</p>
               </div>
             </div>
-            <div className="text-right">
-              <p className="text-sm text-muted-foreground">Investment Recommendation</p>
-              <p className="font-medium">{overview.investment_recommendation}</p>
-            </div>
+            {overview.investment_recommendation && (
+              <div className="text-right">
+                <p className="text-sm text-muted-foreground">Investment Recommendation</p>
+                <p className="font-medium">{overview.investment_recommendation}</p>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
 
       {/* Weekly Themes */}
-      <div>
-        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <Sparkles className="w-5 h-5 text-primary" />
-          Weekly Themes
-        </h3>
-        <div className="grid md:grid-cols-4 gap-4">
-          {weekly_themes.map((week, idx) => (
-            <Card key={week.week} className="overflow-hidden">
-              <div className={`h-2 bg-gradient-to-r ${WEEK_COLORS[idx] || WEEK_COLORS[0]}`} />
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base flex items-center justify-between">
-                  <span>Week {week.week}</span>
-                  <Badge variant="outline" className="text-xs">
-                    Days {(week.week - 1) * 7 + 1}-{Math.min(week.week * 7, 30)}
-                  </Badge>
-                </CardTitle>
-                <CardDescription className="font-medium text-foreground">
-                  {week.name}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div>
-                  <p className="text-xs text-muted-foreground">Objective</p>
-                  <p className="text-sm">{week.objective}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">Content Types</p>
-                  <div className="flex flex-wrap gap-1">
-                    {week.content_types.map(type => (
-                      <Badge key={type} variant="secondary" className="text-xs">
-                        {type}
-                      </Badge>
-                    ))}
+      {weekly_themes && weekly_themes.length > 0 && (
+        <div>
+          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-primary" />
+            Weekly Themes
+          </h3>
+          <div className="grid md:grid-cols-4 gap-4">
+            {weekly_themes.map((week, idx) => (
+              <Card key={week.week} className="overflow-hidden">
+                <div className={`h-2 bg-gradient-to-r ${WEEK_COLORS[idx] || WEEK_COLORS[0]}`} />
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base flex items-center justify-between">
+                    <span>Week {week.week}</span>
+                    <Badge variant="outline" className="text-xs">
+                      Days {(week.week - 1) * 7 + 1}-{Math.min(week.week * 7, 30)}
+                    </Badge>
+                  </CardTitle>
+                  <CardDescription className="font-medium text-foreground">
+                    {week.name}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Objective</p>
+                    <p className="text-sm">{week.objective}</p>
                   </div>
-                </div>
-                <div className="pt-2 border-t">
-                  <p className="text-xs text-muted-foreground">Expected Outcome</p>
-                  <p className="text-sm text-primary">{week.expected_outcome}</p>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Content Types</p>
+                    <div className="flex flex-wrap gap-1">
+                      {week.content_types.map(type => (
+                        <Badge key={type} variant="secondary" className="text-xs">
+                          {type}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="pt-2 border-t">
+                    <p className="text-xs text-muted-foreground">Expected Outcome</p>
+                    <p className="text-sm text-primary">{week.expected_outcome}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* Key Actions */}
+      {key_actions && key_actions.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Zap className="w-5 h-5 text-amber-500" />
+              Key Actions
+            </CardTitle>
+            <CardDescription>
+              Prioritized actions to maximize campaign success
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {key_actions.map((action, idx) => (
+                <div key={idx} className="flex items-start justify-between p-3 border rounded-lg">
+                  <div className="flex items-start gap-3">
+                    <CheckCircle2 className={`w-5 h-5 mt-0.5 ${
+                      action.priority === 'high' ? 'text-red-500' :
+                      action.priority === 'medium' ? 'text-amber-500' : 'text-green-500'
+                    }`} />
+                    <div>
+                      <p className="font-medium">{action.action}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge variant="outline" className={
+                          action.priority === 'high' ? 'border-red-500/50 text-red-500' :
+                          action.priority === 'medium' ? 'border-amber-500/50 text-amber-500' : 'border-green-500/50 text-green-500'
+                        }>
+                          {action.priority} priority
+                        </Badge>
+                        {action.timing && (
+                          <span className="text-xs text-muted-foreground">{action.timing}</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <Badge className="bg-green-500/20 text-green-500 border-green-500/30">
+                    {action.expected_impact}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Predicted Metrics */}
       <Card>
