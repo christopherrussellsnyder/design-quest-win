@@ -31,14 +31,26 @@ serve(async (req) => {
         .single();
       businessProfile = data;
     } else if (userId) {
-      const { data } = await supabase
-        .from('business_profiles')
+      // First try business_information table (new comprehensive data)
+      const { data: bizInfo } = await supabase
+        .from('business_information')
         .select('*')
         .eq('user_id', userId)
-        .order('created_at', { ascending: false })
-        .limit(1)
         .single();
-      businessProfile = data;
+      
+      if (bizInfo) {
+        businessProfile = bizInfo;
+      } else {
+        // Fallback to legacy business_profiles table
+        const { data } = await supabase
+          .from('business_profiles')
+          .select('*')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single();
+        businessProfile = data;
+      }
     }
 
     // Fetch ML posting times

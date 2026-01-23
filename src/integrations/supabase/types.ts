@@ -1045,6 +1045,162 @@ export type Database = {
         }
         Relationships: []
       }
+      business_information: {
+        Row: {
+          available_content_types: Json | null
+          avg_post_engagement_rate: number | null
+          best_performing_content_types: Json | null
+          brand_values: Json | null
+          brand_voice_traits: Json | null
+          business_name: string | null
+          business_stage: string | null
+          business_type: string | null
+          buying_behavior: string | null
+          company_size: string | null
+          competitive_advantage: string | null
+          content_creation_frequency: string | null
+          content_restrictions: string | null
+          content_themes: Json | null
+          created_at: string | null
+          current_conversion_rate: number | null
+          customer_acquisition_cost: number | null
+          customer_lifetime_value: number | null
+          customer_pain_points: string | null
+          education_levels: Json | null
+          email_subscriber_count: number | null
+          gender_distribution: Json | null
+          geographic_focus: Json | null
+          id: string
+          income_level: string | null
+          industry: string | null
+          location: string | null
+          monthly_revenue_range: string | null
+          monthly_website_visitors: number | null
+          photography_style: string | null
+          primary_brand_color: string | null
+          primary_products_services: string | null
+          professional_photos_count: number | null
+          secondary_brand_color: string | null
+          target_age_max: number | null
+          target_age_min: number | null
+          testimonials_count: number | null
+          tone_formal_casual: number | null
+          tone_informative_entertaining: number | null
+          tone_serious_playful: number | null
+          top_competitors: Json | null
+          total_social_followers: number | null
+          unique_value_proposition: string | null
+          updated_at: string | null
+          user_id: string
+          video_production_capability: string | null
+          videos_available_count: number | null
+          website: string | null
+          years_in_business: number | null
+        }
+        Insert: {
+          available_content_types?: Json | null
+          avg_post_engagement_rate?: number | null
+          best_performing_content_types?: Json | null
+          brand_values?: Json | null
+          brand_voice_traits?: Json | null
+          business_name?: string | null
+          business_stage?: string | null
+          business_type?: string | null
+          buying_behavior?: string | null
+          company_size?: string | null
+          competitive_advantage?: string | null
+          content_creation_frequency?: string | null
+          content_restrictions?: string | null
+          content_themes?: Json | null
+          created_at?: string | null
+          current_conversion_rate?: number | null
+          customer_acquisition_cost?: number | null
+          customer_lifetime_value?: number | null
+          customer_pain_points?: string | null
+          education_levels?: Json | null
+          email_subscriber_count?: number | null
+          gender_distribution?: Json | null
+          geographic_focus?: Json | null
+          id?: string
+          income_level?: string | null
+          industry?: string | null
+          location?: string | null
+          monthly_revenue_range?: string | null
+          monthly_website_visitors?: number | null
+          photography_style?: string | null
+          primary_brand_color?: string | null
+          primary_products_services?: string | null
+          professional_photos_count?: number | null
+          secondary_brand_color?: string | null
+          target_age_max?: number | null
+          target_age_min?: number | null
+          testimonials_count?: number | null
+          tone_formal_casual?: number | null
+          tone_informative_entertaining?: number | null
+          tone_serious_playful?: number | null
+          top_competitors?: Json | null
+          total_social_followers?: number | null
+          unique_value_proposition?: string | null
+          updated_at?: string | null
+          user_id: string
+          video_production_capability?: string | null
+          videos_available_count?: number | null
+          website?: string | null
+          years_in_business?: number | null
+        }
+        Update: {
+          available_content_types?: Json | null
+          avg_post_engagement_rate?: number | null
+          best_performing_content_types?: Json | null
+          brand_values?: Json | null
+          brand_voice_traits?: Json | null
+          business_name?: string | null
+          business_stage?: string | null
+          business_type?: string | null
+          buying_behavior?: string | null
+          company_size?: string | null
+          competitive_advantage?: string | null
+          content_creation_frequency?: string | null
+          content_restrictions?: string | null
+          content_themes?: Json | null
+          created_at?: string | null
+          current_conversion_rate?: number | null
+          customer_acquisition_cost?: number | null
+          customer_lifetime_value?: number | null
+          customer_pain_points?: string | null
+          education_levels?: Json | null
+          email_subscriber_count?: number | null
+          gender_distribution?: Json | null
+          geographic_focus?: Json | null
+          id?: string
+          income_level?: string | null
+          industry?: string | null
+          location?: string | null
+          monthly_revenue_range?: string | null
+          monthly_website_visitors?: number | null
+          photography_style?: string | null
+          primary_brand_color?: string | null
+          primary_products_services?: string | null
+          professional_photos_count?: number | null
+          secondary_brand_color?: string | null
+          target_age_max?: number | null
+          target_age_min?: number | null
+          testimonials_count?: number | null
+          tone_formal_casual?: number | null
+          tone_informative_entertaining?: number | null
+          tone_serious_playful?: number | null
+          top_competitors?: Json | null
+          total_social_followers?: number | null
+          unique_value_proposition?: string | null
+          updated_at?: string | null
+          user_id?: string
+          video_production_capability?: string | null
+          videos_available_count?: number | null
+          website?: string | null
+          years_in_business?: number | null
+        }
+        Relationships: []
+      }
       business_profiles: {
         Row: {
           average_order_value: number | null

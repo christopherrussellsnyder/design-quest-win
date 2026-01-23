@@ -23,6 +23,7 @@ import { ActivityLog } from '@/components/auth/ActivityLog';
 import { SessionManagement } from '@/components/auth/SessionManagement';
 import { DynamicOptimizationDashboard } from '@/components/DynamicOptimizationDashboard';
 import { useSocialConnections } from '@/hooks/useSocialConnections';
+import { BusinessInformationSection } from '@/components/settings/BusinessInformationSection';
 
 type SettingsTab = 'profile' | 'brand' | 'connections' | 'notifications' | 'preferences' | 'security' | 'team' | 'optimization' | 'billing' | 'data' | 'about';
 
@@ -712,90 +713,8 @@ const Settings: React.FC = () => {
         </CardContent>
       </Card>
       
-      {/* Business Information */}
-      <Card className="bg-card border-border">
-        <CardHeader>
-          <CardTitle className="text-base">Business Information</CardTitle>
-          <CardDescription>Optional details about your business</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Business Name</Label>
-              <Input 
-                value={profile.businessName}
-                onChange={(e) => setProfile({ ...profile, businessName: e.target.value })}
-                placeholder="Your company name"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Business Type</Label>
-              <Select value={profile.businessType} onValueChange={(v) => setProfile({ ...profile, businessType: v })}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Agency">Agency</SelectItem>
-                  <SelectItem value="Brand">Brand</SelectItem>
-                  <SelectItem value="Freelancer">Freelancer</SelectItem>
-                  <SelectItem value="Small Business">Small Business</SelectItem>
-                  <SelectItem value="Enterprise">Enterprise</SelectItem>
-                  <SelectItem value="Other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Industry</Label>
-              <Select value={profile.industry} onValueChange={(v) => setProfile({ ...profile, industry: v })}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select industry" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Marketing & Advertising">Marketing & Advertising</SelectItem>
-                  <SelectItem value="Technology">Technology</SelectItem>
-                  <SelectItem value="E-commerce">E-commerce</SelectItem>
-                  <SelectItem value="Healthcare">Healthcare</SelectItem>
-                  <SelectItem value="Finance">Finance</SelectItem>
-                  <SelectItem value="Education">Education</SelectItem>
-                  <SelectItem value="Entertainment">Entertainment</SelectItem>
-                  <SelectItem value="Other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Company Size</Label>
-              <Select value={profile.companySize} onValueChange={(v) => setProfile({ ...profile, companySize: v })}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select size" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1-10">1-10</SelectItem>
-                  <SelectItem value="11-50">11-50</SelectItem>
-                  <SelectItem value="51-200">51-200</SelectItem>
-                  <SelectItem value="201-500">201-500</SelectItem>
-                  <SelectItem value="500+">500+</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Website</Label>
-              <Input 
-                value={profile.website}
-                onChange={(e) => setProfile({ ...profile, website: e.target.value })}
-                placeholder="https://yourwebsite.com"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Location</Label>
-              <Input 
-                value={profile.location}
-                onChange={(e) => setProfile({ ...profile, location: e.target.value })}
-                placeholder="City, State, Country"
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Business Information - Expanded Section */}
+      <BusinessInformationSection />
     </div>
   );
 
