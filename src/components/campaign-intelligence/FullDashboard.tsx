@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { 
   Brain, TrendingUp, Target, Sparkles, RefreshCw, BarChart3,
-  Lightbulb, CheckCircle2, AlertTriangle, Zap, Calendar, Loader2
+  Lightbulb, CheckCircle2, AlertTriangle, Zap, Calendar, Loader2, AlertCircle
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -15,7 +15,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Skeleton } from '@/components/ui/skeleton';
 import { StrategyOverview } from './StrategyOverview';
 import { ContentCalendarView } from './ContentCalendarView';
-import { StrategyGenerationModal } from './StrategyGenerationModal';
+import { CampaignWizardModal } from './wizard/CampaignWizardModal';
+import { Link } from 'react-router-dom';
 
 const niches = [
   { value: 'ecommerce', label: 'E-commerce' },
@@ -49,16 +50,51 @@ export function CampaignIntelligenceFullDashboard({ onNavigateToCampaignBuilder 
   const [nicheRecommendations, setNicheRecommendations] = useState<any>(null);
   const [platformInsights, setPlatformInsights] = useState<any>(null);
   const [learnings, setLearnings] = useState<any>(null);
-  const [loadingStrategy, setLoadingStrategy] = useState(false);
-  const [generationProgress, setGenerationProgress] = useState(0);
-  const [generationStep, setGenerationStep] = useState('');
-  const [showGenerationModal, setShowGenerationModal] = useState(false);
+  const [showWizard, setShowWizard] = useState(false);
   const [comprehensiveStrategy, setComprehensiveStrategy] = useState<any>(null);
   const [activeTab, setActiveTab] = useState('recommendations');
+  const [connectedPlatforms, setConnectedPlatforms] = useState<string[]>([]);
+  const [businessProfileCompletion, setBusinessProfileCompletion] = useState(0);
 
   useEffect(() => {
-    if (user) loadData();
+    if (user) {
+      loadData();
+      loadConnectedPlatforms();
+      loadBusinessProfileCompletion();
+    }
   }, [user, niche, platform]);
+
+  const loadConnectedPlatforms = () => {
+    // Check localStorage for connected platforms (from social connections hook)
+    const platforms: string[] = [];
+    ['tiktok', 'twitter', 'facebook', 'instagram', 'linkedin'].forEach(p => {
+      if (localStorage.getItem(`${p}_connected`) === 'true') {
+        platforms.push(p);
+      }
+    });
+    setConnectedPlatforms(platforms);
+  };
+
+  const loadBusinessProfileCompletion = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from('business_information')
+      .select('*')
+      .eq('user_id', user.id)
+      .single();
+    
+    if (data) {
+      // Calculate rough completion percentage
+      const fields = [
+        data.business_name, data.industry, data.business_type,
+        data.unique_value_proposition, data.primary_products_services,
+        (data.brand_voice_traits as string[])?.length > 0,
+        (data.content_themes as string[])?.length > 0
+      ];
+      const filled = fields.filter(Boolean).length;
+      setBusinessProfileCompletion(Math.round((filled / fields.length) * 100));
+    }
+  };
 
   const loadData = async () => {
     if (!user) return;
@@ -86,58 +122,22 @@ export function CampaignIntelligenceFullDashboard({ onNavigateToCampaignBuilder 
     }
   };
 
-  const generateComprehensiveStrategy = async () => {
-    if (!user) return;
-    
-    setLoadingStrategy(true);
-    setShowGenerationModal(true);
-    setGenerationProgress(0);
-    
-    try {
-      // Simulate progress steps
-      const steps = [
-        { step: 'analyzing', progress: 15 },
-        { step: 'patterns', progress: 35 },
-        { step: 'generating', progress: 55 },
-        { step: 'calendar', progress: 75 },
-        { step: 'optimizing', progress: 90 }
-      ];
-      
-      for (const s of steps) {
-        setGenerationStep(s.step);
-        setGenerationProgress(s.progress);
-        await new Promise(resolve => setTimeout(resolve, 800));
-      }
-      
-      const { data, error } = await supabase.functions.invoke('generate-comprehensive-campaign-strategy', {
-        body: {
-          userId: user.id,
-          platform,
-          niche,
-          objective: 'engagement',
-          duration: 30
+  const handleOpenWizard = () => {
+    if (businessProfileCompletion < 40) {
+      toast.warning('Complete your business profile for better results', {
+        action: {
+          label: 'Go to Settings',
+          onClick: () => window.location.href = '/settings?tab=profile'
         }
       });
-      
-      if (error) throw error;
-      
-      setGenerationProgress(100);
-      setGenerationStep('complete');
-      
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      setComprehensiveStrategy(data?.strategy);
-      setShowGenerationModal(false);
-      setActiveTab('strategy');
-      toast.success('30-day strategy generated successfully!');
-      
-    } catch (error) {
-      console.error('Strategy generation failed:', error);
-      toast.error('Failed to generate strategy. Please try again.');
-      setShowGenerationModal(false);
-    } finally {
-      setLoadingStrategy(false);
     }
+    setShowWizard(true);
+  };
+
+  const handleWizardComplete = (strategy: any) => {
+    setComprehensiveStrategy(strategy);
+    setActiveTab('strategy');
+    toast.success('30-day strategy generated successfully!');
   };
 
   const handleSchedulePost = async (post: any) => {
@@ -220,10 +220,11 @@ export function CampaignIntelligenceFullDashboard({ onNavigateToCampaignBuilder 
 
   return (
     <div className="space-y-6">
-      <StrategyGenerationModal
-        isOpen={showGenerationModal}
-        progress={generationProgress}
-        currentStep={generationStep}
+      <CampaignWizardModal
+        isOpen={showWizard}
+        onClose={() => setShowWizard(false)}
+        onComplete={handleWizardComplete}
+        connectedPlatforms={connectedPlatforms}
       />
 
       <div className="flex items-center justify-between flex-wrap gap-4">
@@ -259,15 +260,10 @@ export function CampaignIntelligenceFullDashboard({ onNavigateToCampaignBuilder 
             <RefreshCw className="w-4 h-4" />
           </Button>
           <Button 
-            onClick={generateComprehensiveStrategy}
-            disabled={loadingStrategy}
+            onClick={handleOpenWizard}
             className="bg-gradient-to-r from-primary to-purple-600 hover:opacity-90"
           >
-            {loadingStrategy ? (
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            ) : (
-              <Sparkles className="w-4 h-4 mr-2" />
-            )}
+            <Sparkles className="w-4 h-4 mr-2" />
             Generate 30-Day Strategy
           </Button>
         </div>
@@ -441,20 +437,26 @@ export function CampaignIntelligenceFullDashboard({ onNavigateToCampaignBuilder 
               <CardContent>
                 <div className="text-center py-8">
                   <Sparkles className="w-12 h-12 mx-auto mb-4 text-primary/50" />
+                  {businessProfileCompletion < 40 && (
+                    <div className="mb-4 p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg inline-flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 text-amber-500" />
+                      <span className="text-sm text-amber-500">
+                        Complete your business profile for better results
+                      </span>
+                      <Button variant="link" size="sm" asChild className="text-primary p-0 h-auto">
+                        <Link to="/settings?tab=profile">Edit Profile</Link>
+                      </Button>
+                    </div>
+                  )}
                   <p className="text-muted-foreground mb-4">
-                    Click "Generate 30-Day Strategy" to create a comprehensive content plan
+                    Click below to create a comprehensive 30-day content plan
                   </p>
                   <Button 
-                    onClick={generateComprehensiveStrategy}
-                    disabled={loadingStrategy}
+                    onClick={handleOpenWizard}
                     size="lg"
                     className="bg-gradient-to-r from-primary to-purple-600"
                   >
-                    {loadingStrategy ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    ) : (
-                      <Brain className="w-4 h-4 mr-2" />
-                    )}
+                    <Brain className="w-4 h-4 mr-2" />
                     Generate Strategy Now
                   </Button>
                 </div>

@@ -1559,6 +1559,84 @@ export type Database = {
           },
         ]
       }
+      campaign_strategy_requests: {
+        Row: {
+          additional_platforms: Json | null
+          budget_range: string | null
+          campaign_differentiation: string | null
+          campaign_themes: Json | null
+          created_at: string | null
+          duration_days: number
+          generated_strategy_id: string | null
+          id: string
+          primary_goal: string
+          primary_platform: string
+          seasonal_details: string | null
+          seasonal_type: string | null
+          secondary_goals: Json | null
+          special_requirements: string | null
+          start_date: string
+          status: string
+          target_conversions: number | null
+          target_engagement_rate: number | null
+          target_followers: number | null
+          target_impressions: number | null
+          updated_at: string | null
+          urgency_level: string
+          user_id: string
+        }
+        Insert: {
+          additional_platforms?: Json | null
+          budget_range?: string | null
+          campaign_differentiation?: string | null
+          campaign_themes?: Json | null
+          created_at?: string | null
+          duration_days?: number
+          generated_strategy_id?: string | null
+          id?: string
+          primary_goal: string
+          primary_platform: string
+          seasonal_details?: string | null
+          seasonal_type?: string | null
+          secondary_goals?: Json | null
+          special_requirements?: string | null
+          start_date: string
+          status?: string
+          target_conversions?: number | null
+          target_engagement_rate?: number | null
+          target_followers?: number | null
+          target_impressions?: number | null
+          updated_at?: string | null
+          urgency_level?: string
+          user_id: string
+        }
+        Update: {
+          additional_platforms?: Json | null
+          budget_range?: string | null
+          campaign_differentiation?: string | null
+          campaign_themes?: Json | null
+          created_at?: string | null
+          duration_days?: number
+          generated_strategy_id?: string | null
+          id?: string
+          primary_goal?: string
+          primary_platform?: string
+          seasonal_details?: string | null
+          seasonal_type?: string | null
+          secondary_goals?: Json | null
+          special_requirements?: string | null
+          start_date?: string
+          status?: string
+          target_conversions?: number | null
+          target_engagement_rate?: number | null
+          target_followers?: number | null
+          target_impressions?: number | null
+          updated_at?: string | null
+          urgency_level?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       campaign_templates: {
         Row: {
           category: string
