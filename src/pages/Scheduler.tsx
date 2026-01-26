@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
-import { Calendar, List, Layers, Plus, ChevronLeft, ChevronRight, LayoutDashboard, Facebook, Instagram, Twitter, Linkedin, Clock, Edit2, Trash2, Lightbulb, Eye, RefreshCw, Zap, Settings } from 'lucide-react';
+import { Calendar, List, Layers, Plus, ChevronLeft, ChevronRight, LayoutDashboard, Facebook, Instagram, Twitter, Linkedin, Clock, Edit2, Trash2, Lightbulb, Eye, RefreshCw, Zap, Settings, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -21,6 +21,9 @@ import { WeeklySchedulePreview } from '@/components/scheduler/WeeklySchedulePrev
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast as sonnerToast } from 'sonner';
+import { useScheduledPosts, ScheduledPost } from '@/hooks/useScheduledPosts';
+import { Skeleton } from '@/components/ui/skeleton';
+import { EmptyState } from '@/components/ui/empty-state';
 
 // Platform icons mapping
 const platformIcons: Record<string, React.ReactNode> = {
@@ -30,86 +33,11 @@ const platformIcons: Record<string, React.ReactNode> = {
   linkedin: <Linkedin className="w-4 h-4 text-blue-600" />,
 };
 
-// Mock scheduled posts data
-const initialMockPosts = [
-  {
-    id: '1',
-    platform: 'facebook',
-    content: 'Excited to announce our new product launch! Stay tuned for more details. 🚀',
-    scheduled_time: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
-    status: 'scheduled',
-    title: 'Product Launch Announcement',
-    queue_position: 0,
-  },
-  {
-    id: '2',
-    platform: 'instagram',
-    content: 'Behind the scenes look at our creative process. #behindthescenes #creative',
-    scheduled_time: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000 + 3600000).toISOString(),
-    status: 'scheduled',
-    title: 'BTS Content',
-    queue_position: 0,
-  },
-  {
-    id: '3',
-    platform: 'twitter',
-    content: 'Quick tip: Always test your ads before scaling! 💡',
-    scheduled_time: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-    status: 'published',
-    title: 'Marketing Tip',
-    queue_position: 0,
-  },
-  {
-    id: '4',
-    platform: 'linkedin',
-    content: 'We are hiring! Join our growing team and make an impact.',
-    scheduled_time: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-    status: 'draft',
-    title: 'Hiring Announcement',
-    queue_position: 0,
-  },
-  {
-    id: '5',
-    platform: 'facebook',
-    content: 'Thank you for 10,000 followers! We appreciate your support. 🎉',
-    scheduled_time: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(),
-    status: 'scheduled',
-    title: 'Milestone Celebration',
-    queue_position: 1,
-  },
-  {
-    id: '6',
-    platform: 'instagram',
-    content: 'New collection dropping this Friday! Get ready to shop. 🛍️',
-    scheduled_time: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
-    status: 'scheduled',
-    title: 'Collection Drop',
-    queue_position: 1,
-  },
-  {
-    id: '7',
-    platform: 'twitter',
-    content: 'Join our webinar on digital marketing trends for 2025. Register now!',
-    scheduled_time: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
-    status: 'scheduled',
-    title: 'Webinar Promotion',
-    queue_position: 0,
-  },
-  {
-    id: '8',
-    platform: 'linkedin',
-    content: 'Proud to share our latest case study on customer success.',
-    scheduled_time: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString(),
-    status: 'draft',
-    title: 'Case Study Share',
-    queue_position: 1,
-  },
-];
-
 type ViewMode = 'calendar' | 'list' | 'queue';
 type DateFilter = 'week' | 'month' | 'all';
 
-interface ScheduledPost {
+// Local interface for form/UI that maps to DB structure
+interface LocalScheduledPost {
   id: string;
   platform: string;
   content: string;
@@ -128,20 +56,39 @@ export default function Scheduler() {
   const { toast } = useToast();
   const { user } = useAuth();
   
+  // Use database-backed posts hook
+  const { posts: dbPosts, loading, error, createPost, updatePost, deletePost, fetchPosts } = useScheduledPosts();
+  
   const [viewMode, setViewMode] = useState<ViewMode>('calendar');
   const [dateFilter, setDateFilter] = useState<DateFilter>('month');
   const [platformFilter, setPlatformFilter] = useState<string>('all');
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [posts, setPosts] = useState<ScheduledPost[]>(initialMockPosts);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [editingPost, setEditingPost] = useState<ScheduledPost | null>(null);
-  const [draggedPost, setDraggedPost] = useState<ScheduledPost | null>(null);
+  const [editingPost, setEditingPost] = useState<LocalScheduledPost | null>(null);
+  const [draggedPost, setDraggedPost] = useState<LocalScheduledPost | null>(null);
   const [dragOverDate, setDragOverDate] = useState<Date | null>(null);
   const [showBestTimesPanel, setShowBestTimesPanel] = useState(false);
   const [showPreviewPanel, setShowPreviewPanel] = useState(false);
   const [showAutoScheduleSettings, setShowAutoScheduleSettings] = useState(false);
   const [optimizingTime, setOptimizingTime] = useState(false);
+  const [savingPost, setSavingPost] = useState(false);
+
+  // Transform DB posts to local format for UI compatibility
+  const posts: LocalScheduledPost[] = useMemo(() => {
+    return dbPosts.map(post => ({
+      id: post.id,
+      platform: post.platforms?.[0] || 'twitter',
+      content: post.content,
+      scheduled_time: post.scheduled_time,
+      status: post.status,
+      title: post.title,
+      queue_position: post.queue_position ?? undefined,
+      is_recurring: post.is_recurring ?? false,
+      recurrence: post.recurrence as 'daily' | 'weekly' | 'monthly' | 'custom' | undefined,
+      recurrence_end_date: post.recurrence_end_date ?? undefined,
+    }));
+  }, [dbPosts]);
   
   // Form state for new/edit post
   const [formData, setFormData] = useState({
@@ -237,7 +184,7 @@ export default function Scheduler() {
   }, [posts, platformFilter]);
 
   // Handle create/update post
-  const handleSavePost = () => {
+  const handleSavePost = async () => {
     if (!formData.platform || !formData.content || !formData.title) {
       toast({
         title: 'Error',
@@ -247,66 +194,59 @@ export default function Scheduler() {
       return;
     }
 
-    if (editingPost) {
-      // Update existing post
-      setPosts(posts.map(p => 
-        p.id === editingPost.id
-          ? {
-              ...p,
-              platform: formData.platform,
-              content: formData.content,
-              scheduled_time: new Date(`${formData.date}T${formData.time}`).toISOString(),
-              status: formData.status,
-              title: formData.title,
-              is_recurring: formData.isRecurring,
-              recurrence: formData.isRecurring ? formData.recurrence : undefined,
-              recurrence_days: formData.isRecurring ? formData.recurrenceDays : undefined,
-              recurrence_end_date: formData.isRecurring ? formData.recurrenceEndDate : undefined,
-            }
-          : p
-      ));
-      toast({
-        title: 'Post Updated',
-        description: 'Your post has been updated successfully!',
-      });
-      setEditingPost(null);
-    } else {
-      // Create new post
-      const newPost: ScheduledPost = {
-        id: Date.now().toString(),
-        platform: formData.platform,
-        content: formData.content,
-        scheduled_time: new Date(`${formData.date}T${formData.time}`).toISOString(),
-        status: formData.status,
-        title: formData.title,
-        is_recurring: formData.isRecurring,
-        recurrence: formData.isRecurring ? formData.recurrence : undefined,
-        recurrence_days: formData.isRecurring ? formData.recurrenceDays : undefined,
-        recurrence_end_date: formData.isRecurring ? formData.recurrenceEndDate : undefined,
-      };
-      setPosts([...posts, newPost]);
-      toast({
-        title: formData.isRecurring ? 'Recurring Series Created' : 'Post Created',
-        description: formData.isRecurring 
-          ? `Your recurring ${formData.recurrence} post has been scheduled!`
-          : 'Your post has been scheduled successfully!',
-      });
-    }
+    setSavingPost(true);
 
-    setShowCreateModal(false);
-    setShowPreviewPanel(false);
-    setFormData({
-      platform: '',
-      content: '',
-      date: format(new Date(), 'yyyy-MM-dd'),
-      time: '09:00',
-      status: 'scheduled',
-      title: '',
-      isRecurring: false,
-      recurrence: 'weekly',
-      recurrenceDays: [],
-      recurrenceEndDate: '',
-    });
+    try {
+      if (editingPost) {
+        // Update existing post in database
+        const success = await updatePost(editingPost.id, {
+          platforms: [formData.platform],
+          content: formData.content,
+          scheduled_time: new Date(`${formData.date}T${formData.time}`).toISOString(),
+          status: formData.status,
+          title: formData.title,
+          is_recurring: formData.isRecurring,
+          recurrence: formData.isRecurring ? formData.recurrence : undefined,
+          recurrence_end_date: formData.isRecurring ? formData.recurrenceEndDate : undefined,
+        });
+        
+        if (success) {
+          setEditingPost(null);
+        }
+      } else {
+        // Create new post in database
+        await createPost({
+          platform: formData.platform,
+          content: formData.content,
+          scheduled_time: new Date(`${formData.date}T${formData.time}`).toISOString(),
+          status: formData.status,
+          title: formData.title,
+          post_type: 'text',
+          is_recurring: formData.isRecurring,
+          recurrence: formData.isRecurring ? formData.recurrence : undefined,
+          recurrence_end_date: formData.isRecurring ? formData.recurrenceEndDate : undefined,
+        });
+      }
+
+      setShowCreateModal(false);
+      setShowPreviewPanel(false);
+      setFormData({
+        platform: '',
+        content: '',
+        date: format(new Date(), 'yyyy-MM-dd'),
+        time: '09:00',
+        status: 'scheduled',
+        title: '',
+        isRecurring: false,
+        recurrence: 'weekly',
+        recurrenceDays: [],
+        recurrenceEndDate: '',
+      });
+    } catch (err) {
+      console.error('Error saving post:', err);
+    } finally {
+      setSavingPost(false);
+    }
   };
 
   // Toggle recurrence day
@@ -320,37 +260,30 @@ export default function Scheduler() {
   };
 
   // Handle delete post
-  const handleDeletePost = (id: string) => {
-    setPosts(posts.filter(post => post.id !== id));
-    toast({
-      title: 'Post Deleted',
-      description: 'The scheduled post has been removed.',
-    });
+  const handleDeletePost = async (id: string) => {
+    await deletePost(id);
   };
 
   // Handle duplicate post
-  const handleDuplicatePost = (post: ScheduledPost) => {
-    const newPost: ScheduledPost = {
-      ...post,
-      id: Date.now().toString(),
-      title: `${post.title} (Copy)`,
+  const handleDuplicatePost = async (post: LocalScheduledPost) => {
+    await createPost({
+      platform: post.platform,
+      content: post.content,
+      scheduled_time: post.scheduled_time,
       status: 'draft',
-    };
-    setPosts([...posts, newPost]);
-    toast({
-      title: 'Post Duplicated',
-      description: 'A copy of the post has been created as a draft.',
+      title: `${post.title} (Copy)`,
+      post_type: 'text',
     });
   };
 
   // Handle edit post
-  const handleEditPost = (post: ScheduledPost) => {
+  const handleEditPost = (post: LocalScheduledPost) => {
     setEditingPost(post);
     setShowCreateModal(true);
   };
 
   // Drag and drop handlers
-  const handleDragStart = (post: ScheduledPost) => {
+  const handleDragStart = (post: LocalScheduledPost) => {
     if (post.status === 'published') return;
     setDraggedPost(post);
   };
@@ -360,7 +293,7 @@ export default function Scheduler() {
     setDragOverDate(date);
   };
 
-  const handleDrop = (e: React.DragEvent, date: Date) => {
+  const handleDrop = async (e: React.DragEvent, date: Date) => {
     e.preventDefault();
     if (!draggedPost) return;
 
@@ -369,11 +302,9 @@ export default function Scheduler() {
     const newScheduledTime = new Date(date);
     newScheduledTime.setHours(originalTime.getHours(), originalTime.getMinutes());
 
-    setPosts(posts.map(p =>
-      p.id === draggedPost.id
-        ? { ...p, scheduled_time: newScheduledTime.toISOString() }
-        : p
-    ));
+    await updatePost(draggedPost.id, {
+      scheduled_time: newScheduledTime.toISOString(),
+    });
 
     toast({
       title: 'Post Rescheduled',
@@ -553,7 +484,36 @@ export default function Scheduler() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
-        {viewMode === 'queue' ? (
+        {/* Loading State */}
+        {loading ? (
+          <div className="bg-card rounded-xl border border-border p-6">
+            <div className="flex items-center justify-center py-12">
+              <div className="text-center">
+                <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />
+                <p className="text-muted-foreground">Loading your posts...</p>
+              </div>
+            </div>
+          </div>
+        ) : error ? (
+          <div className="bg-card rounded-xl border border-border p-6">
+            <div className="text-center py-12">
+              <p className="text-destructive mb-4">{error}</p>
+              <Button onClick={fetchPosts} variant="outline">
+                Try Again
+              </Button>
+            </div>
+          </div>
+        ) : posts.length === 0 && platformFilter === 'all' ? (
+          <div className="bg-card rounded-xl border border-border">
+            <EmptyState
+              icon={Calendar}
+              title="No scheduled posts yet"
+              description="Create your first post to start building your content calendar."
+              action={() => { setEditingPost(null); setSelectedDate(null); setShowCreateModal(true); }}
+              actionLabel="Create Your First Post"
+            />
+          </div>
+        ) : viewMode === 'queue' ? (
           /* Queue View */
           <QueueView
             posts={filteredPosts}
@@ -565,8 +525,8 @@ export default function Scheduler() {
             }}
             onEditPost={handleEditPost}
             onDeletePost={handleDeletePost}
-            onUpdatePost={(id, updates) => {
-              setPosts(posts.map(p => p.id === id ? { ...p, ...updates } : p));
+            onUpdatePost={async (id, updates) => {
+              await updatePost(id, updates);
             }}
           />
         ) : viewMode === 'calendar' ? (
@@ -995,8 +955,15 @@ export default function Scheduler() {
                 }}>
                   Cancel
                 </Button>
-                <Button onClick={handleSavePost}>
-                  {editingPost ? 'Update' : formData.isRecurring ? 'Create Series' : 'Schedule'}
+                <Button onClick={handleSavePost} disabled={savingPost}>
+                  {savingPost ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    editingPost ? 'Update' : formData.isRecurring ? 'Create Series' : 'Schedule'
+                  )}
                 </Button>
               </div>
             </div>
