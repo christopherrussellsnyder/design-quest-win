@@ -1,91 +1,188 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 
 const Terms: React.FC = () => {
-  const navigate = useNavigate();
-
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center h-16">
-            <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-            <h1 className="text-xl font-bold ml-4">Terms of Service</h1>
+    <>
+      <Helmet>
+        <title>Terms of Service | MarketAI</title>
+        <meta name="description" content="Terms of Service for MarketAI - AI-powered social media management platform for TikTok and other platforms." />
+        <meta property="og:title" content="Terms of Service | MarketAI" />
+        <meta property="og:description" content="Read MarketAI's Terms of Service for using our social media management platform." />
+        <meta property="og:type" content="website" />
+        <meta name="robots" content="index, follow" />
+      </Helmet>
+      
+      <div className="min-h-screen bg-background">
+        {/* Header with Logo */}
+        <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
+          <div className="max-w-[800px] mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between h-16">
+              <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                <img src="/marketai-logo.svg" alt="MarketAI" className="w-8 h-8" />
+                <span className="text-xl font-bold text-foreground">MarketAI</span>
+              </Link>
+              <nav className="flex items-center gap-4">
+                <Link to="/privacy" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                  Privacy Policy
+                </Link>
+              </nav>
+            </div>
           </div>
-        </div>
-      </header>
+        </header>
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="prose prose-invert max-w-none">
-          <p className="text-muted-foreground mb-8">Last updated: January 13, 2026</p>
+        <main className="max-w-[800px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          {/* Title */}
+          <div className="text-center mb-12">
+            <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">Terms of Service for MarketAI</h1>
+            <p className="text-muted-foreground">Last Updated: January 26, 2026</p>
+          </div>
 
-          <section className="mb-8">
-            <h2 className="text-xl font-semibold text-foreground mb-4">1. Acceptance of Terms</h2>
-            <p className="text-muted-foreground">
-              By accessing and using MarketAI ("the Service"), you accept and agree to be bound by the terms and conditions of this agreement. If you do not agree to these terms, you should not use the Service.
-            </p>
-          </section>
+          <div className="space-y-8">
+            {/* Section 1 */}
+            <section>
+              <h2 className="text-xl font-semibold text-foreground mb-4">1. ACCEPTANCE OF TERMS</h2>
+              <p className="text-muted-foreground leading-relaxed">
+                By accessing or using MarketAI ("the Service"), you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use the Service.
+              </p>
+            </section>
 
-          <section className="mb-8">
-            <h2 className="text-xl font-semibold text-foreground mb-4">2. Description of Service</h2>
-            <p className="text-muted-foreground">
-              MarketAI is an AI-powered social media management platform that provides tools for content scheduling, analytics, audience insights, and campaign management across multiple social media platforms.
-            </p>
-          </section>
+            {/* Section 2 */}
+            <section>
+              <h2 className="text-xl font-semibold text-foreground mb-4">2. SERVICE DESCRIPTION</h2>
+              <p className="text-muted-foreground leading-relaxed">
+                MarketAI is a social media management platform that allows users to create, schedule, and publish content to TikTok and other social media platforms. The Service uses artificial intelligence to help optimize content and posting strategies.
+              </p>
+            </section>
 
-          <section className="mb-8">
-            <h2 className="text-xl font-semibold text-foreground mb-4">3. User Accounts</h2>
-            <p className="text-muted-foreground">
-              You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account. You agree to notify us immediately of any unauthorized use of your account.
-            </p>
-          </section>
+            {/* Section 3 */}
+            <section>
+              <h2 className="text-xl font-semibold text-foreground mb-4">3. USER OBLIGATIONS</h2>
+              <p className="text-muted-foreground leading-relaxed mb-4">Users must:</p>
+              <ul className="list-disc list-inside text-muted-foreground space-y-2 ml-4">
+                <li>Own or have rights to all content they post through the Service</li>
+                <li>Comply with TikTok's Community Guidelines and Terms of Service</li>
+                <li>Not use the Service for spam, abuse, or illegal activities</li>
+                <li>Provide accurate information when creating an account</li>
+                <li>Keep their account credentials secure</li>
+                <li>Not attempt to circumvent any security features</li>
+              </ul>
+            </section>
 
-          <section className="mb-8">
-            <h2 className="text-xl font-semibold text-foreground mb-4">4. Acceptable Use</h2>
-            <p className="text-muted-foreground mb-4">You agree not to:</p>
-            <ul className="list-disc list-inside text-muted-foreground space-y-2">
-              <li>Use the Service for any unlawful purpose</li>
-              <li>Violate any applicable laws or regulations</li>
-              <li>Infringe upon the rights of others</li>
-              <li>Attempt to gain unauthorized access to any part of the Service</li>
-              <li>Use the Service to distribute spam or malware</li>
-            </ul>
-          </section>
+            {/* Section 4 */}
+            <section>
+              <h2 className="text-xl font-semibold text-foreground mb-4">4. TIKTOK INTEGRATION</h2>
+              <p className="text-muted-foreground leading-relaxed mb-4">
+                Our Service integrates with TikTok's API to post content on your behalf. By connecting your TikTok account, you authorize MarketAI to:
+              </p>
+              <ul className="list-disc list-inside text-muted-foreground space-y-2 ml-4 mb-4">
+                <li>Access your TikTok profile information</li>
+                <li>Upload and publish videos to your TikTok account</li>
+                <li>Access basic analytics about your posts</li>
+              </ul>
+              <p className="text-muted-foreground leading-relaxed">
+                You can revoke this authorization at any time by disconnecting your account in Settings.
+              </p>
+            </section>
 
-          <section className="mb-8">
-            <h2 className="text-xl font-semibold text-foreground mb-4">5. Intellectual Property</h2>
-            <p className="text-muted-foreground">
-              The Service and its original content, features, and functionality are owned by MarketAI and are protected by international copyright, trademark, and other intellectual property laws.
-            </p>
-          </section>
+            {/* Section 5 */}
+            <section>
+              <h2 className="text-xl font-semibold text-foreground mb-4">5. INTELLECTUAL PROPERTY</h2>
+              <p className="text-muted-foreground leading-relaxed">
+                All content you create and post remains your property. MarketAI does not claim ownership of your content. You grant MarketAI a limited license to process and transmit your content solely for the purpose of posting it to TikTok and other connected platforms.
+              </p>
+            </section>
 
-          <section className="mb-8">
-            <h2 className="text-xl font-semibold text-foreground mb-4">6. Limitation of Liability</h2>
-            <p className="text-muted-foreground">
-              MarketAI shall not be liable for any indirect, incidental, special, consequential, or punitive damages resulting from your use of or inability to use the Service.
-            </p>
-          </section>
+            {/* Section 6 */}
+            <section>
+              <h2 className="text-xl font-semibold text-foreground mb-4">6. DATA USAGE AND PRIVACY</h2>
+              <p className="text-muted-foreground leading-relaxed">
+                We collect and process your data as described in our <Link to="/privacy" className="text-primary hover:underline">Privacy Policy</Link>. We do not sell your personal information to third parties. We use your data only to provide and improve the Service.
+              </p>
+            </section>
 
-          <section className="mb-8">
-            <h2 className="text-xl font-semibold text-foreground mb-4">7. Changes to Terms</h2>
-            <p className="text-muted-foreground">
-              We reserve the right to modify these terms at any time. We will notify users of any material changes by posting the new terms on this page.
-            </p>
-          </section>
+            {/* Section 7 */}
+            <section>
+              <h2 className="text-xl font-semibold text-foreground mb-4">7. DISCLAIMERS</h2>
+              <p className="text-muted-foreground leading-relaxed">
+                The Service is provided "as is" without warranties of any kind, express or implied. MarketAI does not guarantee uninterrupted service, error-free operation, or that the Service will meet your specific requirements. We are not responsible for content posted to TikTok through the Service or any consequences resulting from such posts.
+              </p>
+            </section>
 
-          <section className="mb-8">
-            <h2 className="text-xl font-semibold text-foreground mb-4">8. Contact Us</h2>
-            <p className="text-muted-foreground">
-              If you have any questions about these Terms, please contact us at legal@marketai.com.
-            </p>
-          </section>
-        </div>
-      </main>
-    </div>
+            {/* Section 8 */}
+            <section>
+              <h2 className="text-xl font-semibold text-foreground mb-4">8. LIMITATION OF LIABILITY</h2>
+              <p className="text-muted-foreground leading-relaxed">
+                To the maximum extent permitted by law, MarketAI shall not be liable for any indirect, incidental, special, consequential, or punitive damages, or any loss of profits or revenues, whether incurred directly or indirectly, or any loss of data, use, goodwill, or other intangible losses resulting from your use of the Service.
+              </p>
+            </section>
+
+            {/* Section 9 */}
+            <section>
+              <h2 className="text-xl font-semibold text-foreground mb-4">9. TERMINATION</h2>
+              <p className="text-muted-foreground leading-relaxed">
+                We reserve the right to suspend or terminate your account if you violate these Terms or TikTok's policies. You may terminate your account at any time by contacting us or deleting your account in Settings. Upon termination, all scheduled posts will be cancelled.
+              </p>
+            </section>
+
+            {/* Section 10 */}
+            <section>
+              <h2 className="text-xl font-semibold text-foreground mb-4">10. CHANGES TO TERMS</h2>
+              <p className="text-muted-foreground leading-relaxed">
+                We may modify these Terms at any time. We will notify users of material changes via email or in-app notification. Continued use of the Service after changes constitutes acceptance of the modified Terms.
+              </p>
+            </section>
+
+            {/* Section 11 */}
+            <section>
+              <h2 className="text-xl font-semibold text-foreground mb-4">11. GOVERNING LAW</h2>
+              <p className="text-muted-foreground leading-relaxed">
+                These Terms are governed by the laws of the State of Florida, United States, without regard to conflict of law provisions.
+              </p>
+            </section>
+
+            {/* Section 12 */}
+            <section>
+              <h2 className="text-xl font-semibold text-foreground mb-4">12. CONTACT INFORMATION</h2>
+              <p className="text-muted-foreground leading-relaxed mb-4">
+                For questions about these Terms, contact us at:
+              </p>
+              <div className="bg-card border border-border rounded-lg p-6">
+                <p className="text-foreground mb-2">
+                  <strong>Email:</strong>{' '}
+                  <a href="mailto:support@marketai.app" className="text-primary hover:underline">
+                    support@marketai.app
+                  </a>
+                </p>
+                <p className="text-foreground">
+                  <strong>Address:</strong> Bradenton, Florida, United States
+                </p>
+              </div>
+            </section>
+          </div>
+        </main>
+
+        {/* Footer */}
+        <footer className="border-t border-border bg-card/30 mt-12">
+          <div className="max-w-[800px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <p className="text-sm text-muted-foreground">
+                © 2026 MarketAI. All rights reserved.
+              </p>
+              <div className="flex items-center gap-6">
+                <Link to="/terms" className="text-sm text-primary hover:underline">
+                  Terms of Service
+                </Link>
+                <Link to="/privacy" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                  Privacy Policy
+                </Link>
+              </div>
+            </div>
+          </div>
+        </footer>
+      </div>
+    </>
   );
 };
 
