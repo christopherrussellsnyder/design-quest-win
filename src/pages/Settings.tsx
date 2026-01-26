@@ -168,7 +168,87 @@ const Settings: React.FC = () => {
   // Social connections state
   const [connections, setConnections] = useState<SocialConnection[]>([]);
   const [loadingConnections, setLoadingConnections] = useState(false);
+  const [isLoadingSettings, setIsLoadingSettings] = useState(true);
   
+  // Load all settings on mount
+  useEffect(() => {
+    if (user) {
+      loadAllSettings();
+    }
+  }, [user]);
+
+  const loadAllSettings = async () => {
+    if (!user) return;
+    setIsLoadingSettings(true);
+    
+    try {
+      // Fetch all settings in parallel
+      const [profileResult, brandResult, prefsResult] = await Promise.all([
+        supabase.from('user_profiles').select('*').eq('user_id', user.id).single(),
+        supabase.from('brand_settings').select('*').eq('user_id', user.id).single(),
+        supabase.from('user_preferences').select('*').eq('user_id', user.id).single()
+      ]);
+
+      // Load profile data
+      if (profileResult.data) {
+        setProfile(prev => ({
+          ...prev,
+          fullName: profileResult.data.full_name || prev.fullName,
+          avatarUrl: profileResult.data.avatar_url || '',
+          phone: profileResult.data.phone_number || ''
+        }));
+      }
+
+      // Load brand settings
+      if (brandResult.data) {
+        setBrand(prev => ({
+          ...prev,
+          businessName: brandResult.data.business_name || prev.businessName,
+          tagline: brandResult.data.tagline || '',
+          bio: brandResult.data.bio || '',
+          websiteUrl: brandResult.data.website_url || '',
+          logoUrl: brandResult.data.logo_url || '',
+          primaryColor: brandResult.data.primary_color || prev.primaryColor,
+          secondaryColor: brandResult.data.secondary_color || prev.secondaryColor,
+          accentColor: brandResult.data.accent_color || prev.accentColor,
+          tone: brandResult.data.tone || 'professional',
+          keyMessages: (brandResult.data.key_messages as string[]) || [],
+          brandHashtags: (brandResult.data.brand_hashtags as string[]) || []
+        }));
+      }
+
+      // Load user preferences
+      if (prefsResult.data) {
+        setPreferences(prev => ({
+          ...prev,
+          emailNotifications: prefsResult.data.email_notifications ?? true,
+          postPublishedNotification: prefsResult.data.post_published_notification ?? true,
+          highEngagementNotification: prefsResult.data.high_engagement_notification ?? true,
+          campaignMilestoneNotification: prefsResult.data.campaign_milestone_notification ?? true,
+          weeklyReportNotification: prefsResult.data.weekly_report_notification ?? true,
+          errorNotification: prefsResult.data.error_notification ?? true,
+          theme: prefsResult.data.theme || 'dark',
+          timezone: prefsResult.data.timezone || 'America/New_York',
+          dateFormat: prefsResult.data.date_format || 'MM/DD/YYYY',
+          timeFormat: prefsResult.data.time_format || '12h',
+          language: prefsResult.data.language || 'en',
+          defaultPostStatus: prefsResult.data.default_post_status || 'scheduled',
+          autoSaveDrafts: prefsResult.data.auto_save_drafts ?? true,
+          autoHashtagSuggestions: prefsResult.data.auto_hashtag_suggestions ?? true,
+          showBestTimeSuggestions: prefsResult.data.show_best_time_suggestions ?? true,
+          makeProfilePublic: prefsResult.data.make_profile_public ?? false,
+          shareAnalytics: prefsResult.data.share_analytics ?? false
+        }));
+      }
+
+      console.log('Settings loaded successfully');
+    } catch (error) {
+      console.error('Error loading settings:', error);
+    } finally {
+      setIsLoadingSettings(false);
+    }
+  };
+
   // Fetch social connections
   useEffect(() => {
     if (user && activeTab === 'connections') {
@@ -522,12 +602,32 @@ const Settings: React.FC = () => {
   };
   
   const handleSave = async () => {
+    if (!user) return;
+    
     setIsSaving(true);
     setSaveStatus('saving');
+    
     try {
-      // Save to database
-      if (user) {
-        await supabase.from('user_preferences').upsert({
+      // Save profile data to user_profiles
+      const { error: profileError } = await supabase
+        .from('user_profiles')
+        .upsert({
+          user_id: user.id,
+          full_name: profile.fullName,
+          avatar_url: profile.avatarUrl || null,
+          phone_number: profile.phone || null,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'user_id' });
+
+      if (profileError) {
+        console.error('Profile save error:', profileError);
+        throw profileError;
+      }
+
+      // Save preferences
+      const { error: prefsError } = await supabase
+        .from('user_preferences')
+        .upsert({
           user_id: user.id,
           theme: preferences.theme,
           timezone: preferences.timezone,
@@ -547,9 +647,17 @@ const Settings: React.FC = () => {
           make_profile_public: preferences.makeProfilePublic,
           share_analytics: preferences.shareAnalytics,
           updated_at: new Date().toISOString()
-        });
+        }, { onConflict: 'user_id' });
 
-        await supabase.from('brand_settings').upsert({
+      if (prefsError) {
+        console.error('Preferences save error:', prefsError);
+        throw prefsError;
+      }
+
+      // Save brand settings
+      const { error: brandError } = await supabase
+        .from('brand_settings')
+        .upsert({
           user_id: user.id,
           business_name: brand.businessName,
           tagline: brand.tagline,
@@ -563,24 +671,41 @@ const Settings: React.FC = () => {
           key_messages: brand.keyMessages,
           brand_hashtags: brand.brandHashtags,
           updated_at: new Date().toISOString()
-        });
+        }, { onConflict: 'user_id' });
+
+      if (brandError) {
+        console.error('Brand save error:', brandError);
+        throw brandError;
+      }
+
+      // Verify save by re-fetching
+      const { data: verifyData, error: verifyError } = await supabase
+        .from('user_profiles')
+        .select('full_name')
+        .eq('user_id', user.id)
+        .single();
+
+      if (verifyError || (verifyData && verifyData.full_name !== profile.fullName)) {
+        console.warn('Save verification mismatch');
       }
 
       setSaveStatus('saved');
       toast({
-        title: "Settings saved",
-        description: "Your changes have been saved successfully."
+        title: "Settings saved successfully",
+        description: "Your changes have been saved and will persist across sessions.",
+        className: "bg-green-500/10 border-green-500/20 text-green-400"
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Save error:', error);
       setSaveStatus('error');
       toast({
-        title: "Error saving settings",
-        description: "Please try again.",
+        title: "Failed to save settings",
+        description: error.message || "Please try again.",
         variant: "destructive"
       });
     } finally {
       setIsSaving(false);
-      setTimeout(() => setSaveStatus(null), 2000);
+      setTimeout(() => setSaveStatus(null), 3000);
     }
   };
 
