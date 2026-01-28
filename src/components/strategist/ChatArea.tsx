@@ -17,6 +17,8 @@ import { ChatMessageList } from './ChatMessageList';
 import { QuickActions } from './QuickActions';
 import { StrategyDialog } from './StrategyDialog';
 import { Message, BusinessContext, AnalyticsUpload } from '@/pages/AIStrategist';
+import { useStrategyGeneration } from '@/hooks/useStrategyGeneration';
+import { useNavigate } from 'react-router-dom';
 
 interface ChatAreaProps {
   conversationId?: string;
@@ -48,6 +50,8 @@ export function ChatArea({
   
   const { uploadScreenshot, isProcessing } = useScreenshotAnalysis();
   const { isAnalyzing } = useWebsiteAnalysis();
+  const { generateStrategy, isGenerating, progress } = useStrategyGeneration();
+  const navigate = useNavigate();
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -376,11 +380,26 @@ I'll use this context to provide personalized marketing recommendations. You can
     await saveMessage(convId, 'assistant', summaryMessage);
   };
 
-  const handleStrategyRequest = (platform: string, duration: number) => {
+  const handleStrategyRequest = async (platform: string, duration: number) => {
     setShowStrategyDialog(false);
-    const message = `Create a ${duration}-day content strategy for ${platform}. Include specific post ideas, optimal posting times, content types, and expected outcomes based on my business context.`;
-    setInput(message);
-    setTimeout(() => sendMessage(message), 100);
+    
+    const userMessage = `Generate a ${duration}-day content strategy for ${platform}.`;
+    await sendMessage(userMessage);
+    
+    const result = await generateStrategy(platform, duration, undefined, undefined, currentConversationId);
+    if (result) {
+      const assistantMessage = `✨ **Strategy Generated!**\n\nI've created your ${duration}-day ${platform} content strategy with ${result.postsCount} posts.\n\n**Predicted Results:**\n- Total Reach: ${result.strategy.predicted_metrics?.total_reach?.toLocaleString() || 'N/A'}\n- Avg Engagement: ${result.strategy.predicted_metrics?.avg_engagement_rate || 'N/A'}%\n- Follower Growth: +${result.strategy.predicted_metrics?.expected_follower_growth || 'N/A'}\n\n[View Full Strategy](/strategies/${result.strategyId})`;
+      
+      if (currentConversationId) {
+        await saveMessage(currentConversationId, 'assistant', assistantMessage);
+        setMessages(prev => [...prev, {
+          id: `strategy-${Date.now()}`,
+          role: 'assistant',
+          content: assistantMessage,
+          createdAt: new Date(),
+        }]);
+      }
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -390,7 +409,7 @@ I'll use this context to provide personalized marketing recommendations. You can
     }
   };
 
-  const isDisabled = isLoading || isProcessing || isAnalyzing;
+  const isDisabled = isLoading || isProcessing || isAnalyzing || isGenerating;
 
   return (
     <div className={cn('flex flex-col h-full bg-background', className)}>
