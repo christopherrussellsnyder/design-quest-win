@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Send, Bot, User, Loader2, ImagePlus, Sparkles, MessageSquare } from 'lucide-react';
+import { Send, Bot, User, Loader2, ImagePlus, Sparkles, MessageSquare, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -7,7 +7,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { ScreenshotUploader } from './ScreenshotUploader';
+import { WebsiteAnalyzer } from './WebsiteAnalyzer';
+import { BusinessProfileCard } from './BusinessProfileCard';
 import { useScreenshotAnalysis } from '@/hooks/useScreenshotAnalysis';
+import { useWebsiteAnalysis, BusinessProfile } from '@/hooks/useWebsiteAnalysis';
 import ReactMarkdown from 'react-markdown';
 
 interface Message {
@@ -15,6 +18,7 @@ interface Message {
   role: 'user' | 'assistant';
   content: string;
   attachments?: { type: string; url: string; name?: string }[];
+  businessProfile?: BusinessProfile;
   createdAt: Date;
 }
 
@@ -33,11 +37,14 @@ export function AIChatInterface({
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showUploader, setShowUploader] = useState(false);
+  const [showWebsiteAnalyzer, setShowWebsiteAnalyzer] = useState(false);
   const [currentConversationId, setCurrentConversationId] = useState<string | undefined>(conversationId);
+  const [activeBusinessProfile, setActiveBusinessProfile] = useState<BusinessProfile | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   
   const { uploadScreenshot, isProcessing } = useScreenshotAnalysis();
+  const { fetchActiveContext, isAnalyzing } = useWebsiteAnalysis();
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -53,6 +60,18 @@ export function AIChatInterface({
       loadMessages(currentConversationId);
     }
   }, [currentConversationId]);
+
+  // Load active business context on mount
+  useEffect(() => {
+    loadBusinessContext();
+  }, []);
+
+  const loadBusinessContext = async () => {
+    const context = await fetchActiveContext();
+    if (context) {
+      setActiveBusinessProfile(context.business_profile);
+    }
+  };
 
   const loadMessages = async (convId: string) => {
     const { data, error } = await supabase
@@ -71,7 +90,7 @@ export function AIChatInterface({
       role: msg.role as 'user' | 'assistant',
       content: msg.content,
       attachments: msg.attachments as any,
-      createdAt: new Date(msg.created_at),
+      createdAt: new Date(msg.created_at || new Date()),
     })));
   };
 
@@ -162,6 +181,14 @@ export function AIChatInterface({
         content: m.content,
       }));
 
+      // Include business context if available
+      const businessContext = activeBusinessProfile ? {
+        businessName: activeBusinessProfile.businessName,
+        industry: activeBusinessProfile.industry,
+        targetAudience: activeBusinessProfile.targetAudience,
+        brandIdentity: activeBusinessProfile.brandIdentity,
+      } : null;
+
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-chat`,
         {
@@ -173,6 +200,7 @@ export function AIChatInterface({
           body: JSON.stringify({ 
             messages: allMessages,
             conversationId: convId,
+            businessContext,
           }),
         }
       );
@@ -299,6 +327,53 @@ export function AIChatInterface({
     }
   };
 
+  const handleWebsiteAnalysisComplete = async (profile: BusinessProfile) => {
+    setShowWebsiteAnalyzer(false);
+    setActiveBusinessProfile(profile);
+
+    // Add to chat as a message
+    const summaryMessage = `I've analyzed your website and here's what I found:
+
+**${profile.businessName}** - ${profile.industry}
+
+${profile.summary || ''}
+
+**Target Audience:** ${profile.targetAudience?.ageRange || 'N/A'} | ${profile.targetAudience?.customerType || 'N/A'}
+
+**Brand Voice:** ${profile.brandIdentity?.toneCharacteristics?.join(', ') || 'N/A'}
+
+**Value Proposition:** ${profile.brandIdentity?.valueProposition || 'N/A'}
+
+**Marketing Maturity:** Website Quality ${profile.marketingMaturity?.websiteQuality || 'N/A'}/10 | SEO: ${profile.marketingMaturity?.seoLevel || 'N/A'}
+
+I'll use this context to provide personalized marketing recommendations. You can ask me anything about your marketing strategy!`;
+
+    // Get or create conversation
+    let convId = currentConversationId;
+    if (!convId) {
+      convId = await createConversation();
+    }
+
+    // Add user action message
+    setMessages(prev => [...prev, {
+      id: `user-${Date.now()}`,
+      role: 'user',
+      content: '🌐 Analyzed my website',
+      createdAt: new Date(),
+    }]);
+    await saveMessage(convId, 'user', '🌐 Analyzed my website');
+
+    // Add assistant response with profile
+    setMessages(prev => [...prev, {
+      id: `assistant-${Date.now()}`,
+      role: 'assistant',
+      content: summaryMessage,
+      businessProfile: profile,
+      createdAt: new Date(),
+    }]);
+    await saveMessage(convId, 'assistant', summaryMessage);
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -306,8 +381,17 @@ export function AIChatInterface({
     }
   };
 
+  const isDisabled = isLoading || isProcessing || isAnalyzing;
+
   return (
     <div className={cn('flex flex-col h-full bg-background', className)}>
+      {/* Business context indicator */}
+      {activeBusinessProfile && (
+        <div className="px-4 py-2 border-b bg-muted/30">
+          <BusinessProfileCard profile={activeBusinessProfile} compact onReanalyze={() => setShowWebsiteAnalyzer(true)} />
+        </div>
+      )}
+
       {/* Messages area */}
       <ScrollArea className="flex-1 p-4">
         {messages.length === 0 ? (
@@ -317,9 +401,17 @@ export function AIChatInterface({
             </div>
             <h3 className="text-lg font-semibold mb-2">AI Marketing Assistant</h3>
             <p className="text-muted-foreground max-w-md mb-6">
-              Upload analytics screenshots for AI analysis, or ask questions about your marketing strategy.
+              Upload analytics screenshots, analyze your website, or ask questions about your marketing strategy.
             </p>
             <div className="flex flex-wrap gap-2 justify-center">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setShowWebsiteAnalyzer(true)}
+              >
+                <Globe className="w-4 h-4 mr-2" />
+                Analyze Website
+              </Button>
               <Button 
                 variant="outline" 
                 size="sm"
@@ -331,10 +423,10 @@ export function AIChatInterface({
               <Button 
                 variant="outline" 
                 size="sm"
-                onClick={() => setInput('What content performs best on Instagram?')}
+                onClick={() => setInput('Create a 30-day content strategy for Instagram')}
               >
                 <MessageSquare className="w-4 h-4 mr-2" />
-                Ask a Question
+                Content Strategy
               </Button>
             </div>
           </div>
@@ -411,13 +503,24 @@ export function AIChatInterface({
         )}
       </ScrollArea>
 
+      {/* Website analyzer panel */}
+      {showWebsiteAnalyzer && (
+        <div className="p-4 border-t bg-muted/50">
+          <WebsiteAnalyzer
+            onAnalysisComplete={handleWebsiteAnalysisComplete}
+            onCancel={() => setShowWebsiteAnalyzer(false)}
+            disabled={isDisabled}
+          />
+        </div>
+      )}
+
       {/* Upload panel */}
       {showUploader && (
         <div className="p-4 border-t bg-muted/50">
           <ScreenshotUploader
             onUpload={handleUpload}
             onAnalyze={handleAnalyze}
-            disabled={isProcessing}
+            disabled={isDisabled}
           />
           <Button
             variant="ghost"
@@ -436,9 +539,21 @@ export function AIChatInterface({
           <Button
             variant="outline"
             size="icon"
-            onClick={() => setShowUploader(!showUploader)}
-            disabled={isLoading || isProcessing}
+            onClick={() => setShowWebsiteAnalyzer(!showWebsiteAnalyzer)}
+            disabled={isDisabled}
             className="flex-shrink-0"
+            title="Analyze Website"
+          >
+            <Globe className="w-4 h-4" />
+          </Button>
+          
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setShowUploader(!showUploader)}
+            disabled={isDisabled}
+            className="flex-shrink-0"
+            title="Upload Screenshot"
           >
             <ImagePlus className="w-4 h-4" />
           </Button>
@@ -449,14 +564,14 @@ export function AIChatInterface({
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Ask about your analytics or marketing strategy..."
-            disabled={isLoading || isProcessing}
+            disabled={isDisabled}
             className="min-h-[44px] max-h-32 resize-none"
             rows={1}
           />
           
           <Button
             onClick={() => sendMessage()}
-            disabled={!input.trim() || isLoading || isProcessing}
+            disabled={!input.trim() || isDisabled}
             size="icon"
             className="flex-shrink-0"
           >

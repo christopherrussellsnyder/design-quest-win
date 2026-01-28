@@ -83,3 +83,9 @@ verify_jwt = false
 
 [functions.ai-chat]
 verify_jwt = false
+
+[functions.scrape-website]
+verify_jwt = false
+
+[functions.analyze-business]
+verify_jwt = false
