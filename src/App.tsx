@@ -12,40 +12,23 @@ import { lazy, Suspense, Component, ReactNode } from "react";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
-import OAuthCallback from "./pages/OAuthCallback";
 import NotFound from "./pages/NotFound";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import AcceptInvite from "./pages/AcceptInvite";
 
-// Lazy load heavy components
-const Dashboard = lazy(() => import("./pages/Dashboard"));
+// Lazy load components
+const AIStrategist = lazy(() => import("./pages/AIStrategist"));
 const ContentLibrary = lazy(() => import("./pages/ContentLibrary"));
-const ContentAI = lazy(() => import("./pages/ContentAI"));
-const Scheduler = lazy(() => import("./pages/Scheduler"));
-const Analytics = lazy(() => import("./pages/Analytics"));
-const Campaigns = lazy(() => import("./pages/Campaigns"));
-const CampaignDashboard = lazy(() => import("./pages/CampaignDashboard"));
-const CampaignBuilder = lazy(() => import("./pages/CampaignBuilder"));
-const Settings = lazy(() => import("./pages/Settings"));
-const Audience = lazy(() => import("./pages/Audience"));
-const AudienceDetail = lazy(() => import("./pages/AudienceDetail"));
+const ContentStrategies = lazy(() => import("./pages/ContentStrategies"));
+const Insights = lazy(() => import("./pages/Insights"));
 const MediaLibrary = lazy(() => import("./pages/MediaLibrary"));
-const AIAnalytics = lazy(() => import("./pages/AIAnalytics"));
+const Settings = lazy(() => import("./pages/Settings"));
 const HealthCheck = lazy(() => import("./pages/HealthCheck"));
-const ABTesting = lazy(() => import("./pages/ABTesting"));
-const HelpCenter = lazy(() => import("./pages/HelpCenter"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const Cookies = lazy(() => import("./pages/Cookies"));
-const TikTokAuthorize = lazy(() => import("./pages/TikTokAuthorize"));
-const TwitterAuthorize = lazy(() => import("./pages/TwitterAuthorize"));
-const FacebookAuthorize = lazy(() => import("./pages/FacebookAuthorize"));
-const InstagramAuthorize = lazy(() => import("./pages/InstagramAuthorize"));
-const LinkedInAuthorize = lazy(() => import("./pages/LinkedInAuthorize"));
-const AIAssistant = lazy(() => import("./pages/AIAssistant"));
-const AIStrategist = lazy(() => import("./pages/AIStrategist"));
-const ContentStrategies = lazy(() => import("./pages/ContentStrategies"));
+const HelpCenter = lazy(() => import("./pages/HelpCenter"));
 
 const queryClient = new QueryClient();
 
@@ -118,14 +101,19 @@ const App = () => (
                   <Route path="/reset-password" element={<ResetPassword />} />
                   <Route path="/accept-invite/:token" element={<AcceptInvite />} />
                   <Route path="/health" element={<HealthCheck />} />
-                  <Route
-                    path="/dashboard"
-                    element={
-                      <ProtectedRoute>
-                        <Dashboard />
-                      </ProtectedRoute>
-                    }
-                  />
+                  
+                  {/* Redirect old routes to AI Strategist */}
+                  <Route path="/dashboard" element={<Navigate to="/ai-strategist" replace />} />
+                  <Route path="/scheduler" element={<Navigate to="/ai-strategist" replace />} />
+                  <Route path="/campaigns" element={<Navigate to="/ai-strategist" replace />} />
+                  <Route path="/analytics" element={<Navigate to="/insights" replace />} />
+                  <Route path="/ab-testing" element={<Navigate to="/ai-strategist" replace />} />
+                  <Route path="/audience" element={<Navigate to="/ai-strategist" replace />} />
+                  <Route path="/content-ai" element={<Navigate to="/ai-strategist" replace />} />
+                  <Route path="/ai-analytics" element={<Navigate to="/insights" replace />} />
+                  <Route path="/ai-assistant" element={<Navigate to="/ai-strategist" replace />} />
+                  
+                  {/* Main Routes (5 core pages) */}
                   <Route
                     path="/ai-strategist"
                     element={
@@ -134,126 +122,11 @@ const App = () => (
                       </ProtectedRoute>
                     }
                   />
-                  <Route path="/auth/callback" element={<OAuthCallback />} />
                   <Route
                     path="/content-library"
                     element={
                       <ProtectedRoute>
                         <ContentLibrary />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/content-ai"
-                    element={
-                      <ProtectedRoute>
-                        <ContentAI />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/scheduler"
-                    element={
-                      <ProtectedRoute>
-                        <Scheduler />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/analytics"
-                    element={
-                      <ProtectedRoute>
-                        <Analytics />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/campaigns"
-                    element={
-                      <ProtectedRoute>
-                        <Campaigns />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/campaigns/:id"
-                    element={
-                      <ProtectedRoute>
-                        <CampaignDashboard />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/campaign-builder"
-                    element={
-                      <ProtectedRoute>
-                        <CampaignBuilder />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/settings"
-                    element={
-                      <ProtectedRoute>
-                        <Settings />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/audience"
-                    element={
-                      <ProtectedRoute>
-                        <Audience />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/audience/:id"
-                    element={
-                      <ProtectedRoute>
-                        <AudienceDetail />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/media-library"
-                    element={
-                      <ProtectedRoute>
-                        <MediaLibrary />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/ai-analytics"
-                    element={
-                      <ProtectedRoute>
-                        <AIAnalytics />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/ab-testing"
-                    element={
-                      <ProtectedRoute>
-                        <ABTesting />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route path="/help" element={<HelpCenter />} />
-                  <Route path="/terms" element={<Terms />} />
-                  <Route path="/privacy" element={<Privacy />} />
-                  <Route path="/cookies" element={<Cookies />} />
-                  {/* OAuth Authorization Pages */}
-                  <Route path="/auth/tiktok/authorize" element={<TikTokAuthorize />} />
-                  <Route path="/auth/twitter/authorize" element={<TwitterAuthorize />} />
-                  <Route path="/auth/facebook/authorize" element={<FacebookAuthorize />} />
-                  <Route path="/auth/instagram/authorize" element={<InstagramAuthorize />} />
-                  <Route path="/auth/linkedin/authorize" element={<LinkedInAuthorize />} />
-                  <Route
-                    path="/ai-assistant"
-                    element={
-                      <ProtectedRoute>
-                        <AIAssistant />
                       </ProtectedRoute>
                     }
                   />
@@ -273,8 +146,42 @@ const App = () => (
                       </ProtectedRoute>
                     }
                   />
-                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                  <Route
+                    path="/insights"
+                    element={
+                      <ProtectedRoute>
+                        <Insights />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/media"
+                    element={
+                      <ProtectedRoute>
+                        <MediaLibrary />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/media-library"
+                    element={<Navigate to="/media" replace />}
+                  />
+                  <Route
+                    path="/settings"
+                    element={
+                      <ProtectedRoute>
+                        <Settings />
+                      </ProtectedRoute>
+                    }
+                  />
+                  
+                  {/* Static Pages */}
+                  <Route path="/help" element={<HelpCenter />} />
+                  <Route path="/terms" element={<Terms />} />
+                  <Route path="/privacy" element={<Privacy />} />
+                  <Route path="/cookies" element={<Cookies />} />
+                  
+                  {/* Catch-all */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>
