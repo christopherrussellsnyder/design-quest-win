@@ -44,6 +44,7 @@ const FacebookAuthorize = lazy(() => import("./pages/FacebookAuthorize"));
 const InstagramAuthorize = lazy(() => import("./pages/InstagramAuthorize"));
 const LinkedInAuthorize = lazy(() => import("./pages/LinkedInAuthorize"));
 const AIAssistant = lazy(() => import("./pages/AIAssistant"));
+const AIStrategist = lazy(() => import("./pages/AIStrategist"));
 
 const queryClient = new QueryClient();
 
@@ -121,6 +122,14 @@ const App = () => (
                     element={
                       <ProtectedRoute>
                         <Dashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/ai-strategist"
+                    element={
+                      <ProtectedRoute>
+                        <AIStrategist />
                       </ProtectedRoute>
                     }
                   />
