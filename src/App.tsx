@@ -45,6 +45,7 @@ const InstagramAuthorize = lazy(() => import("./pages/InstagramAuthorize"));
 const LinkedInAuthorize = lazy(() => import("./pages/LinkedInAuthorize"));
 const AIAssistant = lazy(() => import("./pages/AIAssistant"));
 const AIStrategist = lazy(() => import("./pages/AIStrategist"));
+const ContentStrategies = lazy(() => import("./pages/ContentStrategies"));
 
 const queryClient = new QueryClient();
 
@@ -256,6 +257,23 @@ const App = () => (
                       </ProtectedRoute>
                     }
                   />
+                  <Route
+                    path="/strategies"
+                    element={
+                      <ProtectedRoute>
+                        <ContentStrategies />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/strategies/:id"
+                    element={
+                      <ProtectedRoute>
+                        <ContentStrategies />
+                      </ProtectedRoute>
+                    }
+                  />
+                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
