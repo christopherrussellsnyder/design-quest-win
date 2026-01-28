@@ -353,6 +353,30 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_conversations: {
+        Row: {
+          created_at: string | null
+          id: string
+          title: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          title?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          title?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       ai_generated_videos: {
         Row: {
           aspect_ratio: string
@@ -460,6 +484,44 @@ export type Database = {
           variations_generated?: number | null
         }
         Relationships: []
+      }
+      ai_messages: {
+        Row: {
+          attachments: Json | null
+          content: string
+          context_used: Json | null
+          conversation_id: string
+          created_at: string | null
+          id: string
+          role: string
+        }
+        Insert: {
+          attachments?: Json | null
+          content: string
+          context_used?: Json | null
+          conversation_id: string
+          created_at?: string | null
+          id?: string
+          role: string
+        }
+        Update: {
+          attachments?: Json | null
+          content?: string
+          context_used?: Json | null
+          conversation_id?: string
+          created_at?: string | null
+          id?: string
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "ai_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ai_usage_logs: {
         Row: {
@@ -1042,6 +1104,39 @@ export type Database = {
           user_id?: string
           website_url?: string | null
           youtube_url?: string | null
+        }
+        Relationships: []
+      }
+      business_context: {
+        Row: {
+          analyzed_at: string | null
+          business_profile: Json | null
+          id: string
+          is_active: boolean | null
+          last_updated: string | null
+          scraped_pages: Json | null
+          user_id: string
+          website_url: string
+        }
+        Insert: {
+          analyzed_at?: string | null
+          business_profile?: Json | null
+          id?: string
+          is_active?: boolean | null
+          last_updated?: string | null
+          scraped_pages?: Json | null
+          user_id: string
+          website_url: string
+        }
+        Update: {
+          analyzed_at?: string | null
+          business_profile?: Json | null
+          id?: string
+          is_active?: boolean | null
+          last_updated?: string | null
+          scraped_pages?: Json | null
+          user_id?: string
+          website_url?: string
         }
         Relationships: []
       }
@@ -2287,6 +2382,59 @@ export type Database = {
         }
         Relationships: []
       }
+      content_strategies: {
+        Row: {
+          content_mix: Json | null
+          conversation_id: string | null
+          created_at: string | null
+          duration_days: number
+          end_date: string
+          goals: Json | null
+          id: string
+          platform: string | null
+          predicted_metrics: Json | null
+          start_date: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          content_mix?: Json | null
+          conversation_id?: string | null
+          created_at?: string | null
+          duration_days: number
+          end_date: string
+          goals?: Json | null
+          id?: string
+          platform?: string | null
+          predicted_metrics?: Json | null
+          start_date: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          content_mix?: Json | null
+          conversation_id?: string | null
+          created_at?: string | null
+          duration_days?: number
+          end_date?: string
+          goals?: Json | null
+          id?: string
+          platform?: string | null
+          predicted_metrics?: Json | null
+          start_date?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_strategies_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "ai_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       engagement_predictions: {
         Row: {
           actual_engagement_rate: number | null
@@ -3335,6 +3483,68 @@ export type Database = {
         }
         Relationships: []
       }
+      strategy_posts: {
+        Row: {
+          caption: string
+          cta: string | null
+          day_number: number
+          hashtags: string[] | null
+          hook: string | null
+          id: string
+          post_date: string
+          post_time: string | null
+          post_type: string | null
+          predicted_engagement: number | null
+          predicted_reach: number | null
+          rationale: string | null
+          sort_order: number | null
+          strategy_id: string
+          theme: string | null
+        }
+        Insert: {
+          caption: string
+          cta?: string | null
+          day_number: number
+          hashtags?: string[] | null
+          hook?: string | null
+          id?: string
+          post_date: string
+          post_time?: string | null
+          post_type?: string | null
+          predicted_engagement?: number | null
+          predicted_reach?: number | null
+          rationale?: string | null
+          sort_order?: number | null
+          strategy_id: string
+          theme?: string | null
+        }
+        Update: {
+          caption?: string
+          cta?: string | null
+          day_number?: number
+          hashtags?: string[] | null
+          hook?: string | null
+          id?: string
+          post_date?: string
+          post_time?: string | null
+          post_type?: string | null
+          predicted_engagement?: number | null
+          predicted_reach?: number | null
+          rationale?: string | null
+          sort_order?: number | null
+          strategy_id?: string
+          theme?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "strategy_posts_strategy_id_fkey"
+            columns: ["strategy_id"]
+            isOneToOne: false
+            referencedRelation: "content_strategies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       team_members: {
         Row: {
           accepted_at: string | null
@@ -3474,6 +3684,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      uploaded_analytics: {
+        Row: {
+          ai_insights: string | null
+          extracted_data: Json | null
+          id: string
+          image_url: string
+          platform: string | null
+          time_period_end: string | null
+          time_period_start: string | null
+          uploaded_at: string | null
+          user_id: string
+        }
+        Insert: {
+          ai_insights?: string | null
+          extracted_data?: Json | null
+          id?: string
+          image_url: string
+          platform?: string | null
+          time_period_end?: string | null
+          time_period_start?: string | null
+          uploaded_at?: string | null
+          user_id: string
+        }
+        Update: {
+          ai_insights?: string | null
+          extracted_data?: Json | null
+          id?: string
+          image_url?: string
+          platform?: string | null
+          time_period_end?: string | null
+          time_period_start?: string | null
+          uploaded_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       user_preferences: {
         Row: {
@@ -3842,6 +4088,10 @@ export type Database = {
           title: string
         }[]
       }
+      get_active_business_context: {
+        Args: { p_user_id: string }
+        Returns: Json
+      }
       get_analytics_summary: {
         Args: {
           p_date_from: string
@@ -3902,6 +4152,10 @@ export type Database = {
           date: string
           post_count: number
         }[]
+      }
+      get_recent_analytics: {
+        Args: { p_limit?: number; p_user_id: string }
+        Returns: Json
       }
       get_top_performing_elements: {
         Args: { p_element_type: string; p_limit?: number; p_user_id: string }
