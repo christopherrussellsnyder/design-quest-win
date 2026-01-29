@@ -14,40 +14,7 @@ interface StrategyRequest {
   conversationId?: string;
 }
 
-interface StrategyPost {
-  day_number: number;
-  post_date: string;
-  post_time: string;
-  post_type: string;
-  theme: string;
-  hook: string;
-  caption: string;
-  hashtags: string[];
-  cta: string;
-  predicted_reach: number;
-  predicted_engagement: number;
-  rationale: string;
-}
-
-interface StrategyResponse {
-  strategy_overview: {
-    title: string;
-    platform: string;
-    duration_days: number;
-    start_date: string;
-    end_date: string;
-    goals: string[];
-    content_mix: Record<string, number>;
-    predicted_metrics: {
-      total_reach: number;
-      avg_engagement_rate: number;
-      expected_follower_growth: number;
-    };
-  };
-  posts: StrategyPost[];
-}
-
-function buildStrategyPrompt(
+function buildEnhancedStrategyPrompt(
   platform: string,
   durationDays: number,
   businessContext: any,
@@ -64,59 +31,84 @@ function buildStrategyPrompt(
   const industry = bp.industry || 'general';
   const targetAudience = bp.targetAudience || {};
   const brandIdentity = bp.brandIdentity || {};
+  const productsServices = bp.productsServices || [];
   
   // Extract best performing patterns from analytics
   let bestContentType = 'carousel';
   let avgEngagementRate = 3.5;
-  let optimalPostingTimes = '9:00 AM, 12:00 PM, 7:00 PM';
+  let optimalPostingTimes = ['09:00', '12:00', '19:00'];
+  let currentFollowers = 1000;
   
   if (recentAnalytics?.length > 0) {
     const latestMetrics = recentAnalytics[0]?.metrics || {};
     avgEngagementRate = latestMetrics.engagement_rate || avgEngagementRate;
+    currentFollowers = latestMetrics.followers || currentFollowers;
   }
 
-  return `You are generating a comprehensive ${durationDays}-day ${platform} content strategy for ${businessName}.
+  const targetEngagementRate = Math.max(avgEngagementRate * 1.15, 4.5);
+  const goalsText = goals?.length ? goals.join(', ') : 'Increase engagement, Grow followers, Drive conversions';
 
-BUSINESS CONTEXT:
+  return `You are a world-class content strategist creating a comprehensive social media strategy.
+
+STRATEGIC BRIEF:
+
+CLIENT: ${businessName}
+INDUSTRY: ${industry}
+PLATFORM: ${platform}
+DURATION: ${durationDays} days
+START DATE: ${startDate.toISOString().split('T')[0]}
+END DATE: ${endDate.toISOString().split('T')[0]}
+
+BUSINESS INTELLIGENCE:
 - Business Name: ${businessName}
 - Industry: ${industry}
 - Business Type: ${bp.businessType || 'B2C'}
+- Products/Services: ${productsServices.length ? productsServices.map((p: any) => p.name || p).join(', ') : 'Various products/services'}
 - Target Audience: ${targetAudience.ageRange || '25-44'} years old, ${targetAudience.customerType || 'consumers'}
-- Brand Voice: ${brandIdentity.toneCharacteristics?.join(', ') || 'professional, engaging'}
-- Value Proposition: ${brandIdentity.valueProposition || 'High-quality products/services'}
-${bp.productsServices?.length ? `- Products/Services: ${bp.productsServices.map((p: any) => p.name).join(', ')}` : ''}
+- Brand Voice: ${brandIdentity.toneCharacteristics?.join(', ') || 'professional, engaging, authentic'}
+- Value Proposition: ${brandIdentity.valueProposition || 'High-quality solutions for target audience'}
 
-CURRENT PERFORMANCE:
-- Average Engagement Rate: ${avgEngagementRate}%
+HISTORICAL PERFORMANCE DATA:
+- Current Engagement Rate: ${avgEngagementRate}%
+- Industry Benchmark: 3.5%
+- Target Engagement Rate: ${targetEngagementRate.toFixed(1)}%
+- Current Followers: ${currentFollowers.toLocaleString()}
 - Best Performing Content: ${bestContentType}
-- Optimal Posting Times: ${optimalPostingTimes}
+- Optimal Posting Times: ${optimalPostingTimes.join(', ')}
 
-USER GOALS:
-${goals?.length ? goals.map(g => `- ${g}`).join('\n') : '- Increase engagement\n- Grow follower base\n- Drive conversions'}
+STRATEGIC OBJECTIVES:
+Primary Goals: ${goalsText}
+${customInstructions ? `Custom Requirements: ${customInstructions}` : ''}
 
-${customInstructions ? `ADDITIONAL REQUIREMENTS:\n${customInstructions}\n` : ''}
+───────────────────────────────────────────────────────────────
 
-Generate a ${durationDays}-day content strategy with the following structure:
+STRATEGY DEVELOPMENT FRAMEWORK:
 
-For EACH day (Day 1 through Day ${durationDays}), provide a post with:
-1. day_number: (1-${durationDays})
-2. post_date: (actual date starting from ${startDate.toISOString().split('T')[0]})
-3. post_time: (optimal time in HH:MM format, 24hr)
-4. post_type: (carousel, reel, single_image, video, story, text)
-5. theme: (educational, promotional, engagement, social_proof, behind_scenes)
-6. hook: (5-10 words, attention-grabbing opening)
-7. caption: (150-250 words, ${platform}-optimized, engaging, value-driven, include line breaks for readability)
-8. hashtags: (10-15 relevant hashtags as array)
-9. cta: (specific call-to-action)
-10. predicted_reach: (estimated reach number based on historical data)
-11. predicted_engagement: (estimated engagement rate as percentage)
-12. rationale: (why this post on this day - brief explanation)
+Generate a complete ${durationDays}-day content strategy with:
 
-STRATEGY STRUCTURE (narrative arc):
-- Week 1: Awareness & Education (introduce value, build trust)
-- Week 2: Engagement & Trust (build relationship, share stories)
-- Week 3: Consideration & Desire (showcase benefits, social proof)
-- Week 4: Conversion & Action (drive goals, strong CTAs)
+1. STRATEGY OVERVIEW with:
+   - Strategic approach (core strategy, differentiator, competitive edge)
+   - Content distribution by type and theme
+   - Predicted outcomes (reach, engagement, follower growth)
+   - Key tactics (5-7 specific tactics)
+   - Weekly milestones
+   - Risk assessment
+
+2. WEEKLY BREAKDOWN (4 weeks):
+   - Week 1: AWARENESS & EDUCATION - Introduce value, establish authority
+   - Week 2: ENGAGEMENT & TRUST - Build relationship, encourage interaction
+   - Week 3: CONSIDERATION & DESIRE - Showcase benefits, create desire
+   - Week 4: CONVERSION & ACTION - Drive specific actions, convert interest
+
+3. DETAILED POSTS (exactly ${durationDays} posts) - each with:
+   - Timing and scheduling
+   - Content details (type, category, theme, emotion, pillar)
+   - Copy elements (hook with technique, opening, body, CTA with type/strength)
+   - Hashtag strategy (organized by volume tier)
+   - Visual guidance (description, colors, text overlay)
+   - Performance predictions (reach, impressions, engagement, likes, comments, shares, saves, confidence level)
+   - Strategic rationale (why this day, arc positioning, success metrics)
+   - Optimization tips (engagement boosters, A/B test ideas, risk mitigation)
 
 CONTENT MIX (distribute across ${durationDays} days):
 - 30% Educational (teach, inform, provide value)
@@ -125,21 +117,26 @@ CONTENT MIX (distribute across ${durationDays} days):
 - 15% Social Proof (testimonials, reviews, results)
 - 10% Behind-the-Scenes (team, process, culture)
 
-OPTIMIZATION RULES:
-- Schedule posts at optimal times for ${platform}
-- Reference specific products/services from business profile
-- Match the brand voice described above
-- Target the specified audience demographics
-- Aim for ${Math.max(avgEngagementRate * 1.1, 4)}% engagement or higher
+POST TYPE MIX for ${platform}:
+- 35% Carousels (highest engagement)
+- 30% Reels/Videos (best reach)
+- 20% Single Images (quick consumption)
+- 15% Stories/Text (engagement drivers)
 
-IMPORTANT: Return ONLY valid JSON (no markdown, no code blocks). Return the response in this exact format:
+IMPORTANT: Return ONLY valid JSON with this exact structure:
 {
   "strategy_overview": {
-    "title": "${durationDays}-Day ${platform.charAt(0).toUpperCase() + platform.slice(1)} Strategy",
+    "title": "${durationDays}-Day ${platform.charAt(0).toUpperCase() + platform.slice(1)} Strategy for ${businessName}",
     "platform": "${platform}",
     "duration_days": ${durationDays},
     "start_date": "${startDate.toISOString().split('T')[0]}",
     "end_date": "${endDate.toISOString().split('T')[0]}",
+    "total_posts": ${durationDays},
+    "strategic_approach": {
+      "core_strategy": "[1-2 sentence strategic summary]",
+      "key_differentiator": "[what makes this unique]",
+      "competitive_edge": "[how this beats competitors]"
+    },
     "goals": ${JSON.stringify(goals || ["Increase engagement", "Grow followers", "Drive conversions"])},
     "content_mix": {
       "educational": 30,
@@ -148,31 +145,138 @@ IMPORTANT: Return ONLY valid JSON (no markdown, no code blocks). Return the resp
       "social_proof": 15,
       "behind_scenes": 10
     },
+    "post_type_distribution": {
+      "carousel": 11,
+      "reel": 9,
+      "single_image": 6,
+      "video": 2,
+      "story": 2
+    },
     "predicted_metrics": {
-      "total_reach": 60000,
-      "avg_engagement_rate": 4.8,
-      "expected_follower_growth": 450
+      "total_reach": 75000,
+      "total_impressions": 120000,
+      "avg_engagement_rate": ${targetEngagementRate.toFixed(1)},
+      "expected_follower_growth": 500,
+      "expected_follower_growth_percentage": 5.0,
+      "expected_profile_visits": 2500,
+      "expected_website_clicks": 450,
+      "expected_conversions": 25
+    },
+    "key_tactics": [
+      "Lead with value-first educational content",
+      "Use pattern-interrupt hooks for scroll-stopping",
+      "Leverage social proof in week 3 for trust",
+      "Include clear CTAs with urgency in week 4",
+      "Optimize posting times based on audience activity"
+    ],
+    "success_milestones": {
+      "week_1": "Reach 15K+ accounts, establish content rhythm",
+      "week_2": "Achieve 4%+ engagement rate, grow community interaction",
+      "week_3": "Drive 500+ profile visits, build purchase intent",
+      "week_4": "Generate 25+ conversions, capture momentum"
+    },
+    "risk_assessment": {
+      "potential_challenges": ["Algorithm changes", "Content fatigue", "Low initial reach"],
+      "mitigation_strategies": ["Diversify content types", "A/B test hooks", "Engage with comments quickly"],
+      "pivot_triggers": ["Engagement drops below 2%", "Reach declines 3 days in a row"]
+    },
+    "implementation_guide": {
+      "posting_schedule": "Post daily at optimal times",
+      "content_creation_timeline": "Create week's content 2-3 days ahead",
+      "engagement_protocol": "Reply to comments within 1 hour of posting",
+      "monitoring_schedule": "Check metrics daily, analyze weekly",
+      "adjustment_criteria": "Pivot if engagement drops below 2.5%"
     }
   },
+  "weekly_breakdown": [
+    {
+      "week": 1,
+      "theme": "Awareness & Education",
+      "objective": "Introduce value and establish authority",
+      "post_count": 7,
+      "key_messages": ["Position as industry expert", "Address pain points", "Provide actionable tips"],
+      "expected_metrics": {
+        "reach": 15000,
+        "engagement_rate": 4.2,
+        "follower_growth": 80
+      },
+      "focus_areas": ["Educational carousels", "How-to content", "Industry insights"]
+    }
+  ],
   "posts": [
     {
       "day_number": 1,
       "post_date": "${startDate.toISOString().split('T')[0]}",
       "post_time": "19:00",
-      "post_type": "carousel",
-      "theme": "educational",
-      "hook": "5 Mistakes Killing Your Results",
-      "caption": "[Full 200-word caption here with line breaks]",
-      "hashtags": ["#marketing", "#socialmedia", "#business"],
-      "cta": "Save this for later reference!",
-      "predicted_reach": 1500,
-      "predicted_engagement": 5.2,
-      "rationale": "Educational carousel posts perform well. Week 1 focuses on awareness."
+      "week_number": 1,
+      "week_theme": "Awareness & Education",
+      "content_details": {
+        "post_type": "carousel",
+        "content_category": "educational",
+        "specific_theme": "[specific topic]",
+        "primary_emotion": "curiosity",
+        "content_pillar": "expertise"
+      },
+      "copy_elements": {
+        "hook": {
+          "text": "[5-10 words, scroll-stopping]",
+          "technique": "curiosity_gap",
+          "psychological_principle": "Creates open loop that demands closure"
+        },
+        "opening": "[First 2-3 sentences expanding on hook]",
+        "body": "[Main content, 100-150 words]",
+        "cta": {
+          "text": "[Specific call-to-action]",
+          "type": "engage",
+          "strength": "medium"
+        },
+        "full_caption": "[Complete formatted caption, 150-250 words]"
+      },
+      "hashtag_strategy": {
+        "hashtags": ["#hashtag1", "#hashtag2"],
+        "mix_breakdown": {
+          "high_volume": ["#tag1", "#tag2", "#tag3"],
+          "medium_volume": ["#tag4", "#tag5", "#tag6", "#tag7", "#tag8"],
+          "niche": ["#tag9", "#tag10", "#tag11", "#tag12"],
+          "branded": ["#brandtag1", "#brandtag2"]
+        },
+        "selection_rationale": "[Why these specific tags]"
+      },
+      "visual_guidance": {
+        "visual_type": "carousel",
+        "description": "[What the visual should show]",
+        "color_palette": "[Colors based on brand]",
+        "text_overlay": "[If applicable]",
+        "attention_hook": "[What grabs attention visually]"
+      },
+      "performance_prediction": {
+        "predicted_reach": 2000,
+        "predicted_impressions": 3500,
+        "predicted_engagement_rate": 5.2,
+        "predicted_likes": 95,
+        "predicted_comments": 12,
+        "predicted_shares": 8,
+        "predicted_saves": 25,
+        "confidence_level": "High",
+        "prediction_basis": "Based on educational carousel benchmarks"
+      },
+      "strategic_rationale": {
+        "why_this_day": "[Strategic reason for this timing]",
+        "arc_positioning": "[How it fits narrative arc]",
+        "builds_toward": "[What this sets up]",
+        "success_metrics": "[Key metrics to watch]"
+      },
+      "optimization_tips": {
+        "engagement_boosters": ["Ask a question in caption", "Use contrarian hook"],
+        "a_b_test_ideas": ["Test with/without emoji in hook", "Compare morning vs evening"],
+        "potential_issues": ["May need stronger visual hook"],
+        "risk_mitigation": ["Have backup hook ready"]
+      }
     }
   ]
 }
 
-Make each post unique, valuable, and aligned with the narrative arc. Generate exactly ${durationDays} posts.`;
+Generate exactly ${durationDays} detailed posts following this structure. Make each post unique, valuable, and strategically positioned within the narrative arc. Reference the specific business context and optimize for ${platform}.`;
 }
 
 serve(async (req) => {
@@ -202,7 +306,6 @@ serve(async (req) => {
 
     const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
     
-    // Get user from token
     const token = authHeader.replace('Bearer ', '');
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
     
@@ -215,7 +318,7 @@ serve(async (req) => {
 
     const { platform, durationDays = 30, goals, customInstructions, conversationId } = await req.json() as StrategyRequest;
 
-    console.log(`Generating ${durationDays}-day strategy for ${platform} for user ${user.id}`);
+    console.log(`Generating enhanced ${durationDays}-day strategy for ${platform} for user ${user.id}`);
 
     // Fetch business context
     const { data: businessContext } = await supabase
@@ -233,7 +336,16 @@ serve(async (req) => {
       .order('uploaded_at', { ascending: false })
       .limit(3);
 
-    const prompt = buildStrategyPrompt(
+    // Fetch previous strategies for learning
+    const { data: previousStrategies } = await supabase
+      .from('content_strategies')
+      .select('predicted_metrics, platform')
+      .eq('user_id', user.id)
+      .eq('platform', platform)
+      .order('created_at', { ascending: false })
+      .limit(3);
+
+    const prompt = buildEnhancedStrategyPrompt(
       platform,
       durationDays,
       businessContext,
@@ -242,7 +354,7 @@ serve(async (req) => {
       customInstructions
     );
 
-    console.log('Calling AI gateway for strategy generation...');
+    console.log('Calling AI gateway for enhanced strategy generation...');
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -255,12 +367,12 @@ serve(async (req) => {
         messages: [
           { 
             role: 'system', 
-            content: 'You are an expert content strategist. Generate detailed, actionable content plans. Always respond with valid JSON only, no markdown formatting.' 
+            content: 'You are a world-class content strategist specializing in social media marketing. Generate detailed, actionable content strategies with comprehensive data. Always respond with valid JSON only, no markdown formatting or code blocks.' 
           },
           { role: 'user', content: prompt },
         ],
-        temperature: 0.8,
-        max_tokens: 16000,
+        temperature: 0.75,
+        max_tokens: 20000,
       }),
     });
 
@@ -292,18 +404,18 @@ serve(async (req) => {
     
     console.log('Raw AI response length:', strategyText.length);
 
-    // Clean up the response - remove markdown code blocks if present
+    // Clean up the response
     strategyText = strategyText
       .replace(/```json\s*/gi, '')
       .replace(/```\s*/g, '')
       .trim();
 
-    let strategyData: StrategyResponse;
+    let strategyData: any;
     try {
       strategyData = JSON.parse(strategyText);
     } catch (parseError) {
       console.error('Failed to parse strategy JSON:', parseError);
-      console.error('Raw text (first 500 chars):', strategyText.substring(0, 500));
+      console.error('Raw text (first 1000 chars):', strategyText.substring(0, 1000));
       
       return new Response(
         JSON.stringify({ error: 'Failed to parse AI response. Please try again.' }),
@@ -319,22 +431,38 @@ serve(async (req) => {
       );
     }
 
-    console.log(`Generated ${strategyData.posts.length} posts`);
+    console.log(`Generated ${strategyData.posts.length} enhanced posts`);
 
-    // Save strategy to database
+    const overview = strategyData.strategy_overview;
+    const predictedMetrics = overview.predicted_metrics || {};
+
+    // Save strategy to database with enhanced fields
     const { data: savedStrategy, error: strategyError } = await supabase
       .from('content_strategies')
       .insert({
         user_id: user.id,
-        title: strategyData.strategy_overview.title,
+        title: overview.title,
         platform: platform,
         duration_days: durationDays,
-        start_date: strategyData.strategy_overview.start_date,
-        end_date: strategyData.strategy_overview.end_date,
-        goals: strategyData.strategy_overview.goals,
-        content_mix: strategyData.strategy_overview.content_mix,
-        predicted_metrics: strategyData.strategy_overview.predicted_metrics,
+        start_date: overview.start_date,
+        end_date: overview.end_date,
+        goals: overview.goals,
+        content_mix: overview.content_mix,
+        predicted_metrics: predictedMetrics,
         conversation_id: conversationId || null,
+        // Enhanced fields
+        strategic_approach: overview.strategic_approach,
+        weekly_breakdown: strategyData.weekly_breakdown,
+        key_tactics: overview.key_tactics,
+        success_milestones: overview.success_milestones,
+        risk_assessment: overview.risk_assessment,
+        implementation_guide: overview.implementation_guide,
+        post_type_distribution: overview.post_type_distribution,
+        theme_distribution: overview.content_mix,
+        predicted_impressions: predictedMetrics.total_impressions,
+        predicted_website_clicks: predictedMetrics.expected_website_clicks,
+        predicted_conversions: predictedMetrics.expected_conversions,
+        version: 1,
       })
       .select()
       .single();
@@ -347,23 +475,56 @@ serve(async (req) => {
       );
     }
 
-    // Save all posts
-    const postsToInsert = strategyData.posts.map((post, index) => ({
-      strategy_id: savedStrategy.id,
-      day_number: post.day_number || index + 1,
-      post_date: post.post_date,
-      post_time: post.post_time,
-      post_type: post.post_type,
-      theme: post.theme,
-      hook: post.hook,
-      caption: post.caption,
-      hashtags: post.hashtags,
-      cta: post.cta,
-      predicted_reach: post.predicted_reach,
-      predicted_engagement: post.predicted_engagement,
-      rationale: post.rationale,
-      sort_order: index + 1,
-    }));
+    // Save all posts with enhanced fields
+    const postsToInsert = strategyData.posts.map((post: any, index: number) => {
+      const copyElements = post.copy_elements || {};
+      const hookData = copyElements.hook || {};
+      const ctaData = copyElements.cta || {};
+      const contentDetails = post.content_details || {};
+      const perfPrediction = post.performance_prediction || {};
+      const stratRationale = post.strategic_rationale || {};
+      const optTips = post.optimization_tips || {};
+      
+      return {
+        strategy_id: savedStrategy.id,
+        day_number: post.day_number || index + 1,
+        post_date: post.post_date,
+        post_time: post.post_time,
+        post_type: contentDetails.post_type || post.post_type,
+        theme: contentDetails.content_category || post.theme,
+        hook: hookData.text || post.hook,
+        caption: copyElements.full_caption || post.caption,
+        hashtags: post.hashtag_strategy?.hashtags || post.hashtags,
+        cta: ctaData.text || post.cta,
+        predicted_reach: perfPrediction.predicted_reach || post.predicted_reach,
+        predicted_engagement: perfPrediction.predicted_engagement_rate || post.predicted_engagement,
+        rationale: stratRationale.why_this_day || post.rationale,
+        sort_order: index + 1,
+        // Enhanced fields
+        week_number: post.week_number,
+        week_theme: post.week_theme,
+        content_category: contentDetails.content_category,
+        primary_emotion: contentDetails.primary_emotion,
+        content_pillar: contentDetails.content_pillar,
+        hook_technique: hookData.technique,
+        hook_principle: hookData.psychological_principle,
+        opening_text: copyElements.opening,
+        body_text: copyElements.body,
+        cta_type: ctaData.type,
+        cta_strength: ctaData.strength,
+        hashtag_mix: post.hashtag_strategy?.mix_breakdown,
+        visual_guidance: post.visual_guidance,
+        predicted_impressions: perfPrediction.predicted_impressions,
+        predicted_likes: perfPrediction.predicted_likes,
+        predicted_comments: perfPrediction.predicted_comments,
+        predicted_shares: perfPrediction.predicted_shares,
+        predicted_saves: perfPrediction.predicted_saves,
+        performance_confidence: perfPrediction.confidence_level,
+        prediction_basis: perfPrediction.prediction_basis,
+        strategic_rationale: stratRationale,
+        optimization_tips: optTips,
+      };
+    });
 
     const { error: postsError } = await supabase
       .from('strategy_posts')
@@ -371,7 +532,6 @@ serve(async (req) => {
 
     if (postsError) {
       console.error('Error saving posts:', postsError);
-      // Clean up the strategy if posts failed
       await supabase.from('content_strategies').delete().eq('id', savedStrategy.id);
       return new Response(
         JSON.stringify({ error: 'Failed to save strategy posts' }),
@@ -379,16 +539,17 @@ serve(async (req) => {
       );
     }
 
-    console.log(`Strategy ${savedStrategy.id} saved with ${postsToInsert.length} posts`);
+    console.log(`Enhanced strategy ${savedStrategy.id} saved with ${postsToInsert.length} posts`);
 
     return new Response(
       JSON.stringify({
         success: true,
         strategyId: savedStrategy.id,
         strategy: {
-          ...strategyData.strategy_overview,
+          ...overview,
           id: savedStrategy.id,
         },
+        weeklyBreakdown: strategyData.weekly_breakdown,
         postsCount: strategyData.posts.length,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
