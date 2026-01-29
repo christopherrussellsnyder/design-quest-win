@@ -2391,11 +2391,24 @@ export type Database = {
           end_date: string
           goals: Json | null
           id: string
+          implementation_guide: Json | null
+          key_tactics: string[] | null
+          parent_strategy_id: string | null
           platform: string | null
+          post_type_distribution: Json | null
+          predicted_conversions: number | null
+          predicted_impressions: number | null
           predicted_metrics: Json | null
+          predicted_website_clicks: number | null
+          risk_assessment: Json | null
           start_date: string
+          strategic_approach: Json | null
+          success_milestones: Json | null
+          theme_distribution: Json | null
           title: string
           user_id: string
+          version: number | null
+          weekly_breakdown: Json | null
         }
         Insert: {
           content_mix?: Json | null
@@ -2405,11 +2418,24 @@ export type Database = {
           end_date: string
           goals?: Json | null
           id?: string
+          implementation_guide?: Json | null
+          key_tactics?: string[] | null
+          parent_strategy_id?: string | null
           platform?: string | null
+          post_type_distribution?: Json | null
+          predicted_conversions?: number | null
+          predicted_impressions?: number | null
           predicted_metrics?: Json | null
+          predicted_website_clicks?: number | null
+          risk_assessment?: Json | null
           start_date: string
+          strategic_approach?: Json | null
+          success_milestones?: Json | null
+          theme_distribution?: Json | null
           title: string
           user_id: string
+          version?: number | null
+          weekly_breakdown?: Json | null
         }
         Update: {
           content_mix?: Json | null
@@ -2419,11 +2445,24 @@ export type Database = {
           end_date?: string
           goals?: Json | null
           id?: string
+          implementation_guide?: Json | null
+          key_tactics?: string[] | null
+          parent_strategy_id?: string | null
           platform?: string | null
+          post_type_distribution?: Json | null
+          predicted_conversions?: number | null
+          predicted_impressions?: number | null
           predicted_metrics?: Json | null
+          predicted_website_clicks?: number | null
+          risk_assessment?: Json | null
           start_date?: string
+          strategic_approach?: Json | null
+          success_milestones?: Json | null
+          theme_distribution?: Json | null
           title?: string
           user_id?: string
+          version?: number | null
+          weekly_breakdown?: Json | null
         }
         Relationships: [
           {
@@ -2431,6 +2470,13 @@ export type Database = {
             columns: ["conversation_id"]
             isOneToOne: false
             referencedRelation: "ai_conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_strategies_parent_strategy_id_fkey"
+            columns: ["parent_strategy_id"]
+            isOneToOne: false
+            referencedRelation: "content_strategies"
             referencedColumns: ["id"]
           },
         ]
@@ -3485,55 +3531,127 @@ export type Database = {
       }
       strategy_posts: {
         Row: {
+          body_text: string | null
           caption: string
+          content_category: string | null
+          content_pillar: string | null
           cta: string | null
+          cta_strength: string | null
+          cta_type: string | null
           day_number: number
+          edited_at: string | null
+          hashtag_mix: Json | null
           hashtags: string[] | null
           hook: string | null
+          hook_principle: string | null
+          hook_technique: string | null
           id: string
+          is_edited: boolean | null
+          opening_text: string | null
+          optimization_tips: Json | null
+          performance_confidence: string | null
           post_date: string
           post_time: string | null
           post_type: string | null
+          predicted_comments: number | null
           predicted_engagement: number | null
+          predicted_impressions: number | null
+          predicted_likes: number | null
           predicted_reach: number | null
+          predicted_saves: number | null
+          predicted_shares: number | null
+          prediction_basis: string | null
+          primary_emotion: string | null
           rationale: string | null
           sort_order: number | null
+          strategic_rationale: Json | null
           strategy_id: string
           theme: string | null
+          visual_guidance: Json | null
+          week_number: number | null
+          week_theme: string | null
         }
         Insert: {
+          body_text?: string | null
           caption: string
+          content_category?: string | null
+          content_pillar?: string | null
           cta?: string | null
+          cta_strength?: string | null
+          cta_type?: string | null
           day_number: number
+          edited_at?: string | null
+          hashtag_mix?: Json | null
           hashtags?: string[] | null
           hook?: string | null
+          hook_principle?: string | null
+          hook_technique?: string | null
           id?: string
+          is_edited?: boolean | null
+          opening_text?: string | null
+          optimization_tips?: Json | null
+          performance_confidence?: string | null
           post_date: string
           post_time?: string | null
           post_type?: string | null
+          predicted_comments?: number | null
           predicted_engagement?: number | null
+          predicted_impressions?: number | null
+          predicted_likes?: number | null
           predicted_reach?: number | null
+          predicted_saves?: number | null
+          predicted_shares?: number | null
+          prediction_basis?: string | null
+          primary_emotion?: string | null
           rationale?: string | null
           sort_order?: number | null
+          strategic_rationale?: Json | null
           strategy_id: string
           theme?: string | null
+          visual_guidance?: Json | null
+          week_number?: number | null
+          week_theme?: string | null
         }
         Update: {
+          body_text?: string | null
           caption?: string
+          content_category?: string | null
+          content_pillar?: string | null
           cta?: string | null
+          cta_strength?: string | null
+          cta_type?: string | null
           day_number?: number
+          edited_at?: string | null
+          hashtag_mix?: Json | null
           hashtags?: string[] | null
           hook?: string | null
+          hook_principle?: string | null
+          hook_technique?: string | null
           id?: string
+          is_edited?: boolean | null
+          opening_text?: string | null
+          optimization_tips?: Json | null
+          performance_confidence?: string | null
           post_date?: string
           post_time?: string | null
           post_type?: string | null
+          predicted_comments?: number | null
           predicted_engagement?: number | null
+          predicted_impressions?: number | null
+          predicted_likes?: number | null
           predicted_reach?: number | null
+          predicted_saves?: number | null
+          predicted_shares?: number | null
+          prediction_basis?: string | null
+          primary_emotion?: string | null
           rationale?: string | null
           sort_order?: number | null
+          strategic_rationale?: Json | null
           strategy_id?: string
           theme?: string | null
+          visual_guidance?: Json | null
+          week_number?: number | null
+          week_theme?: string | null
         }
         Relationships: [
           {
