@@ -3,25 +3,37 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { 
-  ArrowLeft, Upload, Camera, TrendingUp, TrendingDown, BarChart3, 
-  Lightbulb, Calendar, Target, Sparkles, ChevronRight, Image,
-  Eye, Heart, MessageCircle, Share2, Loader2
+  ArrowLeft, Upload, Camera, ChevronRight, Image, Loader2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { HealthScoreBadge } from '@/components/insights/HealthScoreBadge';
+import { AnalysisDetail } from '@/components/insights/AnalysisDetail';
 
 interface UploadedAnalytics {
   id: string;
   platform: string;
+  platform_confidence?: string | null;
   extracted_data: any;
   ai_insights: any;
-  time_period_start: string;
-  time_period_end: string;
+  time_period_start: string | null;
+  time_period_end: string | null;
   uploaded_at: string;
   image_url: string;
+  trend_analysis?: any;
+  benchmark_comparison?: any;
+  pattern_recognition?: any;
+  insights?: any;
+  recommendations?: any;
+  opportunities?: any;
+  risks?: any;
+  follow_up_questions?: string[] | null;
+  summary?: any;
+  overall_health_score?: number;
+  performance_rating?: string;
 }
 
 export default function Insights() {
@@ -30,6 +42,7 @@ export default function Insights() {
   const [uploads, setUploads] = useState<UploadedAnalytics[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState('');
   const [selectedUpload, setSelectedUpload] = useState<UploadedAnalytics | null>(null);
 
   useEffect(() => {
@@ -51,6 +64,11 @@ export default function Insights() {
 
       if (error) throw error;
       setUploads(data || []);
+      
+      // Auto-select the first upload if available
+      if (data && data.length > 0 && !selectedUpload) {
+        setSelectedUpload(data[0]);
+      }
     } catch (error) {
       console.error('Error loading uploads:', error);
       toast.error('Failed to load analytics');
@@ -75,6 +93,7 @@ export default function Insights() {
     }
 
     setIsUploading(true);
+    setUploadProgress('Uploading screenshot...');
 
     try {
       // Upload to storage
@@ -91,10 +110,14 @@ export default function Insights() {
         .from('analytics-screenshots')
         .getPublicUrl(fileName);
 
+      setUploadProgress('Extracting metrics...');
+
       // Convert to base64 for AI analysis
       const reader = new FileReader();
       reader.onload = async (e) => {
         const base64 = e.target?.result as string;
+        
+        setUploadProgress('Analyzing trends...');
         
         // Call analyze-screenshot edge function
         const { data, error } = await supabase.functions.invoke('analyze-screenshot', {
@@ -107,8 +130,23 @@ export default function Insights() {
 
         if (error) throw error;
 
+        setUploadProgress('Generating insights...');
+
         toast.success('Screenshot analyzed successfully!');
-        loadUploads();
+        await loadUploads();
+        
+        // Select the newly uploaded analysis
+        if (data?.analyticsId) {
+          const { data: newUpload } = await supabase
+            .from('uploaded_analytics')
+            .select('*')
+            .eq('id', data.analyticsId)
+            .single();
+          
+          if (newUpload) {
+            setSelectedUpload(newUpload);
+          }
+        }
       };
       reader.readAsDataURL(file);
     } catch (error: any) {
@@ -116,6 +154,7 @@ export default function Insights() {
       toast.error(error.message || 'Failed to upload screenshot');
     } finally {
       setIsUploading(false);
+      setUploadProgress('');
     }
   };
 
@@ -124,10 +163,11 @@ export default function Insights() {
       instagram: 'bg-pink-500/20 text-pink-400',
       facebook: 'bg-blue-500/20 text-blue-400',
       twitter: 'bg-sky-500/20 text-sky-400',
-      tiktok: 'bg-slate-500/20 text-slate-400',
+      tiktok: 'bg-slate-500/20 text-slate-300',
       linkedin: 'bg-blue-600/20 text-blue-500',
       google: 'bg-green-500/20 text-green-400',
       shopify: 'bg-emerald-500/20 text-emerald-400',
+      youtube: 'bg-red-500/20 text-red-400',
     };
     return colors[platform?.toLowerCase()] || 'bg-primary/20 text-primary';
   };
@@ -144,7 +184,9 @@ export default function Insights() {
               </Button>
               <div>
                 <h1 className="text-2xl font-bold text-foreground">Insights</h1>
-                <p className="text-sm text-muted-foreground">Upload analytics screenshots for AI-powered insights</p>
+                <p className="text-sm text-muted-foreground">
+                  Upload analytics screenshots for AI-powered deep analysis
+                </p>
               </div>
             </div>
             <div>
@@ -162,7 +204,7 @@ export default function Insights() {
                 {isUploading ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Analyzing...
+                    {uploadProgress || 'Analyzing...'}
                   </>
                 ) : (
                   <>
@@ -188,8 +230,9 @@ export default function Insights() {
             </div>
             <h2 className="text-xl font-semibold mb-2">No analytics uploads yet</h2>
             <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-              Upload screenshots from Instagram, Facebook, Google Analytics, or any other platform. 
-              Our AI will extract metrics and provide actionable insights.
+              Upload screenshots from Instagram, Facebook, TikTok, Google Analytics, or any other platform. 
+              Our AI will extract metrics, analyze trends, benchmark against industry standards, 
+              and provide actionable recommendations.
             </p>
             <Button onClick={() => document.getElementById('screenshot-upload')?.click()}>
               <Upload className="w-4 h-4 mr-2" />
@@ -197,44 +240,63 @@ export default function Insights() {
             </Button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             {/* Uploads List */}
             <div className="lg:col-span-1 space-y-4">
-              <h2 className="text-lg font-semibold">Recent Uploads</h2>
-              <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold">Analytics History</h2>
+                <Badge variant="outline">{uploads.length} uploads</Badge>
+              </div>
+              <div className="space-y-3 max-h-[calc(100vh-200px)] overflow-y-auto pr-2">
                 {uploads.map((upload) => (
                   <Card 
                     key={upload.id}
-                    className={`cursor-pointer transition-all hover:border-primary/50 ${selectedUpload?.id === upload.id ? 'border-primary' : ''}`}
+                    className={`cursor-pointer transition-all hover:border-primary/50 ${
+                      selectedUpload?.id === upload.id ? 'border-primary ring-1 ring-primary/30' : ''
+                    }`}
                     onClick={() => setSelectedUpload(upload)}
                   >
                     <CardContent className="p-4">
                       <div className="flex items-start gap-3">
-                        {upload.image_url ? (
-                          <img 
-                            src={upload.image_url} 
-                            alt="Screenshot" 
-                            className="w-16 h-16 object-cover rounded-lg"
-                          />
-                        ) : (
-                          <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center">
-                            <Image className="w-6 h-6 text-muted-foreground" />
-                          </div>
-                        )}
+                        {/* Thumbnail or Health Score */}
+                        <div className="flex-shrink-0">
+                          {upload.overall_health_score ? (
+                            <HealthScoreBadge score={upload.overall_health_score} size="sm" />
+                          ) : upload.image_url ? (
+                            <img 
+                              src={upload.image_url} 
+                              alt="Screenshot" 
+                              className="w-12 h-12 object-cover rounded-lg"
+                            />
+                          ) : (
+                            <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center">
+                              <Image className="w-5 h-5 text-muted-foreground" />
+                            </div>
+                          )}
+                        </div>
+                        
                         <div className="flex-1 min-w-0">
-                          <Badge className={getPlatformColor(upload.platform)}>
-                            {upload.platform || 'Unknown'}
-                          </Badge>
+                          <div className="flex items-center gap-2">
+                            <Badge className={getPlatformColor(upload.platform)}>
+                              {upload.platform || 'Unknown'}
+                            </Badge>
+                            {upload.performance_rating && (
+                              <Badge variant="outline" className="text-xs">
+                                {upload.performance_rating}
+                              </Badge>
+                            )}
+                          </div>
                           <p className="text-sm text-muted-foreground mt-1">
                             {format(new Date(upload.uploaded_at), 'MMM d, yyyy')}
                           </p>
-                          {upload.extracted_data?.total_engagement && (
-                            <p className="text-xs text-muted-foreground mt-1">
-                              {upload.extracted_data.total_engagement.toLocaleString()} engagements
+                          {upload.summary?.one_sentence_summary && (
+                            <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                              {upload.summary.one_sentence_summary}
                             </p>
                           )}
                         </div>
-                        <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                        
+                        <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                       </div>
                     </CardContent>
                   </Card>
@@ -243,118 +305,13 @@ export default function Insights() {
             </div>
 
             {/* Selected Upload Details */}
-            <div className="lg:col-span-2 space-y-6">
+            <div className="lg:col-span-3">
               {selectedUpload ? (
-                <>
-                  {/* Metrics Overview */}
-                  {selectedUpload.extracted_data && (
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <BarChart3 className="w-5 h-5 text-primary" />
-                          Extracted Metrics
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                          {selectedUpload.extracted_data.impressions && (
-                            <div className="text-center p-4 rounded-lg bg-muted/50">
-                              <Eye className="w-5 h-5 text-muted-foreground mx-auto mb-2" />
-                              <p className="text-2xl font-bold">{selectedUpload.extracted_data.impressions.toLocaleString()}</p>
-                              <p className="text-xs text-muted-foreground">Impressions</p>
-                            </div>
-                          )}
-                          {selectedUpload.extracted_data.reach && (
-                            <div className="text-center p-4 rounded-lg bg-muted/50">
-                              <Target className="w-5 h-5 text-muted-foreground mx-auto mb-2" />
-                              <p className="text-2xl font-bold">{selectedUpload.extracted_data.reach.toLocaleString()}</p>
-                              <p className="text-xs text-muted-foreground">Reach</p>
-                            </div>
-                          )}
-                          {selectedUpload.extracted_data.engagement_rate && (
-                            <div className="text-center p-4 rounded-lg bg-muted/50">
-                              <Heart className="w-5 h-5 text-muted-foreground mx-auto mb-2" />
-                              <p className="text-2xl font-bold">{selectedUpload.extracted_data.engagement_rate}%</p>
-                              <p className="text-xs text-muted-foreground">Engagement Rate</p>
-                            </div>
-                          )}
-                          {selectedUpload.extracted_data.followers && (
-                            <div className="text-center p-4 rounded-lg bg-muted/50">
-                              <Share2 className="w-5 h-5 text-muted-foreground mx-auto mb-2" />
-                              <p className="text-2xl font-bold">{selectedUpload.extracted_data.followers.toLocaleString()}</p>
-                              <p className="text-xs text-muted-foreground">Followers</p>
-                            </div>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )}
-
-                  {/* AI Insights */}
-                  {selectedUpload.ai_insights && (
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <Sparkles className="w-5 h-5 text-primary" />
-                          AI Insights
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        {selectedUpload.ai_insights.key_insights?.map((insight: string, i: number) => (
-                          <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                            <Lightbulb className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
-                            <p className="text-sm">{insight}</p>
-                          </div>
-                        ))}
-                        
-                        {selectedUpload.ai_insights.recommendations?.length > 0 && (
-                          <div className="mt-4">
-                            <h4 className="font-medium mb-3">Recommendations</h4>
-                            <ul className="space-y-2">
-                              {selectedUpload.ai_insights.recommendations.map((rec: string, i: number) => (
-                                <li key={i} className="flex items-start gap-2 text-sm">
-                                  <Target className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-                                  {rec}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  )}
-
-                  {/* Screenshot Preview */}
-                  {selectedUpload.image_url && (
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Original Screenshot</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <img 
-                          src={selectedUpload.image_url} 
-                          alt="Analytics Screenshot" 
-                          className="w-full rounded-lg"
-                        />
-                      </CardContent>
-                    </Card>
-                  )}
-
-                  {/* Actions */}
-                  <div className="flex gap-3">
-                    <Button 
-                      className="flex-1"
-                      onClick={() => navigate('/ai-strategist')}
-                    >
-                      <Sparkles className="w-4 h-4 mr-2" />
-                      Generate Strategy Based on This Data
-                    </Button>
-                  </div>
-                </>
+                <AnalysisDetail upload={selectedUpload} />
               ) : (
                 <div className="text-center py-20 text-muted-foreground">
-                  <BarChart3 className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                  <p>Select an upload to view details</p>
+                  <Camera className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <p>Select an upload to view detailed analysis</p>
                 </div>
               )}
             </div>
