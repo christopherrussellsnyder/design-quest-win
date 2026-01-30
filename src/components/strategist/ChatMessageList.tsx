@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bot, User, Loader2 } from 'lucide-react';
+import { Bot, User, Loader2, Copy, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Message } from '@/pages/AIStrategist';
 import ReactMarkdown from 'react-markdown';
@@ -9,25 +9,47 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { Button } from '@/components/ui/button';
+import { ActionButtons } from './ActionButtons';
+import { QuickSuggestionChips } from './ConversationStarters';
+import { useState } from 'react';
 
 interface ChatMessageListProps {
   messages: Message[];
   isLoading: boolean;
   messagesEndRef: React.RefObject<HTMLDivElement>;
+  onAction?: (action: string, data?: any) => void;
+  onQuickSuggestion?: (prompt: string) => void;
 }
 
 export function ChatMessageList({ 
   messages, 
   isLoading, 
-  messagesEndRef 
+  messagesEndRef,
+  onAction,
+  onQuickSuggestion,
 }: ChatMessageListProps) {
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const lastMessage = messages[messages.length - 1];
+  const showQuickSuggestions = lastMessage?.role === 'assistant' && !isLoading;
+
+  const handleCopy = async (messageId: string, content: string) => {
+    try {
+      await navigator.clipboard.writeText(content);
+      setCopiedId(messageId);
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch (error) {
+      console.error('Failed to copy:', error);
+    }
+  };
+
   return (
     <div className="p-4 space-y-6">
-      {messages.map((message) => (
+      {messages.map((message, index) => (
         <div
           key={message.id}
           className={cn(
-            'flex gap-4 animate-fade-in',
+            'flex gap-4 animate-fade-in group',
             message.role === 'user' ? 'flex-row-reverse' : ''
           )}
         >
@@ -54,11 +76,30 @@ export function ChatMessageList({
 
           {/* Message bubble */}
           <div className={cn(
-            'flex-1 max-w-[80%] rounded-2xl px-4 py-3',
+            'flex-1 max-w-[80%] rounded-2xl px-4 py-3 relative',
             message.role === 'user' 
               ? 'bg-primary text-primary-foreground ml-auto' 
               : 'bg-muted'
           )}>
+            {/* Copy button for assistant messages */}
+            {message.role === 'assistant' && message.content && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className={cn(
+                  'absolute top-2 right-2 h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity',
+                  'text-muted-foreground hover:text-foreground'
+                )}
+                onClick={() => handleCopy(message.id, message.content)}
+              >
+                {copiedId === message.id ? (
+                  <Check className="w-3.5 h-3.5 text-green-500" />
+                ) : (
+                  <Copy className="w-3.5 h-3.5" />
+                )}
+              </Button>
+            )}
+
             {/* Attachments */}
             {message.attachments?.map((att, i) => (
               <div key={i} className="mb-3">
@@ -82,10 +123,20 @@ export function ChatMessageList({
               '[&_p]:my-1.5 first:[&_p]:mt-0 last:[&_p]:mb-0',
               '[&_h1]:text-lg [&_h2]:text-base [&_h3]:text-sm',
               '[&_code]:bg-background/50 [&_code]:px-1 [&_code]:rounded',
-              '[&_pre]:bg-background/50 [&_pre]:p-3 [&_pre]:rounded-lg'
+              '[&_pre]:bg-background/50 [&_pre]:p-3 [&_pre]:rounded-lg',
+              '[&_strong]:font-semibold',
+              '[&_a]:text-primary [&_a]:underline'
             )}>
               <ReactMarkdown>{message.content}</ReactMarkdown>
             </div>
+
+            {/* Action buttons for assistant messages */}
+            {message.role === 'assistant' && message.content && index === messages.length - 1 && !isLoading && (
+              <ActionButtons 
+                content={message.content} 
+                onAction={onAction}
+              />
+            )}
           </div>
         </div>
       ))}
@@ -102,6 +153,13 @@ export function ChatMessageList({
               <span className="text-sm text-muted-foreground">AI is thinking...</span>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Quick suggestion chips after assistant response */}
+      {showQuickSuggestions && onQuickSuggestion && (
+        <div className="pl-13 ml-9">
+          <QuickSuggestionChips onChipClick={onQuickSuggestion} />
         </div>
       )}
       
