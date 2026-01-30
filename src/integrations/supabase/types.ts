@@ -3806,34 +3806,73 @@ export type Database = {
       uploaded_analytics: {
         Row: {
           ai_insights: string | null
+          benchmark_comparison: Json | null
+          data_completeness: string | null
           extracted_data: Json | null
+          follow_up_questions: string[] | null
           id: string
           image_url: string
+          insights: Json | null
+          opportunities: Json | null
+          overall_health_score: number | null
+          pattern_recognition: Json | null
+          performance_rating: string | null
           platform: string | null
+          platform_confidence: string | null
+          recommendations: Json | null
+          risks: Json | null
+          summary: Json | null
           time_period_end: string | null
           time_period_start: string | null
+          trend_analysis: Json | null
           uploaded_at: string | null
           user_id: string
         }
         Insert: {
           ai_insights?: string | null
+          benchmark_comparison?: Json | null
+          data_completeness?: string | null
           extracted_data?: Json | null
+          follow_up_questions?: string[] | null
           id?: string
           image_url: string
+          insights?: Json | null
+          opportunities?: Json | null
+          overall_health_score?: number | null
+          pattern_recognition?: Json | null
+          performance_rating?: string | null
           platform?: string | null
+          platform_confidence?: string | null
+          recommendations?: Json | null
+          risks?: Json | null
+          summary?: Json | null
           time_period_end?: string | null
           time_period_start?: string | null
+          trend_analysis?: Json | null
           uploaded_at?: string | null
           user_id: string
         }
         Update: {
           ai_insights?: string | null
+          benchmark_comparison?: Json | null
+          data_completeness?: string | null
           extracted_data?: Json | null
+          follow_up_questions?: string[] | null
           id?: string
           image_url?: string
+          insights?: Json | null
+          opportunities?: Json | null
+          overall_health_score?: number | null
+          pattern_recognition?: Json | null
+          performance_rating?: string | null
           platform?: string | null
+          platform_confidence?: string | null
+          recommendations?: Json | null
+          risks?: Json | null
+          summary?: Json | null
           time_period_end?: string | null
           time_period_start?: string | null
+          trend_analysis?: Json | null
           uploaded_at?: string | null
           user_id?: string
         }
