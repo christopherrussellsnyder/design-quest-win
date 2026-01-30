@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { 
-  Send, Bot, User, Loader2, ImagePlus, Globe, Lightbulb, 
-  Sparkles, MessageSquare 
+  Send, Bot, Loader2, ImagePlus, Globe, Lightbulb, 
+  Sparkles, Settings2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -12,13 +12,30 @@ import { cn } from '@/lib/utils';
 import { ScreenshotUploader } from '@/components/chat/ScreenshotUploader';
 import { WebsiteAnalyzer } from '@/components/chat/WebsiteAnalyzer';
 import { useScreenshotAnalysis } from '@/hooks/useScreenshotAnalysis';
-import { useWebsiteAnalysis, BusinessProfile } from '@/hooks/useWebsiteAnalysis';
+import { BusinessProfile } from '@/hooks/useWebsiteAnalysis';
 import { ChatMessageList } from './ChatMessageList';
 import { QuickActions } from './QuickActions';
 import { StrategyDialog } from './StrategyDialog';
+import { SmartSuggestions, SmartSuggestion } from './SmartSuggestions';
+import { ConversationStarters } from './ConversationStarters';
 import { Message, BusinessContext, AnalyticsUpload } from '@/pages/AIStrategist';
 import { useStrategyGeneration } from '@/hooks/useStrategyGeneration';
 import { useNavigate } from 'react-router-dom';
+import { detectUserIntent, getIntentSuggestion } from '@/lib/intentDetection';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Switch } from '@/components/ui/switch';
 
 interface ChatAreaProps {
   conversationId?: string;
@@ -27,6 +44,12 @@ interface ChatAreaProps {
   onConversationCreated: (id: string) => void;
   onContextUpdate: () => void;
   className?: string;
+}
+
+interface ContextPreferences {
+  response_style: 'concise' | 'detailed' | 'balanced';
+  tone_preference: 'formal' | 'casual' | 'balanced';
+  include_examples: boolean;
 }
 
 export function ChatArea({
@@ -44,13 +67,18 @@ export function ChatArea({
   const [showWebsiteAnalyzer, setShowWebsiteAnalyzer] = useState(false);
   const [showStrategyDialog, setShowStrategyDialog] = useState(false);
   const [currentConversationId, setCurrentConversationId] = useState<string | undefined>(conversationId);
+  const [hasStrategies, setHasStrategies] = useState(false);
+  const [preferences, setPreferences] = useState<ContextPreferences>({
+    response_style: 'balanced',
+    tone_preference: 'balanced',
+    include_examples: true,
+  });
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   
   const { uploadScreenshot, isProcessing } = useScreenshotAnalysis();
-  const { isAnalyzing } = useWebsiteAnalysis();
-  const { generateStrategy, isGenerating, progress } = useStrategyGeneration();
+  const { generateStrategy, isGenerating } = useStrategyGeneration();
   const navigate = useNavigate();
 
   const scrollToBottom = useCallback(() => {
@@ -70,6 +98,22 @@ export function ChatArea({
       setMessages([]);
     }
   }, [conversationId]);
+
+  // Check if user has strategies
+  useEffect(() => {
+    const checkStrategies = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { count } = await supabase
+        .from('content_strategies')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id);
+
+      setHasStrategies((count || 0) > 0);
+    };
+    checkStrategies();
+  }, []);
 
   const loadMessages = async (convId: string) => {
     const { data, error } = await supabase
@@ -150,6 +194,12 @@ export function ChatArea({
         convId = await createConversation();
       }
 
+      // Detect intent and check for suggestions
+      const intent = detectUserIntent(content);
+      const hasAnalytics = recentAnalytics.length > 0;
+      const hasProfile = !!businessContext?.business_profile;
+      const suggestion = getIntentSuggestion(intent, hasAnalytics, hasProfile);
+
       // Add user message to UI
       const userMessage: Message = {
         id: `temp-${Date.now()}`,
@@ -178,20 +228,30 @@ export function ChatArea({
         content: m.content,
       }));
 
+      const { data: { user } } = await supabase.auth.getUser();
+
       const profile = businessContext?.business_profile;
       const contextData = {
         businessProfile: profile ? {
           businessName: profile.businessName,
           industry: profile.industry,
           businessType: profile.businessType,
+          summary: profile.summary,
           targetAudience: profile.targetAudience,
           brandIdentity: profile.brandIdentity,
           productsServices: profile.productsServices,
+          marketingMaturity: profile.marketingMaturity,
+          priceRange: profile.priceRange,
+          geographicFocus: profile.geographicFocus,
         } : null,
         recentAnalytics: recentAnalytics.map(a => ({
           platform: a.platform,
           metrics: a.extracted_data,
           insights: a.ai_insights,
+          healthScore: a.extracted_data?.overall_health_score,
+          performanceRating: a.extracted_data?.performance_rating,
+          trendAnalysis: a.extracted_data?.trend_analysis,
+          recommendations: a.extracted_data?.recommendations,
         })),
       };
 
@@ -205,8 +265,10 @@ export function ChatArea({
           },
           body: JSON.stringify({ 
             messages: allMessages,
+            userId: user?.id,
             conversationId: convId,
             businessContext: contextData,
+            context_preferences: preferences,
           }),
         }
       );
@@ -388,6 +450,7 @@ I'll use this context to provide personalized marketing recommendations. You can
     
     const result = await generateStrategy(platform, duration, undefined, undefined, currentConversationId);
     if (result) {
+      setHasStrategies(true);
       const assistantMessage = `✨ **Strategy Generated!**\n\nI've created your ${duration}-day ${platform} content strategy with ${result.postsCount} posts.\n\n**Predicted Results:**\n- Total Reach: ${result.strategy.predicted_metrics?.total_reach?.toLocaleString() || 'N/A'}\n- Avg Engagement: ${result.strategy.predicted_metrics?.avg_engagement_rate || 'N/A'}%\n- Follower Growth: +${result.strategy.predicted_metrics?.expected_follower_growth || 'N/A'}\n\n[View Full Strategy](/strategies/${result.strategyId})`;
       
       if (currentConversationId) {
@@ -402,6 +465,47 @@ I'll use this context to provide personalized marketing recommendations. You can
     }
   };
 
+  const handleSmartSuggestion = (suggestion: SmartSuggestion) => {
+    switch (suggestion.action) {
+      case 'upload_analytics':
+        setShowUploader(true);
+        break;
+      case 'analyze_website':
+        setShowWebsiteAnalyzer(true);
+        break;
+      case 'create_strategy':
+        setShowStrategyDialog(true);
+        break;
+      case 'ask_question':
+        sendMessage(suggestion.prompt);
+        break;
+    }
+  };
+
+  const handleAction = (action: string, data?: any) => {
+    switch (action) {
+      case 'create_strategy':
+        setShowStrategyDialog(true);
+        break;
+      case 'upload_analytics':
+        setShowUploader(true);
+        break;
+      case 'analyze_website':
+        setShowWebsiteAnalyzer(true);
+        break;
+      case 'save_content':
+        toast({
+          title: 'Content Saved',
+          description: 'Content has been saved to your library',
+        });
+        break;
+      case 'request_revision':
+        setInput('Can you revise that? ');
+        textareaRef.current?.focus();
+        break;
+    }
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -409,7 +513,7 @@ I'll use this context to provide personalized marketing recommendations. You can
     }
   };
 
-  const isDisabled = isLoading || isProcessing || isAnalyzing || isGenerating;
+  const isDisabled = isLoading || isProcessing || isGenerating;
 
   return (
     <div className={cn('flex flex-col h-full bg-background', className)}>
@@ -421,11 +525,22 @@ I'll use this context to provide personalized marketing recommendations. You can
               <Sparkles className="w-10 h-10 text-primary" />
             </div>
             <h2 className="text-2xl font-bold mb-2">AI Marketing Strategist</h2>
-            <p className="text-muted-foreground max-w-md mb-8">
+            <p className="text-muted-foreground max-w-md mb-6">
               Get personalized marketing strategies, content ideas, and data-driven insights for your business.
             </p>
+
+            {/* Smart Suggestions */}
+            <div className="w-full max-w-2xl mb-6">
+              <SmartSuggestions
+                businessContext={businessContext}
+                recentAnalytics={recentAnalytics}
+                hasStrategies={hasStrategies}
+                onSuggestionClick={handleSmartSuggestion}
+              />
+            </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-2xl w-full">
+            {/* Quick action cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-2xl w-full mb-8">
               <button
                 className="p-4 rounded-xl border bg-card hover:bg-muted/50 transition-colors text-left"
                 onClick={() => setShowWebsiteAnalyzer(true)}
@@ -460,27 +575,16 @@ I'll use this context to provide personalized marketing recommendations. You can
               </button>
             </div>
 
-            <div className="mt-8 flex flex-wrap gap-2 justify-center">
-              {[
-                "What content should I post this week?",
-                "Analyze my engagement trends",
-                "Best times to post on Instagram",
-                "How can I increase my reach?",
-              ].map((suggestion, i) => (
-                <Button
-                  key={i}
-                  variant="outline"
-                  size="sm"
-                  className="text-xs"
-                  onClick={() => {
-                    setInput(suggestion);
-                    setTimeout(() => sendMessage(suggestion), 100);
-                  }}
-                >
-                  <MessageSquare className="w-3 h-3 mr-1" />
-                  {suggestion}
-                </Button>
-              ))}
+            {/* Conversation Starters */}
+            <div className="w-full max-w-2xl">
+              <ConversationStarters
+                onStarterClick={(prompt) => {
+                  setInput(prompt);
+                  setTimeout(() => sendMessage(prompt), 100);
+                }}
+                businessName={businessContext?.business_profile?.businessName}
+                platform={recentAnalytics[0]?.platform}
+              />
             </div>
           </div>
         ) : (
@@ -488,6 +592,8 @@ I'll use this context to provide personalized marketing recommendations. You can
             messages={messages} 
             isLoading={isLoading}
             messagesEndRef={messagesEndRef}
+            onAction={handleAction}
+            onQuickSuggestion={(prompt) => sendMessage(prompt)}
           />
         )}
       </ScrollArea>
@@ -531,14 +637,72 @@ I'll use this context to provide personalized marketing recommendations. You can
 
       {/* Input area */}
       <div className="p-4 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <QuickActions
-          onUploadClick={() => setShowUploader(!showUploader)}
-          onWebsiteClick={() => setShowWebsiteAnalyzer(!showWebsiteAnalyzer)}
-          onStrategyClick={() => setShowStrategyDialog(true)}
-          disabled={isDisabled}
-        />
+        <div className="flex items-center justify-between mb-3">
+          <QuickActions
+            onUploadClick={() => setShowUploader(!showUploader)}
+            onWebsiteClick={() => setShowWebsiteAnalyzer(!showWebsiteAnalyzer)}
+            onStrategyClick={() => setShowStrategyDialog(true)}
+            disabled={isDisabled}
+          />
+          
+          {/* Preferences popover */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8">
+                <Settings2 className="w-4 h-4" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-72" align="end">
+              <div className="space-y-4">
+                <h4 className="font-medium text-sm">Response Preferences</h4>
+                
+                <div className="space-y-2">
+                  <Label className="text-xs">Response Style</Label>
+                  <Select
+                    value={preferences.response_style}
+                    onValueChange={(v) => setPreferences(p => ({ ...p, response_style: v as any }))}
+                  >
+                    <SelectTrigger className="h-8 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="concise">Concise</SelectItem>
+                      <SelectItem value="balanced">Balanced</SelectItem>
+                      <SelectItem value="detailed">Detailed</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-xs">Tone</Label>
+                  <Select
+                    value={preferences.tone_preference}
+                    onValueChange={(v) => setPreferences(p => ({ ...p, tone_preference: v as any }))}
+                  >
+                    <SelectTrigger className="h-8 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="formal">Formal</SelectItem>
+                      <SelectItem value="balanced">Balanced</SelectItem>
+                      <SelectItem value="casual">Casual</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs">Include Examples</Label>
+                  <Switch
+                    checked={preferences.include_examples}
+                    onCheckedChange={(v) => setPreferences(p => ({ ...p, include_examples: v }))}
+                  />
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
+        </div>
         
-        <div className="flex gap-2 mt-3">
+        <div className="flex gap-2">
           <Textarea
             ref={textareaRef}
             value={input}
