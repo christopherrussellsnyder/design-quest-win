@@ -1109,33 +1109,75 @@ export type Database = {
       }
       business_context: {
         Row: {
+          analysis_depth: string | null
           analyzed_at: string | null
+          audience_intelligence: Json | null
+          brand_architecture: Json | null
           business_profile: Json | null
+          competitive_positioning: Json | null
+          content_strategy_analysis: Json | null
+          conversion_architecture: Json | null
+          executive_summary: Json | null
+          gaps_opportunities: Json | null
           id: string
           is_active: boolean | null
           last_updated: string | null
+          marketing_recommendations: Json | null
+          marketing_sophistication_level: number | null
+          overall_assessment_score: number | null
+          pages_analyzed_count: number | null
           scraped_pages: Json | null
+          technical_maturity: Json | null
           user_id: string
+          visual_identity: Json | null
           website_url: string
         }
         Insert: {
+          analysis_depth?: string | null
           analyzed_at?: string | null
+          audience_intelligence?: Json | null
+          brand_architecture?: Json | null
           business_profile?: Json | null
+          competitive_positioning?: Json | null
+          content_strategy_analysis?: Json | null
+          conversion_architecture?: Json | null
+          executive_summary?: Json | null
+          gaps_opportunities?: Json | null
           id?: string
           is_active?: boolean | null
           last_updated?: string | null
+          marketing_recommendations?: Json | null
+          marketing_sophistication_level?: number | null
+          overall_assessment_score?: number | null
+          pages_analyzed_count?: number | null
           scraped_pages?: Json | null
+          technical_maturity?: Json | null
           user_id: string
+          visual_identity?: Json | null
           website_url: string
         }
         Update: {
+          analysis_depth?: string | null
           analyzed_at?: string | null
+          audience_intelligence?: Json | null
+          brand_architecture?: Json | null
           business_profile?: Json | null
+          competitive_positioning?: Json | null
+          content_strategy_analysis?: Json | null
+          conversion_architecture?: Json | null
+          executive_summary?: Json | null
+          gaps_opportunities?: Json | null
           id?: string
           is_active?: boolean | null
           last_updated?: string | null
+          marketing_recommendations?: Json | null
+          marketing_sophistication_level?: number | null
+          overall_assessment_score?: number | null
+          pages_analyzed_count?: number | null
           scraped_pages?: Json | null
+          technical_maturity?: Json | null
           user_id?: string
+          visual_identity?: Json | null
           website_url?: string
         }
         Relationships: []

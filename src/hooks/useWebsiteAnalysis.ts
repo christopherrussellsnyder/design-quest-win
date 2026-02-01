@@ -47,16 +47,35 @@ export interface BusinessProfile {
   summary: string;
 }
 
+export interface ComprehensiveAnalysis {
+  metadata?: any;
+  business_identity?: any;
+  audience_intelligence?: any;
+  brand_architecture?: any;
+  visual_identity?: any;
+  content_strategy_analysis?: any;
+  conversion_architecture?: any;
+  competitive_positioning?: any;
+  technical_maturity?: any;
+  gaps_opportunities?: any;
+  marketing_recommendations?: any;
+  executive_summary?: any;
+}
+
 export interface BusinessContext {
   id: string;
   user_id: string;
   website_url: string;
   business_profile: BusinessProfile;
+  comprehensive_analysis?: ComprehensiveAnalysis;
   analyzed_at: string;
   is_active: boolean;
+  overall_assessment_score?: number;
+  marketing_sophistication_level?: number;
 }
 
 type AnalysisStep = 'idle' | 'scraping' | 'analyzing' | 'saving' | 'complete' | 'error';
+type AnalysisDepth = 'quick' | 'standard' | 'comprehensive';
 
 export function useWebsiteAnalysis() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
