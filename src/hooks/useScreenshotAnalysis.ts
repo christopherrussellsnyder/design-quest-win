@@ -53,8 +53,13 @@ export function useScreenshotAnalysis() {
     setIsAnalyzing(true);
     
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('You must be logged in to analyze screenshots');
+      }
+
       const { data, error } = await supabase.functions.invoke('analyze-screenshot', {
-        body: { imageUrl },
+        body: { imageUrl, userId: user.id },
       });
 
       if (error) {
