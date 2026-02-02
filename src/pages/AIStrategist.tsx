@@ -7,6 +7,17 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { BusinessProfile } from '@/hooks/useWebsiteAnalysis';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 export interface Conversation {
   id: string;
@@ -42,6 +53,9 @@ export default function AIStrategist() {
   const [selectedConversationId, setSelectedConversationId] = useState<string | undefined>();
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(true);
   const [rightSidebarOpen, setRightSidebarOpen] = useState(true);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [conversationToDelete, setConversationToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const queryClient = useQueryClient();
 
   // Fetch conversations
@@ -122,17 +136,46 @@ export default function AIStrategist() {
     queryClient.invalidateQueries({ queryKey: ['strategist-conversations'] });
   };
 
-  const handleDeleteConversation = async (id: string) => {
-    const { error } = await supabase
-      .from('ai_conversations')
-      .delete()
-      .eq('id', id);
+  const handleDeleteRequest = (id: string) => {
+    setConversationToDelete(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!conversationToDelete) return;
     
-    if (!error) {
-      if (selectedConversationId === id) {
-        setSelectedConversationId(undefined);
-      }
-      queryClient.invalidateQueries({ queryKey: ['strategist-conversations'] });
+    setIsDeleting(true);
+    
+    // Optimistic update - remove from UI immediately
+    const previousConversations = conversations;
+    queryClient.setQueryData(['strategist-conversations'], (old: Conversation[] | undefined) =>
+      old?.filter(c => c.id !== conversationToDelete) || []
+    );
+    
+    // If deleting the active conversation, switch to empty state or next conversation
+    if (selectedConversationId === conversationToDelete) {
+      const remainingConversations = conversations.filter(c => c.id !== conversationToDelete);
+      setSelectedConversationId(remainingConversations[0]?.id);
+    }
+    
+    try {
+      const { error } = await supabase
+        .from('ai_conversations')
+        .delete()
+        .eq('id', conversationToDelete);
+      
+      if (error) throw error;
+      
+      toast.success('Conversation deleted');
+    } catch (error) {
+      // Rollback on error
+      queryClient.setQueryData(['strategist-conversations'], previousConversations);
+      toast.error('Failed to delete conversation');
+      console.error('Delete error:', error);
+    } finally {
+      setIsDeleting(false);
+      setDeleteDialogOpen(false);
+      setConversationToDelete(null);
     }
   };
 
@@ -158,7 +201,7 @@ export default function AIStrategist() {
           onToggle={() => setLeftSidebarOpen(!leftSidebarOpen)}
           onSelect={setSelectedConversationId}
           onNewChat={handleNewConversation}
-          onDelete={handleDeleteConversation}
+          onDelete={handleDeleteRequest}
         />
 
         {/* Main Chat Area */}
@@ -180,6 +223,28 @@ export default function AIStrategist() {
           onReanalyze={handleContextUpdate}
         />
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this conversation?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. All messages in this conversation will be permanently deleted.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
