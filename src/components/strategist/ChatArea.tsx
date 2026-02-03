@@ -371,8 +371,14 @@ export function ChatArea({
     );
 
     try {
+      // Get authenticated user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
       const { data, error } = await supabase.functions.invoke('analyze-screenshot', {
-        body: { imageUrl },
+        body: { imageUrl, userId: user.id },
       });
 
       if (error) throw error;
