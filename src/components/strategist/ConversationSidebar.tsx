@@ -97,7 +97,7 @@ export function ConversationSidebar({
                   <div
                     key={conv.id}
                     className={cn(
-                      'group flex items-center gap-2 p-3 rounded-lg cursor-pointer transition-all',
+                      'group relative flex items-center gap-2 p-3 pr-10 rounded-lg cursor-pointer transition-all overflow-visible',
                       'hover:bg-muted',
                       selectedId === conv.id && 'bg-muted ring-1 ring-primary/20'
                     )}
@@ -117,13 +117,17 @@ export function ConversationSidebar({
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-7 w-7 opacity-0 group-hover:opacity-100 data-[state=open]:opacity-100 transition-opacity text-muted-foreground hover:text-foreground"
+                          className={cn(
+                            "absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 flex-shrink-0 transition-opacity text-muted-foreground hover:text-foreground",
+                            "opacity-0 group-hover:opacity-100 data-[state=open]:opacity-100",
+                            selectedId === conv.id && "opacity-70"
+                          )}
                           onClick={(e) => e.stopPropagation()}
                         >
                           <MoreHorizontal className="w-4 h-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-48 z-50 bg-popover">
+                      <DropdownMenuContent align="end" sideOffset={4} className="w-48 z-50 bg-popover">
                         <DropdownMenuItem disabled className="text-muted-foreground">
                           <Star className="w-4 h-4 mr-2" />
                           Star
