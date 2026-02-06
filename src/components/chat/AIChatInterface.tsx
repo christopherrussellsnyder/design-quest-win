@@ -43,7 +43,7 @@ export function AIChatInterface({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   
-  const { uploadScreenshot, isProcessing } = useScreenshotAnalysis();
+  const { uploadScreenshot, analyzeFile, isProcessing } = useScreenshotAnalysis();
   const { fetchActiveContext, isAnalyzing } = useWebsiteAnalysis();
 
   const scrollToBottom = useCallback(() => {
@@ -282,43 +282,28 @@ export function AIChatInterface({
     }
   };
 
-  const handleUpload = async (file: File): Promise<string> => {
-    const url = await uploadScreenshot(file);
-    return url;
-  };
-
-  const handleAnalyze = async (imageUrl: string) => {
+  const handleFileAnalyze = async (file: File) => {
     setShowUploader(false);
     
-    // Send message with screenshot attachment
+    const ext = file.name.split('.').pop()?.toLowerCase() || '';
+    const label = ['csv', 'xlsx', 'xls'].includes(ext) ? 'spreadsheet' : ext === 'pdf' ? 'PDF' : 'screenshot';
+    
     await sendMessage(
-      'Please analyze this analytics screenshot and provide insights.',
-      [{ type: 'image', url: imageUrl, name: 'Analytics Screenshot' }]
+      `Please analyze this analytics ${label} and provide insights.`,
+      [{ type: file.type.startsWith('image/') ? 'image' : 'file', url: '', name: file.name }]
     );
 
-    // Call the analyze endpoint
     try {
-      // Get authenticated user
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error('User not authenticated');
-      }
+      const result = await analyzeFile(file);
 
-      const { data, error } = await supabase.functions.invoke('analyze-screenshot', {
-        body: { imageUrl, userId: user.id },
-      });
-
-      if (error) throw error;
-
-      if (data?.analysis) {
-        // Add analysis as assistant message
+      if (result?.analysis) {
         const convId = currentConversationId;
         if (convId) {
-          await saveMessage(convId, 'assistant', data.analysis);
+          await saveMessage(convId, 'assistant', result.analysis);
           setMessages(prev => [...prev, {
             id: `analysis-${Date.now()}`,
             role: 'assistant',
-            content: data.analysis,
+            content: result.analysis,
             createdAt: new Date(),
           }]);
         }
@@ -327,7 +312,7 @@ export function AIChatInterface({
       console.error('Analysis error:', error);
       toast({
         title: 'Analysis Failed',
-        description: error instanceof Error ? error.message : 'Failed to analyze screenshot',
+        description: error instanceof Error ? error.message : 'Failed to analyze file',
         variant: 'destructive',
       });
     }
@@ -524,8 +509,7 @@ I'll use this context to provide personalized marketing recommendations. You can
       {showUploader && (
         <div className="p-4 border-t bg-muted/50">
           <ScreenshotUploader
-            onUpload={handleUpload}
-            onAnalyze={handleAnalyze}
+            onFileAnalyze={handleFileAnalyze}
             disabled={isDisabled}
           />
           <Button
