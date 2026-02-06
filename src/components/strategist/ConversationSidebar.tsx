@@ -97,14 +97,14 @@ export function ConversationSidebar({
                   <div
                     key={conv.id}
                     className={cn(
-                      'group relative flex items-center gap-2 p-3 pr-10 rounded-lg cursor-pointer transition-all overflow-visible',
+                      'group flex items-center gap-2 p-3 rounded-lg cursor-pointer transition-all',
                       'hover:bg-muted',
                       selectedId === conv.id && 'bg-muted ring-1 ring-primary/20'
                     )}
                     onClick={() => onSelect(conv.id)}
                   >
                     <MessageSquare className="w-4 h-4 flex-shrink-0 text-muted-foreground" />
-                    <div className="flex-1 min-w-0">
+                    <div className="flex-1 min-w-0 mr-1">
                       <p className="text-sm font-medium truncate">
                         {conv.title || 'New Conversation'}
                       </p>
@@ -118,16 +118,18 @@ export function ConversationSidebar({
                           variant="ghost"
                           size="icon"
                           className={cn(
-                            "absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 flex-shrink-0 transition-opacity text-muted-foreground hover:text-foreground",
-                            "opacity-0 group-hover:opacity-100 data-[state=open]:opacity-100",
-                            selectedId === conv.id && "opacity-70"
+                            "h-7 w-7 flex-shrink-0 transition-opacity text-muted-foreground hover:text-foreground hover:bg-accent",
+                            selectedId === conv.id
+                              ? "opacity-70 hover:opacity-100"
+                              : "opacity-0 group-hover:opacity-100 data-[state=open]:opacity-100",
+                            "touch-device:opacity-60"
                           )}
                           onClick={(e) => e.stopPropagation()}
                         >
                           <MoreHorizontal className="w-4 h-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" sideOffset={4} className="w-48 z-50 bg-popover">
+                      <DropdownMenuContent align="end" sideOffset={4} className="w-48 z-[100] bg-popover border shadow-md">
                         <DropdownMenuItem disabled className="text-muted-foreground">
                           <Star className="w-4 h-4 mr-2" />
                           Star
