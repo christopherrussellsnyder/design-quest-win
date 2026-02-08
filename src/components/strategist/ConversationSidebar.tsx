@@ -1,14 +1,7 @@
 import React from 'react';
-import { Plus, MessageSquare, ChevronLeft, ChevronRight, Sparkles, MoreHorizontal, Trash2, Star, Pencil, FolderPlus } from 'lucide-react';
+import { Plus, MessageSquare, ChevronLeft, ChevronRight, Sparkles, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Conversation } from '@/pages/AIStrategist';
@@ -37,7 +30,7 @@ export function ConversationSidebar({
   return (
     <div className={cn(
       'relative flex flex-col bg-muted/30 border-r transition-all duration-300',
-      isOpen ? 'w-96' : 'w-0'
+      isOpen ? 'w-80' : 'w-0'
     )}>
       {/* Toggle button */}
       <Button
@@ -76,7 +69,7 @@ export function ConversationSidebar({
           </div>
           
           {/* Conversations list */}
-          <ScrollArea className="flex-1 overflow-visible [&>[data-radix-scroll-area-viewport]]:overflow-x-visible">
+          <ScrollArea className="flex-1">
             <div className="p-2 space-y-1">
               {isLoading ? (
                 <div className="p-4 text-center">
@@ -97,14 +90,14 @@ export function ConversationSidebar({
                   <div
                     key={conv.id}
                     className={cn(
-                      'group flex items-center gap-2 p-3 rounded-lg cursor-pointer transition-all',
+                      'flex items-center gap-2 p-3 rounded-lg cursor-pointer transition-all',
                       'hover:bg-muted',
                       selectedId === conv.id && 'bg-muted ring-1 ring-primary/20'
                     )}
                     onClick={() => onSelect(conv.id)}
                   >
                     <MessageSquare className="w-4 h-4 flex-shrink-0 text-muted-foreground" />
-                    <div className="flex-1 min-w-0 mr-1">
+                    <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">
                         {conv.title || 'New Conversation'}
                       </p>
@@ -112,43 +105,17 @@ export function ConversationSidebar({
                         {formatDistanceToNow(new Date(conv.updated_at), { addSuffix: true })}
                       </p>
                     </div>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 flex-shrink-0 text-muted-foreground hover:text-foreground hover:bg-accent opacity-100"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <MoreHorizontal className="w-4 h-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" sideOffset={4} className="w-48 z-[100] bg-popover border shadow-md">
-                        <DropdownMenuItem disabled className="text-muted-foreground">
-                          <Star className="w-4 h-4 mr-2" />
-                          Star
-                        </DropdownMenuItem>
-                        <DropdownMenuItem disabled className="text-muted-foreground">
-                          <Pencil className="w-4 h-4 mr-2" />
-                          Rename
-                        </DropdownMenuItem>
-                        <DropdownMenuItem disabled className="text-muted-foreground">
-                          <FolderPlus className="w-4 h-4 mr-2" />
-                          Add to project
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          className="text-destructive focus:text-destructive focus:bg-destructive/10"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onDelete(conv.id);
-                          }}
-                        >
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <button
+                      type="button"
+                      title="Delete conversation"
+                      className="flex-shrink-0 p-1.5 rounded-md text-destructive hover:bg-destructive/10 transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete(conv.id);
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
                 ))
               )}
