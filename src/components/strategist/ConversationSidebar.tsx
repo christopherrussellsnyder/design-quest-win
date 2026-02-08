@@ -37,7 +37,7 @@ export function ConversationSidebar({
   return (
     <div className={cn(
       'relative flex flex-col bg-muted/30 border-r transition-all duration-300',
-      isOpen ? 'w-80' : 'w-0'
+      isOpen ? 'w-96' : 'w-0'
     )}>
       {/* Toggle button */}
       <Button
