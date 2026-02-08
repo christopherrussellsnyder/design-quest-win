@@ -179,6 +179,24 @@ export default function AIStrategist() {
     }
   };
 
+  const handleRename = async (id: string, newTitle: string) => {
+    try {
+      const { error } = await supabase
+        .from('ai_conversations')
+        .update({ title: newTitle })
+        .eq('id', id);
+      if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: ['strategist-conversations'] });
+      toast.success('Conversation renamed');
+    } catch (error) {
+      toast.error('Failed to rename conversation');
+    }
+  };
+
+  const handleFavorite = (id: string) => {
+    toast.info('Favorite feature coming soon!');
+  };
+
   const handleContextUpdate = () => {
     queryClient.invalidateQueries({ queryKey: ['business-context'] });
     queryClient.invalidateQueries({ queryKey: ['recent-analytics'] });
@@ -202,6 +220,8 @@ export default function AIStrategist() {
           onSelect={setSelectedConversationId}
           onNewChat={handleNewConversation}
           onDelete={handleDeleteRequest}
+          onRename={handleRename}
+          onFavorite={handleFavorite}
         />
 
         {/* Main Chat Area */}
