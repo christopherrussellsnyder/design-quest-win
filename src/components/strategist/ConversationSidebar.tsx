@@ -76,7 +76,7 @@ export function ConversationSidebar({
           </div>
           
           {/* Conversations list */}
-          <ScrollArea className="flex-1">
+          <ScrollArea className="flex-1 overflow-visible [&>[data-radix-scroll-area-viewport]]:overflow-x-visible">
             <div className="p-2 space-y-1">
               {isLoading ? (
                 <div className="p-4 text-center">
