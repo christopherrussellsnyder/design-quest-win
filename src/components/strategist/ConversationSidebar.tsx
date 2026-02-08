@@ -96,6 +96,18 @@ export function ConversationSidebar({
                     )}
                     onClick={() => onSelect(conv.id)}
                   >
+                    <button
+                      type="button"
+                      title="Delete conversation"
+                      aria-label="Delete conversation"
+                      className="flex-shrink-0 p-1 rounded text-destructive hover:bg-destructive/20 transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete(conv.id);
+                      }}
+                    >
+                      🗑️
+                    </button>
                     <MessageSquare className="w-4 h-4 flex-shrink-0 text-muted-foreground" />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">
@@ -105,18 +117,6 @@ export function ConversationSidebar({
                         {formatDistanceToNow(new Date(conv.updated_at), { addSuffix: true })}
                       </p>
                     </div>
-                    <button
-                      type="button"
-                      title="Delete conversation"
-                      aria-label="Delete conversation"
-                      className="flex-shrink-0 ml-1 px-2 py-1 rounded-md bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors text-xs font-medium border border-destructive/20"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDelete(conv.id);
-                      }}
-                    >
-                      🗑️
-                    </button>
                   </div>
                 ))
               )}
