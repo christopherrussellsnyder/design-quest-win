@@ -108,13 +108,14 @@ export function ConversationSidebar({
                     <button
                       type="button"
                       title="Delete conversation"
-                      className="flex-shrink-0 p-1.5 rounded-md text-destructive hover:bg-destructive/10 transition-colors"
+                      aria-label="Delete conversation"
+                      className="flex-shrink-0 ml-1 px-2 py-1 rounded-md bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors text-xs font-medium border border-destructive/20"
                       onClick={(e) => {
                         e.stopPropagation();
                         onDelete(conv.id);
                       }}
                     >
-                      <Trash2 className="w-4 h-4" />
+                      🗑️
                     </button>
                   </div>
                 ))
