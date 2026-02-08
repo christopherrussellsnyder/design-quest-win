@@ -117,13 +117,7 @@ export function ConversationSidebar({
                         <Button
                           variant="ghost"
                           size="icon"
-                          className={cn(
-                            "h-7 w-7 flex-shrink-0 transition-opacity text-muted-foreground hover:text-foreground hover:bg-accent",
-                            selectedId === conv.id
-                              ? "opacity-70 hover:opacity-100"
-                              : "opacity-0 group-hover:opacity-100 data-[state=open]:opacity-100",
-                            "touch-device:opacity-60"
-                          )}
+                          className="h-7 w-7 flex-shrink-0 text-muted-foreground hover:text-foreground hover:bg-accent opacity-100"
                           onClick={(e) => e.stopPropagation()}
                         >
                           <MoreHorizontal className="w-4 h-4" />
