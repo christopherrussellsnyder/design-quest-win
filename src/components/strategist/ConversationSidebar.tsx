@@ -1,7 +1,13 @@
-import React from 'react';
-import { Plus, MessageSquare, ChevronLeft, ChevronRight, Sparkles, Trash2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { Plus, MessageSquare, ChevronLeft, ChevronRight, Sparkles, MoreHorizontal, Trash2, Pencil, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Conversation } from '@/pages/AIStrategist';
@@ -15,6 +21,8 @@ interface ConversationSidebarProps {
   onSelect: (id: string) => void;
   onNewChat: () => void;
   onDelete: (id: string) => void;
+  onRename?: (id: string, newTitle: string) => void;
+  onFavorite?: (id: string) => void;
 }
 
 export function ConversationSidebar({
@@ -26,7 +34,11 @@ export function ConversationSidebar({
   onSelect,
   onNewChat,
   onDelete,
+  onRename,
+  onFavorite,
 }: ConversationSidebarProps) {
+  const [renamingId, setRenamingId] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState('');
   return (
     <div className={cn(
       'relative flex flex-col bg-muted/30 border-r transition-all duration-300',
@@ -96,23 +108,75 @@ export function ConversationSidebar({
                     )}
                     onClick={() => onSelect(conv.id)}
                   >
-                    <button
-                      type="button"
-                      title="Delete conversation"
-                      aria-label="Delete conversation"
-                      className="flex-shrink-0 p-1 rounded text-destructive hover:bg-destructive/20 transition-colors"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDelete(conv.id);
-                      }}
-                    >
-                      🗑️
-                    </button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button
+                          type="button"
+                          aria-label="Conversation options"
+                          className="flex-shrink-0 p-1 rounded text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <MoreHorizontal className="w-4 h-4" />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start" sideOffset={4} className="w-44 z-[200] bg-popover border shadow-lg">
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (onFavorite) onFavorite(conv.id);
+                          }}
+                        >
+                          <Star className="w-4 h-4 mr-2" />
+                          Favorite
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setRenamingId(conv.id);
+                            setRenameValue(conv.title || 'New Conversation');
+                          }}
+                        >
+                          <Pencil className="w-4 h-4 mr-2" />
+                          Rename
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onDelete(conv.id);
+                          }}
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                     <MessageSquare className="w-4 h-4 flex-shrink-0 text-muted-foreground" />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">
-                        {conv.title || 'New Conversation'}
-                      </p>
+                      {renamingId === conv.id ? (
+                        <input
+                          autoFocus
+                          className="text-sm font-medium w-full bg-background border rounded px-1 py-0.5"
+                          value={renameValue}
+                          onChange={(e) => setRenameValue(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              if (onRename) onRename(conv.id, renameValue);
+                              setRenamingId(null);
+                            }
+                            if (e.key === 'Escape') setRenamingId(null);
+                          }}
+                          onBlur={() => {
+                            if (onRename) onRename(conv.id, renameValue);
+                            setRenamingId(null);
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      ) : (
+                        <p className="text-sm font-medium truncate">
+                          {conv.title || 'New Conversation'}
+                        </p>
+                      )}
                       <p className="text-xs text-muted-foreground">
                         {formatDistanceToNow(new Date(conv.updated_at), { addSuffix: true })}
                       </p>
