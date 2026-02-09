@@ -6,6 +6,49 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
+const JSON_SCHEMA = `{
+  "metadata": {
+    "platform": "",
+    "platform_confidence": "High/Medium/Low",
+    "interface_type": "",
+    "screen_type": "",
+    "time_period": { "start_date": "", "end_date": "", "duration": "", "granularity": "" },
+    "comparison_period": null,
+    "data_completeness": "Complete/Partial/Limited"
+  },
+  "extracted_metrics": {
+    "account_metrics": { "followers": null, "followers_change": null, "followers_change_percent": null, "following": null, "posts_count": null },
+    "engagement_metrics": { "total_likes": null, "total_comments": null, "total_shares": null, "total_saves": null, "engagement_rate": null, "engagement_rate_change": null },
+    "reach_metrics": { "reach": null, "reach_change": null, "reach_change_percent": null, "impressions": null, "impressions_change": null, "impressions_change_percent": null },
+    "traffic_metrics": { "profile_visits": null, "profile_visits_change": null, "link_clicks": null, "link_clicks_change": null, "conversions": null, "conversion_rate": null },
+    "audience_metrics": { "top_locations": [], "age_distribution": [], "gender_distribution": null, "active_times": [] },
+    "content_performance": { "top_posts": [], "best_content_type": null, "avg_post_reach": null, "avg_post_engagement": null },
+    "video_metrics": { "total_views": null, "avg_watch_time": null, "completion_rate": null },
+    "ad_metrics": { "spend": null, "cpm": null, "cpc": null, "ctr": null, "roas": null }
+  },
+  "trend_analysis": {
+    "positive_trends": [],
+    "negative_trends": [],
+    "stable_metrics": [],
+    "overall_health_score": 7,
+    "growth_momentum": "Accelerating/Steady/Slowing/Declining"
+  },
+  "benchmark_comparison": {
+    "engagement_rate_analysis": { "user_rate": null, "industry_benchmark": null, "performance_vs_benchmark": "", "percentile_rank": "" },
+    "reach_rate_analysis": { "user_reach_rate": null, "typical_range": "" },
+    "posting_frequency_analysis": { "detected_frequency": "", "recommended_frequency": "", "assessment": "" },
+    "overall_performance_rating": "Excellent/Above Average/Average/Below Average/Poor",
+    "percentile_estimate": ""
+  },
+  "pattern_recognition": { "content_patterns": [], "audience_patterns": [], "timing_patterns": [], "anomalies_detected": [], "correlations_found": [] },
+  "insights": [{ "insight_number": 1, "insight": "", "supporting_data": "", "importance": "Critical/High/Medium/Low", "category": "Strength/Opportunity/Warning/Neutral", "impact_potential": "High/Medium/Low", "reasoning": "" }],
+  "recommendations": [{ "recommendation_number": 1, "recommendation": "", "rationale": "", "expected_impact": "High/Medium/Low", "effort_required": "Low/Medium/High", "timeframe": "Immediate/1-2 weeks/1 month+", "priority": "P0/P1/P2/P3", "implementation_steps": [], "success_metrics": "" }],
+  "opportunities": [{ "opportunity": "", "potential_impact": "High/Medium/Low", "difficulty": "Low/Medium/High", "priority": 1 }],
+  "risks": [{ "risk": "", "severity": "Critical/High/Medium/Low", "mitigation": "", "urgency": "Immediate/Soon/Later" }],
+  "follow_up_questions": [],
+  "summary": { "one_sentence_summary": "", "top_3_strengths": [], "top_3_areas_for_improvement": [], "immediate_action_required": false, "immediate_action_reason": "" }
+}`;
+
 const IMAGE_ANALYSIS_PROMPT = `You are an expert data analyst specializing in social media and marketing analytics with deep knowledge of industry benchmarks and performance optimization.
 
 TASK: Analyze this analytics screenshot/document with comprehensive depth and precision.
@@ -51,49 +94,6 @@ Focus on:
 - Actionable recommendations with implementation steps
 - Opportunities and risks
 - Use null for any fields not derivable from the data`;
-
-const JSON_SCHEMA = `{
-  "metadata": {
-    "platform": "",
-    "platform_confidence": "High/Medium/Low",
-    "interface_type": "",
-    "screen_type": "",
-    "time_period": { "start_date": "", "end_date": "", "duration": "", "granularity": "" },
-    "comparison_period": null,
-    "data_completeness": "Complete/Partial/Limited"
-  },
-  "extracted_metrics": {
-    "account_metrics": { "followers": null, "followers_change": null, "followers_change_percent": null, "following": null, "posts_count": null },
-    "engagement_metrics": { "total_likes": null, "total_comments": null, "total_shares": null, "total_saves": null, "engagement_rate": null, "engagement_rate_change": null },
-    "reach_metrics": { "reach": null, "reach_change": null, "reach_change_percent": null, "impressions": null, "impressions_change": null, "impressions_change_percent": null },
-    "traffic_metrics": { "profile_visits": null, "profile_visits_change": null, "link_clicks": null, "link_clicks_change": null, "conversions": null, "conversion_rate": null },
-    "audience_metrics": { "top_locations": [], "age_distribution": [], "gender_distribution": null, "active_times": [] },
-    "content_performance": { "top_posts": [], "best_content_type": null, "avg_post_reach": null, "avg_post_engagement": null },
-    "video_metrics": { "total_views": null, "avg_watch_time": null, "completion_rate": null },
-    "ad_metrics": { "spend": null, "cpm": null, "cpc": null, "ctr": null, "roas": null }
-  },
-  "trend_analysis": {
-    "positive_trends": [],
-    "negative_trends": [],
-    "stable_metrics": [],
-    "overall_health_score": 7,
-    "growth_momentum": "Accelerating/Steady/Slowing/Declining"
-  },
-  "benchmark_comparison": {
-    "engagement_rate_analysis": { "user_rate": null, "industry_benchmark": null, "performance_vs_benchmark": "", "percentile_rank": "" },
-    "reach_rate_analysis": { "user_reach_rate": null, "typical_range": "" },
-    "posting_frequency_analysis": { "detected_frequency": "", "recommended_frequency": "", "assessment": "" },
-    "overall_performance_rating": "Excellent/Above Average/Average/Below Average/Poor",
-    "percentile_estimate": ""
-  },
-  "pattern_recognition": { "content_patterns": [], "audience_patterns": [], "timing_patterns": [], "anomalies_detected": [], "correlations_found": [] },
-  "insights": [{ "insight_number": 1, "insight": "", "supporting_data": "", "importance": "Critical/High/Medium/Low", "category": "Strength/Opportunity/Warning/Neutral", "impact_potential": "High/Medium/Low", "reasoning": "" }],
-  "recommendations": [{ "recommendation_number": 1, "recommendation": "", "rationale": "", "expected_impact": "High/Medium/Low", "effort_required": "Low/Medium/High", "timeframe": "Immediate/1-2 weeks/1 month+", "priority": "P0/P1/P2/P3", "implementation_steps": [], "success_metrics": "" }],
-  "opportunities": [{ "opportunity": "", "potential_impact": "High/Medium/Low", "difficulty": "Low/Medium/High", "priority": 1 }],
-  "risks": [{ "risk": "", "severity": "Critical/High/Medium/Low", "mitigation": "", "urgency": "Immediate/Soon/Later" }],
-  "follow_up_questions": [],
-  "summary": { "one_sentence_summary": "", "top_3_strengths": [], "top_3_areas_for_improvement": [], "immediate_action_required": false, "immediate_action_reason": "" }
-}`;
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
