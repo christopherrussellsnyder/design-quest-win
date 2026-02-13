@@ -68,10 +68,10 @@ class ErrorBoundary extends Component<{ children: ReactNode }, ErrorBoundaryStat
 
 // Loading fallback component
 const LoadingFallback = () => (
-  <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'hsl(222 47% 5%)', color: 'hsl(210 40% 98%)' }}>
+  <div className="min-h-screen flex items-center justify-center bg-background text-foreground">
     <div className="text-center">
-      <div className="w-12 h-12 border-4 border-t-transparent rounded-full animate-spin mx-auto mb-4" style={{ borderColor: 'hsl(263 70% 65%)', borderTopColor: 'transparent' }}></div>
-      <p style={{ color: 'hsl(215 16% 59%)' }}>Loading...</p>
+      <div className="arasaka-spinner mx-auto mb-4 w-12 h-12"></div>
+      <p className="text-muted-foreground">Loading...</p>
     </div>
   </div>
 );

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, MessageSquare, ChevronLeft, ChevronRight, Sparkles, MoreHorizontal, Trash2, Pencil, Star } from 'lucide-react';
+import { Plus, MessageSquare, ChevronLeft, ChevronRight, Sparkles, MoreVertical, Trash2, Pencil, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
@@ -41,7 +41,7 @@ export function ConversationSidebar({
   const [renameValue, setRenameValue] = useState('');
   return (
     <div className={cn(
-      'relative flex flex-col bg-muted/30 border-r transition-all duration-300',
+      'relative flex flex-col bg-secondary border-r border-subtle backdrop-blur-sm transition-all duration-300',
       isOpen ? 'w-80' : 'w-0'
     )}>
       {/* Toggle button */}
@@ -49,7 +49,7 @@ export function ConversationSidebar({
         variant="ghost"
         size="icon"
         className={cn(
-          'absolute -right-4 top-4 z-20 h-8 w-8 rounded-full border bg-background shadow-md',
+          'absolute -right-4 top-4 z-20 h-8 w-8 rounded-full border border-subtle bg-secondary shadow-md hover:border-primary hover:shadow-glow',
           !isOpen && 'right-[-48px]'
         )}
         onClick={onToggle}
@@ -60,13 +60,13 @@ export function ConversationSidebar({
       {isOpen && (
         <>
           {/* Header */}
-          <div className="p-4 border-b">
+          <div className="p-4 border-b border-subtle">
             <div className="flex items-center gap-2 mb-4">
-              <div className="p-2 rounded-lg bg-primary/10">
-                <Sparkles className="w-5 h-5 text-primary" />
+              <div className="p-2 rounded-md bg-gradient-to-br from-primary to-arasaka-red-dark shadow-glow">
+                <Sparkles className="w-5 h-5 text-primary-foreground" />
               </div>
               <div>
-                <h2 className="font-semibold text-sm">AI Strategist</h2>
+                <h2 className="font-bold text-sm text-gradient">AI Strategist</h2>
                 <p className="text-xs text-muted-foreground">Marketing Intelligence</p>
               </div>
             </div>
@@ -85,9 +85,9 @@ export function ConversationSidebar({
             <div className="p-2 space-y-1">
               {isLoading ? (
                 <div className="p-4 text-center">
-                  <div className="animate-pulse space-y-2">
+                  <div className="space-y-2">
                     {[1, 2, 3].map(i => (
-                      <div key={i} className="h-12 bg-muted rounded-md" />
+                      <div key={i} className="h-12 shimmer rounded-md" />
                     ))}
                   </div>
                 </div>
@@ -102,61 +102,18 @@ export function ConversationSidebar({
                   <div
                     key={conv.id}
                     className={cn(
-                      'flex items-center gap-2 p-3 rounded-lg cursor-pointer transition-all',
-                      'hover:bg-muted',
-                      selectedId === conv.id && 'bg-muted ring-1 ring-primary/20'
+                      'group flex items-center gap-2 py-3 px-4 rounded-md cursor-pointer transition-all duration-200 border-l-[3px] border-l-transparent',
+                      'hover:bg-surface-tertiary hover:border-l-primary',
+                      selectedId === conv.id && 'bg-surface-elevated border-l-primary'
                     )}
                     onClick={() => onSelect(conv.id)}
                   >
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <button
-                          type="button"
-                          aria-label="Conversation options"
-                          className="flex-shrink-0 p-1 rounded text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <MoreHorizontal className="w-4 h-4" />
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="start" sideOffset={4} className="w-44 z-[200] bg-popover border shadow-lg">
-                        <DropdownMenuItem
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (onFavorite) onFavorite(conv.id);
-                          }}
-                        >
-                          <Star className="w-4 h-4 mr-2" />
-                          Favorite
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setRenamingId(conv.id);
-                            setRenameValue(conv.title || 'New Conversation');
-                          }}
-                        >
-                          <Pencil className="w-4 h-4 mr-2" />
-                          Rename
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="text-destructive focus:text-destructive focus:bg-destructive/10"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onDelete(conv.id);
-                          }}
-                        >
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
                     <MessageSquare className="w-4 h-4 flex-shrink-0 text-muted-foreground" />
                     <div className="flex-1 min-w-0">
                       {renamingId === conv.id ? (
                         <input
                           autoFocus
-                          className="text-sm font-medium w-full bg-background border rounded px-1 py-0.5"
+                          className="text-sm font-medium w-full bg-secondary border border-medium rounded-md px-2 py-1 text-foreground focus:outline-none focus:border-primary focus:ring-[3px] focus:ring-primary/10"
                           value={renameValue}
                           onChange={(e) => setRenameValue(e.target.value)}
                           onKeyDown={(e) => {
@@ -173,14 +130,57 @@ export function ConversationSidebar({
                           onClick={(e) => e.stopPropagation()}
                         />
                       ) : (
-                        <p className="text-sm font-medium truncate">
+                        <p className="text-sm font-medium truncate text-foreground">
                           {conv.title || 'New Conversation'}
                         </p>
                       )}
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-xs text-muted-foreground mt-1">
                         {formatDistanceToNow(new Date(conv.updated_at), { addSuffix: true })}
                       </p>
                     </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button
+                          type="button"
+                          aria-label="Conversation options"
+                          className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-white/10"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <MoreVertical className="w-4 h-4" />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" sideOffset={4} className="z-[200]">
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (onFavorite) onFavorite(conv.id);
+                          }}
+                        >
+                          <Star className="w-4 h-4" />
+                          Favorite
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setRenamingId(conv.id);
+                            setRenameValue(conv.title || 'New Conversation');
+                          }}
+                        >
+                          <Pencil className="w-4 h-4" />
+                          Rename
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="text-error focus:text-error focus:bg-error/10"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onDelete(conv.id);
+                          }}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 ))
               )}
