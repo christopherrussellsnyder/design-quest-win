@@ -1,67 +1,90 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
-
 @layer base {
   :root {
-    /* Base radius */
     --radius: 0.75rem;
   }
 
-  /* Dark theme - default for this app */
   :root,
   .dark {
-    /* Dark AI Marketing Dashboard Theme */
-    --background: 222 47% 5%;
-    --foreground: 210 40% 98%;
+    /* Arasaka Corporation Theme */
+    --background: 240 6% 4%;
+    --foreground: 0 0% 100%;
 
-    --card: 217 33% 12%;
-    --card-foreground: 210 40% 98%;
+    --card: 228 7% 10%;
+    --card-foreground: 0 0% 100%;
 
-    --popover: 217 33% 12%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 225 6% 15%;
+    --popover-foreground: 0 0% 100%;
 
-    --primary: 263 70% 65%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 350 73% 45%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 217 33% 18%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 228 7% 10%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 217 33% 18%;
-    --muted-foreground: 215 16% 59%;
+    --muted: 225 5% 13%;
+    --muted-foreground: 240 3% 65%;
 
-    --accent: 328 86% 70%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 225 6% 15%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 217 33% 15%;
-    --input: 217 33% 15%;
-    --ring: 263 70% 65%;
+    --border: 225 4% 18%;
+    --input: 225 5% 22%;
+    --ring: 350 73% 45%;
 
-    /* Additional colors for dashboard */
-    --violet: 263 70% 65%;
-    --fuchsia: 328 86% 70%;
-    --cyan: 189 94% 43%;
-    --emerald: 142 71% 45%;
-    --amber: 38 92% 50%;
-    --rose: 350 89% 60%;
-    
+    /* Extended Arasaka palette */
+    --arasaka-red: 350 73% 45%;
+    --arasaka-red-dark: 350 73% 32%;
+    --arasaka-red-light: 352 78% 56%;
+    --bg-primary: 240 6% 4%;
+    --bg-secondary: 228 7% 10%;
+    --bg-tertiary: 225 5% 13%;
+    --bg-elevated: 225 6% 15%;
+    --border-subtle: 225 4% 18%;
+    --border-medium: 225 3% 24%;
+    --border-focus: 350 73% 45%;
+    --text-primary: 0 0% 100%;
+    --text-secondary: 240 3% 65%;
+    --text-tertiary: 240 2% 44%;
+    --accent-gold: 43 72% 52%;
+    --accent-success: 160 84% 39%;
+    --accent-warning: 38 92% 50%;
+    --accent-error: 0 84% 60%;
+
     /* Chart colors */
-    --chart-1: 263 70% 65%;
-    --chart-2: 189 94% 43%;
-    --chart-3: 142 71% 45%;
+    --chart-1: 350 73% 45%;
+    --chart-2: 160 84% 39%;
+    --chart-3: 43 72% 52%;
     --chart-4: 38 92% 50%;
-    --chart-5: 328 86% 70%;
-    
+    --chart-5: 352 78% 56%;
+
+    /* Legacy compat */
+    --violet: 350 73% 45%;
+    --fuchsia: 352 78% 56%;
+    --cyan: 160 84% 39%;
+    --emerald: 160 84% 39%;
+    --amber: 43 72% 52%;
+    --rose: 350 73% 45%;
+
     /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(263 70% 65%), hsl(328 86% 70%));
-    --gradient-card: linear-gradient(135deg, hsl(217 33% 12% / 0.5), hsl(217 33% 8% / 0.5));
+    --gradient-primary: linear-gradient(135deg, hsl(350 73% 45%), hsl(350 73% 32%));
+    --gradient-surface: linear-gradient(135deg, hsl(228 7% 10%), hsl(225 5% 13%));
+    --gradient-card: linear-gradient(135deg, hsl(228 7% 10% / 0.5), hsl(225 5% 13% / 0.5));
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.4);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.4);
+    --shadow-glow: 0 0 20px rgba(196, 30, 58, 0.3);
   }
 
   * {
@@ -72,9 +95,109 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground;
     min-height: 100vh;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   }
 
   #root {
     min-height: 100vh;
   }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--bg-secondary));
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--border-medium));
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--arasaka-red));
+  }
+}
+
+@layer components {
+  /* Text gradient */
+  .text-gradient {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Card glass effect */
+  .card-glass {
+    background: rgba(22, 23, 26, 0.6);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: var(--shadow-xl);
+  }
+
+  /* Glow on hover */
+  .glow-hover {
+    position: relative;
+  }
+  .glow-hover::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    background: var(--gradient-primary);
+    border-radius: inherit;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: -1;
+    filter: blur(10px);
+  }
+  .glow-hover:hover::before {
+    opacity: 0.5;
+  }
+
+  /* Animated gradient background */
+  .animated-gradient {
+    background: linear-gradient(-45deg, hsl(350 73% 32%), hsl(350 73% 45%), hsl(352 78% 56%), hsl(350 73% 45%));
+    background-size: 400% 400%;
+    animation: gradientShift 15s ease infinite;
+  }
+
+  /* Shimmer loading effect */
+  .shimmer {
+    background: linear-gradient(90deg, hsl(var(--bg-secondary)) 0%, hsl(var(--bg-tertiary)) 50%, hsl(var(--bg-secondary)) 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  /* Spinner */
+  .arasaka-spinner {
+    border: 3px solid hsl(var(--bg-tertiary));
+    border-top: 3px solid hsl(var(--arasaka-red));
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    animation: spin 0.8s linear infinite;
+  }
+}
+
+@layer utilities {
+  .shadow-glow {
+    box-shadow: var(--shadow-glow);
+  }
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
