@@ -32,25 +32,65 @@ function buildEnhancedStrategyPrompt(
   const targetAudience = bp.targetAudience || {};
   const brandIdentity = bp.brandIdentity || {};
   const productsServices = bp.productsServices || [];
+  const competitors = bp.competitors || [];
   
   // Extract best performing patterns from analytics
   let bestContentType = 'carousel';
+  let bestContentEngagement = 5.0;
   let avgEngagementRate = 3.5;
   let optimalPostingTimes = ['09:00', '12:00', '19:00'];
   let currentFollowers = 1000;
+  let audienceDemographics = '';
+  let reachTrend = '';
   
   if (recentAnalytics?.length > 0) {
-    const latestMetrics = recentAnalytics[0]?.metrics || {};
+    const latestMetrics = recentAnalytics[0]?.metrics || recentAnalytics[0]?.extracted_data || {};
     avgEngagementRate = latestMetrics.engagement_rate || avgEngagementRate;
     currentFollowers = latestMetrics.followers || currentFollowers;
+    if (latestMetrics.best_content_type) bestContentType = latestMetrics.best_content_type;
+    if (latestMetrics.best_content_engagement_rate) bestContentEngagement = latestMetrics.best_content_engagement_rate;
   }
 
   const targetEngagementRate = Math.max(avgEngagementRate * 1.15, 4.5);
   const goalsText = goals?.length ? goals.join(', ') : 'Increase engagement, Grow followers, Drive conversions';
 
+  // Build analytics intelligence section
+  let analyticsSection = '';
+  if (recentAnalytics?.length > 0) {
+    analyticsSection = `
+HISTORICAL PERFORMANCE DATA (from uploaded analytics):
+- Current Engagement Rate: ${avgEngagementRate}% ${avgEngagementRate > 3.5 ? '(above industry avg 3.5%)' : '(industry avg ~3.5%)'}
+- Current Followers: ${currentFollowers.toLocaleString()}
+- Best Performing Content: ${bestContentType} (${bestContentEngagement}% engagement)
+- Optimal Posting Times: ${optimalPostingTimes.join(', ')}
+${recentAnalytics[0]?.healthScore ? `- Health Score: ${recentAnalytics[0].healthScore}/10` : ''}
+${recentAnalytics[0]?.performanceRating ? `- Performance Rating: ${recentAnalytics[0].performanceRating}` : ''}
+`;
+    
+    const trendAnalysis = recentAnalytics[0]?.trend_analysis || recentAnalytics[0]?.trendAnalysis;
+    if (trendAnalysis) {
+      if (trendAnalysis.positive_trends?.length) {
+        analyticsSection += `\nTop Strengths:\n${trendAnalysis.positive_trends.slice(0, 3).map((t: any, i: number) => `${i+1}. ${t.metric || t}: ${t.change || ''}`).join('\n')}\n`;
+      }
+      if (trendAnalysis.negative_trends?.length) {
+        analyticsSection += `Areas to Address:\n${trendAnalysis.negative_trends.slice(0, 3).map((t: any, i: number) => `${i+1}. ${t.metric || t}: ${t.change || ''}`).join('\n')}\n`;
+      }
+    }
+  } else {
+    analyticsSection = `
+HISTORICAL PERFORMANCE DATA:
+- No analytics uploaded yet - using industry benchmarks
+- Industry Average Engagement Rate: 3.5%
+- Recommended Posting Times: 9 AM, 12 PM, 7 PM
+- Best Content Types (industry): Carousels, Reels, Educational content
+`;
+  }
+
   return `You are a world-class content strategist creating a comprehensive social media strategy.
 
-STRATEGIC BRIEF:
+═══════════════════════════════════════════════════════════════
+STRATEGIC BRIEF
+═══════════════════════════════════════════════════════════════
 
 CLIENT: ${businessName}
 INDUSTRY: ${industry}
@@ -59,71 +99,132 @@ DURATION: ${durationDays} days
 START DATE: ${startDate.toISOString().split('T')[0]}
 END DATE: ${endDate.toISOString().split('T')[0]}
 
-BUSINESS INTELLIGENCE:
+═══════════════════════════════════════════════════════════════
+BUSINESS INTELLIGENCE
+═══════════════════════════════════════════════════════════════
+
 - Business Name: ${businessName}
 - Industry: ${industry}
 - Business Type: ${bp.businessType || 'B2C'}
+- Stage: ${bp.stage || 'Growth'}
 - Products/Services: ${productsServices.length ? productsServices.map((p: any) => p.name || p).join(', ') : 'Various products/services'}
 - Target Audience: ${targetAudience.ageRange || '25-44'} years old, ${targetAudience.customerType || 'consumers'}
+${targetAudience.genderFocus ? `- Gender Focus: ${targetAudience.genderFocus}` : ''}
+${targetAudience.incomeLevel ? `- Income Level: ${targetAudience.incomeLevel}` : ''}
+${targetAudience.interests?.length ? `- Interests: ${targetAudience.interests.join(', ')}` : ''}
+${targetAudience.painPoints?.length ? `- Pain Points: ${targetAudience.painPoints.join(', ')}` : ''}
 - Brand Voice: ${brandIdentity.toneCharacteristics?.join(', ') || 'professional, engaging, authentic'}
 - Value Proposition: ${brandIdentity.valueProposition || 'High-quality solutions for target audience'}
-
-HISTORICAL PERFORMANCE DATA:
-- Current Engagement Rate: ${avgEngagementRate}%
-- Industry Benchmark: 3.5%
-- Target Engagement Rate: ${targetEngagementRate.toFixed(1)}%
-- Current Followers: ${currentFollowers.toLocaleString()}
-- Best Performing Content: ${bestContentType}
-- Optimal Posting Times: ${optimalPostingTimes.join(', ')}
+${brandIdentity.brandValues?.length ? `- Brand Values: ${brandIdentity.brandValues.join(', ')}` : ''}
+${brandIdentity.competitiveAdvantages?.length ? `- Competitive Advantages: ${brandIdentity.competitiveAdvantages.join(', ')}` : ''}
+${competitors.length ? `- Key Competitors: ${competitors.join(', ')}` : ''}
+${bp.geographicFocus ? `- Geographic Focus: ${bp.geographicFocus}` : ''}
+${analyticsSection}
 
 STRATEGIC OBJECTIVES:
 Primary Goals: ${goalsText}
+Target Engagement Rate: ${targetEngagementRate.toFixed(1)}%
 ${customInstructions ? `Custom Requirements: ${customInstructions}` : ''}
 
-───────────────────────────────────────────────────────────────
+═══════════════════════════════════════════════════════════════
+5-PHASE STRATEGY DEVELOPMENT FRAMEWORK
+═══════════════════════════════════════════════════════════════
 
-STRATEGY DEVELOPMENT FRAMEWORK:
+PHASE 1: STRATEGIC FOUNDATION
+Analyze the business context and determine:
+- Current position: strengths to leverage, weaknesses to address
+- Market opportunities to seize based on industry and audience
+- Competitive differentiation approach
+- Seasonal considerations for the strategy period
 
-Generate a complete ${durationDays}-day content strategy with:
+PHASE 2: CONTENT ARCHITECTURE (4-Week Narrative Arc)
 
-1. STRATEGY OVERVIEW with:
-   - Strategic approach (core strategy, differentiator, competitive edge)
-   - Content distribution by type and theme
-   - Predicted outcomes (reach, engagement, follower growth)
-   - Key tactics (5-7 specific tactics)
-   - Weekly milestones
-   - Risk assessment
+WEEK 1 - AWARENESS & EDUCATION:
+- Objective: Introduce value, establish authority
+- Theme: "Know Us"
+- Content Focus: Educational content, problem identification, industry insights
+- Tone: Informative, helpful, approachable
+- Primary Metric: Reach
 
-2. WEEKLY BREAKDOWN (4 weeks):
-   - Week 1: AWARENESS & EDUCATION - Introduce value, establish authority
-   - Week 2: ENGAGEMENT & TRUST - Build relationship, encourage interaction
-   - Week 3: CONSIDERATION & DESIRE - Showcase benefits, create desire
-   - Week 4: CONVERSION & ACTION - Drive specific actions, convert interest
+WEEK 2 - ENGAGEMENT & TRUST:
+- Objective: Build relationship, encourage interaction
+- Theme: "Connect With Us"
+- Content Focus: Interactive content, storytelling, community building
+- Tone: Conversational, authentic, relatable
+- Primary Metric: Engagement Rate
 
-3. DETAILED POSTS (exactly ${durationDays} posts) - each with:
-   - Timing and scheduling
-   - Content details (type, category, theme, emotion, pillar)
-   - Copy elements (hook with technique, opening, body, CTA with type/strength)
-   - Hashtag strategy (organized by volume tier)
-   - Visual guidance (description, colors, text overlay)
-   - Performance predictions (reach, impressions, engagement, likes, comments, shares, saves, confidence level)
-   - Strategic rationale (why this day, arc positioning, success metrics)
-   - Optimization tips (engagement boosters, A/B test ideas, risk mitigation)
+WEEK 3 - CONSIDERATION & DESIRE:
+- Objective: Showcase benefits, create desire
+- Theme: "Why Choose Us"
+- Content Focus: Benefits, social proof, comparisons, value demonstrations
+- Tone: Confident, aspirational, proof-driven
+- Primary Metric: Profile Visits
 
-CONTENT MIX (distribute across ${durationDays} days):
+WEEK 4 - CONVERSION & ACTION:
+- Objective: Drive specific actions, convert interest
+- Theme: "Join Us"
+- Content Focus: Promotional, offers, clear CTAs, urgency
+- Tone: Direct, action-oriented, exciting
+- Primary Metric: Conversions
+
+PHASE 3: CONTENT MIX OPTIMIZATION
+Based on performance data, optimize distribution:
+
+Content Theme Mix:
 - 30% Educational (teach, inform, provide value)
 - 25% Promotional (products, services, offers)
 - 20% Engagement (questions, polls, user interaction)
 - 15% Social Proof (testimonials, reviews, results)
 - 10% Behind-the-Scenes (team, process, culture)
 
-POST TYPE MIX for ${platform}:
-- 35% Carousels (highest engagement)
-- 30% Reels/Videos (best reach)
+Post Type Mix for ${platform}:
+- 35% Carousels (highest engagement based on data)
+- 30% Reels/Videos (best reach potential)
 - 20% Single Images (quick consumption)
 - 15% Stories/Text (engagement drivers)
 
-IMPORTANT: Return ONLY valid JSON with this exact structure:
+PHASE 4: DAILY POST GENERATION
+For EACH of ${durationDays} days, create a detailed post with:
+
+- Timing optimized to posting data
+- Content details: post type, category, specific theme, primary emotion, content pillar
+- Copy elements:
+  * Hook (5-10 words, scroll-stopping) with technique (pattern_interrupt/curiosity_gap/bold_statement/question) and psychological principle
+  * Opening (first 2-3 sentences expanding hook)
+  * Body (main content, 100-150 words, platform-optimized)
+  * CTA with type (engage/visit/buy/share/save/comment) and strength (soft/medium/hard)
+  * Full caption (complete formatted, 150-250 words total)
+- Hashtag strategy: 10-15 hashtags organized by volume tier (3 high-volume 100K+, 5 medium-volume 10K-100K, 4 niche 1K-10K, 2 branded)
+- Visual guidance: type, description, color palette, text overlay, attention hook
+- Performance prediction: reach, impressions, engagement rate, likes, comments, shares, saves, confidence level, prediction basis
+- Strategic rationale: why this day, arc positioning, what it builds toward, success metrics
+- Optimization tips: engagement boosters, A/B test ideas, potential issues, risk mitigation
+
+QUALITY STANDARDS FOR EACH POST:
+✓ Hook stops scroll in 0.5 seconds
+✓ Caption provides genuine value
+✓ CTA is clear and compelling
+✓ Hashtags are researched and relevant
+✓ Timing is data-optimized
+✓ Fits narrative arc perfectly
+✓ Matches brand voice consistently
+✓ Actionable and engaging
+
+PHASE 5: STRATEGY METADATA
+Create comprehensive overview with:
+- Strategic approach summary
+- Content distribution breakdown
+- Predicted outcomes with specific numbers
+- Key tactics (5-7 specific, actionable)
+- Weekly milestones with targets
+- Risk assessment with mitigation strategies
+- Implementation guide with scheduling, creation timeline, engagement protocol
+
+═══════════════════════════════════════════════════════════════
+OUTPUT FORMAT
+═══════════════════════════════════════════════════════════════
+
+Return ONLY valid JSON with this exact structure:
 {
   "strategy_overview": {
     "title": "${durationDays}-Day ${platform.charAt(0).toUpperCase() + platform.slice(1)} Strategy for ${businessName}",
@@ -133,9 +234,9 @@ IMPORTANT: Return ONLY valid JSON with this exact structure:
     "end_date": "${endDate.toISOString().split('T')[0]}",
     "total_posts": ${durationDays},
     "strategic_approach": {
-      "core_strategy": "[1-2 sentence strategic summary]",
-      "key_differentiator": "[what makes this unique]",
-      "competitive_edge": "[how this beats competitors]"
+      "core_strategy": "[1-2 sentence strategic summary grounded in business context]",
+      "key_differentiator": "[what makes this strategy unique to this business]",
+      "competitive_edge": "[how this beats competitors based on data]"
     },
     "goals": ${JSON.stringify(goals || ["Increase engagement", "Grow followers", "Drive conversions"])},
     "content_mix": {
@@ -146,64 +247,88 @@ IMPORTANT: Return ONLY valid JSON with this exact structure:
       "behind_scenes": 10
     },
     "post_type_distribution": {
-      "carousel": 11,
-      "reel": 9,
-      "single_image": 6,
-      "video": 2,
-      "story": 2
+      "carousel": ${Math.round(durationDays * 0.35)},
+      "reel": ${Math.round(durationDays * 0.30)},
+      "single_image": ${Math.round(durationDays * 0.20)},
+      "video": ${Math.round(durationDays * 0.08)},
+      "story": ${Math.round(durationDays * 0.07)}
     },
     "predicted_metrics": {
-      "total_reach": 75000,
-      "total_impressions": 120000,
+      "total_reach": ${Math.round(currentFollowers * durationDays * 2.5)},
+      "total_impressions": ${Math.round(currentFollowers * durationDays * 4)},
       "avg_engagement_rate": ${targetEngagementRate.toFixed(1)},
-      "expected_follower_growth": 500,
-      "expected_follower_growth_percentage": 5.0,
-      "expected_profile_visits": 2500,
-      "expected_website_clicks": 450,
-      "expected_conversions": 25
+      "expected_follower_growth": ${Math.round(currentFollowers * 0.05 * (durationDays / 30))},
+      "expected_follower_growth_percentage": ${(5 * durationDays / 30).toFixed(1)},
+      "expected_profile_visits": ${Math.round(currentFollowers * 0.25 * (durationDays / 30))},
+      "expected_website_clicks": ${Math.round(currentFollowers * 0.05 * (durationDays / 30))},
+      "expected_conversions": ${Math.round(currentFollowers * 0.003 * (durationDays / 30))}
     },
     "key_tactics": [
-      "Lead with value-first educational content",
-      "Use pattern-interrupt hooks for scroll-stopping",
-      "Leverage social proof in week 3 for trust",
-      "Include clear CTAs with urgency in week 4",
-      "Optimize posting times based on audience activity"
+      "Lead with value-first educational content leveraging ${bestContentType} format",
+      "Use pattern-interrupt hooks based on ${industry} audience psychology",
+      "Leverage social proof in week 3 for trust acceleration",
+      "Include clear CTAs with urgency in week 4 for conversion",
+      "Optimize all posting times to ${optimalPostingTimes[0]} and ${optimalPostingTimes[2]} based on audience data"
     ],
     "success_milestones": {
-      "week_1": "Reach 15K+ accounts, establish content rhythm",
-      "week_2": "Achieve 4%+ engagement rate, grow community interaction",
-      "week_3": "Drive 500+ profile visits, build purchase intent",
-      "week_4": "Generate 25+ conversions, capture momentum"
+      "week_1": "Reach ${Math.round(currentFollowers * 15)}+ accounts, establish content rhythm",
+      "week_2": "Achieve ${targetEngagementRate.toFixed(1)}%+ engagement rate, grow community interaction",
+      "week_3": "Drive ${Math.round(currentFollowers * 0.5)}+ profile visits, build purchase intent",
+      "week_4": "Generate ${Math.round(currentFollowers * 0.003)}+ conversions, capture momentum"
     },
     "risk_assessment": {
-      "potential_challenges": ["Algorithm changes", "Content fatigue", "Low initial reach"],
-      "mitigation_strategies": ["Diversify content types", "A/B test hooks", "Engage with comments quickly"],
-      "pivot_triggers": ["Engagement drops below 2%", "Reach declines 3 days in a row"]
+      "potential_challenges": ["Algorithm changes reducing organic reach", "Content fatigue if themes repeat", "Low initial engagement on new content types", "Competitor activity during campaign period", "Seasonal fluctuations in audience activity"],
+      "mitigation_strategies": ["Diversify content types across carousel/reel/image", "A/B test hooks and CTAs weekly", "Engage with comments within 1 hour of posting", "Monitor competitor activity and differentiate", "Adjust posting times based on weekly performance"],
+      "pivot_triggers": ["Engagement drops below ${(avgEngagementRate * 0.7).toFixed(1)}% for 3 consecutive posts", "Reach declines 3 days in a row", "Follower growth stalls for a full week"]
     },
     "implementation_guide": {
-      "posting_schedule": "Post daily at optimal times",
-      "content_creation_timeline": "Create week's content 2-3 days ahead",
-      "engagement_protocol": "Reply to comments within 1 hour of posting",
-      "monitoring_schedule": "Check metrics daily, analyze weekly",
-      "adjustment_criteria": "Pivot if engagement drops below 2.5%"
+      "posting_schedule": "Post daily at optimal times (${optimalPostingTimes.join(', ')})",
+      "content_creation_timeline": "Create next week's content 2-3 days ahead, batch-create visuals",
+      "engagement_protocol": "Reply to all comments within 1 hour, engage with 10 accounts in niche daily",
+      "monitoring_schedule": "Check metrics daily at end of day, deep analysis weekly on Sunday",
+      "adjustment_criteria": "Pivot content mix if engagement drops below ${(avgEngagementRate * 0.7).toFixed(1)}% for 3+ days"
     }
   },
   "weekly_breakdown": [
     {
       "week": 1,
       "theme": "Awareness & Education",
-      "objective": "Introduce value and establish authority",
+      "objective": "Introduce value and establish authority in ${industry}",
+      "post_count": ${Math.min(7, durationDays)},
+      "key_messages": ["Position as ${industry} expert", "Address audience pain points", "Provide actionable tips"],
+      "expected_metrics": { "reach": ${Math.round(currentFollowers * 15)}, "engagement_rate": ${targetEngagementRate.toFixed(1)}, "follower_growth": ${Math.round(currentFollowers * 0.01)} },
+      "focus_areas": ["Educational ${bestContentType}s", "How-to content", "Industry insights"]
+    },
+    {
+      "week": 2,
+      "theme": "Engagement & Trust",
+      "objective": "Build relationship and encourage interaction",
       "post_count": 7,
-      "key_messages": ["Position as industry expert", "Address pain points", "Provide actionable tips"],
-      "expected_metrics": {
-        "reach": 15000,
-        "engagement_rate": 4.2,
-        "follower_growth": 80
-      },
-      "focus_areas": ["Educational carousels", "How-to content", "Industry insights"]
+      "key_messages": ["Share authentic brand stories", "Encourage community participation", "Show behind-the-scenes"],
+      "expected_metrics": { "reach": ${Math.round(currentFollowers * 18)}, "engagement_rate": ${(targetEngagementRate * 1.1).toFixed(1)}, "follower_growth": ${Math.round(currentFollowers * 0.015)} },
+      "focus_areas": ["Interactive polls and questions", "User-generated content", "Team/process stories"]
+    },
+    {
+      "week": 3,
+      "theme": "Consideration & Desire",
+      "objective": "Showcase benefits and create desire for ${businessName}",
+      "post_count": 7,
+      "key_messages": ["Highlight unique value proposition", "Share customer success stories", "Compare benefits"],
+      "expected_metrics": { "reach": ${Math.round(currentFollowers * 20)}, "engagement_rate": ${targetEngagementRate.toFixed(1)}, "follower_growth": ${Math.round(currentFollowers * 0.012)} },
+      "focus_areas": ["Testimonials and case studies", "Product/service showcases", "Before/after transformations"]
+    },
+    {
+      "week": 4,
+      "theme": "Conversion & Action",
+      "objective": "Drive specific actions and convert interest into customers",
+      "post_count": ${Math.max(durationDays - 21, 7)},
+      "key_messages": ["Clear calls-to-action", "Limited-time opportunities", "Make it easy to take next step"],
+      "expected_metrics": { "reach": ${Math.round(currentFollowers * 22)}, "engagement_rate": ${(targetEngagementRate * 0.95).toFixed(1)}, "follower_growth": ${Math.round(currentFollowers * 0.012)} },
+      "focus_areas": ["Promotional content with CTAs", "Urgency-driven posts", "Direct response content"]
     }
   ],
   "posts": [
+    // Generate exactly ${durationDays} posts with this structure per post:
     {
       "day_number": 1,
       "post_date": "${startDate.toISOString().split('T')[0]}",
@@ -213,41 +338,41 @@ IMPORTANT: Return ONLY valid JSON with this exact structure:
       "content_details": {
         "post_type": "carousel",
         "content_category": "educational",
-        "specific_theme": "[specific topic]",
+        "specific_theme": "[specific topic relevant to ${industry}]",
         "primary_emotion": "curiosity",
         "content_pillar": "expertise"
       },
       "copy_elements": {
         "hook": {
-          "text": "[5-10 words, scroll-stopping]",
+          "text": "[5-10 words, scroll-stopping, specific to ${industry}]",
           "technique": "curiosity_gap",
-          "psychological_principle": "Creates open loop that demands closure"
+          "psychological_principle": "Creates open loop demanding closure"
         },
-        "opening": "[First 2-3 sentences expanding on hook]",
-        "body": "[Main content, 100-150 words]",
+        "opening": "[First 2-3 sentences expanding hook with ${industry}-specific context]",
+        "body": "[Main content, 100-150 words, actionable for ${targetAudience.customerType || 'target audience'}]",
         "cta": {
-          "text": "[Specific call-to-action]",
+          "text": "[Specific call-to-action aligned with week 1 goals]",
           "type": "engage",
           "strength": "medium"
         },
-        "full_caption": "[Complete formatted caption, 150-250 words]"
+        "full_caption": "[Complete formatted caption, 150-250 words, matching ${brandIdentity.toneCharacteristics?.join('/') || 'professional'} voice]"
       },
       "hashtag_strategy": {
-        "hashtags": ["#hashtag1", "#hashtag2"],
+        "hashtags": ["#tag1", "#tag2"],
         "mix_breakdown": {
-          "high_volume": ["#tag1", "#tag2", "#tag3"],
-          "medium_volume": ["#tag4", "#tag5", "#tag6", "#tag7", "#tag8"],
-          "niche": ["#tag9", "#tag10", "#tag11", "#tag12"],
-          "branded": ["#brandtag1", "#brandtag2"]
+          "high_volume": ["3 hashtags with 100K+ posts"],
+          "medium_volume": ["5 hashtags with 10K-100K posts"],
+          "niche": ["4 hashtags with 1K-10K posts"],
+          "branded": ["2 brand-specific hashtags"]
         },
-        "selection_rationale": "[Why these specific tags]"
+        "selection_rationale": "[Why these specific tags for this ${industry} business]"
       },
       "visual_guidance": {
         "visual_type": "carousel",
-        "description": "[What the visual should show]",
-        "color_palette": "[Colors based on brand]",
-        "text_overlay": "[If applicable]",
-        "attention_hook": "[What grabs attention visually]"
+        "description": "[What the visual should show - specific to ${businessName}]",
+        "color_palette": "[Colors aligned with brand identity]",
+        "text_overlay": "[If applicable - key message on visual]",
+        "attention_hook": "[What grabs attention in the first slide]"
       },
       "performance_prediction": {
         "predicted_reach": 2000,
@@ -258,25 +383,46 @@ IMPORTANT: Return ONLY valid JSON with this exact structure:
         "predicted_shares": 8,
         "predicted_saves": 25,
         "confidence_level": "High",
-        "prediction_basis": "Based on educational carousel benchmarks"
+        "prediction_basis": "Based on ${bestContentType} benchmarks and ${industry} engagement patterns"
       },
       "strategic_rationale": {
         "why_this_day": "[Strategic reason for this timing]",
-        "arc_positioning": "[How it fits narrative arc]",
-        "builds_toward": "[What this sets up]",
-        "success_metrics": "[Key metrics to watch]"
+        "arc_positioning": "[How it fits the week 1 awareness narrative]",
+        "builds_toward": "[What this sets up for upcoming posts]",
+        "success_metrics": "[Key metrics to watch for this specific post]"
       },
       "optimization_tips": {
-        "engagement_boosters": ["Ask a question in caption", "Use contrarian hook"],
-        "a_b_test_ideas": ["Test with/without emoji in hook", "Compare morning vs evening"],
-        "potential_issues": ["May need stronger visual hook"],
-        "risk_mitigation": ["Have backup hook ready"]
+        "engagement_boosters": ["Ask a question in caption", "Use contrarian hook to spark debate"],
+        "a_b_test_ideas": ["Test with/without emoji in hook", "Compare morning vs evening posting"],
+        "potential_issues": ["May need stronger visual hook if reach is low"],
+        "risk_mitigation": ["Have backup hook ready", "Prepare alternative CTA"]
       }
     }
   ]
 }
 
-Generate exactly ${durationDays} detailed posts following this structure. Make each post unique, valuable, and strategically positioned within the narrative arc. Reference the specific business context and optimize for ${platform}.`;
+═══════════════════════════════════════════════════════════════
+VALIDATION CHECKLIST
+═══════════════════════════════════════════════════════════════
+
+Before returning, verify:
+✓ ALL ${durationDays} posts are created with complete details
+✓ Clear narrative arc across 4 weeks (Awareness → Engagement → Consideration → Conversion)
+✓ Content mix percentages achieved (30/25/20/15/10)
+✓ Performance predictions are based on actual data or realistic benchmarks
+✓ Timing optimized per historical patterns
+✓ Brand voice (${brandIdentity.toneCharacteristics?.join(', ') || 'professional'}) consistent throughout
+✓ Each post serves a clear strategic purpose within the arc
+✓ Hashtags researched and categorized by volume tier
+✓ CTAs clear, varied appropriately, and escalate through weeks
+✓ Visual guidance is specific and actionable
+✓ Strategic rationale provided for each post
+✓ Risk mitigation strategies included
+✓ Success milestones defined for each week
+✓ All content is specific to ${businessName} in ${industry}
+✓ No generic placeholder text remains
+
+Generate exactly ${durationDays} detailed posts. Make each unique, valuable, and strategically positioned within the narrative arc. Reference the specific business context throughout.`;
 }
 
 serve(async (req) => {
@@ -367,12 +513,12 @@ serve(async (req) => {
         messages: [
           { 
             role: 'system', 
-            content: 'You are a world-class content strategist specializing in social media marketing. Generate detailed, actionable content strategies with comprehensive data. Always respond with valid JSON only, no markdown formatting or code blocks.' 
+            content: 'You are a world-class content strategist specializing in social media marketing. Generate detailed, actionable content strategies with comprehensive data. Always respond with valid JSON only, no markdown formatting or code blocks. Every post must be unique and strategically positioned.' 
           },
           { role: 'user', content: prompt },
         ],
         temperature: 0.75,
-        max_tokens: 20000,
+        max_tokens: 25000,
       }),
     });
 
@@ -450,7 +596,6 @@ serve(async (req) => {
         content_mix: overview.content_mix,
         predicted_metrics: predictedMetrics,
         conversation_id: conversationId || null,
-        // Enhanced fields
         strategic_approach: overview.strategic_approach,
         weekly_breakdown: strategyData.weekly_breakdown,
         key_tactics: overview.key_tactics,
@@ -500,7 +645,6 @@ serve(async (req) => {
         predicted_engagement: perfPrediction.predicted_engagement_rate || post.predicted_engagement,
         rationale: stratRationale.why_this_day || post.rationale,
         sort_order: index + 1,
-        // Enhanced fields
         week_number: post.week_number,
         week_theme: post.week_theme,
         content_category: contentDetails.content_category,

@@ -40,7 +40,6 @@ interface ScrapedContent {
 }
 
 function buildComprehensivePrompt(scrapedContent: ScrapedContent): string {
-  // Build detailed page content
   const pagesSummary = scrapedContent.pages.map(page => {
     const ctaTexts = page.ctas?.map(c => c.text).join(', ') || 'None detected';
     const socialPlatforms = page.socialLinks?.map(s => s.platform).join(', ') || 'None detected';
@@ -70,11 +69,11 @@ CTAs DETECTED: ${ctaTexts}
 SOCIAL LINKS: ${socialPlatforms}
 PRICE ELEMENTS: ${page.priceElements?.slice(0, 10).join(', ') || 'None detected'}
 TESTIMONIALS: ${page.testimonials?.length || 0} found
+${page.testimonials?.length ? `Sample: "${page.testimonials[0]?.slice(0, 200)}"` : ''}
 FORMS: ${page.forms?.length || 0} found with fields: ${page.forms?.flatMap(f => f.fields).slice(0, 10).join(', ') || 'None'}
 `;
   }).join('\n\n');
 
-  // Aggregate data across all pages
   const allColors = [...new Set(scrapedContent.pages.flatMap(p => p.colors || []))].slice(0, 20);
   const allFonts = [...new Set(scrapedContent.pages.flatMap(p => p.fonts || []))].slice(0, 15);
   const allCtas = [...new Set(scrapedContent.pages.flatMap(p => p.ctas?.map(c => c.text) || []))].slice(0, 20);
@@ -84,7 +83,7 @@ FORMS: ${page.forms?.length || 0} found with fields: ${page.forms?.flatMap(f => 
 
   return `You are a comprehensive business intelligence analyst with expertise in brand strategy, competitive positioning, market analysis, and marketing optimization.
 
-TASK: Analyze this website content to build a complete strategic business profile.
+TASK: Analyze this website content to build a complete strategic business profile using a comprehensive 10-phase strategic analysis framework.
 
 ═══════════════════════════════════════════════════════════════
 WEBSITE DATA PROVIDED
@@ -111,10 +110,79 @@ PAGE-BY-PAGE CONTENT
 ${pagesSummary}
 
 ═══════════════════════════════════════════════════════════════
-ANALYSIS REQUIREMENTS
+10-PHASE STRATEGIC ANALYSIS FRAMEWORK
 ═══════════════════════════════════════════════════════════════
 
-Analyze comprehensively and return a valid JSON object with this structure:
+PHASE 1: CORE BUSINESS IDENTIFICATION
+- Business Identity: name, brand name, tagline, founded year, confidence level
+- Industry Classification: Primary (be specific, e.g., "B2B SaaS for HR automation" not just "software"), Secondary, Market Segment (Enterprise/Mid-market/SMB/Consumer)
+- Business Model: revenue model, business type (B2B/B2C/D2C), transaction type (Self-service/Sales-led/Hybrid)
+- Product/Service Portfolio: each with name, description, category (Core/Premium/Add-on), target user, key features
+- Pricing Intelligence: price points, strategy (Premium/Mid-market/Budget/Freemium), model, psychology patterns
+- Geographic & Scale: focus, evidence, physical locations, target markets
+- Company Stage & Maturity: stage, indicators, estimated size, growth phase
+
+PHASE 2: DEEP AUDIENCE INTELLIGENCE
+- Primary Target Audience Demographics: age range (specific like "28-42"), gender focus, income bracket, education level, job titles/seniority if B2B
+- Psychographics: values, lifestyle indicators, aspirations, fears, motivations, behavioral traits
+- Pain Points: each with specific problem, severity, current solution, frustration level
+- Jobs to Be Done: functional job, emotional job, social job
+- Secondary Audiences if applicable
+- Audience Sophistication: knowledge level, buying sophistication, solution awareness
+
+PHASE 3: BRAND ARCHITECTURE & IDENTITY
+- Brand Voice: tone scales (formality, playfulness, complexity, confidence, warmth each 1-10), voice characteristics (5-7 adjectives), voice examples with quotes, consistency, audience alignment
+- Messaging Architecture: primary value proposition, supporting messages, unique differentiators with proof, proof elements (data points, testimonials, case studies, awards, press, certifications), messaging clarity
+- Brand Personality: if brand were a person description, personality adjectives, brand archetype (primary and secondary with evidence)
+- Brand Values: explicit, implicit, mission statement, brand purpose
+
+PHASE 4: VISUAL IDENTITY INTELLIGENCE
+- Color Psychology: primary brand color (hex, name, psychology, industry appropriateness), secondary colors, palette assessment
+- Design Style: aesthetic, whitespace, visual hierarchy, design trends
+- Photography Style: type (Custom/Stock/Mix), style, quality, authenticity
+- Typography: headings font (family, category, personality), body font (readability)
+
+PHASE 5: CONTENT STRATEGY ANALYSIS
+- Content Marketing Presence: blog (present, frequency, depth), resources (guides/whitepapers/case studies), video, podcast
+- Content Quality: writing quality 1-10, depth, originality, value density
+- Content Themes: each with prevalence and approach
+- SEO Intelligence: meta descriptions, heading structure, URL structure, keywords detected, SEO maturity
+
+PHASE 6: CONVERSION ARCHITECTURE ANALYSIS
+- Primary CTA: text, action, prominence, clarity
+- Conversion Funnel: steps to convert, friction points, urgency tactics, risk reversal
+- Trust Signals: testimonials (count, specificity), case studies, client logos, certifications, security, media mentions
+- Trust Score 1-10
+- Lead Capture Strategy: lead magnets, form friction
+
+PHASE 7: COMPETITIVE POSITIONING
+- Competitors mentioned
+- Competitive advantages claimed (advantage, category, proof, strength)
+- Market Positioning: statement, category, strategy type, differentiation clarity
+- Positioning gaps
+
+PHASE 8: TECHNICAL & MARKETING MATURITY
+- Website Quality Scores: design, UX, content quality, technical execution, mobile experience (each 1-10)
+- Marketing Sophistication Level 1-5: 1=Product-centric, 2=Feature-focused, 3=Benefit-driven, 4=Identity-based, 5=Experience-focused
+- Technology detected: platform, tracking, marketing tools
+- Social Media Integration: profiles linked, integration quality
+
+PHASE 9: GAPS, OPPORTUNITIES & RED FLAGS
+- Critical Gaps: what's missing, impact, competitive disadvantage
+- Quick Win Opportunities (5-7): specific improvement, impact, effort, implementation, expected result, priority
+- Strategic Growth Opportunities (3-5): initiative, rationale, potential impact, timeline
+- Red Flags: issue, severity, risk, recommendation
+- Competitive Vulnerabilities: weakness, exploitation risk, mitigation
+
+PHASE 10: MARKETING STRATEGY RECOMMENDATIONS
+- Content Marketing Strategy: recommended focus, content gaps, content opportunities, distribution channels
+- Social Media Strategy: recommended platforms with rationale, content approach, priority
+- Messaging Optimization: value prop recommendation, messaging hierarchy, tone adjustments
+- Conversion Optimization: CTA recommendations, trust building, friction reduction
+
+═══════════════════════════════════════════════════════════════
+
+Return a comprehensive JSON object with this structure:
 
 {
   "metadata": {
@@ -124,376 +192,131 @@ Analyze comprehensively and return a valid JSON object with this structure:
     "analysis_depth": "${scrapedContent.analysisDepth}",
     "data_completeness": "Complete|Substantial|Partial|Limited"
   },
-  
   "business_identity": {
-    "business_name": "string",
-    "brand_name": "string if different",
-    "tagline": "string if visible",
-    "industry": "Be specific: e.g., 'B2B SaaS for HR automation' not just 'software'",
-    "secondary_industries": ["if applicable"],
+    "business_name": "",
+    "brand_name": "",
+    "tagline": "",
+    "industry": "Be specific",
+    "secondary_industries": [],
     "market_segment": "Enterprise|Mid-market|SMB|Consumer",
-    "business_model": {
-      "revenue_model": "SaaS subscription|One-time purchase|Marketplace|Freemium|etc",
-      "business_type": "B2B|B2C|D2C|B2B2C|Marketplace|Platform",
-      "transaction_type": "Self-service|Sales-led|Hybrid"
-    },
-    "products_services": [
-      {
-        "name": "string",
-        "description": "2-3 sentences",
-        "category": "Core|Premium|Add-on",
-        "target_user": "who this is for",
-        "key_features": ["feature1", "feature2", "feature3"]
-      }
-    ],
-    "pricing_intelligence": {
-      "price_points_visible": ["list all found"],
-      "pricing_strategy": "Premium|Mid-market|Budget|Freemium|Custom",
-      "pricing_model": "Per user|Per month|Flat fee|Usage-based|Tiered",
-      "price_range_estimate": "if not explicit"
-    },
-    "geographic_focus": "Local|Regional|National|International|Global",
-    "company_stage": "Startup|Scale-up|Growth|Established|Enterprise",
-    "estimated_size": "Solo|Micro (2-10)|Small (11-50)|Medium (51-200)|Large (201+)"
+    "business_model": { "revenue_model": "", "business_type": "", "transaction_type": "" },
+    "products_services": [{ "name": "", "description": "", "category": "Core|Premium|Add-on", "target_user": "", "key_features": [] }],
+    "pricing_intelligence": { "price_points_visible": [], "pricing_strategy": "", "pricing_model": "", "price_range_estimate": "" },
+    "geographic_focus": "",
+    "company_stage": "",
+    "estimated_size": ""
   },
-  
   "audience_intelligence": {
     "primary_target_audience": {
-      "demographics": {
-        "age_range": "Be specific: '28-42' not 'young professionals'",
-        "gender_focus": "Male|Female|Neutral|specific focus",
-        "income_bracket": "Budget-conscious|Middle income|Affluent|High net worth",
-        "education_level": "from language complexity indicators",
-        "job_titles": ["if B2B: specific roles"],
-        "job_seniority": "IC|Manager|Director|VP|C-level",
-        "company_size_target": "if B2B: SMB|Mid-market|Enterprise"
-      },
-      "psychographics": {
-        "values": ["what they care about"],
-        "lifestyle_indicators": ["clues from content"],
-        "aspirations": ["what they want to achieve"],
-        "fears": ["what they want to avoid"],
-        "motivations": ["what drives decisions"]
-      },
-      "pain_points": [
-        {
-          "pain": "specific problem",
-          "severity": "Critical|High|Medium|Low",
-          "current_solution": "how they solve it now"
-        }
-      ],
-      "jobs_to_be_done": [
-        {
-          "functional_job": "practical task",
-          "emotional_job": "emotional need",
-          "social_job": "status/image effect"
-        }
-      ]
+      "demographics": { "age_range": "", "gender_focus": "", "income_bracket": "", "education_level": "", "job_titles": [], "job_seniority": "", "company_size_target": "" },
+      "psychographics": { "values": [], "lifestyle_indicators": [], "aspirations": [], "fears": [], "motivations": [] },
+      "pain_points": [{ "pain": "", "severity": "", "current_solution": "" }],
+      "jobs_to_be_done": [{ "functional_job": "", "emotional_job": "", "social_job": "" }]
     },
-    "audience_sophistication": {
-      "knowledge_level": "Beginner|Intermediate|Advanced|Expert",
-      "buying_sophistication": "First-time|Experienced|Highly informed",
-      "solution_awareness": "Problem-aware|Solution-aware|Product-aware"
-    }
+    "audience_sophistication": { "knowledge_level": "", "buying_sophistication": "", "solution_awareness": "" }
   },
-  
   "brand_architecture": {
     "brand_voice": {
-      "tone_scales": {
-        "formality": 5,
-        "playfulness": 5,
-        "complexity": 5,
-        "confidence": 5,
-        "warmth": 5
-      },
-      "voice_characteristics": ["5-7 adjectives"],
-      "voice_examples": [
-        {
-          "example_text": "quote from site",
-          "demonstrates": "what this shows"
-        }
-      ],
+      "tone_scales": { "formality": 5, "playfulness": 5, "complexity": 5, "confidence": 5, "warmth": 5 },
+      "voice_characteristics": [],
+      "voice_examples": [{ "example_text": "", "demonstrates": "" }],
       "consistency": "High|Medium|Low",
       "audience_alignment": "Excellent|Good|Mismatched"
     },
     "messaging_architecture": {
-      "primary_value_proposition": "one clear sentence",
-      "supporting_messages": ["key message 1", "key message 2"],
-      "unique_differentiators": [
-        {
-          "claim": "what makes them unique",
-          "proof": "evidence/support",
-          "strength": "Strong|Moderate|Weak"
-        }
-      ],
-      "proof_elements": {
-        "data_points": ["specific numbers/stats used"],
-        "testimonials_present": true,
-        "case_studies_present": false,
-        "awards_mentions": [],
-        "press_mentions": [],
-        "certifications": []
-      },
-      "messaging_clarity": {
-        "what_they_do": "Immediately clear|Somewhat clear|Unclear",
-        "who_its_for": "Immediately clear|Somewhat clear|Unclear",
-        "why_choose_them": "Immediately clear|Somewhat clear|Unclear"
-      }
+      "primary_value_proposition": "",
+      "supporting_messages": [],
+      "unique_differentiators": [{ "claim": "", "proof": "", "strength": "Strong|Moderate|Weak" }],
+      "proof_elements": { "data_points": [], "testimonials_present": false, "case_studies_present": false, "awards_mentions": [], "press_mentions": [], "certifications": [] },
+      "messaging_clarity": { "what_they_do": "", "who_its_for": "", "why_choose_them": "" }
     },
-    "brand_personality": {
-      "if_brand_were_person": "2-3 sentence description",
-      "personality_adjectives": ["7-10 adjectives"],
-      "brand_archetype": {
-        "primary": "Hero|Sage|Explorer|Innocent|Creator|Ruler|Caregiver|Magician|Lover|Jester|Everyman|Rebel",
-        "secondary": "if applicable",
-        "evidence": "why this fits"
-      }
-    },
-    "brand_values": {
-      "explicit_values": ["directly stated"],
-      "implicit_values": ["demonstrated through actions"],
-      "mission_statement": "if visible",
-      "brand_purpose": "beyond profit"
-    }
+    "brand_personality": { "if_brand_were_person": "", "personality_adjectives": [], "brand_archetype": { "primary": "", "secondary": "", "evidence": "" } },
+    "brand_values": { "explicit_values": [], "implicit_values": [], "mission_statement": "", "brand_purpose": "" }
   },
-  
   "visual_identity": {
     "color_psychology": {
-      "primary_brand_color": {
-        "hex": "#XXXXXX",
-        "name": "color name",
-        "psychology": "what it communicates",
-        "industry_appropriateness": "Perfect fit|Good fit|Unusual choice"
-      },
-      "secondary_colors": [{"hex": "#XXXXXX", "usage": "where used"}],
-      "color_palette_assessment": {
-        "sophistication": "High|Medium|Basic",
-        "consistency": "Excellent|Good|Inconsistent",
-        "emotional_impact": "what feeling it creates"
-      }
+      "primary_brand_color": { "hex": "", "name": "", "psychology": "", "industry_appropriateness": "" },
+      "secondary_colors": [],
+      "color_palette_assessment": { "sophistication": "", "consistency": "", "emotional_impact": "" }
     },
-    "design_style": {
-      "design_aesthetic": "Minimalist|Bold|Elegant|Playful|Corporate|Modern|etc",
-      "whitespace_usage": "Generous|Moderate|Dense",
-      "visual_hierarchy": "Clear|Moderate|Weak",
-      "design_trends": ["modern trends used"]
-    },
-    "photography_style": {
-      "type": "Custom|Stock|Mix",
-      "style": "Lifestyle|Product-focused|Abstract|Documentary",
-      "quality": "Professional|Amateur|Mixed",
-      "authenticity": "Authentic|Staged|Mixed"
-    },
-    "typography": {
-      "headings_font": {
-        "family": "font name",
-        "category": "Serif|Sans-serif|Display|Script",
-        "personality": "Modern|Traditional|Playful|Serious"
-      },
-      "body_font": {
-        "family": "font name",
-        "readability": "Excellent|Good|Poor"
-      }
-    }
+    "design_style": { "design_aesthetic": "", "whitespace_usage": "", "visual_hierarchy": "", "design_trends": [] },
+    "photography_style": { "type": "", "style": "", "quality": "", "authenticity": "" },
+    "typography": { "headings_font": { "family": "", "category": "", "personality": "" }, "body_font": { "family": "", "readability": "" } }
   },
-  
   "content_strategy_analysis": {
-    "content_marketing_presence": {
-      "blog_present": true,
-      "post_frequency_estimate": "Daily|Weekly|Monthly|Sporadic",
-      "content_depth": "Superficial|Moderate|In-depth",
-      "content_types": ["blog", "guides", "case_studies", "video", "podcast"]
-    },
-    "content_themes": [
-      {
-        "theme": "main topic",
-        "prevalence": "Primary|Secondary|Occasional",
-        "approach": "Educational|Thought leadership|How-to"
-      }
-    ],
-    "content_quality_assessment": {
-      "writing_quality": 7,
-      "depth": "Surface-level|Medium-depth|Deep|Expert-level",
-      "originality": "Highly original|Some original|Generic",
-      "value_density": "High|Moderate|Low"
-    },
-    "seo_intelligence": {
-      "meta_descriptions": "Present on all|Some|None",
-      "heading_structure": "Well-structured|Moderate|Poor",
-      "url_structure": "SEO-friendly|Acceptable|Poor",
-      "primary_keywords_detected": ["top keywords"],
-      "seo_maturity": "Advanced|Intermediate|Basic|Neglected"
-    }
+    "content_marketing_presence": { "blog_present": false, "post_frequency_estimate": "", "content_depth": "", "content_types": [] },
+    "content_themes": [{ "theme": "", "prevalence": "", "approach": "" }],
+    "content_quality_assessment": { "writing_quality": 7, "depth": "", "originality": "", "value_density": "" },
+    "seo_intelligence": { "meta_descriptions": "", "heading_structure": "", "url_structure": "", "primary_keywords_detected": [], "seo_maturity": "" }
   },
-  
   "conversion_architecture": {
-    "primary_cta": {
-      "text": "main CTA text",
-      "action": "what it asks user to do",
-      "prominence": "Very prominent|Moderate|Weak",
-      "clarity": "Crystal clear|Somewhat clear|Vague"
-    },
-    "secondary_ctas": [{"text": "CTA", "purpose": "what for"}],
-    "conversion_funnel": {
-      "steps_to_convert": 3,
-      "friction_points": ["obstacles identified"],
-      "urgency_tactics": ["if present"],
-      "risk_reversal": ["guarantees, free trials, etc"]
-    },
+    "primary_cta": { "text": "", "action": "", "prominence": "", "clarity": "" },
+    "secondary_ctas": [],
+    "conversion_funnel": { "steps_to_convert": 3, "friction_points": [], "urgency_tactics": [], "risk_reversal": [] },
     "trust_signals": {
-      "testimonials": {"present": true, "count": 5, "specificity": "Specific|Generic"},
-      "case_studies": {"present": false, "count": 0},
-      "client_logos": {"present": true, "recognizable_brands": true},
+      "testimonials": { "present": false, "count": 0, "specificity": "" },
+      "case_studies": { "present": false, "count": 0 },
+      "client_logos": { "present": false, "recognizable_brands": false },
       "certifications_badges": [],
-      "security_trust": {"ssl_visible": true, "privacy_policy": true}
+      "security_trust": { "ssl_visible": true, "privacy_policy": false }
     },
     "trust_score": 7,
-    "lead_capture_strategy": {
-      "lead_magnets": [{"type": "Free trial", "perceived_value": "High"}],
-      "form_friction": "Low|Medium|High"
-    }
+    "lead_capture_strategy": { "lead_magnets": [], "form_friction": "" }
   },
-  
   "competitive_positioning": {
-    "competitors_mentioned": ["if any named"],
-    "competitive_advantages_claimed": [
-      {
-        "advantage": "claimed advantage",
-        "category": "Feature|Price|Service|Experience|Speed|Quality",
-        "proof_provided": true,
-        "strength": "Strong|Moderate|Weak"
-      }
-    ],
-    "market_positioning": {
-      "positioning_statement": "how they position themselves",
-      "market_category": "category they claim",
-      "positioning_strategy": "Category leader|Challenger|Niche specialist|New entrant",
-      "differentiation_clarity": "Very clear|Somewhat clear|Unclear"
-    }
+    "competitors_mentioned": [],
+    "competitive_advantages_claimed": [{ "advantage": "", "category": "", "proof_provided": false, "strength": "" }],
+    "market_positioning": { "positioning_statement": "", "market_category": "", "positioning_strategy": "", "differentiation_clarity": "" }
   },
-  
   "technical_maturity": {
-    "website_quality_scores": {
-      "design": 7,
-      "user_experience": 7,
-      "content_quality": 7,
-      "technical_execution": 7,
-      "mobile_experience": 7
-    },
+    "website_quality_scores": { "design": 7, "user_experience": 7, "content_quality": 7, "technical_execution": 7, "mobile_experience": 7 },
     "overall_website_quality": 7,
-    "marketing_sophistication_level": {
-      "level": 3,
-      "definition": "1=Product-centric, 2=Feature-focused, 3=Benefit-driven, 4=Identity-based, 5=Experience-focused",
-      "evidence": "why at this level"
-    },
-    "technology_detected": {
-      "platform": "WordPress|Shopify|Custom|Webflow|etc if detectable",
-      "tracking": {
-        "google_analytics": true,
-        "facebook_pixel": false,
-        "other": []
-      },
-      "marketing_tools": {
-        "live_chat": false,
-        "email_marketing_visible": true
-      }
-    },
-    "social_media_integration": {
-      "profiles_linked": [{"platform": "Instagram", "url": "url"}],
-      "integration_quality": "Highly integrated|Somewhat integrated|Disconnected"
-    }
+    "marketing_sophistication_level": { "level": 3, "definition": "1=Product-centric, 2=Feature-focused, 3=Benefit-driven, 4=Identity-based, 5=Experience-focused", "evidence": "" },
+    "technology_detected": { "platform": "", "tracking": { "google_analytics": false, "facebook_pixel": false, "other": [] }, "marketing_tools": { "live_chat": false, "email_marketing_visible": false } },
+    "social_media_integration": { "profiles_linked": [], "integration_quality": "" }
   },
-  
   "gaps_opportunities": {
-    "critical_gaps": [
-      {
-        "gap": "what's missing",
-        "impact": "Critical|High|Medium|Low",
-        "competitive_disadvantage": true
-      }
-    ],
-    "quick_wins": [
-      {
-        "opportunity": "specific improvement",
-        "impact": "High|Medium|Low",
-        "effort": "Low|Medium|High",
-        "implementation": "how to do it",
-        "expected_result": "what this achieves",
-        "priority": "P0|P1|P2"
-      }
-    ],
-    "strategic_growth_opportunities": [
-      {
-        "opportunity": "strategic initiative",
-        "rationale": "why this makes sense",
-        "potential_impact": "expected outcome",
-        "timeline": "implementation timeframe"
-      }
-    ],
-    "red_flags": [
-      {
-        "issue": "problem identified",
-        "severity": "Critical|High|Medium",
-        "risk": "what could happen",
-        "recommendation": "what to do"
-      }
-    ],
-    "competitive_vulnerabilities": [
-      {
-        "vulnerability": "weakness",
-        "exploitation_risk": "High|Medium|Low",
-        "mitigation": "how to protect"
-      }
-    ]
+    "critical_gaps": [{ "gap": "", "impact": "", "competitive_disadvantage": false }],
+    "quick_wins": [{ "opportunity": "", "impact": "", "effort": "", "implementation": "", "expected_result": "", "priority": "" }],
+    "strategic_growth_opportunities": [{ "opportunity": "", "rationale": "", "potential_impact": "", "timeline": "" }],
+    "red_flags": [{ "issue": "", "severity": "", "risk": "", "recommendation": "" }],
+    "competitive_vulnerabilities": [{ "vulnerability": "", "exploitation_risk": "", "mitigation": "" }]
   },
-  
   "marketing_recommendations": {
-    "content_marketing_strategy": {
-      "recommended_focus": "what content to create",
-      "content_gaps": ["topics not covered but should be"],
-      "content_opportunities": ["high-value content to create"],
-      "distribution_channels": ["where to share"]
-    },
-    "social_media_strategy": {
-      "recommended_platforms": [
-        {
-          "platform": "Instagram",
-          "rationale": "why this platform",
-          "content_approach": "what to post",
-          "priority": "Primary|Secondary|Tertiary"
-        }
-      ]
-    },
-    "messaging_optimization": {
-      "value_prop_recommendation": "suggested value proposition",
-      "messaging_hierarchy": ["priority order"],
-      "tone_adjustments": ["suggested voice changes if any"]
-    },
-    "conversion_optimization": {
-      "cta_recommendations": ["suggested improvements"],
-      "trust_building": ["how to increase trust"],
-      "friction_reduction": ["how to smooth conversion"]
-    }
+    "content_marketing_strategy": { "recommended_focus": "", "content_gaps": [], "content_opportunities": [], "distribution_channels": [] },
+    "social_media_strategy": { "recommended_platforms": [{ "platform": "", "rationale": "", "content_approach": "", "priority": "" }] },
+    "messaging_optimization": { "value_prop_recommendation": "", "messaging_hierarchy": [], "tone_adjustments": [] },
+    "conversion_optimization": { "cta_recommendations": [], "trust_building": [], "friction_reduction": [] }
   },
-  
   "executive_summary": {
     "one_paragraph_overview": "Complete 3-5 sentence business summary",
     "business_model_summary": "One sentence",
     "target_audience_summary": "One sentence",
     "key_differentiator": "Primary unique value",
     "marketing_maturity": "Level with brief explanation",
-    "top_3_strengths": ["strength 1", "strength 2", "strength 3"],
-    "top_3_improvements_needed": ["improvement 1", "improvement 2", "improvement 3"],
+    "top_3_strengths": [],
+    "top_3_improvements_needed": [],
     "overall_assessment_score": 7
   }
 }
 
-IMPORTANT: 
+QUALITY VALIDATION before returning:
+✓ Business name and industry clearly identified (be specific)
+✓ Target audience specifically defined (not generic)
+✓ Value proposition articulated
+✓ Brand voice characterized with evidence (actual quotes from site)
+✓ All visible pricing captured
+✓ Gaps identified are specific and actionable
+✓ Opportunities prioritized by impact
+✓ Recommendations are strategic and data-backed
+✓ Confidence levels noted where uncertain
+✓ JSON structure complete and valid
+✓ No placeholder text remains
+
+IMPORTANT:
 - Return ONLY valid JSON, no markdown code blocks
 - Be specific and cite actual content from the pages
-- If uncertain about any data, note confidence level
-- Prioritize insights that impact marketing strategy
-- Ensure all scores are numbers 1-10`;
+- Prioritize insights that impact marketing strategy and social media content creation`;
 }
 
 serve(async (req) => {
@@ -533,12 +356,12 @@ serve(async (req) => {
         messages: [
           { 
             role: "system", 
-            content: "You are a comprehensive business intelligence analyst. Return ONLY valid JSON without any markdown formatting or code blocks. Be thorough and specific in your analysis." 
+            content: "You are a comprehensive business intelligence analyst. Return ONLY valid JSON without any markdown formatting or code blocks. Be thorough, specific, and cite actual content from the website pages in your analysis." 
           },
           { role: "user", content: analysisPrompt }
         ],
         temperature: 0.4,
-        max_tokens: 12000,
+        max_tokens: 15000,
       }),
     });
 
@@ -566,10 +389,8 @@ serve(async (req) => {
     
     console.log('AI response received, parsing JSON...');
     
-    // Parse JSON from response
     let comprehensiveAnalysis: any;
     try {
-      // Clean the response - remove markdown code blocks if present
       let jsonStr = analysisText.trim();
       if (jsonStr.startsWith('```json')) {
         jsonStr = jsonStr.replace(/^```json\s*/, '').replace(/\s*```$/, '');
@@ -582,45 +403,23 @@ serve(async (req) => {
       console.error('Failed to parse AI response as JSON:', parseError);
       console.log('Raw response preview:', analysisText.slice(0, 500));
       
-      // Try to extract JSON from the response
       const jsonMatch = analysisText.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         try {
           comprehensiveAnalysis = JSON.parse(jsonMatch[0]);
         } catch {
-          // Create a basic profile from what we have
           comprehensiveAnalysis = {
-            metadata: {
-              website_url: scrapedContent.baseUrl,
-              analysis_timestamp: new Date().toISOString(),
-              pages_analyzed: scrapedContent.totalPages,
-              data_completeness: 'Partial'
-            },
-            business_identity: {
-              business_name: scrapedContent.pages[0]?.title?.split('|')[0]?.split('-')[0]?.trim() || 'Unknown',
-              industry: 'Unknown'
-            },
-            executive_summary: {
-              one_paragraph_overview: 'Unable to fully analyze the website. Please try again.',
-              overall_assessment_score: 5
-            },
-            parsing_error: true,
-            raw_analysis: analysisText.slice(0, 2000)
+            metadata: { website_url: scrapedContent.baseUrl, analysis_timestamp: new Date().toISOString(), pages_analyzed: scrapedContent.totalPages, data_completeness: 'Partial' },
+            business_identity: { business_name: scrapedContent.pages[0]?.title?.split('|')[0]?.split('-')[0]?.trim() || 'Unknown', industry: 'Unknown' },
+            executive_summary: { one_paragraph_overview: 'Unable to fully analyze the website. Please try again.', overall_assessment_score: 5 },
+            parsing_error: true, raw_analysis: analysisText.slice(0, 2000)
           };
         }
       } else {
         comprehensiveAnalysis = {
-          metadata: {
-            website_url: scrapedContent.baseUrl,
-            data_completeness: 'Limited'
-          },
-          business_identity: {
-            business_name: scrapedContent.pages[0]?.title?.split('|')[0]?.trim() || 'Unknown'
-          },
-          executive_summary: {
-            one_paragraph_overview: 'Analysis failed to parse. Please try again.',
-            overall_assessment_score: 3
-          },
+          metadata: { website_url: scrapedContent.baseUrl, data_completeness: 'Limited' },
+          business_identity: { business_name: scrapedContent.pages[0]?.title?.split('|')[0]?.trim() || 'Unknown' },
+          executive_summary: { one_paragraph_overview: 'Analysis failed to parse. Please try again.', overall_assessment_score: 3 },
           parsing_error: true
         };
       }
@@ -631,10 +430,20 @@ serve(async (req) => {
       businessName: comprehensiveAnalysis.business_identity?.business_name || comprehensiveAnalysis.executive_summary?.business_name || 'Unknown',
       industry: comprehensiveAnalysis.business_identity?.industry || 'Unknown',
       businessType: comprehensiveAnalysis.business_identity?.business_model?.business_type || 'Unknown',
+      stage: comprehensiveAnalysis.business_identity?.company_stage || 'Unknown',
       productsServices: comprehensiveAnalysis.business_identity?.products_services || [],
       priceRange: comprehensiveAnalysis.business_identity?.pricing_intelligence?.pricing_strategy || 'not-visible',
       geographicFocus: comprehensiveAnalysis.business_identity?.geographic_focus || 'Unknown',
-      targetAudience: comprehensiveAnalysis.audience_intelligence?.primary_target_audience || {},
+      targetAudience: {
+        ...comprehensiveAnalysis.audience_intelligence?.primary_target_audience?.demographics,
+        ageRange: comprehensiveAnalysis.audience_intelligence?.primary_target_audience?.demographics?.age_range,
+        customerType: comprehensiveAnalysis.audience_intelligence?.primary_target_audience?.demographics?.job_seniority || comprehensiveAnalysis.business_identity?.business_model?.business_type,
+        genderFocus: comprehensiveAnalysis.audience_intelligence?.primary_target_audience?.demographics?.gender_focus,
+        incomeLevel: comprehensiveAnalysis.audience_intelligence?.primary_target_audience?.demographics?.income_bracket,
+        educationLevel: comprehensiveAnalysis.audience_intelligence?.primary_target_audience?.demographics?.education_level,
+        interests: comprehensiveAnalysis.audience_intelligence?.primary_target_audience?.psychographics?.values || [],
+        painPoints: comprehensiveAnalysis.audience_intelligence?.primary_target_audience?.pain_points?.map((p: any) => p.pain) || [],
+      },
       brandIdentity: {
         voiceScale: comprehensiveAnalysis.brand_architecture?.brand_voice?.tone_scales?.formality || 5,
         toneCharacteristics: comprehensiveAnalysis.brand_architecture?.brand_voice?.voice_characteristics || [],
@@ -661,20 +470,21 @@ serve(async (req) => {
         contentMarketing: comprehensiveAnalysis.content_strategy_analysis?.content_marketing_presence?.blog_present ? 'established' : 'basic',
         socialProof: comprehensiveAnalysis.conversion_architecture?.trust_signals ? ['testimonials'] : [],
         ctaClarity: comprehensiveAnalysis.conversion_architecture?.primary_cta?.clarity === 'Crystal clear' ? 'strong' : 'moderate',
+        sophisticationLevel: comprehensiveAnalysis.technical_maturity?.marketing_sophistication_level?.level || 3,
+        socialPresence: comprehensiveAnalysis.technical_maturity?.social_media_integration?.integration_quality || 'Unknown',
       },
+      competitors: comprehensiveAnalysis.competitive_positioning?.competitors_mentioned || [],
       summary: comprehensiveAnalysis.executive_summary?.one_paragraph_overview || '',
     };
 
-    // Save to database with comprehensive data
+    // Save to database
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     
-    // Deactivate existing contexts for this user
     await supabase
       .from('business_context')
       .update({ is_active: false })
       .eq('user_id', userId);
     
-    // Insert new context with comprehensive analysis
     const { data: savedContext, error: saveError } = await supabase
       .from('business_context')
       .insert({
