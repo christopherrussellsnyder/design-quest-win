@@ -1,6 +1,5 @@
 import React from 'react';
 import { ImagePlus, Globe, Lightbulb } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import {
   Tooltip,
   TooltipContent,
@@ -20,55 +19,28 @@ export function QuickActions({
   onStrategyClick,
   disabled,
 }: QuickActionsProps) {
+  const actions = [
+    { icon: <ImagePlus className="w-4 h-4" />, onClick: onUploadClick, label: 'Upload analytics' },
+    { icon: <Globe className="w-4 h-4" />, onClick: onWebsiteClick, label: 'Analyze website' },
+    { icon: <Lightbulb className="w-4 h-4" />, onClick: onStrategyClick, label: 'Generate strategy' },
+  ];
+
   return (
-    <div className="flex gap-2">
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onUploadClick}
-            disabled={disabled}
-            className="gap-2"
-          >
-            <ImagePlus className="w-4 h-4" />
-            <span className="hidden sm:inline">Upload</span>
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>Upload analytics screenshot</TooltipContent>
-      </Tooltip>
-      
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onWebsiteClick}
-            disabled={disabled}
-            className="gap-2"
-          >
-            <Globe className="w-4 h-4" />
-            <span className="hidden sm:inline">Website</span>
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>Analyze your website</TooltipContent>
-      </Tooltip>
-      
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onStrategyClick}
-            disabled={disabled}
-            className="gap-2"
-          >
-            <Lightbulb className="w-4 h-4" />
-            <span className="hidden sm:inline">Strategy</span>
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>Generate content strategy</TooltipContent>
-      </Tooltip>
+    <div className="flex items-center gap-0.5">
+      {actions.map((action, i) => (
+        <Tooltip key={i}>
+          <TooltipTrigger asChild>
+            <button
+              onClick={action.onClick}
+              disabled={disabled}
+              className="h-9 w-9 rounded-xl flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-surface-tertiary disabled:opacity-40 transition-colors duration-200"
+            >
+              {action.icon}
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="text-xs">{action.label}</TooltipContent>
+        </Tooltip>
+      ))}
     </div>
   );
 }
