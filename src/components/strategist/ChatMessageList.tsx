@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bot, User, Loader2, Copy, Check } from 'lucide-react';
+import { Bot, User, Loader2, Copy, Check, Volume2, RotateCcw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Message } from '@/pages/AIStrategist';
 import ReactMarkdown from 'react-markdown';
@@ -44,113 +44,131 @@ export function ChatMessageList({
   };
 
   return (
-    <div className="p-4 space-y-6">
+    <div className="p-6 space-y-5 max-w-4xl mx-auto">
       {messages.map((message, index) => (
         <div
           key={message.id}
           className={cn(
-            'flex gap-4 animate-fade-in group',
-            message.role === 'user' ? 'flex-row-reverse' : ''
+            'flex gap-3 animate-fade-in group',
+            message.role === 'user' ? 'justify-end' : 'justify-start'
           )}
         >
-          {/* Avatar */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div className={cn(
-                'flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center',
-                message.role === 'user' 
-                  ? 'bg-primary text-primary-foreground' 
-                  : 'bg-gradient-to-br from-primary/20 to-primary/5 text-primary'
-              )}>
-                {message.role === 'user' ? (
-                  <User className="w-5 h-5" />
-                ) : (
-                  <Bot className="w-5 h-5" />
-                )}
-              </div>
-            </TooltipTrigger>
-            <TooltipContent side={message.role === 'user' ? 'left' : 'right'}>
-              {formatDistanceToNow(message.createdAt, { addSuffix: true })}
-            </TooltipContent>
-          </Tooltip>
+          {/* Assistant avatar */}
+          {message.role === 'assistant' && (
+            <div className="flex-shrink-0 w-8 h-8 rounded-xl bg-gradient-to-br from-primary/30 via-primary/20 to-transparent border border-primary/20 flex items-center justify-center mt-1 shadow-sm">
+              <Bot className="w-4 h-4 text-primary" />
+            </div>
+          )}
 
           {/* Message bubble */}
           <div className={cn(
-            'flex-1 max-w-[80%] rounded-2xl px-4 py-3 relative',
-            message.role === 'user' 
-              ? 'bg-primary text-primary-foreground ml-auto' 
-              : 'bg-muted'
+            'relative max-w-[75%] group/msg',
+            message.role === 'user' ? 'order-first' : ''
           )}>
-            {/* Copy button for assistant messages */}
-            {message.role === 'assistant' && message.content && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className={cn(
-                  'absolute top-2 right-2 h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity',
-                  'text-muted-foreground hover:text-foreground'
-                )}
-                onClick={() => handleCopy(message.id, message.content)}
-              >
-                {copiedId === message.id ? (
-                  <Check className="w-3.5 h-3.5 text-green-500" />
-                ) : (
-                  <Copy className="w-3.5 h-3.5" />
-                )}
-              </Button>
-            )}
-
-            {/* Attachments */}
-            {message.attachments?.map((att, i) => (
-              <div key={i} className="mb-3">
-                {att.type === 'image' && (
-                  <img 
-                    src={att.url} 
-                    alt={att.name || 'Attachment'} 
-                    className="max-w-full rounded-lg max-h-64 object-contain"
-                  />
-                )}
-              </div>
-            ))}
-            
-            {/* Message content with markdown */}
             <div className={cn(
-              'prose prose-sm max-w-none',
-              message.role === 'user' 
-                ? 'prose-invert' 
-                : 'dark:prose-invert',
-              '[&_ul]:my-2 [&_ol]:my-2 [&_li]:my-0.5',
-              '[&_p]:my-1.5 first:[&_p]:mt-0 last:[&_p]:mb-0',
-              '[&_h1]:text-lg [&_h2]:text-base [&_h3]:text-sm',
-              '[&_code]:bg-background/50 [&_code]:px-1 [&_code]:rounded',
-              '[&_pre]:bg-background/50 [&_pre]:p-3 [&_pre]:rounded-lg',
-              '[&_strong]:font-semibold',
-              '[&_a]:text-primary [&_a]:underline'
+              'px-4 py-3 relative',
+              message.role === 'user'
+                ? 'bg-gradient-to-br from-primary to-arasaka-red-dark text-primary-foreground rounded-2xl rounded-br-md shadow-md shadow-primary/20'
+                : 'bg-secondary/80 border border-subtle rounded-2xl rounded-bl-md backdrop-blur-sm'
             )}>
-              <ReactMarkdown>{message.content}</ReactMarkdown>
+              {/* Attachments */}
+              {message.attachments?.map((att, i) => (
+                <div key={i} className="mb-3">
+                  {att.type === 'image' && (
+                    <img 
+                      src={att.url} 
+                      alt={att.name || 'Attachment'} 
+                      className="max-w-full rounded-xl max-h-64 object-contain"
+                    />
+                  )}
+                </div>
+              ))}
+              
+              {/* Message content with markdown */}
+              <div className={cn(
+                'prose prose-sm max-w-none',
+                message.role === 'user' 
+                  ? 'prose-invert [&_p]:text-primary-foreground' 
+                  : 'dark:prose-invert',
+                '[&_ul]:my-2 [&_ol]:my-2 [&_li]:my-0.5',
+                '[&_p]:my-1.5 first:[&_p]:mt-0 last:[&_p]:mb-0',
+                '[&_h1]:text-lg [&_h2]:text-base [&_h3]:text-sm',
+                '[&_code]:bg-background/50 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded-md [&_code]:text-xs',
+                '[&_pre]:bg-background/50 [&_pre]:p-3 [&_pre]:rounded-xl [&_pre]:border [&_pre]:border-subtle',
+                '[&_strong]:font-semibold',
+                '[&_a]:text-primary [&_a]:underline [&_a]:underline-offset-2'
+              )}>
+                <ReactMarkdown>{message.content}</ReactMarkdown>
+              </div>
+
+              {/* Action buttons for assistant messages */}
+              {message.role === 'assistant' && message.content && index === messages.length - 1 && !isLoading && (
+                <ActionButtons 
+                  content={message.content} 
+                  onAction={onAction}
+                />
+              )}
             </div>
 
-            {/* Action buttons for assistant messages */}
-            {message.role === 'assistant' && message.content && index === messages.length - 1 && !isLoading && (
-              <ActionButtons 
-                content={message.content} 
-                onAction={onAction}
-              />
+            {/* Message toolbar (copy, etc) - appears on hover */}
+            {message.role === 'assistant' && message.content && (
+              <div className={cn(
+                'flex items-center gap-1 mt-1.5 opacity-0 group-hover/msg:opacity-100 transition-opacity duration-200'
+              )}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      className="h-7 w-7 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+                      onClick={() => handleCopy(message.id, message.content)}
+                    >
+                      {copiedId === message.id ? (
+                        <Check className="w-3.5 h-3.5 text-success" />
+                      ) : (
+                        <Copy className="w-3.5 h-3.5" />
+                      )}
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="text-xs">Copy</TooltipContent>
+                </Tooltip>
+                <span className="text-[10px] text-muted-foreground/50 ml-1">
+                  {formatDistanceToNow(message.createdAt, { addSuffix: true })}
+                </span>
+              </div>
+            )}
+
+            {/* Timestamp for user messages */}
+            {message.role === 'user' && (
+              <div className="flex justify-end mt-1">
+                <span className="text-[10px] text-muted-foreground/50">
+                  {formatDistanceToNow(message.createdAt, { addSuffix: true })}
+                </span>
+              </div>
             )}
           </div>
+
+          {/* User avatar */}
+          {message.role === 'user' && (
+            <div className="flex-shrink-0 w-8 h-8 rounded-xl bg-gradient-to-br from-primary to-arasaka-red-dark flex items-center justify-center mt-1 shadow-sm shadow-primary/20">
+              <User className="w-4 h-4 text-primary-foreground" />
+            </div>
+          )}
         </div>
       ))}
       
       {/* Loading indicator */}
       {isLoading && messages[messages.length - 1]?.role === 'user' && (
-        <div className="flex gap-4">
-          <div className="flex-shrink-0 w-9 h-9 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-            <Bot className="w-5 h-5 text-primary" />
+        <div className="flex gap-3 animate-fade-in">
+          <div className="flex-shrink-0 w-8 h-8 rounded-xl bg-gradient-to-br from-primary/30 via-primary/20 to-transparent border border-primary/20 flex items-center justify-center">
+            <Bot className="w-4 h-4 text-primary" />
           </div>
-          <div className="bg-muted rounded-2xl px-4 py-3">
-            <div className="flex items-center gap-2">
-              <Loader2 className="w-4 h-4 animate-spin text-primary" />
-              <span className="text-sm text-muted-foreground">AI is thinking...</span>
+          <div className="bg-secondary/80 border border-subtle rounded-2xl rounded-bl-md px-4 py-3 backdrop-blur-sm">
+            <div className="flex items-center gap-3">
+              <div className="flex gap-1">
+                <span className="w-2 h-2 rounded-full bg-primary/60 animate-bounce [animation-delay:0ms]" />
+                <span className="w-2 h-2 rounded-full bg-primary/60 animate-bounce [animation-delay:150ms]" />
+                <span className="w-2 h-2 rounded-full bg-primary/60 animate-bounce [animation-delay:300ms]" />
+              </div>
+              <span className="text-sm text-muted-foreground">Thinking...</span>
             </div>
           </div>
         </div>
@@ -158,7 +176,7 @@ export function ChatMessageList({
 
       {/* Quick suggestion chips after assistant response */}
       {showQuickSuggestions && onQuickSuggestion && (
-        <div className="pl-13 ml-9">
+        <div className="pl-11">
           <QuickSuggestionChips onChipClick={onQuickSuggestion} />
         </div>
       )}

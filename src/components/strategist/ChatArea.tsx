@@ -515,17 +515,21 @@ I'll use this context to provide personalized marketing recommendations. You can
       {/* Messages area */}
       <ScrollArea className="flex-1">
         {messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-center py-12 px-4">
-            <div className="p-4 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 mb-6">
-              <Sparkles className="w-10 h-10 text-primary" />
+          <div className="flex flex-col items-center justify-center h-full text-center py-16 px-6">
+            {/* Glowing orb hero */}
+            <div className="relative mb-8">
+              <div className="absolute inset-0 rounded-full bg-primary/20 blur-2xl scale-150" />
+              <div className="relative p-5 rounded-2xl bg-gradient-to-br from-primary/20 via-primary/10 to-transparent border border-primary/20 backdrop-blur-sm">
+                <Sparkles className="w-8 h-8 text-primary" />
+              </div>
             </div>
-            <h2 className="text-2xl font-bold mb-2">AI Marketing Strategist</h2>
-            <p className="text-muted-foreground max-w-md mb-6">
+            <h2 className="text-2xl font-bold mb-2 tracking-tight">AI Marketing Strategist</h2>
+            <p className="text-muted-foreground max-w-md mb-8 text-sm leading-relaxed">
               Get personalized marketing strategies, content ideas, and data-driven insights for your business.
             </p>
 
             {/* Smart Suggestions */}
-            <div className="w-full max-w-2xl mb-6">
+            <div className="w-full max-w-2xl mb-8">
               <SmartSuggestions
                 businessContext={businessContext}
                 recentAnalytics={recentAnalytics}
@@ -534,37 +538,43 @@ I'll use this context to provide personalized marketing recommendations. You can
               />
             </div>
             
-            {/* Quick action cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-2xl w-full mb-8">
+            {/* Quick action cards - sleek glassmorphism style */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 max-w-2xl w-full mb-10">
               <button
-                className="p-4 rounded-xl border bg-card hover:bg-muted/50 transition-colors text-left"
+                className="group p-5 rounded-2xl border border-subtle bg-secondary/50 backdrop-blur-sm hover:border-primary/30 hover:bg-secondary/80 transition-all duration-300 text-left"
                 onClick={() => setShowWebsiteAnalyzer(true)}
               >
-                <Globe className="w-6 h-6 text-primary mb-2" />
-                <h3 className="font-medium text-sm">Analyze Website</h3>
-                <p className="text-xs text-muted-foreground mt-1">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center mb-3 group-hover:shadow-glow transition-shadow duration-300">
+                  <Globe className="w-5 h-5 text-primary" />
+                </div>
+                <h3 className="font-semibold text-sm mb-1">Analyze Website</h3>
+                <p className="text-xs text-muted-foreground leading-relaxed">
                   Let AI understand your business
                 </p>
               </button>
               
               <button
-                className="p-4 rounded-xl border bg-card hover:bg-muted/50 transition-colors text-left"
+                className="group p-5 rounded-2xl border border-subtle bg-secondary/50 backdrop-blur-sm hover:border-primary/30 hover:bg-secondary/80 transition-all duration-300 text-left"
                 onClick={() => setShowUploader(true)}
               >
-                <ImagePlus className="w-6 h-6 text-primary mb-2" />
-                <h3 className="font-medium text-sm">Upload Analytics</h3>
-                <p className="text-xs text-muted-foreground mt-1">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center mb-3 group-hover:shadow-glow transition-shadow duration-300">
+                  <ImagePlus className="w-5 h-5 text-primary" />
+                </div>
+                <h3 className="font-semibold text-sm mb-1">Upload Analytics</h3>
+                <p className="text-xs text-muted-foreground leading-relaxed">
                   Extract insights from screenshots
                 </p>
               </button>
               
               <button
-                className="p-4 rounded-xl border bg-card hover:bg-muted/50 transition-colors text-left"
+                className="group p-5 rounded-2xl border border-subtle bg-secondary/50 backdrop-blur-sm hover:border-primary/30 hover:bg-secondary/80 transition-all duration-300 text-left"
                 onClick={() => setShowStrategyDialog(true)}
               >
-                <Lightbulb className="w-6 h-6 text-primary mb-2" />
-                <h3 className="font-medium text-sm">Generate Strategy</h3>
-                <p className="text-xs text-muted-foreground mt-1">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center mb-3 group-hover:shadow-glow transition-shadow duration-300">
+                  <Lightbulb className="w-5 h-5 text-primary" />
+                </div>
+                <h3 className="font-semibold text-sm mb-1">Generate Strategy</h3>
+                <p className="text-xs text-muted-foreground leading-relaxed">
                   Get a custom content plan
                 </p>
               </button>
@@ -629,102 +639,109 @@ I'll use this context to provide personalized marketing recommendations. You can
         onSubmit={handleStrategyRequest}
       />
 
-      {/* Input area */}
-      <div className="p-4 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="flex items-center justify-between mb-3">
-          <QuickActions
-            onUploadClick={() => setShowUploader(!showUploader)}
-            onWebsiteClick={() => setShowWebsiteAnalyzer(!showWebsiteAnalyzer)}
-            onStrategyClick={() => setShowStrategyDialog(true)}
-            disabled={isDisabled}
-          />
-          
-          {/* Preferences popover */}
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <Settings2 className="w-4 h-4" />
+      {/* Input area - sleek modern design */}
+      <div className="p-4 border-t border-subtle bg-background/80 backdrop-blur-xl">
+        <div className="max-w-4xl mx-auto">
+          {/* Main input container - pill-like design */}
+          <div className="relative flex items-end gap-2 p-2 rounded-2xl bg-secondary/60 border border-subtle focus-within:border-primary/40 focus-within:shadow-glow transition-all duration-300">
+            {/* Quick action buttons inline */}
+            <div className="flex items-center gap-1 pl-1 pb-1">
+              <QuickActions
+                onUploadClick={() => setShowUploader(!showUploader)}
+                onWebsiteClick={() => setShowWebsiteAnalyzer(!showWebsiteAnalyzer)}
+                onStrategyClick={() => setShowStrategyDialog(true)}
+                disabled={isDisabled}
+              />
+            </div>
+            
+            <Textarea
+              ref={textareaRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Ask about your marketing strategy..."
+              disabled={isDisabled}
+              className="min-h-[40px] max-h-32 resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none text-sm placeholder:text-muted-foreground/50 py-2"
+              rows={1}
+            />
+            
+            <div className="flex items-center gap-1 pr-1 pb-1">
+              {/* Preferences popover */}
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl text-muted-foreground hover:text-foreground">
+                    <Settings2 className="w-4 h-4" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-72" align="end">
+                  <div className="space-y-4">
+                    <h4 className="font-medium text-sm">Response Preferences</h4>
+                    
+                    <div className="space-y-2">
+                      <Label className="text-xs">Response Style</Label>
+                      <Select
+                        value={preferences.response_style}
+                        onValueChange={(v) => setPreferences(p => ({ ...p, response_style: v as any }))}
+                      >
+                        <SelectTrigger className="h-8 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="concise">Concise</SelectItem>
+                          <SelectItem value="balanced">Balanced</SelectItem>
+                          <SelectItem value="detailed">Detailed</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-xs">Tone</Label>
+                      <Select
+                        value={preferences.tone_preference}
+                        onValueChange={(v) => setPreferences(p => ({ ...p, tone_preference: v as any }))}
+                      >
+                        <SelectTrigger className="h-8 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="formal">Formal</SelectItem>
+                          <SelectItem value="balanced">Balanced</SelectItem>
+                          <SelectItem value="casual">Casual</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs">Include Examples</Label>
+                      <Switch
+                        checked={preferences.include_examples}
+                        onCheckedChange={(v) => setPreferences(p => ({ ...p, include_examples: v }))}
+                      />
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
+
+              {/* Send button */}
+              <Button
+                onClick={() => sendMessage()}
+                disabled={!input.trim() || isDisabled}
+                size="icon"
+                className="h-9 w-9 rounded-xl flex-shrink-0 bg-gradient-to-br from-primary to-arasaka-red-dark hover:shadow-glow transition-all duration-300"
+              >
+                {isLoading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Send className="w-4 h-4" />
+                )}
               </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-72" align="end">
-              <div className="space-y-4">
-                <h4 className="font-medium text-sm">Response Preferences</h4>
-                
-                <div className="space-y-2">
-                  <Label className="text-xs">Response Style</Label>
-                  <Select
-                    value={preferences.response_style}
-                    onValueChange={(v) => setPreferences(p => ({ ...p, response_style: v as any }))}
-                  >
-                    <SelectTrigger className="h-8 text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="concise">Concise</SelectItem>
-                      <SelectItem value="balanced">Balanced</SelectItem>
-                      <SelectItem value="detailed">Detailed</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-xs">Tone</Label>
-                  <Select
-                    value={preferences.tone_preference}
-                    onValueChange={(v) => setPreferences(p => ({ ...p, tone_preference: v as any }))}
-                  >
-                    <SelectTrigger className="h-8 text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="formal">Formal</SelectItem>
-                      <SelectItem value="balanced">Balanced</SelectItem>
-                      <SelectItem value="casual">Casual</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <Label className="text-xs">Include Examples</Label>
-                  <Switch
-                    checked={preferences.include_examples}
-                    onCheckedChange={(v) => setPreferences(p => ({ ...p, include_examples: v }))}
-                  />
-                </div>
-              </div>
-            </PopoverContent>
-          </Popover>
-        </div>
-        
-        <div className="flex gap-2">
-          <Textarea
-            ref={textareaRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Ask about your marketing strategy..."
-            disabled={isDisabled}
-            className="min-h-[52px] max-h-40 resize-none"
-            rows={1}
-          />
+            </div>
+          </div>
           
-          <Button
-            onClick={() => sendMessage()}
-            disabled={!input.trim() || isDisabled}
-            size="icon"
-            className="h-[52px] w-[52px] flex-shrink-0"
-          >
-            {isLoading ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
-            ) : (
-              <Send className="w-5 h-5" />
-            )}
-          </Button>
+          <p className="text-[10px] text-muted-foreground/40 mt-2 text-center">
+            Press Enter to send · Shift+Enter for new line
+          </p>
         </div>
-        
-        <p className="text-xs text-muted-foreground mt-2 text-center">
-          Press Enter to send, Shift+Enter for new line
-        </p>
       </div>
     </div>
   );
