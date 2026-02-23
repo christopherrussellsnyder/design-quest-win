@@ -41,7 +41,7 @@ export function ConversationSidebar({
   const [renameValue, setRenameValue] = useState('');
   return (
     <div className={cn(
-      'relative flex flex-col bg-secondary border-r border-subtle backdrop-blur-sm transition-all duration-300 overflow-visible',
+      'relative z-10 flex flex-col bg-secondary border-r border-subtle backdrop-blur-sm transition-all duration-300 overflow-visible',
       isOpen ? 'w-80' : 'w-0'
     )}>
       {/* Toggle button */}
@@ -49,7 +49,7 @@ export function ConversationSidebar({
         variant="ghost"
         size="icon"
         className={cn(
-          'absolute -right-4 top-4 z-50 h-8 w-8 rounded-full border border-subtle bg-secondary shadow-md hover:border-primary hover:shadow-glow pointer-events-auto',
+          'absolute -right-4 top-4 z-20 h-8 w-8 rounded-full border border-subtle bg-secondary shadow-md hover:border-primary hover:shadow-glow',
           !isOpen && 'right-[-48px]'
         )}
         onClick={onToggle}
