@@ -282,7 +282,7 @@
 .dot-grid-animated {
   background-image: radial-gradient(circle, hsl(var(--primary) / 0.35) 1.2px, transparent 1.2px);
   background-size: 24px 24px;
-  animation: dotGridDrift 20s linear infinite;
+  animation: dotGridDrift 10s linear infinite;
 }
 
 @keyframes dotGridDrift {
