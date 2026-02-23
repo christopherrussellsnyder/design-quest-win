@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { BusinessProfile } from '@/hooks/useWebsiteAnalysis';
 import { cn } from '@/lib/utils';
+import { AnimatedDotGrid } from '@/components/strategist/AnimatedDotGrid';
 import { toast } from 'sonner';
 import {
   AlertDialog,
@@ -209,7 +210,8 @@ export default function AIStrategist() {
         <meta name="description" content="Chat with your AI marketing strategist for personalized strategies and insights" />
       </Helmet>
 
-      <div className="flex h-screen bg-background overflow-hidden">
+      <div className="relative flex h-screen bg-background overflow-hidden">
+        <AnimatedDotGrid />
         {/* Left Sidebar - Conversations */}
         <ConversationSidebar
           conversations={conversations}
