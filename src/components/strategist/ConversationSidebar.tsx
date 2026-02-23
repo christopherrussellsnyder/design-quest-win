@@ -41,7 +41,7 @@ export function ConversationSidebar({
   const [renameValue, setRenameValue] = useState('');
   return (
     <div className={cn(
-      'relative flex flex-col bg-secondary border-r border-subtle backdrop-blur-sm transition-all duration-300',
+      'relative flex flex-col bg-secondary border-r border-subtle backdrop-blur-sm transition-all duration-300 overflow-visible',
       isOpen ? 'w-80' : 'w-0'
     )}>
       {/* Toggle button */}
