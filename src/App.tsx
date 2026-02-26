@@ -29,6 +29,7 @@ const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const Cookies = lazy(() => import("./pages/Cookies"));
 const HelpCenter = lazy(() => import("./pages/HelpCenter"));
+const AudienceIntelligence = lazy(() => import("./pages/AudienceIntelligence"));
 
 const queryClient = new QueryClient();
 
@@ -110,7 +111,8 @@ const App = () => (
                   <Route path="/ab-testing" element={<Navigate to="/ai-strategist" replace />} />
                   <Route path="/audience" element={<Navigate to="/ai-strategist" replace />} />
                   <Route path="/content-ai" element={<Navigate to="/ai-strategist" replace />} />
-                  <Route path="/ai-analytics" element={<Navigate to="/insights" replace />} />
+                   <Route path="/ai-analytics" element={<Navigate to="/insights" replace />} />
+                   <Route path="/audience-intelligence" element={<Navigate to="/intelligence" replace />} />
                   <Route path="/ai-assistant" element={<Navigate to="/ai-strategist" replace />} />
                   
                   {/* Main Routes (5 core pages) */}
@@ -151,6 +153,14 @@ const App = () => (
                     element={
                       <ProtectedRoute>
                         <Insights />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/intelligence"
+                    element={
+                      <ProtectedRoute>
+                        <AudienceIntelligence />
                       </ProtectedRoute>
                     }
                   />
