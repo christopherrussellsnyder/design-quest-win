@@ -1,7 +1,8 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Building2, BarChart3, ChevronLeft, ChevronRight, 
-  Globe, RefreshCw, Calendar, TrendingUp 
+  Globe, RefreshCw, Calendar, TrendingUp, Brain 
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -26,6 +27,7 @@ export function ContextSidebar({
   onToggle,
   onReanalyze,
 }: ContextSidebarProps) {
+  const navigate = useNavigate();
   const profile = businessContext?.business_profile;
 
   return (
@@ -175,6 +177,17 @@ export function ContextSidebar({
                   )}
                 </CardContent>
               </Card>
+
+              {/* Audience Intelligence Link */}
+              <Button
+                variant="outline"
+                className="w-full justify-start gap-2 text-sm"
+                onClick={() => navigate('/intelligence')}
+              >
+                <Brain className="w-4 h-4 text-primary" />
+                Audience Intelligence
+                <Badge variant="secondary" className="ml-auto text-[10px] px-1.5">New</Badge>
+              </Button>
             </div>
           </ScrollArea>
         </>
