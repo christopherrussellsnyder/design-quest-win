@@ -464,41 +464,87 @@ serve(async (req) => {
 
     const { platform, durationDays = 30, goals, customInstructions, conversationId } = await req.json() as StrategyRequest;
 
-    console.log(`Generating enhanced ${durationDays}-day strategy for ${platform} for user ${user.id}`);
+    console.log(`Generating cognitive ${durationDays}-day strategy for ${platform} for user ${user.id}`);
 
-    // Fetch business context
-    const { data: businessContext } = await supabase
-      .from('business_context')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('is_active', true)
-      .maybeSingle();
+    // Parallel fetch all context including behavior intelligence
+    const [businessRes, analyticsRes, prevStrategiesRes, behaviorRes, trendsRes, learningRes] = await Promise.all([
+      supabase.from('business_context').select('*').eq('user_id', user.id).eq('is_active', true).maybeSingle(),
+      supabase.from('uploaded_analytics').select('*').eq('user_id', user.id).order('uploaded_at', { ascending: false }).limit(3),
+      supabase.from('content_strategies').select('predicted_metrics, platform').eq('user_id', user.id).eq('platform', platform).order('created_at', { ascending: false }).limit(3),
+      supabase.from('user_behavior_patterns').select('*').eq('user_id', user.id).eq('platform', platform).maybeSingle(),
+      supabase.from('content_trends').select('*').eq('platform', platform).eq('is_active', true).order('last_updated', { ascending: false }).limit(10),
+      supabase.from('ai_learning_metrics').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(20),
+    ]);
 
-    // Fetch recent analytics
-    const { data: recentAnalytics } = await supabase
-      .from('uploaded_analytics')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('uploaded_at', { ascending: false })
-      .limit(3);
+    const businessContext = businessRes.data;
+    const recentAnalytics = analyticsRes.data || [];
+    const behaviorData = behaviorRes.data;
+    const activeTrends = trendsRes.data || [];
+    const learningData = learningRes.data || [];
 
-    // Fetch previous strategies for learning
-    const { data: previousStrategies } = await supabase
-      .from('content_strategies')
-      .select('predicted_metrics, platform')
-      .eq('user_id', user.id)
-      .eq('platform', platform)
-      .order('created_at', { ascending: false })
-      .limit(3);
+    // Build behavior-enhanced prompt section
+    let behaviorSection = '';
+    if (behaviorData?.behavior_data) {
+      const bd = behaviorData.behavior_data;
+      behaviorSection = `\n═══ BEHAVIOR INTELLIGENCE (Confidence: ${(behaviorData.learning_confidence * 100).toFixed(0)}%) ═══\n`;
+      if (bd.content_type_preferences) {
+        const sorted = Object.entries(bd.content_type_preferences).sort(([,a]: any, [,b]: any) => b - a);
+        behaviorSection += `Content Preferences: ${sorted.map(([k,v]: any) => `${k}:${(v*100).toFixed(0)}%`).join(', ')}\n`;
+        behaviorSection += `DIRECTIVE: Allocate content types proportionally to these preferences.\n`;
+      }
+      if (bd.topic_preferences) {
+        const sorted = Object.entries(bd.topic_preferences).sort(([,a]: any, [,b]: any) => b - a);
+        behaviorSection += `Topic Preferences: ${sorted.map(([k,v]: any) => `${k}:${(v*100).toFixed(0)}%`).join(', ')}\n`;
+        behaviorSection += `DIRECTIVE: Weight topic distribution according to these preferences.\n`;
+      }
+      if (bd.hook_effectiveness) {
+        const sorted = Object.entries(bd.hook_effectiveness).sort(([,a]: any, [,b]: any) => b - a);
+        behaviorSection += `Hook Effectiveness: ${sorted.map(([k,v]: any) => `${k}:${(v*100).toFixed(0)}%`).join(', ')}\n`;
+        behaviorSection += `DIRECTIVE: Prioritize ${sorted[0]?.[0] || 'curiosity_gap'} hooks.\n`;
+      }
+      if (bd.cta_response_rates) {
+        behaviorSection += `CTA Rates: ${JSON.stringify(bd.cta_response_rates)}\n`;
+        behaviorSection += `DIRECTIVE: Sequence CTAs from highest to lowest response rate across weeks.\n`;
+      }
+      if (bd.time_preferences) behaviorSection += `Peak Times: ${JSON.stringify(bd.time_preferences)}\n`;
+      if (bd.engagement_patterns) behaviorSection += `Engagement Patterns: ${JSON.stringify(bd.engagement_patterns)}\n`;
+      if (bd.completion_rates) behaviorSection += `Completion Rates: ${JSON.stringify(bd.completion_rates)}\n`;
+    }
+
+    let trendsSection = '';
+    if (activeTrends.length > 0) {
+      trendsSection = `\n═══ ACTIVE TRENDS ═══\n`;
+      activeTrends.forEach((t: any) => {
+        trendsSection += `[${t.trend_type}] ${t.content_category || 'General'} (${(t.confidence_score * 100).toFixed(0)}% confidence)\n`;
+        if (t.trend_data?.format_trends) trendsSection += `  Formats: ${t.trend_data.format_trends.join(', ')}\n`;
+      });
+      trendsSection += `DIRECTIVE: Align 20-30% of posts with rising trends to boost algorithm favorability.\n`;
+    }
+
+    let calibrationSection = '';
+    if (learningData.length > 0) {
+      const avgAcc = learningData.reduce((s: number, m: any) => s + (m.accuracy_score || 0), 0) / learningData.length;
+      const avgVar = learningData.reduce((s: number, m: any) => s + (m.variance || 0), 0) / learningData.length;
+      calibrationSection = `\n═══ PREDICTION CALIBRATION ═══\n`;
+      calibrationSection += `Historical accuracy: ${(avgAcc * 100).toFixed(1)}% | Avg variance: ${(avgVar * 100).toFixed(1)}%\n`;
+      if (avgVar < -0.05) calibrationSection += `CALIBRATION: Reduce predictions by ${(Math.abs(avgVar) * 100).toFixed(0)}% (systematic overestimate detected)\n`;
+      if (avgVar > 0.05) calibrationSection += `CALIBRATION: Increase predictions by ${(avgVar * 100).toFixed(0)}% (systematic underestimate detected)\n`;
+    }
 
     const prompt = buildEnhancedStrategyPrompt(
       platform,
       durationDays,
       businessContext,
-      recentAnalytics || [],
+      recentAnalytics,
       goals,
       customInstructions
-    );
+    ) + behaviorSection + trendsSection + calibrationSection + `
+
+═══ PREDICTIVE PERFORMANCE MODELING ═══
+For EACH post, calculate predictions using: base_rate × content_type_mult × topic_mult × time_mult × hook_mult × trend_mult
+Provide confidence intervals: ±15% for medium confidence, ±25% for low.
+Include conservative/realistic/optimistic scenarios in strategy overview.
+Add BEHAVIORAL NARRATIVE section explaining WHY this strategy works for THIS specific user based on their behavior data.`;
 
     console.log('Calling AI gateway for enhanced strategy generation...');
 

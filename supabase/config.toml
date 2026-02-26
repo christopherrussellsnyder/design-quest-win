@@ -68,3 +68,6 @@ verify_jwt = false
 
 [functions.generate-strategy]
 verify_jwt = false
+
+[functions.analyze-user-intelligence]
+verify_jwt = false

@@ -480,10 +480,7 @@ serve(async (req) => {
     // Save to database
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     
-    await supabase
-      .from('business_context')
-      .update({ is_active: false })
-      .eq('user_id', userId);
+    await supabase.from('business_context').update({ is_active: false }).eq('user_id', userId);
     
     const { data: savedContext, error: saveError } = await supabase
       .from('business_context')
@@ -513,19 +510,74 @@ serve(async (req) => {
       .select()
       .single();
 
-    if (saveError) {
-      console.error('Failed to save business context:', saveError);
+    if (saveError) console.error('Failed to save business context:', saveError);
+
+    // === NEW: Seed initial behavior patterns based on business characteristics ===
+    try {
+      const supabaseAdmin = createClient(SUPABASE_URL, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+      const industry = (businessProfile.industry || '').toLowerCase();
+      const businessType = (businessProfile.businessType || '').toLowerCase();
+      const priceRange = (businessProfile.priceRange || '').toLowerCase();
+
+      // Industry-based initial predictions
+      let initialPreferences: any = {};
+      
+      if (industry.includes('b2b') || industry.includes('saas') || industry.includes('software')) {
+        initialPreferences = {
+          content_type_preferences: { carousel: 0.40, article: 0.30, video: 0.20, image: 0.10 },
+          topic_preferences: { educational: 0.60, thought_leadership: 0.25, case_studies: 0.15 },
+          hook_effectiveness: { bold_statement: 0.70, question: 0.65, social_proof: 0.60 },
+        };
+      } else if (industry.includes('ecommerce') || industry.includes('retail') || industry.includes('fashion')) {
+        initialPreferences = {
+          content_type_preferences: { reel: 0.40, carousel: 0.30, image: 0.20, story: 0.10 },
+          topic_preferences: { lifestyle: 0.50, promotional: 0.30, ugc: 0.20 },
+          hook_effectiveness: { curiosity_gap: 0.75, scarcity: 0.70, social_proof: 0.65 },
+        };
+      } else if (industry.includes('coach') || industry.includes('consulting') || industry.includes('personal')) {
+        initialPreferences = {
+          content_type_preferences: { carousel: 0.35, reel: 0.30, image: 0.20, story: 0.15 },
+          topic_preferences: { transformation_stories: 0.40, educational: 0.35, authority_building: 0.25 },
+          hook_effectiveness: { story_hook: 0.80, curiosity_gap: 0.75, bold_statement: 0.65 },
+        };
+      } else {
+        initialPreferences = {
+          content_type_preferences: { carousel: 0.35, reel: 0.30, image: 0.20, video: 0.15 },
+          topic_preferences: { educational: 0.45, engagement: 0.30, promotional: 0.25 },
+          hook_effectiveness: { curiosity_gap: 0.70, question: 0.65, bold_statement: 0.60 },
+        };
+      }
+
+      // Adjust for price point
+      if (priceRange.includes('premium') || priceRange.includes('high')) {
+        initialPreferences.topic_preferences = { ...initialPreferences.topic_preferences, educational: (initialPreferences.topic_preferences.educational || 0.4) + 0.1 };
+      }
+
+      // Seed for common platforms
+      const platforms = ['instagram', 'tiktok', 'linkedin', 'facebook'];
+      for (const platform of platforms) {
+        const { data: existing } = await supabaseAdmin.from('user_behavior_patterns')
+          .select('id').eq('user_id', userId).eq('platform', platform).maybeSingle();
+        
+        if (!existing) {
+          await supabaseAdmin.from('user_behavior_patterns').insert({
+            user_id: userId,
+            platform,
+            behavior_data: initialPreferences,
+            learning_confidence: 0.20,
+            last_analyzed: new Date().toISOString(),
+          });
+        }
+      }
+      console.log('Seeded initial behavior patterns based on industry:', industry);
+    } catch (seedError) {
+      console.error('Error seeding behavior patterns:', seedError);
     }
 
     console.log('Business analysis complete');
     
     return new Response(
-      JSON.stringify({ 
-        success: true, 
-        businessProfile,
-        comprehensiveAnalysis,
-        contextId: savedContext?.id,
-      }),
+      JSON.stringify({ success: true, businessProfile, comprehensiveAnalysis, contextId: savedContext?.id }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
     
