@@ -485,6 +485,45 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_learning_metrics: {
+        Row: {
+          accuracy_score: number | null
+          actual_value: number | null
+          context_factors: Json | null
+          created_at: string | null
+          id: string
+          learning_adjustments: Json | null
+          predicted_value: number | null
+          prediction_type: string
+          user_id: string
+          variance: number | null
+        }
+        Insert: {
+          accuracy_score?: number | null
+          actual_value?: number | null
+          context_factors?: Json | null
+          created_at?: string | null
+          id?: string
+          learning_adjustments?: Json | null
+          predicted_value?: number | null
+          prediction_type: string
+          user_id: string
+          variance?: number | null
+        }
+        Update: {
+          accuracy_score?: number | null
+          actual_value?: number | null
+          context_factors?: Json | null
+          created_at?: string | null
+          id?: string
+          learning_adjustments?: Json | null
+          predicted_value?: number | null
+          prediction_type?: string
+          user_id?: string
+          variance?: number | null
+        }
+        Relationships: []
+      }
       ai_messages: {
         Row: {
           attachments: Json | null
@@ -2376,6 +2415,63 @@ export type Database = {
           },
         ]
       }
+      content_performance: {
+        Row: {
+          actual_metrics: Json | null
+          created_at: string | null
+          id: string
+          performance_vs_predicted: Json | null
+          platform: string
+          post_date: string | null
+          post_id: string | null
+          strategy_id: string | null
+          updated_at: string | null
+          user_id: string
+          user_interactions: Json | null
+        }
+        Insert: {
+          actual_metrics?: Json | null
+          created_at?: string | null
+          id?: string
+          performance_vs_predicted?: Json | null
+          platform: string
+          post_date?: string | null
+          post_id?: string | null
+          strategy_id?: string | null
+          updated_at?: string | null
+          user_id: string
+          user_interactions?: Json | null
+        }
+        Update: {
+          actual_metrics?: Json | null
+          created_at?: string | null
+          id?: string
+          performance_vs_predicted?: Json | null
+          platform?: string
+          post_date?: string | null
+          post_id?: string | null
+          strategy_id?: string | null
+          updated_at?: string | null
+          user_id?: string
+          user_interactions?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_performance_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "strategy_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_performance_strategy_id_fkey"
+            columns: ["strategy_id"]
+            isOneToOne: false
+            referencedRelation: "content_strategies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       content_performance_patterns: {
         Row: {
           avg_engagement_rate: number | null
@@ -2522,6 +2618,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      content_trends: {
+        Row: {
+          confidence_score: number | null
+          content_category: string | null
+          first_detected: string | null
+          id: string
+          is_active: boolean | null
+          last_updated: string | null
+          platform: string
+          trend_data: Json | null
+          trend_type: string
+        }
+        Insert: {
+          confidence_score?: number | null
+          content_category?: string | null
+          first_detected?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_updated?: string | null
+          platform: string
+          trend_data?: Json | null
+          trend_type: string
+        }
+        Update: {
+          confidence_score?: number | null
+          content_category?: string | null
+          first_detected?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_updated?: string | null
+          platform?: string
+          trend_data?: Json | null
+          trend_type?: string
+        }
+        Relationships: []
       }
       engagement_predictions: {
         Row: {
@@ -3916,6 +4048,39 @@ export type Database = {
           time_period_start?: string | null
           trend_analysis?: Json | null
           uploaded_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_behavior_patterns: {
+        Row: {
+          behavior_data: Json | null
+          created_at: string | null
+          id: string
+          last_analyzed: string | null
+          learning_confidence: number | null
+          platform: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          behavior_data?: Json | null
+          created_at?: string | null
+          id?: string
+          last_analyzed?: string | null
+          learning_confidence?: number | null
+          platform: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          behavior_data?: Json | null
+          created_at?: string | null
+          id?: string
+          last_analyzed?: string | null
+          learning_confidence?: number | null
+          platform?: string
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: []
