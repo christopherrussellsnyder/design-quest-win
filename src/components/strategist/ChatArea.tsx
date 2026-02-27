@@ -14,6 +14,7 @@ import { WebsiteAnalyzer } from '@/components/chat/WebsiteAnalyzer';
 import { useScreenshotAnalysis } from '@/hooks/useScreenshotAnalysis';
 import { BusinessProfile } from '@/hooks/useWebsiteAnalysis';
 import { ChatMessageList } from './ChatMessageList';
+import { IntelligenceCards } from './IntelligenceCards';
 import { QuickActions } from './QuickActions';
 import { StrategyDialog } from './StrategyDialog';
 import { SmartSuggestions, SmartSuggestion } from './SmartSuggestions';
@@ -593,13 +594,16 @@ I'll use this context to provide personalized marketing recommendations. You can
             </div>
           </div>
         ) : (
-          <ChatMessageList 
-            messages={messages} 
-            isLoading={isLoading}
-            messagesEndRef={messagesEndRef}
-            onAction={handleAction}
-            onQuickSuggestion={(prompt) => sendMessage(prompt)}
-          />
+          <>
+            <IntelligenceCards />
+            <ChatMessageList 
+              messages={messages} 
+              isLoading={isLoading}
+              messagesEndRef={messagesEndRef}
+              onAction={handleAction}
+              onQuickSuggestion={(prompt) => sendMessage(prompt)}
+            />
+          </>
         )}
       </ScrollArea>
 
