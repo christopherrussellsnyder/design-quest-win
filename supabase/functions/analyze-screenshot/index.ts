@@ -51,10 +51,10 @@ const JSON_SCHEMA = `{
     "anomalies_detected": [],
     "correlations_found": []
   },
-  "insights": [],
-  "recommendations": [],
-  "opportunities": [],
-  "risks": [],
+  "insights": [{"category": "Strength|Warning|Opportunity|Info", "importance": "High|Medium|Low", "insight": "description", "supporting_data": "metric or data point"}],
+  "recommendations": [{"priority": "P0|P1|P2|P3", "recommendation": "what to do", "expected_impact": "expected result", "effort_required": "Low|Medium|High"}],
+  "opportunities": [{"opportunity": "description", "potential_impact": "High|Medium|Low"}],
+  "risks": [{"severity": "High|Medium|Low", "risk": "description", "mitigation": "how to address"}],
   "follow_up_questions": [],
   "summary": { "one_sentence_summary": "", "top_3_strengths": [], "top_3_areas_for_improvement": [], "immediate_action_required": false, "immediate_action_reason": "" },
   "behavioral_intelligence": {
@@ -278,31 +278,76 @@ serve(async (req) => {
         if (data.summary.top_3_areas_for_improvement?.length) formatted += `**Improvements:**\n${data.summary.top_3_areas_for_improvement.map((s: string) => `- ⚠️ ${s}`).join('\n')}\n\n`;
         if (data.summary.immediate_action_required) formatted += `🚨 **Action Required:** ${data.summary.immediate_action_reason}\n\n`;
       }
+      // Helper: extract readable text from an item regardless of key names
+      const getItemText = (item: any, ...keys: string[]): string => {
+        if (typeof item === 'string') return item;
+        for (const key of keys) {
+          if (item[key] !== undefined && item[key] !== null) return String(item[key]);
+        }
+        // Fallback: find first string value in the object
+        for (const val of Object.values(item)) {
+          if (typeof val === 'string' && val.length > 5) return val;
+        }
+        return JSON.stringify(item);
+      };
+
       if (data.insights?.length) {
         formatted += `### 💡 Key Insights\n`;
         data.insights.forEach((insight: any, i: number) => {
-          const icon = insight.category === 'Strength' ? '💪' : insight.category === 'Warning' ? '⚠️' : insight.category === 'Opportunity' ? '🚀' : '💡';
-          formatted += `${i + 1}. ${icon} **[${insight.importance}]** ${insight.insight}\n`;
-          if (insight.supporting_data) formatted += `   _Data: ${insight.supporting_data}_\n`;
+          if (typeof insight === 'string') {
+            formatted += `${i + 1}. 💡 ${insight}\n`;
+            return;
+          }
+          const category = insight.category || '';
+          const icon = category === 'Strength' ? '💪' : category === 'Warning' ? '⚠️' : category === 'Opportunity' ? '🚀' : '💡';
+          const importance = insight.importance || insight.priority || 'Info';
+          const text = getItemText(insight, 'insight', 'description', 'text', 'finding', 'summary');
+          formatted += `${i + 1}. ${icon} **[${importance}]** ${text}\n`;
+          const data_point = insight.supporting_data || insight.data || insight.evidence || '';
+          if (data_point) formatted += `   _Data: ${data_point}_\n`;
         });
         formatted += '\n';
       }
       if (data.recommendations?.length) {
         formatted += `### ✅ Recommendations\n`;
         data.recommendations.forEach((rec: any, i: number) => {
-          formatted += `${i + 1}. **[${rec.priority}]** ${rec.recommendation}\n`;
-          if (rec.expected_impact) formatted += `   Impact: ${rec.expected_impact} | Effort: ${rec.effort_required || 'N/A'}\n`;
+          if (typeof rec === 'string') {
+            formatted += `${i + 1}. ${rec}\n`;
+            return;
+          }
+          const priority = rec.priority || rec.importance || `P${Math.min(i, 3)}`;
+          const text = getItemText(rec, 'recommendation', 'description', 'text', 'action', 'suggestion');
+          formatted += `${i + 1}. **[${priority}]** ${text}\n`;
+          const impact = rec.expected_impact || rec.impact || '';
+          if (impact) formatted += `   Impact: ${impact} | Effort: ${rec.effort_required || rec.effort || 'N/A'}\n`;
         });
         formatted += '\n';
       }
       if (data.opportunities?.length) {
         formatted += `### 🚀 Opportunities\n`;
-        data.opportunities.forEach((opp: any, i: number) => { formatted += `${i + 1}. ${opp.opportunity} (Impact: ${opp.potential_impact})\n`; });
+        data.opportunities.forEach((opp: any, i: number) => {
+          if (typeof opp === 'string') {
+            formatted += `${i + 1}. ${opp}\n`;
+            return;
+          }
+          const text = getItemText(opp, 'opportunity', 'description', 'text', 'title');
+          const impact = opp.potential_impact || opp.impact || 'N/A';
+          formatted += `${i + 1}. ${text} (Impact: ${impact})\n`;
+        });
         formatted += '\n';
       }
       if (data.risks?.length) {
         formatted += `### ⚠️ Risks\n`;
-        data.risks.forEach((risk: any, i: number) => { formatted += `${i + 1}. **[${risk.severity}]** ${risk.risk} → ${risk.mitigation}\n`; });
+        data.risks.forEach((risk: any, i: number) => {
+          if (typeof risk === 'string') {
+            formatted += `${i + 1}. ${risk}\n`;
+            return;
+          }
+          const severity = risk.severity || risk.level || risk.priority || 'Medium';
+          const text = getItemText(risk, 'risk', 'description', 'text', 'issue', 'threat');
+          const mitigation = risk.mitigation || risk.solution || risk.recommendation || 'Monitor closely';
+          formatted += `${i + 1}. **[${severity}]** ${text} → ${mitigation}\n`;
+        });
         formatted += '\n';
       }
 
