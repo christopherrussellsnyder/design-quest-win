@@ -527,7 +527,7 @@ I'll use this context to provide personalized marketing recommendations. You can
           <p className="text-sm text-muted-foreground">
             <span className="text-foreground font-medium">Recommendation:</span> Complete your business settings for more accurate AI strategies.
           </p>
-          <Button size="sm" variant="outline" className="border-[#C41E3A]/40 text-primary hover:bg-primary/10 shrink-0" onClick={() => navigate('/business-settings')}>
+          <Button size="sm" variant="outline" className="border-[#C41E3A]/40 text-primary hover:bg-primary/10 shrink-0" onClick={() => navigate('/settings')}>
             <Settings className="w-3.5 h-3.5 mr-1.5" />
             Complete Settings
           </Button>
