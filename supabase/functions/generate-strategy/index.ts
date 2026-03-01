@@ -466,17 +466,19 @@ serve(async (req) => {
 
     console.log(`Generating cognitive ${durationDays}-day strategy for ${platform} for user ${user.id}`);
 
-    // Parallel fetch all context including behavior intelligence
-    const [businessRes, analyticsRes, prevStrategiesRes, behaviorRes, trendsRes, learningRes] = await Promise.all([
+    // Parallel fetch all context including behavior intelligence and business settings
+    const [businessRes, analyticsRes, prevStrategiesRes, behaviorRes, trendsRes, learningRes, settingsRes] = await Promise.all([
       supabase.from('business_context').select('*').eq('user_id', user.id).eq('is_active', true).maybeSingle(),
       supabase.from('uploaded_analytics').select('*').eq('user_id', user.id).order('uploaded_at', { ascending: false }).limit(3),
       supabase.from('content_strategies').select('predicted_metrics, platform').eq('user_id', user.id).eq('platform', platform).order('created_at', { ascending: false }).limit(3),
       supabase.from('user_behavior_patterns').select('*').eq('user_id', user.id).eq('platform', platform).maybeSingle(),
       supabase.from('content_trends').select('*').eq('platform', platform).eq('is_active', true).order('last_updated', { ascending: false }).limit(10),
       supabase.from('ai_learning_metrics').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(20),
+      supabase.from('user_business_settings').select('*').eq('user_id', user.id).maybeSingle(),
     ]);
 
     const businessContext = businessRes.data;
+    const userSettings = settingsRes.data;
     const recentAnalytics = analyticsRes.data || [];
     const behaviorData = behaviorRes.data;
     const activeTrends = trendsRes.data || [];
@@ -531,6 +533,32 @@ serve(async (req) => {
       if (avgVar > 0.05) calibrationSection += `CALIBRATION: Increase predictions by ${(avgVar * 100).toFixed(0)}% (systematic underestimate detected)\n`;
     }
 
+    // Build business settings primary context
+    let settingsSection = '';
+    if (userSettings) {
+      const us = userSettings;
+      const ta = (us.target_audience as any) || {};
+      const cp = (us.content_preferences as any) || {};
+      const enabledPrefs = Object.entries(cp).filter(([,v]) => v).map(([k]) => k.replace('_', ' '));
+      settingsSection = `\n═══ PRIMARY BUSINESS CONTEXT (User-Configured Settings) ═══
+Business Name: ${us.business_name || 'Not set'}
+Industry: ${us.industry || 'Not set'}
+Business Type: ${us.business_type || 'B2C'}
+Target Audience: ${ta.age_range || 'N/A'} | ${ta.demographics || 'N/A'} | Pain Points: ${ta.pain_points || 'N/A'}
+Brand Voice: ${us.brand_voice || 'Not set'}
+Products/Services: ${Array.isArray(us.products_services) && us.products_services.length ? us.products_services.join(', ') : 'N/A'}
+Geographic Focus: ${us.geographic_focus || 'N/A'}
+Price Range: ${us.price_range || 'N/A'}
+Marketing Goals: ${Array.isArray(us.marketing_goals) && us.marketing_goals.length ? us.marketing_goals.join(', ') : 'N/A'}
+Preferred Platforms: ${Array.isArray(us.preferred_platforms) && us.preferred_platforms.length ? us.preferred_platforms.join(', ') : 'N/A'}
+Posting Frequency: ${us.posting_frequency || 'N/A'}
+Content Preferences: ${enabledPrefs.length ? enabledPrefs.join(', ') : 'N/A'}
+Competitors: ${Array.isArray(us.competitors) && us.competitors.length ? us.competitors.join(', ') : 'N/A'}
+UVP: ${us.unique_value_proposition || 'N/A'}
+Additional Context: ${us.additional_context || 'None'}
+DIRECTIVE: Use these user-verified settings as PRIMARY context. Website analysis data is SECONDARY (use only if settings fields are incomplete).\n`;
+    }
+
     const prompt = buildEnhancedStrategyPrompt(
       platform,
       durationDays,
@@ -538,7 +566,7 @@ serve(async (req) => {
       recentAnalytics,
       goals,
       customInstructions
-    ) + behaviorSection + trendsSection + calibrationSection + `
+    ) + settingsSection + behaviorSection + trendsSection + calibrationSection + `
 
 ═══ PREDICTIVE PERFORMANCE MODELING ═══
 For EACH post, calculate predictions using: base_rate × content_type_mult × topic_mult × time_mult × hook_mult × trend_mult

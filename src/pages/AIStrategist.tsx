@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
+import { useNavigate } from 'react-router-dom';
+import { Settings } from 'lucide-react';
 import { ConversationSidebar } from '@/components/strategist/ConversationSidebar';
 import { ChatArea } from '@/components/strategist/ChatArea';
 import { ContextSidebar } from '@/components/strategist/ContextSidebar';
@@ -9,6 +11,7 @@ import { BusinessProfile } from '@/hooks/useWebsiteAnalysis';
 import { cn } from '@/lib/utils';
 import { AnimatedDotGrid } from '@/components/strategist/AnimatedDotGrid';
 import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -58,6 +61,7 @@ export default function AIStrategist() {
   const [conversationToDelete, setConversationToDelete] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   // Fetch conversations
   const { data: conversations = [], isLoading: conversationsLoading } = useQuery({
@@ -212,6 +216,14 @@ export default function AIStrategist() {
 
       <div className="relative flex h-screen bg-background overflow-hidden">
         <AnimatedDotGrid />
+        
+        {/* Settings button - floating top-right */}
+        <div className="absolute top-3 right-3 z-50">
+          <Button variant="ghost" size="icon" onClick={() => navigate('/business-settings')} className="text-[#A0A0A8] hover:text-white hover:bg-[#16171A]" title="Business Settings">
+            <Settings className="w-4 h-4" />
+          </Button>
+        </div>
+
         {/* Left Sidebar - Conversations */}
         <ConversationSidebar
           conversations={conversations}
