@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { 
   Send, Bot, Loader2, ImagePlus, Globe, Lightbulb, 
-  Sparkles, Settings2
+  Sparkles, Settings2, Settings
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -69,6 +69,7 @@ export function ChatArea({
   const [showStrategyDialog, setShowStrategyDialog] = useState(false);
   const [currentConversationId, setCurrentConversationId] = useState<string | undefined>(conversationId);
   const [hasStrategies, setHasStrategies] = useState(false);
+  const [settingsComplete, setSettingsComplete] = useState(true);
   const [preferences, setPreferences] = useState<ContextPreferences>({
     response_style: 'balanced',
     tone_preference: 'balanced',
@@ -100,20 +101,27 @@ export function ChatArea({
     }
   }, [conversationId]);
 
-  // Check if user has strategies
+  // Check if user has strategies and settings completeness
   useEffect(() => {
-    const checkStrategies = async () => {
+    const checkData = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { count } = await supabase
-        .from('content_strategies')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id);
+      const [{ count }, { data: settingsData }] = await Promise.all([
+        supabase.from('content_strategies').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
+        supabase.from('user_business_settings').select('business_name, industry, target_audience').eq('user_id', user.id).maybeSingle(),
+      ]);
 
       setHasStrategies((count || 0) > 0);
+      
+      if (settingsData) {
+        const ta = (settingsData.target_audience as any) || {};
+        setSettingsComplete(!!(settingsData.business_name && settingsData.industry && ta.age_range));
+      } else {
+        setSettingsComplete(false);
+      }
     };
-    checkStrategies();
+    checkData();
   }, []);
 
   const loadMessages = async (convId: string) => {
@@ -513,6 +521,19 @@ I'll use this context to provide personalized marketing recommendations. You can
 
   return (
     <div className={cn('flex flex-col h-full bg-background', className)}>
+      {/* Settings incomplete banner */}
+      {!settingsComplete && (
+        <div className="mx-4 mt-3 bg-gradient-to-r from-[#C41E3A]/10 to-[#8B1429]/10 border border-[#C41E3A]/30 rounded-lg p-4 flex items-center justify-between gap-3">
+          <p className="text-sm text-muted-foreground">
+            <span className="text-foreground font-medium">Recommendation:</span> Complete your business settings for more accurate AI strategies.
+          </p>
+          <Button size="sm" variant="outline" className="border-[#C41E3A]/40 text-primary hover:bg-primary/10 shrink-0" onClick={() => navigate('/business-settings')}>
+            <Settings className="w-3.5 h-3.5 mr-1.5" />
+            Complete Settings
+          </Button>
+        </div>
+      )}
+
       {/* Messages area */}
       <ScrollArea className="flex-1">
         {messages.length === 0 ? (

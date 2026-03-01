@@ -4085,6 +4085,72 @@ export type Database = {
         }
         Relationships: []
       }
+      user_business_settings: {
+        Row: {
+          additional_context: string | null
+          brand_voice: string | null
+          business_name: string | null
+          business_type: string | null
+          competitors: Json | null
+          content_preferences: Json | null
+          created_at: string
+          geographic_focus: string | null
+          id: string
+          industry: string | null
+          marketing_goals: Json | null
+          posting_frequency: string | null
+          preferred_platforms: Json | null
+          price_range: string | null
+          products_services: Json | null
+          target_audience: Json | null
+          unique_value_proposition: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          additional_context?: string | null
+          brand_voice?: string | null
+          business_name?: string | null
+          business_type?: string | null
+          competitors?: Json | null
+          content_preferences?: Json | null
+          created_at?: string
+          geographic_focus?: string | null
+          id?: string
+          industry?: string | null
+          marketing_goals?: Json | null
+          posting_frequency?: string | null
+          preferred_platforms?: Json | null
+          price_range?: string | null
+          products_services?: Json | null
+          target_audience?: Json | null
+          unique_value_proposition?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          additional_context?: string | null
+          brand_voice?: string | null
+          business_name?: string | null
+          business_type?: string | null
+          competitors?: Json | null
+          content_preferences?: Json | null
+          created_at?: string
+          geographic_focus?: string | null
+          id?: string
+          industry?: string | null
+          marketing_goals?: Json | null
+          posting_frequency?: string | null
+          preferred_platforms?: Json | null
+          price_range?: string | null
+          products_services?: Json | null
+          target_audience?: Json | null
+          unique_value_proposition?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_preferences: {
         Row: {
           auto_hashtag_suggestions: boolean | null

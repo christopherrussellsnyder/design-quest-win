@@ -29,7 +29,8 @@ interface BusinessContext {
 function buildCognitiveSystemPrompt(
   context: BusinessContext, 
   preferences: ContextPreferences,
-  conversationHistory: Array<{role: string; content: string}>
+  conversationHistory: Array<{role: string; content: string}>,
+  businessSettings?: any
 ): string {
   const { businessProfile: bp, recentAnalytics, pastStrategies, performanceTrends, interactionPatterns, behaviorPatterns, learningMetrics, contentTrends, contentPerformance } = context;
   const { 
@@ -205,16 +206,51 @@ LAYER 4: ACTIVE CONTENT TRENDS
     });
   }
 
-  // Conversation context
+  // === USER BUSINESS SETTINGS (HIGHEST PRIORITY) ===
+  prompt += `\n═══════════════════════════════════════════════════════════════
+USER BUSINESS SETTINGS (HIGHEST PRIORITY CONTEXT)
+═══════════════════════════════════════════════════════════════\n`;
+
+  if (businessSettings) {
+    const bs = businessSettings;
+    const ta = bs.target_audience || {};
+    const cp = bs.content_preferences || {};
+    const enabledPrefs = Object.entries(cp).filter(([,v]) => v).map(([k]) => k.replace('_', ' '));
+    
+    prompt += `Business Name: ${bs.business_name || 'Not set'}
+Industry: ${bs.industry || 'Not set'}
+Business Type: ${bs.business_type || 'Not set'}
+Target Audience:
+  - Age Range: ${ta.age_range || 'Not set'}
+  - Demographics: ${ta.demographics || 'Not set'}
+  - Psychographics: ${ta.psychographics || 'Not set'}
+  - Pain Points: ${ta.pain_points || 'Not set'}
+Brand Voice: ${bs.brand_voice || 'Not set'}
+Products/Services: ${Array.isArray(bs.products_services) && bs.products_services.length ? bs.products_services.join(', ') : 'Not set'}
+Geographic Focus: ${bs.geographic_focus || 'Not set'}
+Price Range: ${bs.price_range || 'Not set'}
+Marketing Goals: ${Array.isArray(bs.marketing_goals) && bs.marketing_goals.length ? bs.marketing_goals.join(', ') : 'Not set'}
+Preferred Platforms: ${Array.isArray(bs.preferred_platforms) && bs.preferred_platforms.length ? bs.preferred_platforms.join(', ') : 'Not set'}
+Posting Frequency: ${bs.posting_frequency || 'Not set'}
+Content Preferences: ${enabledPrefs.length ? enabledPrefs.join(', ') : 'Not set'}
+Competitors: ${Array.isArray(bs.competitors) && bs.competitors.length ? bs.competitors.join(', ') : 'Not set'}
+Unique Value Proposition: ${bs.unique_value_proposition || 'Not set'}
+Additional Context: ${bs.additional_context || 'None'}
+`;
+  } else {
+    prompt += `No business settings configured yet. User should complete settings at /business-settings for more personalized strategies.\n`;
+  }
+
+  // Conversation context with extended history
   if (conversationHistory.length > 0) {
-    const recentMessages = conversationHistory.slice(-10);
+    const recentMessages = conversationHistory.slice(-20);
     const topics = extractTopics(recentMessages);
     const phase = detectConversationPhase(recentMessages);
     prompt += `\n═══════════════════════════════════════════════════════════════
-CONVERSATION CONTEXT
+CONVERSATION HISTORY (Last ${recentMessages.length} messages)
 ═══════════════════════════════════════════════════════════════
 Phase: ${phase} | Topics: ${topics.join(', ') || 'General'} | Messages: ${conversationHistory.length}
-Recent:\n${recentMessages.slice(-5).map(m => `[${m.role.toUpperCase()}]: ${m.content.slice(0, 150)}...`).join('\n')}\n`;
+${recentMessages.map(m => `[${m.role.toUpperCase()}]: ${m.content.slice(0, 200)}${m.content.length > 200 ? '...' : ''}`).join('\n')}\n`;
   }
 
   if (interactionPatterns) {
@@ -272,6 +308,26 @@ RESPONSE REQUIREMENTS:
 Style: ${response_style} | Tone: ${tone_preference} | Technical: ${technical_level} | Creativity: ${creativity_level}
 ${include_examples ? 'Include relevant examples' : 'Focus on principles'}
 
+CRITICAL BEHAVIOR WHEN GENERATING STRATEGIES:
+1. Before generating any strategy, FIRST review all available business context (settings + analytics + website data)
+2. Present a confirmation message summarizing your understanding of their business:
+   - Business name, industry, target audience, brand voice, marketing goals
+   - Current performance metrics if analytics are available
+3. Ask for explicit confirmation: "Is this correct? If you need to update any business information, you can edit your settings using the settings icon in the top right corner. Please confirm and I'll generate your comprehensive strategy."
+4. If business settings are incomplete (missing business name, target audience, or industry), prompt: "I notice some key business details are missing. For the most personalized strategy, please complete your business settings using the ⚙️ icon. Would you like to proceed with what I have, or update your settings first?"
+
+CONTEXT PRIORITY:
+1. User Business Settings (highest priority - user-verified data)
+2. Conversation History (20 messages for continuity)
+3. Recent Analytics (uploaded performance data)
+4. Website Analysis (scraped data, fallback)
+
+MEMORY CONTINUITY:
+- Use full 20-message history to maintain context across the conversation
+- Remember previous recommendations and build upon them
+- Avoid repeating advice already given
+- Reference previous strategies when making new suggestions
+
 Every response should feel uniquely personalized, data-driven, and strategically valuable. Reference their business by name, cite their metrics, and provide specific predictions with confidence levels.`;
 
   return prompt;
@@ -305,20 +361,13 @@ function detectConversationPhase(messages: Array<{role: string; content: string}
   return 'Discovery';
 }
 
-async function fetchEnhancedContext(supabase: any, userId: string): Promise<BusinessContext> {
+async function fetchEnhancedContext(supabase: any, userId: string, conversationId?: string): Promise<{ context: BusinessContext; businessSettings: any; conversationHistory: Array<{role: string; content: string}> }> {
   const context: BusinessContext = {};
+  let businessSettings: any = null;
+  let conversationHistory: Array<{role: string; content: string}> = [];
 
   try {
-    // Parallel fetch all context sources
-    const [
-      businessRes,
-      analyticsRes,
-      strategiesRes,
-      behaviorRes,
-      trendsRes,
-      performanceRes,
-      learningRes,
-    ] = await Promise.all([
+    const fetchPromises: Promise<any>[] = [
       supabase.from('business_context').select('*').eq('user_id', userId).eq('is_active', true).maybeSingle(),
       supabase.from('uploaded_analytics').select('*').eq('user_id', userId).order('uploaded_at', { ascending: false }).limit(3),
       supabase.from('content_strategies').select('id, platform, created_at, predicted_metrics, total_posts').eq('user_id', userId).order('created_at', { ascending: false }).limit(5),
@@ -326,7 +375,25 @@ async function fetchEnhancedContext(supabase: any, userId: string): Promise<Busi
       supabase.from('content_trends').select('*').eq('is_active', true).order('last_updated', { ascending: false }).limit(15),
       supabase.from('content_performance').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(10),
       supabase.from('ai_learning_metrics').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(50),
-    ]);
+      supabase.from('user_business_settings').select('*').eq('user_id', userId).maybeSingle(),
+    ];
+
+    // Also fetch extended conversation history if conversationId provided
+    if (conversationId) {
+      fetchPromises.push(
+        supabase.from('ai_messages').select('role, content, created_at').eq('conversation_id', conversationId).order('created_at', { ascending: false }).limit(20)
+      );
+    }
+
+    const results = await Promise.all(fetchPromises);
+
+    const [businessRes, analyticsRes, strategiesRes, behaviorRes, trendsRes, performanceRes, learningRes, settingsRes, ...rest] = results;
+
+    businessSettings = settingsRes?.data || null;
+
+    if (rest.length > 0 && rest[0]?.data) {
+      conversationHistory = (rest[0].data as Array<{role: string; content: string}>).reverse();
+    }
 
     if (businessRes.data?.business_profile) {
       context.businessProfile = businessRes.data.business_profile;
@@ -355,20 +422,10 @@ async function fetchEnhancedContext(supabase: any, userId: string): Promise<Busi
       }));
     }
 
-    // New intelligence layers
-    if (behaviorRes.data?.length) {
-      context.behaviorPatterns = behaviorRes.data;
-    }
+    if (behaviorRes.data?.length) context.behaviorPatterns = behaviorRes.data;
+    if (trendsRes.data?.length) context.contentTrends = trendsRes.data;
+    if (performanceRes.data?.length) context.contentPerformance = performanceRes.data;
 
-    if (trendsRes.data?.length) {
-      context.contentTrends = trendsRes.data;
-    }
-
-    if (performanceRes.data?.length) {
-      context.contentPerformance = performanceRes.data;
-    }
-
-    // Aggregate learning metrics
     if (learningRes.data?.length) {
       const metrics = learningRes.data;
       const avgAccuracy = metrics.reduce((sum: number, m: any) => sum + (m.accuracy_score || 0), 0) / metrics.length;
@@ -396,7 +453,7 @@ async function fetchEnhancedContext(supabase: any, userId: string): Promise<Busi
     console.error('Error fetching enhanced context:', error);
   }
 
-  return context;
+  return { context, businessSettings, conversationHistory };
 }
 
 function calculateTrends(analyticsData: any[]): any {
@@ -439,20 +496,24 @@ serve(async (req) => {
     console.log('Cognitive AI Chat V2:', { messagesCount: messages.length, hasUserId: !!userId });
 
     let fullContext: BusinessContext = providedContext || {};
+    let businessSettings: any = null;
+    let dbConversationHistory: Array<{role: string; content: string}> = [];
 
     if (userId) {
       const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
       const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
       const supabase = createClient(supabaseUrl, supabaseKey);
-      const dbContext = await fetchEnhancedContext(supabase, userId);
+      const { context: dbContext, businessSettings: dbSettings, conversationHistory } = await fetchEnhancedContext(supabase, userId, conversationId);
       fullContext = {
         ...dbContext,
         businessProfile: providedContext?.businessProfile || dbContext.businessProfile,
         recentAnalytics: providedContext?.recentAnalytics?.length ? providedContext.recentAnalytics : dbContext.recentAnalytics,
       };
+      businessSettings = dbSettings;
+      dbConversationHistory = conversationHistory;
     }
 
-    const systemPrompt = buildCognitiveSystemPrompt(fullContext, context_preferences as ContextPreferences, messages);
+    const systemPrompt = buildCognitiveSystemPrompt(fullContext, context_preferences as ContextPreferences, dbConversationHistory.length > 0 ? dbConversationHistory : messages, businessSettings);
     console.log('Cognitive prompt length:', systemPrompt.length);
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {

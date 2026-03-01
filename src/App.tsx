@@ -24,6 +24,7 @@ const ContentStrategies = lazy(() => import("./pages/ContentStrategies"));
 const Insights = lazy(() => import("./pages/Insights"));
 const MediaLibrary = lazy(() => import("./pages/MediaLibrary"));
 const Settings = lazy(() => import("./pages/Settings"));
+const BusinessSettings = lazy(() => import("./pages/BusinessSettings"));
 const HealthCheck = lazy(() => import("./pages/HealthCheck"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
@@ -169,14 +170,22 @@ const App = () => (
                     path="/media-library"
                     element={<Navigate to="/media" replace />}
                   />
-                  <Route
-                    path="/settings"
-                    element={
-                      <ProtectedRoute>
-                        <Settings />
-                      </ProtectedRoute>
-                    }
-                  />
+                    <Route
+                      path="/settings"
+                      element={
+                        <ProtectedRoute>
+                          <Settings />
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/business-settings"
+                      element={
+                        <ProtectedRoute>
+                          <BusinessSettings />
+                        </ProtectedRoute>
+                      }
+                    />
                   
                   {/* Static Pages */}
                   <Route path="/help" element={<HelpCenter />} />
