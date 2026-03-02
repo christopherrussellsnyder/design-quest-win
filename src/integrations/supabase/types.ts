@@ -3979,23 +3979,34 @@ export type Database = {
       }
       uploaded_analytics: {
         Row: {
+          ad_platform_specific: Json | null
           ai_insights: string | null
           benchmark_comparison: Json | null
           data_completeness: string | null
+          data_completeness_score: number | null
           extracted_data: Json | null
+          extracted_data_quality: string | null
+          file_format: string | null
+          file_size_bytes: number | null
+          file_type: string | null
           follow_up_questions: string[] | null
           id: string
-          image_url: string
+          image_url: string | null
           insights: Json | null
           opportunities: Json | null
+          original_filename: string | null
           overall_health_score: number | null
           pattern_recognition: Json | null
           performance_rating: string | null
           platform: string | null
           platform_confidence: string | null
+          platform_type: string | null
+          processing_error: string | null
+          processing_status: string | null
           recommendations: Json | null
           risks: Json | null
           summary: Json | null
+          supports_comparison: boolean | null
           time_period_end: string | null
           time_period_start: string | null
           trend_analysis: Json | null
@@ -4003,23 +4014,34 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          ad_platform_specific?: Json | null
           ai_insights?: string | null
           benchmark_comparison?: Json | null
           data_completeness?: string | null
+          data_completeness_score?: number | null
           extracted_data?: Json | null
+          extracted_data_quality?: string | null
+          file_format?: string | null
+          file_size_bytes?: number | null
+          file_type?: string | null
           follow_up_questions?: string[] | null
           id?: string
-          image_url: string
+          image_url?: string | null
           insights?: Json | null
           opportunities?: Json | null
+          original_filename?: string | null
           overall_health_score?: number | null
           pattern_recognition?: Json | null
           performance_rating?: string | null
           platform?: string | null
           platform_confidence?: string | null
+          platform_type?: string | null
+          processing_error?: string | null
+          processing_status?: string | null
           recommendations?: Json | null
           risks?: Json | null
           summary?: Json | null
+          supports_comparison?: boolean | null
           time_period_end?: string | null
           time_period_start?: string | null
           trend_analysis?: Json | null
@@ -4027,23 +4049,34 @@ export type Database = {
           user_id: string
         }
         Update: {
+          ad_platform_specific?: Json | null
           ai_insights?: string | null
           benchmark_comparison?: Json | null
           data_completeness?: string | null
+          data_completeness_score?: number | null
           extracted_data?: Json | null
+          extracted_data_quality?: string | null
+          file_format?: string | null
+          file_size_bytes?: number | null
+          file_type?: string | null
           follow_up_questions?: string[] | null
           id?: string
-          image_url?: string
+          image_url?: string | null
           insights?: Json | null
           opportunities?: Json | null
+          original_filename?: string | null
           overall_health_score?: number | null
           pattern_recognition?: Json | null
           performance_rating?: string | null
           platform?: string | null
           platform_confidence?: string | null
+          platform_type?: string | null
+          processing_error?: string | null
+          processing_status?: string | null
           recommendations?: Json | null
           risks?: Json | null
           summary?: Json | null
+          supports_comparison?: boolean | null
           time_period_end?: string | null
           time_period_start?: string | null
           trend_analysis?: Json | null

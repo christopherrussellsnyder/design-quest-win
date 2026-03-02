@@ -10,13 +10,15 @@ const JSON_SCHEMA = `{
   "metadata": {
     "platform": "",
     "platform_confidence": "High/Medium/Low",
-    "interface_type": "Native mobile app/Desktop web/Third-party analytics tool",
-    "screen_type": "Profile analytics/Post insights/Ad performance/Audience demographics/Content performance",
+    "platform_type": "social/advertising",
+    "interface_type": "Native mobile app/Desktop web/Third-party analytics tool/Ad Manager/Data Export",
+    "screen_type": "Profile analytics/Post insights/Ad performance/Campaign dashboard/Audience demographics/Content performance/Export data",
     "time_period": { "start_date": "", "end_date": "", "duration": "", "granularity": "Hourly/Daily/Weekly/Monthly" },
     "comparison_period": null,
     "analysis_timestamp": "",
     "data_completeness": "Complete/Substantial/Partial/Limited",
-    "data_completeness_explanation": ""
+    "data_completeness_explanation": "",
+    "data_completeness_score": 0.5
   },
   "extracted_metrics": {
     "account_metrics": { "followers": null, "followers_change": null, "followers_change_percent": null, "following": null, "posts_count": null, "posts_count_change": null },
@@ -26,9 +28,10 @@ const JSON_SCHEMA = `{
     "audience_metrics": { "top_locations": [], "age_distribution": [], "gender_distribution": null, "active_times": [], "new_vs_returning": null, "audience_growth_rate": null },
     "content_performance": { "top_posts": [], "best_content_type": null, "best_content_engagement_rate": null, "avg_post_reach": null, "avg_post_engagement": null, "worst_content_type": null },
     "video_metrics": { "total_views": null, "avg_watch_time": null, "completion_rate": null, "reel_plays": null, "reel_engagement_rate": null, "story_views": null, "story_interactions": null, "story_completion_rate": null },
-    "ad_metrics": { "spend": null, "spend_change": null, "cpm": null, "cpc": null, "ctr": null, "roas": null, "cost_per_conversion": null, "ad_frequency": null },
+    "ad_metrics": { "spend": null, "spend_change": null, "cpm": null, "cpc": null, "ctr": null, "roas": null, "cost_per_conversion": null, "ad_frequency": null, "campaign_name": null, "ad_set_name": null, "ad_name": null, "clicks": null, "unique_clicks": null, "conversions": null, "conversion_rate": null, "conversion_value": null, "quality_score": null, "relevance_score": null, "cost_per_lead": null, "cost_per_acquisition": null, "budget": null, "budget_remaining": null, "budget_utilization_percent": null },
     "additional_metrics": []
   },
+  "ad_platform_specific": null,
   "trend_analysis": {
     "positive_trends": [{ "metric": "", "current_value": null, "previous_value": null, "absolute_change": null, "percentage_change": null, "trend_direction": "up", "trend_velocity": "", "trend_quality": "Positive", "significance": "" }],
     "negative_trends": [],
@@ -72,74 +75,101 @@ const JSON_SCHEMA = `{
   }
 }`;
 
-const IMAGE_ANALYSIS_PROMPT = `You are an expert data analyst with behavioral pattern extraction capabilities.
+const PLATFORM_DETECTION_GUIDE = `
+PLATFORM DETECTION GUIDE:
+Identify the specific platform and whether it's SOCIAL or ADVERTISING:
 
-TASK: Analyze this analytics screenshot/document with comprehensive depth AND extract user behavior patterns.
+ADVERTISING PLATFORMS (platform_type: "advertising"):
+- Facebook Ads / Meta Ads: campaign budget optimization, ad sets, frequency capping, Ads Manager interface, spend/cost metrics
+- Google Ads: quality score, keyword data, search impression share, ad rank, CPC bidding
+- TikTok Ads: TikTok Ads Manager, spark ads, shopping ads
+- LinkedIn Ads: sponsored content, lead gen forms, matched audiences
+- Twitter/X Ads: promoted tweets, app installs campaigns
+- Snapchat Ads: snap ads, story ads, collection ads
+- Pinterest Ads: shopping ads, idea pins, conversion insights
+- Microsoft Ads: Bing search data, partner network
+- Amazon Ads: sponsored products, ACOS, TACOS
+- YouTube Ads: TrueView, bumper ads, discovery ads
+- Reddit Ads: promoted posts, community targeting
+
+SOCIAL PLATFORMS (platform_type: "social"):
+- Instagram, Facebook, TikTok, LinkedIn, Twitter/X, YouTube, Pinterest, Snapchat
+
+Key indicators for ADVERTISING:
+- Presence of: spend, cost, CPC, CPM, ROAS, budget, campaign names, ad sets, conversions cost
+- Campaign/ad set/ad level hierarchy
+- Budget utilization metrics
+
+Key indicators for SOCIAL:
+- Engagement rate, saves, shares, profile visits, follower growth
+- Content performance, posting analytics
+- Organic reach metrics
+
+METRIC NORMALIZATION - handle naming variations:
+- cost = spend = amount spent = budget spent
+- impressions = views = times shown = delivered
+- click = link click = clicks to website = outbound click
+- conversion = purchase = conv = result = action
+- CTR = click-through rate = click rate
+- CPC = cost per click = avg CPC
+- CPM = cost per 1000 impressions = cost per mille
+`;
+
+const IMAGE_ANALYSIS_PROMPT = `You are an expert data analyst for both social media AND advertising platforms.
+
+TASK: Analyze this analytics data with comprehensive depth.
+
+${PLATFORM_DETECTION_GUIDE}
 
 ═══════════════════════════════════════════════════════════════
-COMPREHENSIVE 10-STEP ANALYSIS + BEHAVIORAL EXTRACTION
+COMPREHENSIVE ANALYSIS FRAMEWORK
 ═══════════════════════════════════════════════════════════════
 
-STEPS 1-10: [Standard comprehensive analysis]
-1. Platform Identification (platform, confidence, interface type, screen type)
+1. Platform & Type Identification (social vs advertising)
 2. Time Period Extraction
-3. Comprehensive Metrics Extraction (all visible numbers)
+3. Comprehensive Metrics Extraction (ALL visible numbers)
+   - For AD platforms: extract campaign name, ad set, spend, CPC, CPM, CTR, ROAS, conversions, quality score, budget, etc.
+   - For SOCIAL platforms: extract engagement, reach, followers, content performance, etc.
 4. Trend Analysis with velocity and significance
 5. Performance Benchmarking vs industry standards
-6. Pattern Recognition (content, audience, timing, anomalies, correlations)
-7. Strategic Insights (5-7, data-backed, categorized)
-8. Actionable Recommendations (5-7, prioritized with P0-P3)
+6. Pattern Recognition
+7. Strategic Insights (5-7, data-backed)
+8. Actionable Recommendations (5-7, prioritized P0-P3)
+   - For AD platforms: optimize creative, reduce CPA, test audiences, adjust bids
+   - For SOCIAL platforms: content strategy, posting times, engagement tactics
 9. Opportunity & Risk Identification
-10. Intelligent Follow-Up Questions
+10. Follow-Up Questions
+11. Behavioral Intelligence Extraction
 
-STEP 11: BEHAVIORAL INTELLIGENCE EXTRACTION (NEW)
-From the analytics data, extract these behavioral signals:
-
-A) Content Type Performance: Calculate preference scores for each content type visible.
-   If carousel 5.1% and image 1.6%, normalize: {carousel: 0.76, image: 0.24}
-   
-B) Topic/Theme Performance: If performance by topic visible, normalize engagement rates.
-   
-C) Engagement Type Distribution: Calculate ratios from breakdown (likes/comments/shares/saves).
-   High saves_ratio = audience values reference content.
-   High shares_ratio = viral/shareable content.
-   
-D) Completion Rates: If video/reel watch time visible, calculate avg_watch_time ÷ duration.
-   
-E) Rewatch Patterns: If repeat views visible, calculate rewatch_rate.
-   
-F) Time Patterns: Identify peak performance windows from time-based data.
-   
-G) Audience Segments: Identify most engaged demographics.
-   
-H) Hook Effectiveness: If first-frame/3-second retention visible, categorize by hook type.
-   
-I) CTA Response Rates: Calculate effectiveness of different CTAs.
-
-For each signal: Use 0.0-1.0 scale. If data not visible, use null.
-Estimate data_quality_score (0.0-1.0) based on how much behavioral data was extractable.
-Count posts_analyzed_count from visible data.
+If this is an ADVERTISING platform, populate ad_platform_specific with:
+{
+  "campaign_performance": { "campaign_name": "", "objective": "", "status": "", "budget": null, "spend": null },
+  "ad_set_metrics": { "targeting": "", "audience_size": null, "placements": "" },
+  "creative_metrics": { "ad_format": "", "cta": "", "media_type": "" },
+  "cost_efficiency": { "cpc": null, "cpm": null, "cpa": null, "cpl": null, "roas": null },
+  "conversion_funnel": { "impressions": null, "clicks": null, "conversions": null, "conversion_rate": null, "conversion_value": null },
+  "audience_insights": { "top_demographics": [], "top_placements": [], "device_breakdown": {} }
+}
 
 OUTPUT FORMAT - Return ONLY valid JSON (no markdown, no code blocks):
 ${JSON_SCHEMA}
 
-QUALITY VALIDATION:
-✓ All visible metrics extracted
-✓ Every trend analyzed with direction and velocity
-✓ Behavioral signals extracted where data available
-✓ Insights are specific and data-backed
-✓ Recommendations are actionable with steps
-✓ Use null for metrics not visible`;
+QUALITY: Extract ALL visible metrics. Use null for unavailable data.`;
 
-const TEXT_DATA_ANALYSIS_PROMPT = `You are an expert data analyst with behavioral pattern extraction capabilities.
+const TEXT_DATA_ANALYSIS_PROMPT = `You are an expert data analyst for social media AND advertising platforms.
 
-TASK: Analyze this marketing analytics data AND extract user behavior patterns.
+TASK: Analyze this exported analytics data.
+
+${PLATFORM_DETECTION_GUIDE}
 
 DATA:
 {DATA}
 
-Apply the full 10-step analysis framework plus Step 11 (Behavioral Intelligence Extraction).
-Extract content_type_preferences, topic_preferences, engagement_type_distribution, completion_rates, time_preferences, and other behavioral signals from the data.
+Apply the full analysis framework. Detect whether this is social or advertising data.
+For spreadsheet/CSV data, pay attention to column headers to identify metrics.
+For JSON/XML data, analyze the structure to extract meaningful metrics.
+
+Handle metric naming variations across platforms (spend=cost, clicks=link_clicks, etc.)
 
 Return ONLY valid JSON (no markdown) with this structure:
 ${JSON_SCHEMA}
@@ -153,7 +183,6 @@ serve(async (req) => {
 
   try {
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
-    const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
 
@@ -163,14 +192,15 @@ serve(async (req) => {
     }
 
     const body = await req.json();
-    const { imageBase64, userId, screenshotUrl, imageUrl, textData, fileType, fileName, contentType } = body;
+    const { imageBase64, userId, screenshotUrl, imageUrl, textData, fileType, fileFormat, fileName, fileSize, contentType } = body;
 
     if (!userId) {
       return new Response(JSON.stringify({ error: 'userId is required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    console.log('Analyzing file for user:', userId, 'fileType:', fileType || 'image');
+    const detectedFormat = fileFormat || (textData ? 'text' : 'image');
+    console.log('Analyzing file for user:', userId, 'format:', detectedFormat, 'fileName:', fileName);
 
     let aiResponse: Response;
 
@@ -182,7 +212,7 @@ serve(async (req) => {
         body: JSON.stringify({
           model: 'google/gemini-2.5-flash',
           messages: [
-            { role: 'system', content: 'You are an expert marketing analytics data analyst with behavioral intelligence capabilities. Return ONLY valid JSON.' },
+            { role: 'system', content: 'You are an expert marketing analytics data analyst for both social media and advertising platforms. Return ONLY valid JSON.' },
             { role: 'user', content: prompt }
           ],
           max_tokens: 12000,
@@ -191,7 +221,7 @@ serve(async (req) => {
       });
     } else {
       let base64Data = imageBase64;
-      let mimeType = contentType || 'image/png';
+      let mimeType = contentType || fileType || 'image/png';
 
       if (!base64Data && imageUrl) {
         const imageResponse = await fetch(imageUrl);
@@ -204,6 +234,11 @@ serve(async (req) => {
       if (!base64Data) {
         return new Response(JSON.stringify({ error: 'File data is required' }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      }
+
+      // For PDFs, use application/pdf mime type so Gemini can process it natively
+      if (detectedFormat === 'pdf') {
+        mimeType = 'application/pdf';
       }
 
       aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
@@ -225,11 +260,11 @@ serve(async (req) => {
     }
 
     if (!aiResponse.ok) {
-      if (aiResponse.status === 429) return new Response(JSON.stringify({ error: 'Rate limit exceeded.' }), { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      if (aiResponse.status === 429) return new Response(JSON.stringify({ error: 'Rate limit exceeded. Please try again in a moment.' }), { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       if (aiResponse.status === 402) return new Response(JSON.stringify({ error: 'AI credits exhausted.' }), { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       const errorText = await aiResponse.text();
       console.error('AI Gateway error:', aiResponse.status, errorText);
-      throw new Error('AI analysis failed');
+      throw new Error(`AI analysis failed for ${detectedFormat} file`);
     }
 
     const aiResult = await aiResponse.json();
@@ -243,25 +278,56 @@ serve(async (req) => {
     } catch (parseError) {
       console.error('Failed to parse AI response:', parseError);
       analysisData = {
-        metadata: { platform: fileType === 'csv' || fileType === 'excel' ? 'Spreadsheet Data' : 'Unknown', platform_confidence: 'Low', data_completeness: 'Partial' },
+        metadata: { platform: 'Unknown', platform_confidence: 'Low', platform_type: 'social', data_completeness: 'Partial' },
         summary: { one_sentence_summary: analysisText.slice(0, 200) },
         insights: [], recommendations: []
       };
     }
 
+    // Determine platform type
+    const platformType = analysisData.metadata?.platform_type || 
+      (analysisData.extracted_metrics?.ad_metrics?.spend != null ? 'advertising' : 'social');
+
+    // Calculate data completeness score
+    const metrics = analysisData.extracted_metrics || {};
+    let filledMetrics = 0;
+    let totalMetrics = 0;
+    for (const category of Object.values(metrics)) {
+      if (typeof category === 'object' && category !== null && !Array.isArray(category)) {
+        for (const val of Object.values(category as Record<string, any>)) {
+          totalMetrics++;
+          if (val !== null && val !== undefined) filledMetrics++;
+        }
+      }
+    }
+    const completenessScore = totalMetrics > 0 ? Math.round((filledMetrics / totalMetrics) * 100) / 100 : 0.5;
+    const dataQuality = completenessScore >= 0.7 ? 'high' : completenessScore >= 0.4 ? 'medium' : 'low';
+
     // Format insights for display
+    const getItemText = (item: any, ...keys: string[]): string => {
+      if (typeof item === 'string') return item;
+      for (const key of keys) {
+        if (item[key] !== undefined && item[key] !== null) return String(item[key]);
+      }
+      for (const val of Object.values(item)) {
+        if (typeof val === 'string' && val.length > 5) return val;
+      }
+      return JSON.stringify(item);
+    };
+
     const formatInsightsForDisplay = (data: any): string => {
       let formatted = `## 📊 Analytics Analysis\n\n`;
       if (data.metadata) {
         formatted += `### Platform: ${data.metadata.platform || 'Unknown'}`;
         if (data.metadata.platform_confidence) formatted += ` (${data.metadata.platform_confidence} confidence)`;
+        if (platformType === 'advertising') formatted += ` — 💰 Advertising`;
         formatted += '\n';
         if (data.metadata.time_period?.start_date || data.metadata.time_period?.end_date) {
           formatted += `**Period:** ${data.metadata.time_period.start_date || 'N/A'} to ${data.metadata.time_period.end_date || 'N/A'}`;
           if (data.metadata.time_period.duration) formatted += ` (${data.metadata.time_period.duration})`;
           formatted += '\n';
         }
-        formatted += '\n';
+        formatted += `**Source:** Analyzed from ${(detectedFormat || 'file').toUpperCase()}\n\n`;
       }
       if (data.trend_analysis) {
         formatted += `### 📈 Health Score: ${data.trend_analysis.overall_health_score || 'N/A'}/10\n`;
@@ -272,32 +338,32 @@ serve(async (req) => {
         if (data.benchmark_comparison.percentile_estimate) formatted += `**Percentile:** ${data.benchmark_comparison.percentile_estimate}\n`;
         formatted += '\n';
       }
+
+      // Ad-specific metrics summary
+      if (platformType === 'advertising' && data.extracted_metrics?.ad_metrics) {
+        const ad = data.extracted_metrics.ad_metrics;
+        formatted += `### 💰 Ad Performance Summary\n`;
+        if (ad.spend != null) formatted += `**Spend:** $${ad.spend}\n`;
+        if (ad.roas != null) formatted += `**ROAS:** ${ad.roas}x\n`;
+        if (ad.cpc != null) formatted += `**CPC:** $${ad.cpc}\n`;
+        if (ad.cpm != null) formatted += `**CPM:** $${ad.cpm}\n`;
+        if (ad.ctr != null) formatted += `**CTR:** ${ad.ctr}%\n`;
+        if (ad.conversions != null) formatted += `**Conversions:** ${ad.conversions}\n`;
+        if (ad.cost_per_conversion != null) formatted += `**Cost/Conversion:** $${ad.cost_per_conversion}\n`;
+        formatted += '\n';
+      }
+
       if (data.summary) {
         formatted += `### 📝 Summary\n${data.summary.one_sentence_summary || 'No summary'}\n\n`;
         if (data.summary.top_3_strengths?.length) formatted += `**Strengths:**\n${data.summary.top_3_strengths.map((s: string) => `- ✅ ${s}`).join('\n')}\n\n`;
         if (data.summary.top_3_areas_for_improvement?.length) formatted += `**Improvements:**\n${data.summary.top_3_areas_for_improvement.map((s: string) => `- ⚠️ ${s}`).join('\n')}\n\n`;
         if (data.summary.immediate_action_required) formatted += `🚨 **Action Required:** ${data.summary.immediate_action_reason}\n\n`;
       }
-      // Helper: extract readable text from an item regardless of key names
-      const getItemText = (item: any, ...keys: string[]): string => {
-        if (typeof item === 'string') return item;
-        for (const key of keys) {
-          if (item[key] !== undefined && item[key] !== null) return String(item[key]);
-        }
-        // Fallback: find first string value in the object
-        for (const val of Object.values(item)) {
-          if (typeof val === 'string' && val.length > 5) return val;
-        }
-        return JSON.stringify(item);
-      };
 
       if (data.insights?.length) {
         formatted += `### 💡 Key Insights\n`;
         data.insights.forEach((insight: any, i: number) => {
-          if (typeof insight === 'string') {
-            formatted += `${i + 1}. 💡 ${insight}\n`;
-            return;
-          }
+          if (typeof insight === 'string') { formatted += `${i + 1}. 💡 ${insight}\n`; return; }
           const category = insight.category || '';
           const icon = category === 'Strength' ? '💪' : category === 'Warning' ? '⚠️' : category === 'Opportunity' ? '🚀' : '💡';
           const importance = insight.importance || insight.priority || 'Info';
@@ -311,10 +377,7 @@ serve(async (req) => {
       if (data.recommendations?.length) {
         formatted += `### ✅ Recommendations\n`;
         data.recommendations.forEach((rec: any, i: number) => {
-          if (typeof rec === 'string') {
-            formatted += `${i + 1}. ${rec}\n`;
-            return;
-          }
+          if (typeof rec === 'string') { formatted += `${i + 1}. ${rec}\n`; return; }
           const priority = rec.priority || rec.importance || `P${Math.min(i, 3)}`;
           const text = getItemText(rec, 'recommendation', 'description', 'text', 'action', 'suggestion');
           formatted += `${i + 1}. **[${priority}]** ${text}\n`;
@@ -326,10 +389,7 @@ serve(async (req) => {
       if (data.opportunities?.length) {
         formatted += `### 🚀 Opportunities\n`;
         data.opportunities.forEach((opp: any, i: number) => {
-          if (typeof opp === 'string') {
-            formatted += `${i + 1}. ${opp}\n`;
-            return;
-          }
+          if (typeof opp === 'string') { formatted += `${i + 1}. ${opp}\n`; return; }
           const text = getItemText(opp, 'opportunity', 'description', 'text', 'title');
           const impact = opp.potential_impact || opp.impact || 'N/A';
           formatted += `${i + 1}. ${text} (Impact: ${impact})\n`;
@@ -339,10 +399,7 @@ serve(async (req) => {
       if (data.risks?.length) {
         formatted += `### ⚠️ Risks\n`;
         data.risks.forEach((risk: any, i: number) => {
-          if (typeof risk === 'string') {
-            formatted += `${i + 1}. ${risk}\n`;
-            return;
-          }
+          if (typeof risk === 'string') { formatted += `${i + 1}. ${risk}\n`; return; }
           const severity = risk.severity || risk.level || risk.priority || 'Medium';
           const text = getItemText(risk, 'risk', 'description', 'text', 'issue', 'threat');
           const mitigation = risk.mitigation || risk.solution || risk.recommendation || 'Monitor closely';
@@ -351,7 +408,6 @@ serve(async (req) => {
         formatted += '\n';
       }
 
-      // NEW: Behavioral Intelligence Summary
       if (data.behavioral_intelligence) {
         const bi = data.behavioral_intelligence;
         if (bi.data_quality_score > 0) {
@@ -363,9 +419,6 @@ serve(async (req) => {
           }
           if (bi.engagement_type_distribution && Object.keys(bi.engagement_type_distribution).length) {
             formatted += `**Engagement Style:** ${Object.entries(bi.engagement_type_distribution).map(([k, v]: any) => `${k}: ${(v * 100).toFixed(0)}%`).join(' | ')}\n`;
-          }
-          if (bi.time_preferences && Object.keys(bi.time_preferences).length) {
-            formatted += `**Peak Times:** ${JSON.stringify(bi.time_preferences)}\n`;
           }
           formatted += '\n';
         }
@@ -406,19 +459,29 @@ serve(async (req) => {
         summary: analysisData.summary || null,
         overall_health_score: analysisData.trend_analysis?.overall_health_score || null,
         performance_rating: analysisData.benchmark_comparison?.overall_performance_rating || null,
+        // New multi-format fields
+        file_type: fileType || contentType || null,
+        file_format: detectedFormat,
+        original_filename: fileName || null,
+        file_size_bytes: fileSize || null,
+        processing_status: 'completed',
+        platform_type: platformType,
+        ad_platform_specific: analysisData.ad_platform_specific || null,
+        extracted_data_quality: dataQuality,
+        data_completeness_score: completenessScore,
+        supports_comparison: true,
       })
       .select()
       .single();
 
     if (insertError) console.error('Failed to save analytics:', insertError);
 
-    // === NEW: Update user_behavior_patterns from extracted behavioral intelligence ===
+    // Update user_behavior_patterns from extracted behavioral intelligence
     const behavioralData = analysisData.behavioral_intelligence;
     if (behavioralData && behavioralData.data_quality_score > 0) {
       const platform = (analysisData.metadata?.platform || 'unknown').toLowerCase();
       
       try {
-        // Check if existing patterns exist
         const { data: existing } = await supabase
           .from('user_behavior_patterns')
           .select('*')
@@ -431,15 +494,12 @@ serve(async (req) => {
         if (behavioralData.topic_preferences && Object.keys(behavioralData.topic_preferences).length) newBehaviorData.topic_preferences = behavioralData.topic_preferences;
         if (behavioralData.engagement_type_distribution && Object.keys(behavioralData.engagement_type_distribution).length) newBehaviorData.engagement_patterns = behavioralData.engagement_type_distribution;
         if (behavioralData.completion_rates && Object.keys(behavioralData.completion_rates).length) newBehaviorData.completion_rates = behavioralData.completion_rates;
-        if (behavioralData.rewatch_patterns && Object.keys(behavioralData.rewatch_patterns).length) newBehaviorData.rewatch_patterns = behavioralData.rewatch_patterns;
         if (behavioralData.time_preferences && Object.keys(behavioralData.time_preferences).length) newBehaviorData.time_preferences = behavioralData.time_preferences;
         if (behavioralData.audience_segments && Object.keys(behavioralData.audience_segments).length) newBehaviorData.audience_segments = behavioralData.audience_segments;
         if (behavioralData.hook_effectiveness && Object.keys(behavioralData.hook_effectiveness).length) newBehaviorData.hook_effectiveness = behavioralData.hook_effectiveness;
-        if (behavioralData.cta_response_rates && Object.keys(behavioralData.cta_response_rates).length) newBehaviorData.cta_response_rates = behavioralData.cta_response_rates;
 
         if (Object.keys(newBehaviorData).length > 0) {
           if (existing) {
-            // Merge with existing: 70% new + 30% existing for each field
             const mergedData: any = { ...existing.behavior_data };
             for (const [key, newValue] of Object.entries(newBehaviorData)) {
               if (typeof newValue === 'object' && !Array.isArray(newValue) && mergedData[key]) {
@@ -448,28 +508,21 @@ serve(async (req) => {
                 for (const k of allKeys) {
                   const nv = (newValue as any)[k];
                   const ov = mergedData[key][k];
-                  if (typeof nv === 'number' && typeof ov === 'number') {
-                    merged[k] = nv * 0.7 + ov * 0.3;
-                  } else {
-                    merged[k] = nv ?? ov;
-                  }
+                  if (typeof nv === 'number' && typeof ov === 'number') merged[k] = nv * 0.7 + ov * 0.3;
+                  else merged[k] = nv ?? ov;
                 }
                 mergedData[key] = merged;
               } else {
                 mergedData[key] = newValue;
               }
             }
-
             const confidenceIncrement = behavioralData.data_quality_score > 0.7 ? 0.15 : 0.05;
             const newConfidence = Math.min(1.0, (existing.learning_confidence || 0) + confidenceIncrement);
-
             await supabase.from('user_behavior_patterns').update({
               behavior_data: mergedData,
               learning_confidence: newConfidence,
               last_analyzed: new Date().toISOString(),
             }).eq('id', existing.id);
-
-            console.log(`Updated behavior patterns for ${platform}, confidence: ${newConfidence}`);
           } else {
             const confidenceIncrement = behavioralData.data_quality_score > 0.7 ? 0.15 : 0.05;
             await supabase.from('user_behavior_patterns').insert({
@@ -479,7 +532,6 @@ serve(async (req) => {
               learning_confidence: confidenceIncrement,
               last_analyzed: new Date().toISOString(),
             });
-            console.log(`Created behavior patterns for ${platform}`);
           }
         }
       } catch (behaviorError) {
@@ -487,7 +539,7 @@ serve(async (req) => {
       }
     }
 
-    console.log('Analysis complete, saved:', analyticsRecord?.id);
+    console.log('Analysis complete, saved:', analyticsRecord?.id, 'format:', detectedFormat, 'platformType:', platformType);
 
     return new Response(
       JSON.stringify({ success: true, analysis: formattedInsights, analysisData, analyticsId: analyticsRecord?.id }),

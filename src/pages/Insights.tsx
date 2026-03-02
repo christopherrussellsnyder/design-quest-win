@@ -5,13 +5,17 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 import { 
-  ArrowLeft, Upload, Camera, ChevronRight, Image, Loader2
+  ArrowLeft, Upload, ChevronRight, Image, Loader2,
+  FileText, Table, FileCode, Code, FileSpreadsheet, File
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { HealthScoreBadge } from '@/components/insights/HealthScoreBadge';
 import { AnalysisDetail } from '@/components/insights/AnalysisDetail';
+import Papa from 'papaparse';
+import * as XLSX from 'xlsx';
 
 interface UploadedAnalytics {
   id: string;
@@ -34,6 +38,56 @@ interface UploadedAnalytics {
   summary?: any;
   overall_health_score?: number;
   performance_rating?: string;
+  file_format?: string | null;
+  original_filename?: string | null;
+  platform_type?: string | null;
+}
+
+const ACCEPTED_TYPES = [
+  'image/png', 'image/jpeg', 'image/jpg', 'image/webp',
+  'application/pdf',
+  'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'text/csv',
+  'application/json',
+  'application/xml', 'text/xml'
+].join(',');
+
+const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
+const MAX_DOC_SIZE = 25 * 1024 * 1024;
+
+function detectFileFormat(file: File): string {
+  const ext = file.name.split('.').pop()?.toLowerCase() || '';
+  if (['png', 'jpg', 'jpeg', 'webp'].includes(ext) || file.type.startsWith('image/')) return 'image';
+  if (ext === 'pdf' || file.type === 'application/pdf') return 'pdf';
+  if (['xls', 'xlsx'].includes(ext) || file.type.includes('spreadsheet') || file.type.includes('excel')) return 'excel';
+  if (ext === 'csv' || file.type === 'text/csv') return 'csv';
+  if (ext === 'json' || file.type === 'application/json') return 'json';
+  if (ext === 'xml' || file.type.includes('xml')) return 'xml';
+  return 'unknown';
+}
+
+function getFormatBadge(format: string | null | undefined) {
+  const configs: Record<string, { label: string; className: string; icon: React.ReactNode }> = {
+    image: { label: 'Screenshot', className: 'bg-blue-500/20 text-blue-400 border-blue-500/30', icon: <Image className="w-3 h-3" /> },
+    pdf: { label: 'PDF', className: 'bg-red-500/20 text-red-400 border-red-500/30', icon: <FileText className="w-3 h-3" /> },
+    excel: { label: 'Excel', className: 'bg-green-500/20 text-green-400 border-green-500/30', icon: <Table className="w-3 h-3" /> },
+    csv: { label: 'CSV', className: 'bg-teal-500/20 text-teal-400 border-teal-500/30', icon: <FileSpreadsheet className="w-3 h-3" /> },
+    json: { label: 'JSON', className: 'bg-purple-500/20 text-purple-400 border-purple-500/30', icon: <Code className="w-3 h-3" /> },
+    xml: { label: 'XML', className: 'bg-orange-500/20 text-orange-400 border-orange-500/30', icon: <FileCode className="w-3 h-3" /> },
+  };
+  const cfg = configs[format || ''] || { label: 'File', className: 'bg-muted text-muted-foreground', icon: <File className="w-3 h-3" /> };
+  return (
+    <Badge variant="outline" className={`text-xs gap-1 ${cfg.className}`}>
+      {cfg.icon}
+      {cfg.label}
+    </Badge>
+  );
+}
+
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 export default function Insights() {
@@ -43,32 +97,28 @@ export default function Insights() {
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState('');
+  const [uploadPercent, setUploadPercent] = useState(0);
   const [selectedUpload, setSelectedUpload] = useState<UploadedAnalytics | null>(null);
+  const [uploadFileName, setUploadFileName] = useState('');
+  const [uploadFileSize, setUploadFileSize] = useState(0);
+  const [uploadFileFormat, setUploadFileFormat] = useState('');
 
   useEffect(() => {
-    if (user) {
-      loadUploads();
-    }
+    if (user) loadUploads();
   }, [user]);
 
   const loadUploads = async () => {
     if (!user) return;
     setIsLoading(true);
-    
     try {
       const { data, error } = await supabase
         .from('uploaded_analytics')
         .select('*')
         .eq('user_id', user.id)
         .order('uploaded_at', { ascending: false });
-
       if (error) throw error;
       setUploads(data || []);
-      
-      // Auto-select the first upload if available
-      if (data && data.length > 0 && !selectedUpload) {
-        setSelectedUpload(data[0]);
-      }
+      if (data && data.length > 0 && !selectedUpload) setSelectedUpload(data[0]);
     } catch (error) {
       console.error('Error loading uploads:', error);
       toast.error('Failed to load analytics');
@@ -77,23 +127,55 @@ export default function Insights() {
     }
   };
 
+  const parseTextFile = async (file: File, fileFormat: string): Promise<string> => {
+    const text = await file.text();
+    
+    if (fileFormat === 'csv') {
+      const result = Papa.parse(text, { header: true, dynamicTyping: true, skipEmptyLines: true });
+      return JSON.stringify({ headers: result.meta.fields, rows: result.data.slice(0, 500), totalRows: result.data.length }, null, 2);
+    }
+    
+    if (fileFormat === 'excel') {
+      const buffer = await file.arrayBuffer();
+      const workbook = XLSX.read(buffer, { type: 'array' });
+      const sheetsData: Record<string, any> = {};
+      for (const name of workbook.SheetNames) {
+        const json = XLSX.utils.sheet_to_json(workbook.Sheets[name], { defval: null });
+        sheetsData[name] = { rows: json.slice(0, 500), totalRows: json.length };
+      }
+      return JSON.stringify({ sheets: sheetsData, sheetNames: workbook.SheetNames }, null, 2);
+    }
+    
+    if (fileFormat === 'json') {
+      try { JSON.parse(text); return text.slice(0, 50000); }
+      catch { return text.slice(0, 50000); }
+    }
+    
+    if (fileFormat === 'xml') {
+      return text.slice(0, 50000);
+    }
+    
+    return text.slice(0, 50000);
+  };
+
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file || !user) return;
 
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
-    if (!allowedTypes.includes(file.type)) {
-      toast.error('Please upload a JPG, PNG, or WebP image');
-      return;
-    }
+    const fileFormat = detectFileFormat(file);
+    const maxSize = fileFormat === 'image' ? MAX_IMAGE_SIZE : MAX_DOC_SIZE;
 
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error('File size must be under 10MB');
+    if (file.size > maxSize) {
+      toast.error(`File too large. Max ${fileFormat === 'image' ? '10MB' : '25MB'} for ${fileFormat} files.`);
       return;
     }
 
     setIsUploading(true);
-    setUploadProgress('Uploading screenshot...');
+    setUploadFileName(file.name);
+    setUploadFileSize(file.size);
+    setUploadFileFormat(fileFormat);
+    setUploadProgress('Uploading file...');
+    setUploadPercent(10);
 
     try {
       // Upload to storage
@@ -110,51 +192,94 @@ export default function Insights() {
         .from('analytics-screenshots')
         .getPublicUrl(fileName);
 
-      setUploadProgress('Extracting metrics...');
+      setUploadPercent(30);
+      setUploadProgress('Processing file...');
 
-      // Convert to base64 for AI analysis
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        const base64 = e.target?.result as string;
+      if (fileFormat === 'image' || fileFormat === 'pdf') {
+        // Image/PDF: send as base64 for vision analysis
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+          const base64 = e.target?.result as string;
+          setUploadPercent(50);
+          setUploadProgress('Analyzing with AI...');
+
+          const { data, error } = await supabase.functions.invoke('analyze-screenshot', {
+            body: {
+              imageBase64: base64.split(',')[1],
+              userId: user.id,
+              screenshotUrl: publicUrl,
+              fileType: file.type,
+              fileFormat,
+              fileName: file.name,
+              fileSize: file.size,
+              contentType: file.type,
+            }
+          });
+
+          if (error) throw error;
+          setUploadPercent(90);
+          setUploadProgress('Finalizing...');
+          toast.success(`${fileFormat === 'pdf' ? 'PDF' : 'Screenshot'} analyzed successfully!`);
+          await loadUploads();
+          if (data?.analyticsId) {
+            const { data: newUpload } = await supabase
+              .from('uploaded_analytics')
+              .select('*')
+              .eq('id', data.analyticsId)
+              .single();
+            if (newUpload) setSelectedUpload(newUpload);
+          }
+        };
+        reader.readAsDataURL(file);
+      } else {
+        // CSV/Excel/JSON/XML: parse on client, send as text data
+        setUploadPercent(40);
+        setUploadProgress('Extracting data...');
         
-        setUploadProgress('Analyzing trends...');
+        const textData = await parseTextFile(file, fileFormat);
         
-        // Call analyze-screenshot edge function
+        setUploadPercent(60);
+        setUploadProgress('Analyzing with AI...');
+
         const { data, error } = await supabase.functions.invoke('analyze-screenshot', {
-          body: { 
-            imageBase64: base64.split(',')[1],
+          body: {
+            textData,
             userId: user.id,
-            screenshotUrl: publicUrl
+            screenshotUrl: publicUrl,
+            fileType: file.type,
+            fileFormat,
+            fileName: file.name,
+            fileSize: file.size,
           }
         });
 
         if (error) throw error;
-
-        setUploadProgress('Generating insights...');
-
-        toast.success('Screenshot analyzed successfully!');
+        setUploadPercent(90);
+        setUploadProgress('Finalizing...');
+        toast.success(`${fileFormat.toUpperCase()} file analyzed successfully!`);
         await loadUploads();
-        
-        // Select the newly uploaded analysis
         if (data?.analyticsId) {
           const { data: newUpload } = await supabase
             .from('uploaded_analytics')
             .select('*')
             .eq('id', data.analyticsId)
             .single();
-          
-          if (newUpload) {
-            setSelectedUpload(newUpload);
-          }
+          if (newUpload) setSelectedUpload(newUpload);
         }
-      };
-      reader.readAsDataURL(file);
+      }
     } catch (error: any) {
       console.error('Upload error:', error);
-      toast.error(error.message || 'Failed to upload screenshot');
+      const format = fileFormat || 'file';
+      toast.error(error.message || `Failed to analyze ${format}. Try re-exporting from the platform or use a different format.`);
     } finally {
       setIsUploading(false);
       setUploadProgress('');
+      setUploadPercent(0);
+      setUploadFileName('');
+      setUploadFileSize(0);
+      setUploadFileFormat('');
+      // Reset file input
+      event.target.value = '';
     }
   };
 
@@ -162,12 +287,20 @@ export default function Insights() {
     const colors: Record<string, string> = {
       instagram: 'bg-pink-500/20 text-pink-400',
       facebook: 'bg-blue-500/20 text-blue-400',
+      'facebook ads': 'bg-blue-600/20 text-blue-500',
       twitter: 'bg-sky-500/20 text-sky-400',
       tiktok: 'bg-slate-500/20 text-slate-300',
+      'tiktok ads': 'bg-slate-600/20 text-slate-400',
       linkedin: 'bg-blue-600/20 text-blue-500',
+      'linkedin ads': 'bg-blue-700/20 text-blue-400',
       google: 'bg-green-500/20 text-green-400',
+      'google ads': 'bg-green-600/20 text-green-500',
       shopify: 'bg-emerald-500/20 text-emerald-400',
       youtube: 'bg-red-500/20 text-red-400',
+      pinterest: 'bg-red-400/20 text-red-300',
+      snapchat: 'bg-yellow-500/20 text-yellow-400',
+      'microsoft ads': 'bg-cyan-500/20 text-cyan-400',
+      'amazon ads': 'bg-orange-500/20 text-orange-400',
     };
     return colors[platform?.toLowerCase()] || 'bg-primary/20 text-primary';
   };
@@ -185,20 +318,20 @@ export default function Insights() {
               <div>
                 <h1 className="text-2xl font-bold text-foreground">Insights</h1>
                 <p className="text-sm text-muted-foreground">
-                  Upload analytics screenshots for AI-powered deep analysis
+                  Upload analytics from any platform — screenshots, PDFs, spreadsheets, and more
                 </p>
               </div>
             </div>
             <div>
               <input
                 type="file"
-                id="screenshot-upload"
-                accept="image/jpeg,image/png,image/webp"
+                id="analytics-upload"
+                accept={ACCEPTED_TYPES}
                 className="hidden"
                 onChange={handleFileUpload}
               />
               <Button 
-                onClick={() => document.getElementById('screenshot-upload')?.click()}
+                onClick={() => document.getElementById('analytics-upload')?.click()}
                 disabled={isUploading}
               >
                 {isUploading ? (
@@ -208,13 +341,26 @@ export default function Insights() {
                   </>
                 ) : (
                   <>
-                    <Camera className="w-4 h-4 mr-2" />
-                    Upload Screenshot
+                    <Upload className="w-4 h-4 mr-2" />
+                    Upload Analytics
                   </>
                 )}
               </Button>
             </div>
           </div>
+
+          {/* Upload Progress Bar */}
+          {isUploading && (
+            <div className="mt-4 p-3 rounded-lg bg-card border border-border">
+              <div className="flex items-center gap-3 mb-2">
+                {getFormatBadge(uploadFileFormat)}
+                <span className="text-sm font-medium truncate flex-1">{uploadFileName}</span>
+                <span className="text-xs text-muted-foreground">{formatFileSize(uploadFileSize)}</span>
+              </div>
+              <Progress value={uploadPercent} className="h-2" />
+              <p className="text-xs text-muted-foreground mt-1">{uploadProgress}</p>
+            </div>
+          )}
         </div>
       </header>
 
@@ -226,17 +372,20 @@ export default function Insights() {
         ) : uploads.length === 0 ? (
           <div className="text-center py-20">
             <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-6">
-              <Camera className="w-10 h-10 text-primary" />
+              <Upload className="w-10 h-10 text-primary" />
             </div>
             <h2 className="text-xl font-semibold mb-2">No analytics uploads yet</h2>
-            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-              Upload screenshots from Instagram, Facebook, TikTok, Google Analytics, or any other platform. 
-              Our AI will extract metrics, analyze trends, benchmark against industry standards, 
-              and provide actionable recommendations.
+            <p className="text-muted-foreground mb-4 max-w-lg mx-auto">
+              Upload analytics from any platform in any format. We support screenshots, PDFs, Excel/CSV exports, JSON, and XML data from all major social and advertising platforms.
             </p>
-            <Button onClick={() => document.getElementById('screenshot-upload')?.click()}>
+            <div className="flex flex-wrap justify-center gap-2 mb-6">
+              {['image', 'pdf', 'excel', 'csv', 'json', 'xml'].map(f => (
+                <span key={f}>{getFormatBadge(f)}</span>
+              ))}
+            </div>
+            <Button onClick={() => document.getElementById('analytics-upload')?.click()}>
               <Upload className="w-4 h-4 mr-2" />
-              Upload Your First Screenshot
+              Upload Your First Analytics
             </Button>
           </div>
         ) : (
@@ -258,11 +407,10 @@ export default function Insights() {
                   >
                     <CardContent className="p-4">
                       <div className="flex items-start gap-3">
-                        {/* Thumbnail or Health Score */}
                         <div className="flex-shrink-0">
                           {upload.overall_health_score ? (
                             <HealthScoreBadge score={upload.overall_health_score} size="sm" />
-                          ) : upload.image_url ? (
+                          ) : upload.image_url && upload.file_format !== 'csv' && upload.file_format !== 'excel' && upload.file_format !== 'json' && upload.file_format !== 'xml' ? (
                             <img 
                               src={upload.image_url} 
                               alt="Screenshot" 
@@ -270,24 +418,33 @@ export default function Insights() {
                             />
                           ) : (
                             <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center">
-                              <Image className="w-5 h-5 text-muted-foreground" />
+                              <File className="w-5 h-5 text-muted-foreground" />
                             </div>
                           )}
                         </div>
                         
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 flex-wrap">
                             <Badge className={getPlatformColor(upload.platform)}>
                               {upload.platform || 'Unknown'}
                             </Badge>
+                            {upload.platform_type === 'advertising' && (
+                              <Badge variant="outline" className="text-xs bg-amber-500/10 text-amber-400 border-amber-500/30">Ad</Badge>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 mt-1">
+                            {getFormatBadge(upload.file_format)}
                             {upload.performance_rating && (
                               <Badge variant="outline" className="text-xs">
                                 {upload.performance_rating}
                               </Badge>
                             )}
                           </div>
-                          <p className="text-sm text-muted-foreground mt-1">
+                          <p className="text-xs text-muted-foreground mt-1">
                             {format(new Date(upload.uploaded_at), 'MMM d, yyyy')}
+                            {upload.original_filename && (
+                              <span className="block truncate">{upload.original_filename}</span>
+                            )}
                           </p>
                           {upload.summary?.one_sentence_summary && (
                             <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
@@ -310,7 +467,7 @@ export default function Insights() {
                 <AnalysisDetail upload={selectedUpload} />
               ) : (
                 <div className="text-center py-20 text-muted-foreground">
-                  <Camera className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <Upload className="w-12 h-12 mx-auto mb-4 opacity-50" />
                   <p>Select an upload to view detailed analysis</p>
                 </div>
               )}
