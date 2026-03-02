@@ -7,7 +7,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   BarChart3, Lightbulb, Target, TrendingUp, AlertTriangle, 
   Sparkles, Eye, Heart, MessageCircle, Share2, Bookmark, Users,
-  ArrowUpRight, ArrowDownRight, ExternalLink, Download
+  ArrowUpRight, ArrowDownRight, ExternalLink, Download,
+  DollarSign, Image, FileText, Table, FileSpreadsheet, Code, FileCode, File
 } from 'lucide-react';
 import { HealthScoreBadge } from './HealthScoreBadge';
 import { MetricCard } from './MetricCard';
@@ -15,6 +16,25 @@ import { InsightCard } from './InsightCard';
 import { RecommendationCard } from './RecommendationCard';
 import { TrendsList } from './TrendsList';
 import { BenchmarkComparison } from './BenchmarkComparison';
+
+function getFormatBadge(format: string | null | undefined) {
+  const configs: Record<string, { label: string; className: string; icon: React.ReactNode }> = {
+    image: { label: 'Screenshot', className: 'bg-blue-500/20 text-blue-400 border-blue-500/30', icon: <Image className="w-3 h-3" /> },
+    pdf: { label: 'PDF', className: 'bg-red-500/20 text-red-400 border-red-500/30', icon: <FileText className="w-3 h-3" /> },
+    excel: { label: 'Excel', className: 'bg-green-500/20 text-green-400 border-green-500/30', icon: <Table className="w-3 h-3" /> },
+    csv: { label: 'CSV', className: 'bg-teal-500/20 text-teal-400 border-teal-500/30', icon: <FileSpreadsheet className="w-3 h-3" /> },
+    json: { label: 'JSON', className: 'bg-purple-500/20 text-purple-400 border-purple-500/30', icon: <Code className="w-3 h-3" /> },
+    xml: { label: 'XML', className: 'bg-orange-500/20 text-orange-400 border-orange-500/30', icon: <FileCode className="w-3 h-3" /> },
+  };
+  const cfg = configs[format || ''] || null;
+  if (!cfg) return null;
+  return (
+    <Badge variant="outline" className={`text-xs gap-1 ${cfg.className}`}>
+      {cfg.icon}
+      Analyzed from {cfg.label}
+    </Badge>
+  );
+}
 
 interface AnalysisDetailProps {
   upload: {
@@ -36,6 +56,10 @@ interface AnalysisDetailProps {
     time_period_start?: string | null;
     time_period_end?: string | null;
     image_url?: string;
+    file_format?: string | null;
+    platform_type?: string | null;
+    ad_platform_specific?: any;
+    original_filename?: string | null;
   };
 }
 
@@ -84,6 +108,12 @@ export function AnalysisDetail({ upload }: AnalysisDetailProps) {
                 <Badge className={getPlatformColor(upload.platform)}>
                   {upload.platform || 'Unknown Platform'}
                 </Badge>
+                {upload.platform_type === 'advertising' && (
+                  <Badge variant="outline" className="text-xs bg-amber-500/10 text-amber-400 border-amber-500/30">
+                    <DollarSign className="w-3 h-3 mr-0.5" />
+                    Advertising
+                  </Badge>
+                )}
                 {upload.platform_confidence && (
                   <Badge variant="outline" className="text-xs">
                     {upload.platform_confidence} Confidence
@@ -99,6 +129,7 @@ export function AnalysisDetail({ upload }: AnalysisDetailProps) {
                     {upload.time_period_start} - {upload.time_period_end}
                   </Badge>
                 )}
+                {getFormatBadge(upload.file_format)}
               </div>
 
               {upload.summary?.one_sentence_summary && (
@@ -267,6 +298,26 @@ export function AnalysisDetail({ upload }: AnalysisDetailProps) {
                   value={metrics.video_metrics?.avg_watch_time}
                 />
               </div>
+
+              {/* Ad Platform Metrics */}
+              {upload.platform_type === 'advertising' && metrics.ad_metrics && (
+                <div className="mt-6 pt-6 border-t border-border">
+                  <h3 className="text-sm font-semibold mb-4 flex items-center gap-2">
+                    <DollarSign className="w-4 h-4 text-amber-400" />
+                    Advertising Metrics
+                  </h3>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <MetricCard label="Spend" value={metrics.ad_metrics.spend != null ? `$${metrics.ad_metrics.spend}` : null} change={metrics.ad_metrics.spend_change} icon={<DollarSign className="w-4 h-4" />} />
+                    <MetricCard label="ROAS" value={metrics.ad_metrics.roas != null ? `${metrics.ad_metrics.roas}x` : null} icon={<TrendingUp className="w-4 h-4" />} />
+                    <MetricCard label="CPC" value={metrics.ad_metrics.cpc != null ? `$${metrics.ad_metrics.cpc}` : null} icon={<DollarSign className="w-4 h-4" />} />
+                    <MetricCard label="CPM" value={metrics.ad_metrics.cpm != null ? `$${metrics.ad_metrics.cpm}` : null} icon={<DollarSign className="w-4 h-4" />} />
+                    <MetricCard label="CTR" value={metrics.ad_metrics.ctr != null ? `${metrics.ad_metrics.ctr}%` : null} icon={<Target className="w-4 h-4" />} />
+                    <MetricCard label="Conversions" value={metrics.ad_metrics.conversions} icon={<Target className="w-4 h-4" />} />
+                    <MetricCard label="Cost/Conversion" value={metrics.ad_metrics.cost_per_conversion != null ? `$${metrics.ad_metrics.cost_per_conversion}` : null} icon={<DollarSign className="w-4 h-4" />} />
+                    <MetricCard label="Quality Score" value={metrics.ad_metrics.quality_score} icon={<Sparkles className="w-4 h-4" />} />
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -496,18 +547,41 @@ export function AnalysisDetail({ upload }: AnalysisDetailProps) {
         </Button>
       </div>
 
-      {/* Original Screenshot */}
-      {upload.image_url && (
+      {/* Original Source */}
+      {upload.image_url && upload.file_format !== 'csv' && upload.file_format !== 'excel' && upload.file_format !== 'json' && upload.file_format !== 'xml' && (
         <Card>
           <CardHeader>
-            <CardTitle>Original Screenshot</CardTitle>
+            <CardTitle>
+              {upload.file_format === 'pdf' ? 'Original PDF' : 'Original Screenshot'}
+              {upload.original_filename && (
+                <span className="text-sm font-normal text-muted-foreground ml-2">{upload.original_filename}</span>
+              )}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <img 
               src={upload.image_url} 
-              alt="Analytics Screenshot" 
+              alt="Analytics source" 
               className="w-full rounded-lg"
             />
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Non-image file info */}
+      {upload.original_filename && (upload.file_format === 'csv' || upload.file_format === 'excel' || upload.file_format === 'json' || upload.file_format === 'xml') && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <File className="w-5 h-5" />
+              Source File
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-3">
+              {getFormatBadge(upload.file_format)}
+              <span className="text-sm text-muted-foreground">{upload.original_filename}</span>
+            </div>
           </CardContent>
         </Card>
       )}
