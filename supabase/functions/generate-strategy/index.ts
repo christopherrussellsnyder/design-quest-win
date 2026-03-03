@@ -656,13 +656,17 @@ Add BEHAVIORAL NARRATIVE section explaining WHY this strategy works for THIS spe
     const overview = strategyData.strategy_overview;
     const predictedMetrics = overview.predicted_metrics || {};
 
+    // Normalize platform for DB check constraint (only allows: instagram, facebook, tiktok, linkedin, twitter, multi)
+    const validPlatforms = ['instagram', 'facebook', 'tiktok', 'linkedin', 'twitter', 'multi'];
+    const normalizedPlatform = validPlatforms.includes(platform) ? platform : 'multi';
+
     // Save strategy to database with enhanced fields
     const { data: savedStrategy, error: strategyError } = await supabase
       .from('content_strategies')
       .insert({
         user_id: user.id,
         title: overview.title,
-        platform: platform,
+        platform: normalizedPlatform,
         duration_days: durationDays,
         start_date: overview.start_date,
         end_date: overview.end_date,
