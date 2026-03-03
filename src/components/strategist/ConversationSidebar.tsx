@@ -108,48 +108,18 @@ export function ConversationSidebar({
                     )}
                     onClick={() => onSelect(conv.id)}
                   >
-                    <MessageSquare className="w-4 h-4 flex-shrink-0 text-muted-foreground" />
-                    <div className="flex-1 min-w-0">
-                      {renamingId === conv.id ? (
-                        <input
-                          autoFocus
-                          className="text-sm font-medium w-full bg-secondary border border-medium rounded-md px-2 py-1 text-foreground focus:outline-none focus:border-primary focus:ring-[3px] focus:ring-primary/10"
-                          value={renameValue}
-                          onChange={(e) => setRenameValue(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              if (onRename) onRename(conv.id, renameValue);
-                              setRenamingId(null);
-                            }
-                            if (e.key === 'Escape') setRenamingId(null);
-                          }}
-                          onBlur={() => {
-                            if (onRename) onRename(conv.id, renameValue);
-                            setRenamingId(null);
-                          }}
-                          onClick={(e) => e.stopPropagation()}
-                        />
-                      ) : (
-                        <p className="text-sm font-medium truncate text-foreground">
-                          {conv.title || 'New Conversation'}
-                        </p>
-                      )}
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {formatDistanceToNow(new Date(conv.updated_at), { addSuffix: true })}
-                      </p>
-                    </div>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <button
                           type="button"
                           aria-label="Conversation options"
-                          className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-white/10"
+                          className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded text-muted-foreground hover:text-foreground transition-colors duration-200 hover:bg-white/10"
                           onClick={(e) => e.stopPropagation()}
                         >
                           <MoreVertical className="w-4 h-4" />
                         </button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" sideOffset={4} className="z-[200]">
+                      <DropdownMenuContent align="start" sideOffset={4} className="z-[200]">
                         <DropdownMenuItem
                           onClick={(e) => {
                             e.stopPropagation();
@@ -181,6 +151,36 @@ export function ConversationSidebar({
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
+                    <MessageSquare className="w-4 h-4 flex-shrink-0 text-muted-foreground" />
+                    <div className="flex-1 min-w-0">
+                      {renamingId === conv.id ? (
+                        <input
+                          autoFocus
+                          className="text-sm font-medium w-full bg-secondary border border-medium rounded-md px-2 py-1 text-foreground focus:outline-none focus:border-primary focus:ring-[3px] focus:ring-primary/10"
+                          value={renameValue}
+                          onChange={(e) => setRenameValue(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              if (onRename) onRename(conv.id, renameValue);
+                              setRenamingId(null);
+                            }
+                            if (e.key === 'Escape') setRenamingId(null);
+                          }}
+                          onBlur={() => {
+                            if (onRename) onRename(conv.id, renameValue);
+                            setRenamingId(null);
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      ) : (
+                        <p className="text-sm font-medium truncate text-foreground">
+                          {conv.title || 'New Conversation'}
+                        </p>
+                      )}
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {formatDistanceToNow(new Date(conv.updated_at), { addSuffix: true })}
+                      </p>
+                    </div>
                   </div>
                 ))
               )}
