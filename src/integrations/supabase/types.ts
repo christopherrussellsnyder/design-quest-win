@@ -1440,6 +1440,42 @@ export type Database = {
         }
         Relationships: []
       }
+      cache_entries: {
+        Row: {
+          cache_key: string
+          cache_type: string
+          cached_data: Json
+          created_at: string
+          expires_at: string
+          hit_count: number
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cache_key: string
+          cache_type?: string
+          cached_data: Json
+          created_at?: string
+          expires_at: string
+          hit_count?: number
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cache_key?: string
+          cache_type?: string
+          cached_data?: Json
+          created_at?: string
+          expires_at?: string
+          hit_count?: number
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       campaign_ai_strategies: {
         Row: {
           business_profile_id: string | null
