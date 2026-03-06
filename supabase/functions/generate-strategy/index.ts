@@ -634,13 +634,52 @@ Add BEHAVIORAL NARRATIVE section explaining WHY this strategy works for THIS spe
     try {
       strategyData = JSON.parse(strategyText);
     } catch (parseError) {
-      console.error('Failed to parse strategy JSON:', parseError);
+      console.warn('Initial JSON parse failed, attempting repair:', parseError);
       console.error('Raw text (first 1000 chars):', strategyText.substring(0, 1000));
       
-      return new Response(
-        JSON.stringify({ error: 'Failed to parse AI response. Please try again.' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      try {
+        // Find JSON boundaries
+        const jsonStart = strategyText.search(/[\{\[]/);
+        if (jsonStart > 0) strategyText = strategyText.substring(jsonStart);
+
+        // Remove trailing commas
+        let cleaned = strategyText
+          .replace(/,\s*}/g, '}')
+          .replace(/,\s*]/g, ']')
+          .replace(/[\x00-\x1F\x7F]/g, '');
+
+        // If truncated, try to close open structures
+        if (cleaned.startsWith('{') && !cleaned.endsWith('}')) {
+          // Try to find last complete post in the posts array
+          const postsMatch = cleaned.match(/"posts"\s*:\s*\[/);
+          if (postsMatch) {
+            const postsStart = cleaned.indexOf(postsMatch[0]);
+            const arrayStart = cleaned.indexOf('[', postsStart);
+            // Find last complete object in posts array
+            let lastCloseBrace = cleaned.lastIndexOf('}');
+            if (lastCloseBrace > arrayStart) {
+              // Close the posts array and root object
+              cleaned = cleaned.substring(0, lastCloseBrace + 1) + ']}';
+              console.warn('Repaired truncated JSON by closing posts array');
+            }
+          } else {
+            // Just close the root object
+            const lastBrace = cleaned.lastIndexOf('}');
+            if (lastBrace > 0) {
+              cleaned = cleaned.substring(0, lastBrace + 1);
+            }
+          }
+        }
+
+        strategyData = JSON.parse(cleaned);
+        console.log(`JSON repair successful. Posts recovered: ${strategyData.posts?.length || 0}`);
+      } catch (repairError) {
+        console.error('JSON repair also failed:', repairError);
+        return new Response(
+          JSON.stringify({ error: 'Strategy was too large to generate in one pass. Please try with a shorter duration (e.g. 14 days) or fewer platforms.' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
     }
 
     // Validate we have posts
