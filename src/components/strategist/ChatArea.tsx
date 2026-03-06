@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { 
   Send, Bot, Loader2, ImagePlus, Globe, Lightbulb, 
   Sparkles, Settings2, Settings
@@ -369,38 +369,102 @@ export function ChatArea({
 
   const handleFileAnalyze = async (file: File) => {
     setShowUploader(false);
+    setIsLoading(true);
     
     const ext = file.name.split('.').pop()?.toLowerCase() || '';
     const label = ['csv', 'xlsx', 'xls'].includes(ext) ? 'spreadsheet' : ext === 'pdf' ? 'PDF' : 'screenshot';
     
-    await sendMessage(
-      `Please analyze this analytics ${label} and provide insights.`,
-      [{ type: file.type.startsWith('image/') ? 'image' : 'file', url: '', name: file.name }]
-    );
+    // Create or get conversation
+    let convId = currentConversationId;
+    if (!convId) {
+      convId = await createConversation();
+    }
+
+    // Add user message
+    const userMsg: Message = {
+      id: `user-upload-${Date.now()}`,
+      role: 'user',
+      content: `Analyze this analytics ${label}: ${file.name}`,
+      attachments: [{ type: file.type.startsWith('image/') ? 'image' : 'file', url: '', name: file.name }],
+      createdAt: new Date(),
+    };
+    setMessages(prev => [...prev, userMsg]);
+    await saveMessage(convId, 'user', userMsg.content, userMsg.attachments);
+
+    if (messages.length === 0) {
+      const title = `Analytics: ${file.name}`.slice(0, 50);
+      await supabase.from('ai_conversations').update({ title, updated_at: new Date().toISOString() }).eq('id', convId);
+    }
+
+    // Show single processing message that updates in-place
+    const processingId = `analysis-${Date.now()}`;
+    const progressStages = [
+      '📤 Uploading file...',
+      '🔍 Processing image...',
+      '📊 Extracting metrics...',
+      '🧠 Running performance analysis...',
+      '💡 Generating actionable insights...',
+    ];
+    
+    let stageIdx = 0;
+    setMessages(prev => [...prev, {
+      id: processingId,
+      role: 'assistant',
+      content: `⏳ **Analyzing your analytics ${label}...**\n\n${progressStages[0]}\n\n_Estimated: 30-45 seconds_`,
+      createdAt: new Date(),
+    }]);
+
+    // Cycle through progress stages
+    const stageInterval = setInterval(() => {
+      stageIdx = Math.min(stageIdx + 1, progressStages.length - 1);
+      const progress = progressStages.slice(0, stageIdx + 1).map((s, i) => 
+        i < stageIdx ? `✅ ${s.slice(2)}` : s
+      ).join('\n');
+      setMessages(prev => prev.map(m => 
+        m.id === processingId 
+          ? { ...m, content: `⏳ **Analyzing your analytics ${label}...**\n\n${progress}\n\n_Processing..._` }
+          : m
+      ));
+    }, 5000);
 
     try {
       const result = await analyzeFile(file);
+      clearInterval(stageInterval);
 
       if (result?.analysis) {
-        const convId = currentConversationId;
-        if (convId) {
-          await saveMessage(convId, 'assistant', result.analysis);
-          setMessages(prev => [...prev, {
-            id: `analysis-${Date.now()}`,
-            role: 'assistant',
-            content: result.analysis,
-            createdAt: new Date(),
-          }]);
-        }
+        // Build unified response with analytics + collapsed business context
+        let finalContent = result.analysis;
+        
+        // Add quick action buttons as markdown
+        finalContent += `\n\n---\n\n**📋 Next Steps:**\n- 🚀 Ask me to "Generate a strategy based on this data"\n- 📊 Upload another file to compare periods\n- 💬 Ask any question about these insights\n\n<sub>_These insights are based on your current business profile. Need to update? Click ⚙️ Settings in the top right._</sub>`;
+
+        // Transform processing message into final result (in-place update)
+        setMessages(prev => prev.map(m => 
+          m.id === processingId 
+            ? { ...m, content: finalContent }
+            : m
+        ));
+        await saveMessage(convId, 'assistant', finalContent);
+        await supabase.from('ai_conversations').update({ updated_at: new Date().toISOString() }).eq('id', convId);
+      } else {
+        // Analysis returned no result
+        setMessages(prev => prev.map(m => 
+          m.id === processingId 
+            ? { ...m, content: '❌ Analysis could not extract meaningful data from this file. Please try:\n1. A clearer screenshot\n2. Exporting as CSV from your platform\n3. A different file format' }
+            : m
+        ));
       }
       onContextUpdate();
     } catch (error) {
+      clearInterval(stageInterval);
       console.error('Analysis error:', error);
-      toast({
-        title: 'Analysis Failed',
-        description: error instanceof Error ? error.message : 'Failed to analyze file',
-        variant: 'destructive',
-      });
+      setMessages(prev => prev.map(m => 
+        m.id === processingId 
+          ? { ...m, content: `❌ **Analysis Failed**\n\n${error instanceof Error ? error.message : 'An error occurred'}\n\nPlease try uploading again or use a different file format.` }
+          : m
+      ));
+    } finally {
+      setIsLoading(false);
     }
   };
 
