@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { 
   Send, Bot, Loader2, ImagePlus, Globe, Lightbulb, 
   Sparkles, Settings2, Settings
