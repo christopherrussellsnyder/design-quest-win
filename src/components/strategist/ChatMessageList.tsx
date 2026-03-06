@@ -22,7 +22,7 @@ interface ChatMessageListProps {
   onQuickSuggestion?: (prompt: string) => void;
 }
 
-export function ChatMessageList({ 
+export const ChatMessageList = React.memo(function ChatMessageList({ 
   messages, 
   isLoading, 
   messagesEndRef,
