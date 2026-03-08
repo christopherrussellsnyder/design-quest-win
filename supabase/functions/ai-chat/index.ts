@@ -378,6 +378,7 @@ async function fetchEnhancedContext(supabase: any, userId: string, conversationI
       supabase.from('content_performance').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(10),
       supabase.from('ai_learning_metrics').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(50),
       supabase.from('user_business_settings').select('*').eq('user_id', userId).maybeSingle(),
+      supabase.from('business_information').select('*').eq('user_id', userId).maybeSingle(),
     ];
 
     // Also fetch extended conversation history if conversationId provided
@@ -389,9 +390,44 @@ async function fetchEnhancedContext(supabase: any, userId: string, conversationI
 
     const results = await Promise.all(fetchPromises);
 
-    const [businessRes, analyticsRes, strategiesRes, behaviorRes, trendsRes, performanceRes, learningRes, settingsRes, ...rest] = results;
+    const [businessRes, analyticsRes, strategiesRes, behaviorRes, trendsRes, performanceRes, learningRes, settingsRes, businessInfoRes, ...rest] = results;
 
     businessSettings = settingsRes?.data || null;
+    const businessInfo = businessInfoRes?.data || null;
+
+    // If user_business_settings is empty but business_information has data, map it
+    if (!businessSettings && businessInfo) {
+      businessSettings = {
+        business_name: businessInfo.business_name,
+        industry: businessInfo.industry,
+        business_type: businessInfo.business_type,
+        target_audience: {
+          age_range: businessInfo.target_age_min && businessInfo.target_age_max ? `${businessInfo.target_age_min}-${businessInfo.target_age_max}` : 'Not set',
+          demographics: businessInfo.gender_distribution ? `Gender: ${JSON.stringify(businessInfo.gender_distribution)}` : 'Not set',
+          psychographics: businessInfo.buying_behavior ? `Buying behavior: ${businessInfo.buying_behavior}` : 'Not set',
+          pain_points: businessInfo.customer_pain_points || 'Not set',
+        },
+        brand_voice: businessInfo.brand_voice_traits?.length ? businessInfo.brand_voice_traits.join(', ') : 'Not set',
+        products_services: businessInfo.primary_products_services ? [businessInfo.primary_products_services] : [],
+        geographic_focus: businessInfo.geographic_focus?.length ? businessInfo.geographic_focus.join(', ') : 'Not set',
+        price_range: businessInfo.monthly_revenue_range || 'Not set',
+        marketing_goals: [],
+        preferred_platforms: [],
+        posting_frequency: businessInfo.content_creation_frequency || 'Not set',
+        competitors: businessInfo.top_competitors || [],
+        unique_value_proposition: businessInfo.unique_value_proposition || 'Not set',
+        additional_context: `Company size: ${businessInfo.company_size || 'N/A'}, Location: ${businessInfo.location || 'N/A'}, Stage: ${businessInfo.business_stage || 'N/A'}, Years: ${businessInfo.years_in_business || 'N/A'}, Website: ${businessInfo.website || 'N/A'}, Competitive advantage: ${businessInfo.competitive_advantage || 'N/A'}, Monthly visitors: ${businessInfo.monthly_website_visitors || 'N/A'}, Social followers: ${businessInfo.total_social_followers || 'N/A'}, Engagement rate: ${businessInfo.avg_post_engagement_rate || 'N/A'}%, Conversion rate: ${businessInfo.current_conversion_rate || 'N/A'}%, CAC: $${businessInfo.customer_acquisition_cost || 'N/A'}, Email subscribers: ${businessInfo.email_subscriber_count || 'N/A'}, Brand colors: ${businessInfo.primary_brand_color || 'N/A'} / ${businessInfo.secondary_brand_color || 'N/A'}, Content themes: ${JSON.stringify(businessInfo.content_themes) || 'N/A'}, Brand values: ${JSON.stringify(businessInfo.brand_values) || 'N/A'}, Best performing content: ${JSON.stringify(businessInfo.best_performing_content_types) || 'N/A'}`,
+      };
+    } else if (businessSettings && businessInfo) {
+      // Merge: fill any gaps in businessSettings with businessInfo data
+      if (!businessSettings.business_name) businessSettings.business_name = businessInfo.business_name;
+      if (!businessSettings.industry) businessSettings.industry = businessInfo.industry;
+      if (!businessSettings.business_type) businessSettings.business_type = businessInfo.business_type;
+      if (!businessSettings.unique_value_proposition) businessSettings.unique_value_proposition = businessInfo.unique_value_proposition;
+      if ((!businessSettings.competitors || !businessSettings.competitors.length) && businessInfo.top_competitors?.length) {
+        businessSettings.competitors = businessInfo.top_competitors;
+      }
+    }
 
     if (rest.length > 0 && rest[0]?.data) {
       conversationHistory = (rest[0].data as Array<{role: string; content: string}>).reverse();
