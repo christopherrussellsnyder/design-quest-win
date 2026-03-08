@@ -378,6 +378,7 @@ async function fetchEnhancedContext(supabase: any, userId: string, conversationI
       supabase.from('content_performance').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(10),
       supabase.from('ai_learning_metrics').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(50),
       supabase.from('user_business_settings').select('*').eq('user_id', userId).maybeSingle(),
+      supabase.from('business_information').select('*').eq('user_id', userId).maybeSingle(),
     ];
 
     // Also fetch extended conversation history if conversationId provided
