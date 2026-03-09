@@ -108,6 +108,7 @@ export const ChatMessageList = React.memo(function ChatMessageList({
                 <ActionButtons 
                   content={message.content} 
                   onAction={onAction}
+                  hasPendingStrategy={hasPendingStrategy}
                 />
               )}
             </div>

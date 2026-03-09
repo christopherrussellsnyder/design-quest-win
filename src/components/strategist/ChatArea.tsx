@@ -798,6 +798,7 @@ I'll use this context to provide personalized marketing recommendations. You can
               messagesEndRef={messagesEndRef}
               onAction={handleAction}
               onQuickSuggestion={(prompt) => sendMessage(prompt)}
+              hasPendingStrategy={!!pendingStrategy}
             />
           </>
         )}
