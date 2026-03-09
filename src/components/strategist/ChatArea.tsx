@@ -643,6 +643,29 @@ I'll use this context to provide personalized marketing recommendations. You can
       case 'create_strategy':
         setShowStrategyDialog(true);
         break;
+      case 'confirm_strategy':
+        if (pendingStrategy) {
+          triggerStrategyGeneration(pendingStrategy.platform, pendingStrategy.duration);
+        }
+        break;
+      case 'cancel_strategy':
+        setPendingStrategy(null);
+        {
+          const cancelMsg: Message = {
+            id: `cancel-${Date.now()}`,
+            role: 'assistant',
+            content: '✅ Strategy generation cancelled. You can request a new strategy anytime.',
+            createdAt: new Date(),
+          };
+          setMessages(prev => [...prev, cancelMsg]);
+          if (currentConversationId) {
+            saveMessage(currentConversationId, 'assistant', cancelMsg.content);
+          }
+        }
+        break;
+      case 'edit_settings':
+        navigate('/settings');
+        break;
       case 'upload_analytics':
         setShowUploader(true);
         break;
