@@ -20,6 +20,7 @@ interface ChatMessageListProps {
   messagesEndRef: React.RefObject<HTMLDivElement>;
   onAction?: (action: string, data?: any) => void;
   onQuickSuggestion?: (prompt: string) => void;
+  hasPendingStrategy?: boolean;
 }
 
 export const ChatMessageList = React.memo(function ChatMessageList({ 
@@ -28,6 +29,7 @@ export const ChatMessageList = React.memo(function ChatMessageList({
   messagesEndRef,
   onAction,
   onQuickSuggestion,
+  hasPendingStrategy,
 }: ChatMessageListProps) {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const lastMessage = messages[messages.length - 1];
@@ -106,6 +108,7 @@ export const ChatMessageList = React.memo(function ChatMessageList({
                 <ActionButtons 
                   content={message.content} 
                   onAction={onAction}
+                  hasPendingStrategy={hasPendingStrategy}
                 />
               )}
             </div>

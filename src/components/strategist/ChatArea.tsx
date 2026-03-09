@@ -70,6 +70,7 @@ export function ChatArea({
   const [currentConversationId, setCurrentConversationId] = useState<string | undefined>(conversationId);
   const [hasStrategies, setHasStrategies] = useState(false);
   const [settingsComplete, setSettingsComplete] = useState(true);
+  const [pendingStrategy, setPendingStrategy] = useState<{ platform: string; duration: number } | null>(null);
   const [preferences, setPreferences] = useState<ContextPreferences>({
     response_style: 'balanced',
     tone_preference: 'balanced',
@@ -190,9 +191,110 @@ export function ChatArea({
     return data;
   };
 
+  // Check if a message is a strategy confirmation
+  const isStrategyConfirmation = (text: string): boolean => {
+    const confirmKeywords = /^(yes|confirmed|proceed|generate it|looks good|that'?s correct|approve|go ahead|do it|confirm|let'?s go|start|deploy|yes please|absolutely|sure|ok|okay)\b/i;
+    return confirmKeywords.test(text.trim());
+  };
+
+  const isStrategyCancellation = (text: string): boolean => {
+    const cancelKeywords = /^(cancel|nevermind|never mind|stop|no|don'?t|nah|nope|start over)\b/i;
+    return cancelKeywords.test(text.trim());
+  };
+
+  const triggerStrategyGeneration = async (platform: string, duration: number) => {
+    setPendingStrategy(null);
+    
+    const progressMsgId = `strategy-progress-${Date.now()}`;
+    setMessages(prev => [...prev, {
+      id: progressMsgId,
+      role: 'assistant',
+      content: `🚀 **Generating your ${duration}-day ${platform} strategy...**\n\nThis will take 60-90 seconds for a comprehensive multi-platform plan.\n\n⏳ Analyzing business context...`,
+      createdAt: new Date(),
+    }]);
+
+    try {
+      const result = await generateStrategy(platform, duration, undefined, undefined, currentConversationId);
+      if (result) {
+        setHasStrategies(true);
+        const successContent = `✨ **Strategy Generated Successfully!**\n\nI've created your ${duration}-day ${platform} content strategy with **${result.postsCount} posts**.\n\n**Predicted Results:**\n- 📈 Total Reach: ${result.strategy.predicted_metrics?.total_reach?.toLocaleString() || 'N/A'}\n- 💬 Avg Engagement: ${result.strategy.predicted_metrics?.avg_engagement_rate || 'N/A'}%\n- 👥 Follower Growth: +${result.strategy.predicted_metrics?.expected_follower_growth || 'N/A'}\n\n[View Full Strategy](/strategies/${result.strategyId})`;
+        
+        setMessages(prev => prev.map(m => 
+          m.id === progressMsgId ? { ...m, content: successContent } : m
+        ));
+        
+        if (currentConversationId) {
+          await saveMessage(currentConversationId, 'assistant', successContent);
+        }
+      } else {
+        setMessages(prev => prev.map(m => 
+          m.id === progressMsgId 
+            ? { ...m, content: '❌ **Strategy generation failed.** Please try again or use a shorter duration (14 days) for better reliability.' }
+            : m
+        ));
+      }
+    } catch (error) {
+      console.error('Strategy generation error:', error);
+      setMessages(prev => prev.map(m => 
+        m.id === progressMsgId 
+          ? { ...m, content: `❌ **Strategy generation failed:** ${error instanceof Error ? error.message : 'Unknown error'}\n\nTry generating via chat by typing "Generate a ${duration}-day ${platform} strategy".` }
+          : m
+      ));
+    }
+  };
+
   const sendMessage = async (messageContent?: string, attachments?: any[]) => {
     const content = messageContent || input.trim();
     if (!content && !attachments?.length) return;
+
+    // Check if user is confirming a pending strategy
+    if (pendingStrategy && isStrategyConfirmation(content)) {
+      setInput('');
+      const userMessage: Message = {
+        id: `temp-${Date.now()}`,
+        role: 'user',
+        content,
+        createdAt: new Date(),
+      };
+      setMessages(prev => [...prev, userMessage]);
+      
+      if (currentConversationId) {
+        await saveMessage(currentConversationId, 'user', content);
+      }
+      
+      await triggerStrategyGeneration(pendingStrategy.platform, pendingStrategy.duration);
+      return;
+    }
+
+    // Check if user is cancelling a pending strategy
+    if (pendingStrategy && isStrategyCancellation(content)) {
+      setPendingStrategy(null);
+      setInput('');
+      const userMessage: Message = {
+        id: `temp-${Date.now()}`,
+        role: 'user',
+        content,
+        createdAt: new Date(),
+      };
+      setMessages(prev => [...prev, userMessage]);
+      
+      if (currentConversationId) {
+        await saveMessage(currentConversationId, 'user', content);
+      }
+      
+      const cancelMsg: Message = {
+        id: `cancel-${Date.now()}`,
+        role: 'assistant',
+        content: '✅ Strategy generation cancelled. You can request a new strategy anytime by clicking the strategy button or asking me.',
+        createdAt: new Date(),
+      };
+      setMessages(prev => [...prev, cancelMsg]);
+      
+      if (currentConversationId) {
+        await saveMessage(currentConversationId, 'assistant', cancelMsg.content);
+      }
+      return;
+    }
 
     setIsLoading(true);
     setInput('');
@@ -513,24 +615,10 @@ I'll use this context to provide personalized marketing recommendations. You can
   const handleStrategyRequest = async (platform: string, duration: number) => {
     setShowStrategyDialog(false);
     
-    const userMessage = `Generate a ${duration}-day content strategy for ${platform}.`;
+    // Phase 1: Only send chat message for AI confirmation — do NOT generate yet
+    setPendingStrategy({ platform, duration });
+    const userMessage = `Generate a ${duration}-day content strategy for ${platform}. Please review my business context and show me a confirmation before generating.`;
     await sendMessage(userMessage);
-    
-    const result = await generateStrategy(platform, duration, undefined, undefined, currentConversationId);
-    if (result) {
-      setHasStrategies(true);
-      const assistantMessage = `✨ **Strategy Generated!**\n\nI've created your ${duration}-day ${platform} content strategy with ${result.postsCount} posts.\n\n**Predicted Results:**\n- Total Reach: ${result.strategy.predicted_metrics?.total_reach?.toLocaleString() || 'N/A'}\n- Avg Engagement: ${result.strategy.predicted_metrics?.avg_engagement_rate || 'N/A'}%\n- Follower Growth: +${result.strategy.predicted_metrics?.expected_follower_growth || 'N/A'}\n\n[View Full Strategy](/strategies/${result.strategyId})`;
-      
-      if (currentConversationId) {
-        await saveMessage(currentConversationId, 'assistant', assistantMessage);
-        setMessages(prev => [...prev, {
-          id: `strategy-${Date.now()}`,
-          role: 'assistant',
-          content: assistantMessage,
-          createdAt: new Date(),
-        }]);
-      }
-    }
   };
 
   const handleSmartSuggestion = (suggestion: SmartSuggestion) => {
@@ -554,6 +642,29 @@ I'll use this context to provide personalized marketing recommendations. You can
     switch (action) {
       case 'create_strategy':
         setShowStrategyDialog(true);
+        break;
+      case 'confirm_strategy':
+        if (pendingStrategy) {
+          triggerStrategyGeneration(pendingStrategy.platform, pendingStrategy.duration);
+        }
+        break;
+      case 'cancel_strategy':
+        setPendingStrategy(null);
+        {
+          const cancelMsg: Message = {
+            id: `cancel-${Date.now()}`,
+            role: 'assistant',
+            content: '✅ Strategy generation cancelled. You can request a new strategy anytime.',
+            createdAt: new Date(),
+          };
+          setMessages(prev => [...prev, cancelMsg]);
+          if (currentConversationId) {
+            saveMessage(currentConversationId, 'assistant', cancelMsg.content);
+          }
+        }
+        break;
+      case 'edit_settings':
+        navigate('/settings');
         break;
       case 'upload_analytics':
         setShowUploader(true);
@@ -687,6 +798,7 @@ I'll use this context to provide personalized marketing recommendations. You can
               messagesEndRef={messagesEndRef}
               onAction={handleAction}
               onQuickSuggestion={(prompt) => sendMessage(prompt)}
+              hasPendingStrategy={!!pendingStrategy}
             />
           </>
         )}
@@ -731,6 +843,29 @@ I'll use this context to provide personalized marketing recommendations. You can
       {/* Input area - sleek modern design */}
       <div className="p-4 border-t border-subtle bg-background/80 backdrop-blur-xl">
         <div className="max-w-4xl mx-auto">
+          {/* Pending strategy indicator */}
+          {pendingStrategy && (
+            <div className="mb-2 px-3 py-2 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-between text-xs">
+              <span className="text-muted-foreground">
+                ⏳ <span className="text-foreground font-medium">Strategy confirmation pending</span> — {pendingStrategy.duration}-day {pendingStrategy.platform} plan
+              </span>
+              <button 
+                className="text-primary hover:text-primary/80 font-medium"
+                onClick={() => {
+                  setPendingStrategy(null);
+                  const cancelMsg: Message = {
+                    id: `cancel-${Date.now()}`,
+                    role: 'assistant',
+                    content: '✅ Strategy generation cancelled.',
+                    createdAt: new Date(),
+                  };
+                  setMessages(prev => [...prev, cancelMsg]);
+                }}
+              >
+                Dismiss
+              </button>
+            </div>
+          )}
           {/* Main input container - pill-like design */}
           <div className="relative flex items-end gap-2 p-2 rounded-2xl bg-secondary/60 border border-subtle focus-within:border-primary/40 focus-within:shadow-glow transition-all duration-300">
             {/* Quick action buttons inline */}

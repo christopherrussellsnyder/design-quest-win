@@ -1,7 +1,8 @@
 import React from 'react';
 import { 
-  Calendar, Download, ExternalLink, Copy, 
-  Lightbulb, RefreshCw, Bookmark, Share2
+  Calendar, ExternalLink, Copy, 
+  Lightbulb, RefreshCw, Bookmark,
+  CheckCircle2, XCircle, Settings
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
@@ -10,6 +11,7 @@ import { useNavigate } from 'react-router-dom';
 interface ActionButtonsProps {
   content: string;
   onAction?: (action: string, data?: any) => void;
+  hasPendingStrategy?: boolean;
 }
 
 interface DetectedAction {
@@ -17,20 +19,57 @@ interface DetectedAction {
   label: string;
   icon: React.ReactNode;
   action: () => void;
-  variant?: 'default' | 'outline' | 'secondary';
+  variant?: 'default' | 'outline' | 'secondary' | 'destructive';
+  className?: string;
 }
 
-export function ActionButtons({ content, onAction }: ActionButtonsProps) {
+export function ActionButtons({ content, onAction, hasPendingStrategy }: ActionButtonsProps) {
   const navigate = useNavigate();
   
   const detectActions = (): DetectedAction[] => {
     const actions: DetectedAction[] = [];
     const lowerContent = content.toLowerCase();
 
+    // If there's a pending strategy and the AI is asking for confirmation
+    if (hasPendingStrategy && (
+      lowerContent.includes('confirm') || 
+      lowerContent.includes('is this correct') || 
+      lowerContent.includes('ready to proceed') ||
+      lowerContent.includes('shall i') ||
+      lowerContent.includes('would you like me to generate') ||
+      lowerContent.includes('please confirm') ||
+      lowerContent.includes('proceed with') ||
+      lowerContent.includes('generate your') ||
+      lowerContent.includes('strategy') 
+    )) {
+      actions.push({
+        type: 'confirm_strategy',
+        label: '✅ Confirm & Generate Strategy',
+        icon: <CheckCircle2 className="w-3.5 h-3.5" />,
+        action: () => onAction?.('confirm_strategy'),
+        variant: 'default',
+        className: 'bg-gradient-to-r from-primary to-arasaka-red-dark hover:shadow-glow text-primary-foreground',
+      });
+      actions.push({
+        type: 'edit_settings',
+        label: '⚙️ Update Settings',
+        icon: <Settings className="w-3.5 h-3.5" />,
+        action: () => onAction?.('edit_settings'),
+        variant: 'outline',
+      });
+      actions.push({
+        type: 'cancel_strategy',
+        label: '❌ Cancel',
+        icon: <XCircle className="w-3.5 h-3.5" />,
+        action: () => onAction?.('cancel_strategy'),
+        variant: 'outline',
+      });
+      return actions;
+    }
+
     // Detect strategy-related actions
     if (lowerContent.includes('strategy') || lowerContent.includes('30-day') || lowerContent.includes('content plan')) {
-      if (lowerContent.includes('created') || lowerContent.includes('generated')) {
-        // Strategy was generated - offer to view
+      if (lowerContent.includes('created') || lowerContent.includes('generated') || lowerContent.includes('successfully')) {
         const strategyMatch = content.match(/\/strategies\/([a-f0-9-]+)/i);
         if (strategyMatch) {
           actions.push({
@@ -41,8 +80,7 @@ export function ActionButtons({ content, onAction }: ActionButtonsProps) {
             variant: 'default',
           });
         }
-      } else if (lowerContent.includes('would you like') || lowerContent.includes('want me to')) {
-        // AI is offering to create strategy
+      } else if (!hasPendingStrategy && (lowerContent.includes('would you like') || lowerContent.includes('want me to'))) {
         actions.push({
           type: 'create_strategy',
           label: 'Yes, Create Strategy',
@@ -109,7 +147,7 @@ export function ActionButtons({ content, onAction }: ActionButtonsProps) {
       });
     }
 
-    return actions.slice(0, 3); // Max 3 action buttons
+    return actions.slice(0, 3);
   };
 
   const actions = detectActions();
@@ -123,7 +161,7 @@ export function ActionButtons({ content, onAction }: ActionButtonsProps) {
           key={i}
           variant={action.variant || 'outline'}
           size="sm"
-          className="text-xs gap-1.5 h-8"
+          className={`text-xs gap-1.5 h-8 ${action.className || ''}`}
           onClick={action.action}
         >
           {action.icon}
@@ -135,7 +173,6 @@ export function ActionButtons({ content, onAction }: ActionButtonsProps) {
 }
 
 function extractContentFromResponse(content: string): string {
-  // Try to extract content between quotes or code blocks
   const codeBlockMatch = content.match(/```[\s\S]*?```/g);
   if (codeBlockMatch) {
     return codeBlockMatch.map(block => block.replace(/```/g, '').trim()).join('\n\n');
@@ -146,7 +183,6 @@ function extractContentFromResponse(content: string): string {
     return quoteMatch.map(q => q.replace(/"/g, '')).join('\n');
   }
 
-  // Return content after common intro phrases
   const introPatterns = [
     /here['']?s? (?:a|an|the|your)[^:]*:/i,
     /try this:/i,
