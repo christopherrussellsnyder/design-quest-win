@@ -615,24 +615,10 @@ I'll use this context to provide personalized marketing recommendations. You can
   const handleStrategyRequest = async (platform: string, duration: number) => {
     setShowStrategyDialog(false);
     
-    const userMessage = `Generate a ${duration}-day content strategy for ${platform}.`;
+    // Phase 1: Only send chat message for AI confirmation — do NOT generate yet
+    setPendingStrategy({ platform, duration });
+    const userMessage = `Generate a ${duration}-day content strategy for ${platform}. Please review my business context and show me a confirmation before generating.`;
     await sendMessage(userMessage);
-    
-    const result = await generateStrategy(platform, duration, undefined, undefined, currentConversationId);
-    if (result) {
-      setHasStrategies(true);
-      const assistantMessage = `✨ **Strategy Generated!**\n\nI've created your ${duration}-day ${platform} content strategy with ${result.postsCount} posts.\n\n**Predicted Results:**\n- Total Reach: ${result.strategy.predicted_metrics?.total_reach?.toLocaleString() || 'N/A'}\n- Avg Engagement: ${result.strategy.predicted_metrics?.avg_engagement_rate || 'N/A'}%\n- Follower Growth: +${result.strategy.predicted_metrics?.expected_follower_growth || 'N/A'}\n\n[View Full Strategy](/strategies/${result.strategyId})`;
-      
-      if (currentConversationId) {
-        await saveMessage(currentConversationId, 'assistant', assistantMessage);
-        setMessages(prev => [...prev, {
-          id: `strategy-${Date.now()}`,
-          role: 'assistant',
-          content: assistantMessage,
-          createdAt: new Date(),
-        }]);
-      }
-    }
   };
 
   const handleSmartSuggestion = (suggestion: SmartSuggestion) => {
