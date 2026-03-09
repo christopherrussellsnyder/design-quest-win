@@ -20,6 +20,7 @@ interface ChatMessageListProps {
   messagesEndRef: React.RefObject<HTMLDivElement>;
   onAction?: (action: string, data?: any) => void;
   onQuickSuggestion?: (prompt: string) => void;
+  hasPendingStrategy?: boolean;
 }
 
 export const ChatMessageList = React.memo(function ChatMessageList({ 
