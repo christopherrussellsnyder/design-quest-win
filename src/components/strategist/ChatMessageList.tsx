@@ -29,6 +29,7 @@ export const ChatMessageList = React.memo(function ChatMessageList({
   messagesEndRef,
   onAction,
   onQuickSuggestion,
+  hasPendingStrategy,
 }: ChatMessageListProps) {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const lastMessage = messages[messages.length - 1];
