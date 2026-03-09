@@ -843,6 +843,29 @@ I'll use this context to provide personalized marketing recommendations. You can
       {/* Input area - sleek modern design */}
       <div className="p-4 border-t border-subtle bg-background/80 backdrop-blur-xl">
         <div className="max-w-4xl mx-auto">
+          {/* Pending strategy indicator */}
+          {pendingStrategy && (
+            <div className="mb-2 px-3 py-2 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-between text-xs">
+              <span className="text-muted-foreground">
+                ⏳ <span className="text-foreground font-medium">Strategy confirmation pending</span> — {pendingStrategy.duration}-day {pendingStrategy.platform} plan
+              </span>
+              <button 
+                className="text-primary hover:text-primary/80 font-medium"
+                onClick={() => {
+                  setPendingStrategy(null);
+                  const cancelMsg: Message = {
+                    id: `cancel-${Date.now()}`,
+                    role: 'assistant',
+                    content: '✅ Strategy generation cancelled.',
+                    createdAt: new Date(),
+                  };
+                  setMessages(prev => [...prev, cancelMsg]);
+                }}
+              >
+                Dismiss
+              </button>
+            </div>
+          )}
           {/* Main input container - pill-like design */}
           <div className="relative flex items-end gap-2 p-2 rounded-2xl bg-secondary/60 border border-subtle focus-within:border-primary/40 focus-within:shadow-glow transition-all duration-300">
             {/* Quick action buttons inline */}
