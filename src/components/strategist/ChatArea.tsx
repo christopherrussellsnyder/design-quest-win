@@ -191,9 +191,110 @@ export function ChatArea({
     return data;
   };
 
+  // Check if a message is a strategy confirmation
+  const isStrategyConfirmation = (text: string): boolean => {
+    const confirmKeywords = /^(yes|confirmed|proceed|generate it|looks good|that'?s correct|approve|go ahead|do it|confirm|let'?s go|start|deploy|yes please|absolutely|sure|ok|okay)\b/i;
+    return confirmKeywords.test(text.trim());
+  };
+
+  const isStrategyCancellation = (text: string): boolean => {
+    const cancelKeywords = /^(cancel|nevermind|never mind|stop|no|don'?t|nah|nope|start over)\b/i;
+    return cancelKeywords.test(text.trim());
+  };
+
+  const triggerStrategyGeneration = async (platform: string, duration: number) => {
+    setPendingStrategy(null);
+    
+    const progressMsgId = `strategy-progress-${Date.now()}`;
+    setMessages(prev => [...prev, {
+      id: progressMsgId,
+      role: 'assistant',
+      content: `🚀 **Generating your ${duration}-day ${platform} strategy...**\n\nThis will take 60-90 seconds for a comprehensive multi-platform plan.\n\n⏳ Analyzing business context...`,
+      createdAt: new Date(),
+    }]);
+
+    try {
+      const result = await generateStrategy(platform, duration, undefined, undefined, currentConversationId);
+      if (result) {
+        setHasStrategies(true);
+        const successContent = `✨ **Strategy Generated Successfully!**\n\nI've created your ${duration}-day ${platform} content strategy with **${result.postsCount} posts**.\n\n**Predicted Results:**\n- 📈 Total Reach: ${result.strategy.predicted_metrics?.total_reach?.toLocaleString() || 'N/A'}\n- 💬 Avg Engagement: ${result.strategy.predicted_metrics?.avg_engagement_rate || 'N/A'}%\n- 👥 Follower Growth: +${result.strategy.predicted_metrics?.expected_follower_growth || 'N/A'}\n\n[View Full Strategy](/strategies/${result.strategyId})`;
+        
+        setMessages(prev => prev.map(m => 
+          m.id === progressMsgId ? { ...m, content: successContent } : m
+        ));
+        
+        if (currentConversationId) {
+          await saveMessage(currentConversationId, 'assistant', successContent);
+        }
+      } else {
+        setMessages(prev => prev.map(m => 
+          m.id === progressMsgId 
+            ? { ...m, content: '❌ **Strategy generation failed.** Please try again or use a shorter duration (14 days) for better reliability.' }
+            : m
+        ));
+      }
+    } catch (error) {
+      console.error('Strategy generation error:', error);
+      setMessages(prev => prev.map(m => 
+        m.id === progressMsgId 
+          ? { ...m, content: `❌ **Strategy generation failed:** ${error instanceof Error ? error.message : 'Unknown error'}\n\nTry generating via chat by typing "Generate a ${duration}-day ${platform} strategy".` }
+          : m
+      ));
+    }
+  };
+
   const sendMessage = async (messageContent?: string, attachments?: any[]) => {
     const content = messageContent || input.trim();
     if (!content && !attachments?.length) return;
+
+    // Check if user is confirming a pending strategy
+    if (pendingStrategy && isStrategyConfirmation(content)) {
+      setInput('');
+      const userMessage: Message = {
+        id: `temp-${Date.now()}`,
+        role: 'user',
+        content,
+        createdAt: new Date(),
+      };
+      setMessages(prev => [...prev, userMessage]);
+      
+      if (currentConversationId) {
+        await saveMessage(currentConversationId, 'user', content);
+      }
+      
+      await triggerStrategyGeneration(pendingStrategy.platform, pendingStrategy.duration);
+      return;
+    }
+
+    // Check if user is cancelling a pending strategy
+    if (pendingStrategy && isStrategyCancellation(content)) {
+      setPendingStrategy(null);
+      setInput('');
+      const userMessage: Message = {
+        id: `temp-${Date.now()}`,
+        role: 'user',
+        content,
+        createdAt: new Date(),
+      };
+      setMessages(prev => [...prev, userMessage]);
+      
+      if (currentConversationId) {
+        await saveMessage(currentConversationId, 'user', content);
+      }
+      
+      const cancelMsg: Message = {
+        id: `cancel-${Date.now()}`,
+        role: 'assistant',
+        content: '✅ Strategy generation cancelled. You can request a new strategy anytime by clicking the strategy button or asking me.',
+        createdAt: new Date(),
+      };
+      setMessages(prev => [...prev, cancelMsg]);
+      
+      if (currentConversationId) {
+        await saveMessage(currentConversationId, 'assistant', cancelMsg.content);
+      }
+      return;
+    }
 
     setIsLoading(true);
     setInput('');
