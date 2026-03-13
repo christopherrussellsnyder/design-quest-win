@@ -89,8 +89,8 @@ const handler = async (req: Request): Promise<Response> => {
           <div style="background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%); border-radius: 16px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
             <div style="padding: 48px 40px; text-align: center;">
               <!-- Logo -->
-              <div style="width: 72px; height: 72px; background: linear-gradient(135deg, #8b5cf6, #d946ef); border-radius: 18px; margin: 0 auto 28px; display: inline-flex; align-items: center; justify-content: center;">
-                <span style="color: white; font-size: 32px; font-weight: bold; line-height: 72px;">M</span>
+              <div style="width: 72px; height: 72px; background: linear-gradient(135deg, #CC0000, #990000); border-radius: 18px; margin: 0 auto 28px; display: inline-flex; align-items: center; justify-content: center;">
+                <span style="color: white; font-size: 32px; font-weight: bold; line-height: 72px;">K</span>
               </div>
               
               <!-- Heading -->
