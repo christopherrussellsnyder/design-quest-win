@@ -151,7 +151,7 @@ export function CampaignIntelligenceDashboard() {
           <TabsTrigger value="recommendations">Niche Insights</TabsTrigger>
           <TabsTrigger value="platform">Platform Analysis</TabsTrigger>
           <TabsTrigger value="learnings">Past Learnings</TabsTrigger>
-          <TabsTrigger value="ai-strategy">AI Strategy</TabsTrigger>
+          <TabsTrigger value="ai-strategy">Intelligence Strategy</TabsTrigger>
         </TabsList>
 
         <TabsContent value="recommendations" className="space-y-4">
