@@ -41,7 +41,7 @@ export default function Login() {
     <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="flex flex-col items-center justify-center mb-8">
-          <img src="/korex-wordmark-lockup.svg" alt="Korex Intelligence Systems Logo" className="h-[60px] mb-2" />
+          <img src="/korex-wordmark-lockup.svg" alt="Korex Intelligence Systems Logo" className="h-[48px]" />
         </div>
 
         <div className="card-glass rounded-2xl p-8">
