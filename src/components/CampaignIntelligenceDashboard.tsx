@@ -88,7 +88,7 @@ export function CampaignIntelligenceDashboard() {
       });
       if (error) throw error;
       setAiStrategy(data?.strategy);
-      toast.success('AI strategy generated!');
+      toast.success('Intelligence strategy generated!');
     } catch (error) {
       toast.error('Failed to generate strategy');
     } finally {
