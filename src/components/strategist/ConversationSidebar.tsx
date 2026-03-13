@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, MessageSquare, ChevronLeft, ChevronRight, Sparkles, MoreVertical, Trash2, Pencil, Star } from 'lucide-react';
+import { Plus, MessageSquare, ChevronLeft, ChevronRight, MoreVertical, Trash2, Pencil, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
