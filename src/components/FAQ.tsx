@@ -44,7 +44,7 @@ const faqs = [
   },
   {
     question: 'How do I contact support?',
-    answer: 'You can reach our support team via email at support@marketai.com or through the in-app chat. Pro and Enterprise users get priority support.'
+    answer: 'You can reach our support team via email at support@korex.io or through the in-app chat. Pro and Enterprise users get priority support.'
   }
 ];
 

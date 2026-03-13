@@ -236,7 +236,7 @@ export default function HelpCenter() {
               </div>
               <div>
                 <h3 className="font-semibold text-foreground">Getting Started</h3>
-                <p className="text-sm text-muted-foreground">New to MarketAI? Start here</p>
+                <p className="text-sm text-muted-foreground">New to Korex? Start here</p>
               </div>
             </CardContent>
           </Card>
