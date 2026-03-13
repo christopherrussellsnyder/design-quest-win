@@ -50,7 +50,7 @@ const Terms: React.FC = () => {
             <section>
               <h2 className="text-xl font-semibold text-foreground mb-4">2. SERVICE DESCRIPTION</h2>
               <p className="text-muted-foreground leading-relaxed">
-                Korex is an AI-powered marketing intelligence platform that allows users to create, schedule, and publish content to social media platforms. The Service uses artificial intelligence to help optimize content and posting strategies.
+                Korex is an intelligence-driven marketing platform that allows users to create, schedule, and publish content to social media platforms. The Service uses advanced intelligence algorithms to help optimize content and posting strategies.
               </p>
             </section>
 

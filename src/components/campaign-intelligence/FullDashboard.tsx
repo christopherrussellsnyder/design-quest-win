@@ -428,9 +428,9 @@ export function CampaignIntelligenceFullDashboard({ onNavigateToCampaignBuilder 
                   <div>
                     <CardTitle className="flex items-center gap-2">
                       <Sparkles className="w-5 h-5 text-primary" />
-                      AI-Generated 30-Day Strategy
+                      Intelligence-Generated 30-Day Strategy
                     </CardTitle>
-                    <CardDescription>Generate a comprehensive content strategy powered by AI</CardDescription>
+                    <CardDescription>Generate a comprehensive content strategy powered by Korex Intelligence</CardDescription>
                   </div>
                 </div>
               </CardHeader>

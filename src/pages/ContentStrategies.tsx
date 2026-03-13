@@ -308,7 +308,7 @@ export default function ContentStrategies() {
                 <p className="text-muted-foreground text-center mb-4 max-w-md">
                   {searchQuery || platformFilter !== 'all'
                     ? 'Try adjusting your filters.'
-                    : 'Generate your first AI-powered content strategy to get personalized post ideas, captions, and timing recommendations.'}
+                    : 'Generate your first intelligence-driven content strategy to get personalized post ideas, captions, and timing recommendations.'}
                 </p>
                 {!searchQuery && platformFilter === 'all' && (
                   <Button onClick={() => setShowGenerateDialog(true)}>

@@ -378,7 +378,7 @@ export default function SmartTargetingAssistant() {
             Smart Targeting Assistant
           </h2>
           <p className="text-muted-foreground mt-1">
-            AI-powered audience targeting recommendations for {businessProfile.business_name || 'your business'}
+            Intelligence-driven audience targeting recommendations for {businessProfile.business_name || 'your business'}
           </p>
         </div>
         <div className="flex gap-2">

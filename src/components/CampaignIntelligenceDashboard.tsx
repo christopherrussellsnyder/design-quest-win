@@ -338,7 +338,7 @@ export function CampaignIntelligenceDashboard() {
               ) : (
                 <div className="text-center py-8 text-muted-foreground">
                   <Sparkles className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                  <p>Click "Generate Strategy" to get AI-powered campaign recommendations</p>
+                  <p>Click "Generate Strategy" to get intelligence-driven campaign recommendations</p>
                 </div>
               )}
             </CardContent>
