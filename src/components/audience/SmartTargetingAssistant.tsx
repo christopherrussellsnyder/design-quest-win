@@ -209,7 +209,7 @@ export default function SmartTargetingAssistant() {
         setRecommendations(data.recommendations);
         toast({
           title: "Recommendations generated",
-          description: "Your AI-powered targeting recommendations are ready!",
+          description: "Your intelligence-driven targeting recommendations are ready!",
         });
       }
 

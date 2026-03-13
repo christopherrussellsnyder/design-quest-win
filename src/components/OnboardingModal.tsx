@@ -25,8 +25,8 @@ const steps = [
   },
   {
     icon: Sparkles,
-    title: 'Create with AI',
-    description: 'Use our AI-powered content generator to create engaging posts in seconds. Just describe what you want, and let AI do the rest.',
+    title: 'Create with Korex',
+    description: 'Use our intelligence content generator to create engaging posts in seconds. Just describe what you want, and let Korex do the rest.',
     image: null
   },
   {

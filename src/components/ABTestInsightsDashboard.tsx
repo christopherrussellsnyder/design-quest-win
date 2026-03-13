@@ -429,7 +429,7 @@ export function ABTestInsightsDashboard() {
               ) : (
                 <div className="text-center py-12 text-muted-foreground">
                   <Sparkles className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                  <p>Click "Generate Recommendations" to get AI-powered suggestions</p>
+                  <p>Click "Generate Recommendations" to get intelligence-driven suggestions</p>
                 </div>
               )}
             </CardContent>

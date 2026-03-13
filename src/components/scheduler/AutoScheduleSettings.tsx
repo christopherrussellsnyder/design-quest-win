@@ -86,7 +86,7 @@ export function AutoScheduleSettings() {
         <Zap className="w-5 h-5 text-primary" />
         <div>
           <h3 className="font-semibold text-foreground">Auto-Schedule Settings</h3>
-          <p className="text-sm text-muted-foreground">Let AI optimize your posting schedule</p>
+          <p className="text-sm text-muted-foreground">Let Korex optimize your posting schedule</p>
         </div>
       </div>
       

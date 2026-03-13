@@ -747,7 +747,7 @@ export function AIVideoGenerator() {
                 <div className="text-center py-8 text-muted-foreground">
                   <Video className="h-12 w-12 mx-auto mb-3 opacity-50" />
                   <p>No videos generated yet</p>
-                  <p className="text-sm">Create your first AI video above!</p>
+                  <p className="text-sm">Create your first video above!</p>
                 </div>
               ) : (
                 <div className="grid gap-4">

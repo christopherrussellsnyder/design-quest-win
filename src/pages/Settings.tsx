@@ -496,7 +496,7 @@ const Settings: React.FC = () => {
             </div>
           </div>
           <p className="text-sm text-muted-foreground">
-            AI-powered marketing intelligence platform. Upload analytics, analyze your business, and generate winning content strategies.
+            Korex Intelligence Systems — Upload analytics, analyze your business, and generate winning content strategies.
           </p>
         </CardContent>
       </Card>

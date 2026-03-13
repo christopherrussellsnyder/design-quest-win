@@ -518,7 +518,7 @@ export default function BusinessProfileWizard({ onComplete, existingProfile }: B
               <Sparkles className="h-5 w-5 text-primary" />
               Business Profile Wizard
             </CardTitle>
-            <CardDescription>Complete your profile to get AI-powered targeting recommendations</CardDescription>
+            <CardDescription>Complete your profile to get intelligence-driven targeting recommendations</CardDescription>
           </div>
           <div className="flex items-center gap-2">
             {Array.from({ length: totalSteps }).map((_, i) => (

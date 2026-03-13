@@ -233,7 +233,7 @@ export function CampaignIntelligenceFullDashboard({ onNavigateToCampaignBuilder 
             <Brain className="w-6 h-6 text-primary" />
             Campaign Intelligence
           </h2>
-          <p className="text-muted-foreground">AI-powered insights and 30-day content strategy</p>
+          <p className="text-muted-foreground">Intelligence insights and 30-day content strategy</p>
         </div>
         <div className="flex items-center gap-3 flex-wrap">
           <Select value={niche} onValueChange={setNiche}>
