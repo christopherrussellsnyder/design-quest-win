@@ -8,7 +8,7 @@ import {
 const faqs = [
   {
     question: 'What is Korex?',
-    answer: 'Korex is an AI-powered marketing intelligence platform that helps you create, schedule, and analyze content across multiple platforms using advanced AI tools.'
+    answer: 'Korex is an intelligence-driven marketing platform that helps you create, schedule, and analyze content across multiple platforms using advanced marketing intelligence tools.'
   },
   {
     question: 'Which social media platforms are supported?',
