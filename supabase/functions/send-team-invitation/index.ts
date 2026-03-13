@@ -98,7 +98,7 @@ const handler = async (req: Request): Promise<Response> => {
               
               <!-- Description -->
               <p style="color: #c7d2fe; font-size: 16px; line-height: 1.6; margin: 0 0 32px;">
-                ${inviterName ? `<strong style="color: #a5b4fc;">${inviterName}</strong> has` : 'You have been'} invited you to join their team on <strong style="color: white;">MarketAI</strong> as a <strong style="color: #c4b5fd;">${role.charAt(0).toUpperCase() + role.slice(1)}</strong>.
+                ${inviterName ? `<strong style="color: #a5b4fc;">${inviterName}</strong> has` : 'You have been'} invited you to join their team on <strong style="color: white;">Korex</strong> as a <strong style="color: #c4b5fd;">${role.charAt(0).toUpperCase() + role.slice(1)}</strong>.
               </p>
               
               <!-- Role Info -->
