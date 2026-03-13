@@ -314,7 +314,7 @@ export function ABTestInsightsDashboard() {
                 <div>
                   <CardTitle className="flex items-center gap-2">
                     <Sparkles className="w-5 h-5 text-primary" />
-                    AI-Powered Recommendations
+                    Intelligence Recommendations
                   </CardTitle>
                   <CardDescription>
                     Get personalized test suggestions based on your historical data
