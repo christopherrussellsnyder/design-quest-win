@@ -126,7 +126,7 @@ const handler = async (req: Request): Promise<Response> => {
               If you didn't expect this invitation, you can safely ignore this email.
             </p>
             <p style="color: #374151; font-size: 11px; margin-top: 16px;">
-              © ${new Date().getFullYear()} MarketAI. All rights reserved.
+              © ${new Date().getFullYear()} Korex Intelligence Systems. All rights reserved.
             </p>
           </div>
         </div>
