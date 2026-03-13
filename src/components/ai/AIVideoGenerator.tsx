@@ -326,9 +326,9 @@ export function AIVideoGenerator() {
         <div>
           <h2 className="text-2xl font-bold flex items-center gap-2">
             <Video className="h-6 w-6 text-primary" />
-            AI Video Generator
+            Video Generator
           </h2>
-          <p className="text-muted-foreground">Create professional video ads with AI avatars</p>
+          <p className="text-muted-foreground">Create professional video ads with intelligence avatars</p>
         </div>
         
         <div className="flex items-center gap-4">
