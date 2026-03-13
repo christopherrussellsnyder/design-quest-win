@@ -109,7 +109,7 @@ const handler = async (req: Request): Promise<Response> => {
               </div>
               
               <!-- CTA Button -->
-              <a href="${inviteLink}" style="display: inline-block; background: linear-gradient(135deg, #8b5cf6, #d946ef); color: white; text-decoration: none; padding: 16px 40px; border-radius: 10px; font-weight: 600; font-size: 16px; letter-spacing: 0.5px; box-shadow: 0 4px 14px rgba(139, 92, 246, 0.4);">
+              <a href="${inviteLink}" style="display: inline-block; background: linear-gradient(135deg, #CC0000, #990000); color: white; text-decoration: none; padding: 16px 40px; border-radius: 10px; font-weight: 600; font-size: 16px; letter-spacing: 0.5px; box-shadow: 0 4px 14px rgba(204, 0, 0, 0.4);">
                 Accept Invitation
               </a>
               
