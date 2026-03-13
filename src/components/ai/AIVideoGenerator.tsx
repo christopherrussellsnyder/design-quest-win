@@ -260,7 +260,7 @@ export function AIVideoGenerator() {
       await loadGeneratedVideos();
       await loadUsageStats();
       
-      toast({ title: 'Video generated successfully!', description: 'Your AI video is ready for preview.' });
+      toast({ title: 'Video generated successfully!', description: 'Your video is ready for preview.' });
     } catch (error: any) {
       console.error('Video generation error:', error);
       
