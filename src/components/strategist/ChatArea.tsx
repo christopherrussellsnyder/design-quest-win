@@ -746,7 +746,7 @@ I'll use this context to provide personalized marketing recommendations. You can
                 </div>
                 <h3 className="font-semibold text-sm mb-1">Analyze Website</h3>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  Let AI understand your business
+                  Let Korex analyze your business
                 </p>
               </button>
               
