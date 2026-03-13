@@ -291,9 +291,9 @@ export function CampaignIntelligenceDashboard() {
                 <div>
                   <CardTitle className="flex items-center gap-2">
                     <Sparkles className="w-5 h-5 text-primary" />
-                    AI-Generated Campaign Strategy
+                    Intelligence-Generated Campaign Strategy
                   </CardTitle>
-                  <CardDescription>Get personalized recommendations powered by AI</CardDescription>
+                  <CardDescription>Get personalized recommendations powered by Korex Intelligence</CardDescription>
                 </div>
                 <Button onClick={generateAIStrategy} disabled={loadingAI}>
                   {loadingAI ? <RefreshCw className="w-4 h-4 animate-spin mr-2" /> : <Brain className="w-4 h-4 mr-2" />}
