@@ -14,7 +14,7 @@
 
   :root,
   .dark {
-    /* Arasaka Corporation Theme */
+    /* Korex Intelligence Systems Theme */
     --background: 240 6% 4%;
     --foreground: 0 0% 100%;
 
@@ -24,7 +24,7 @@
     --popover: 225 6% 15%;
     --popover-foreground: 0 0% 100%;
 
-    --primary: 350 73% 45%;
+    --primary: 0 100% 40%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 228 7% 10%;
@@ -41,19 +41,19 @@
 
     --border: 225 4% 18%;
     --input: 225 5% 22%;
-    --ring: 350 73% 45%;
+    --ring: 0 100% 40%;
 
-    /* Extended Arasaka palette */
-    --arasaka-red: 350 73% 45%;
-    --arasaka-red-dark: 350 73% 32%;
-    --arasaka-red-light: 352 78% 56%;
+    /* Extended Korex palette */
+    --korex-red: 0 100% 40%;
+    --korex-red-dark: 0 100% 30%;
+    --korex-red-light: 0 100% 55%;
     --bg-primary: 240 6% 4%;
     --bg-secondary: 228 7% 10%;
     --bg-tertiary: 225 5% 13%;
     --bg-elevated: 225 6% 15%;
     --border-subtle: 225 4% 18%;
     --border-medium: 225 3% 24%;
-    --border-focus: 350 73% 45%;
+    --border-focus: 0 100% 40%;
     --text-primary: 0 0% 100%;
     --text-secondary: 240 3% 65%;
     --text-tertiary: 240 2% 44%;
@@ -63,22 +63,22 @@
     --accent-error: 0 84% 60%;
 
     /* Chart colors */
-    --chart-1: 350 73% 45%;
+    --chart-1: 0 100% 40%;
     --chart-2: 160 84% 39%;
     --chart-3: 43 72% 52%;
     --chart-4: 38 92% 50%;
-    --chart-5: 352 78% 56%;
+    --chart-5: 0 100% 55%;
 
     /* Legacy compat */
-    --violet: 350 73% 45%;
-    --fuchsia: 352 78% 56%;
+    --violet: 0 100% 40%;
+    --fuchsia: 0 100% 55%;
     --cyan: 160 84% 39%;
     --emerald: 160 84% 39%;
     --amber: 43 72% 52%;
-    --rose: 350 73% 45%;
+    --rose: 0 100% 40%;
 
     /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(350 73% 45%), hsl(350 73% 32%));
+    --gradient-primary: linear-gradient(135deg, hsl(0 100% 40%), hsl(0 100% 30%));
     --gradient-surface: linear-gradient(135deg, hsl(228 7% 10%), hsl(225 5% 13%));
     --gradient-card: linear-gradient(135deg, hsl(228 7% 10% / 0.5), hsl(225 5% 13% / 0.5));
 
@@ -87,7 +87,7 @@
     --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
     --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.4);
     --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.4);
-    --shadow-glow: 0 0 20px rgba(196, 30, 58, 0.3);
+    --shadow-glow: 0 0 20px rgba(204, 0, 0, 0.3);
   }
 
   * {
@@ -179,7 +179,7 @@
     border-radius: 4px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--arasaka-red));
+    background: hsl(var(--korex-red));
   }
 }
 
@@ -233,7 +233,7 @@
 
   /* Animated gradient background */
   .animated-gradient {
-    background: linear-gradient(-45deg, hsl(350 73% 32%), hsl(350 73% 45%), hsl(352 78% 56%), hsl(350 73% 45%));
+    background: linear-gradient(-45deg, hsl(0 100% 30%), hsl(0 100% 40%), hsl(0 100% 55%), hsl(0 100% 40%));
     background-size: 400% 400%;
     animation: gradientShift 15s ease infinite;
   }
@@ -246,9 +246,19 @@
   }
 
   /* Spinner */
+  .korex-spinner {
+    border: 3px solid hsl(var(--bg-tertiary));
+    border-top: 3px solid hsl(var(--korex-red));
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    animation: spin 0.8s linear infinite;
+  }
+
+  /* Legacy compat */
   .arasaka-spinner {
     border: 3px solid hsl(var(--bg-tertiary));
-    border-top: 3px solid hsl(var(--arasaka-red));
+    border-top: 3px solid hsl(var(--korex-red));
     border-radius: 50%;
     width: 24px;
     height: 24px;

@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { Sparkles } from 'lucide-react';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -41,11 +40,8 @@ export default function Login() {
   return (
     <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <div className="flex items-center justify-center gap-3 mb-8">
-          <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center shadow-glow">
-            <Sparkles className="w-6 h-6 text-primary-foreground" />
-          </div>
-          <span className="font-bold text-2xl text-foreground">MarketAI</span>
+        <div className="flex flex-col items-center justify-center mb-8">
+          <img src="/korex-wordmark-lockup.svg" alt="Korex Intelligence Systems Logo" className="h-[60px] mb-2" />
         </div>
 
         <div className="card-glass rounded-2xl p-8">
@@ -73,7 +69,7 @@ export default function Login() {
                 <label htmlFor="password" className="block text-sm font-medium text-muted-foreground">
                   Password
                 </label>
-                <Link to="/forgot-password" className="text-sm text-primary hover:text-arasaka-red-light transition-colors">
+                <Link to="/forgot-password" className="text-sm text-primary hover:text-korex-red-light transition-colors">
                   Forgot password?
                 </Link>
               </div>
@@ -92,7 +88,7 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-primary text-primary-foreground font-semibold py-3 rounded-lg hover:bg-arasaka-red-light transition-colors disabled:opacity-50 shadow-glow"
+              className="w-full bg-primary text-primary-foreground font-semibold py-3 rounded-lg hover:bg-korex-red-light transition-colors disabled:opacity-50 shadow-glow"
             >
               {loading ? 'Signing in...' : 'Sign In'}
             </button>
@@ -100,7 +96,7 @@ export default function Login() {
 
           <p className="text-center text-muted-foreground text-sm mt-6">
             Don't have an account?{' '}
-            <Link to="/signup" className="text-primary hover:text-arasaka-red-light font-medium transition-colors">
+            <Link to="/signup" className="text-primary hover:text-korex-red-light font-medium transition-colors">
               Sign up
             </Link>
           </p>

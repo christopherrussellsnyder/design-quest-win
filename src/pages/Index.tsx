@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Sparkles, TrendingUp, Target, Zap, Download } from 'lucide-react';
+import { TrendingUp, Target, Zap, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
@@ -16,25 +16,19 @@ const Index = () => {
       return;
     }
 
-    // Create the SVG as a string (1024x1024 version)
     const svgString = `
       <svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
-        <defs>
-          <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#8B5CF6"/>
-            <stop offset="100%" stop-color="#D946EF"/>
-          </linearGradient>
-        </defs>
-        <rect width="1024" height="1024" rx="192" fill="url(#logoGradient)"/>
-        <g transform="translate(256, 256)" fill="white">
-          <path d="M256 0L297.6 153.6L451.2 195.2L297.6 236.8L256 390.4L214.4 236.8L60.8 195.2L214.4 153.6L256 0Z"/>
-          <path d="M128 256L153.6 332.8L230.4 358.4L153.6 384L128 460.8L102.4 384L25.6 358.4L102.4 332.8L128 256Z" opacity="0.8"/>
-          <path d="M384 320L409.6 396.8L486.4 422.4L409.6 448L384 524.8L358.4 448L281.6 422.4L358.4 396.8L384 320Z" opacity="0.6"/>
+        <rect width="1024" height="1024" rx="192" fill="#060606"/>
+        <g transform="translate(256, 192)">
+          <polygon points="0,0 154,0 358,282 154,282" fill="#CC0000"/>
+          <polygon points="0,716 154,716 154,434 0,282" fill="#CC0000"/>
+          <polygon points="180,297 358,0 512,0 282,358" fill="#CC0000" opacity="0.9"/>
+          <polygon points="180,419 282,358 512,716 358,716" fill="#CC0000" opacity="0.85"/>
+          <polygon points="538,282 614,204 614,512 538,434" fill="#FF1A1A" opacity="0.6"/>
         </g>
       </svg>
     `;
 
-    // Convert SVG to blob and create image
     const blob = new Blob([svgString], { type: 'image/svg+xml' });
     const url = URL.createObjectURL(blob);
     const img = new Image();
@@ -43,7 +37,6 @@ const Index = () => {
       ctx.drawImage(img, 0, 0, size, size);
       URL.revokeObjectURL(url);
       
-      // Convert canvas to PNG and download
       canvas.toBlob((pngBlob) => {
         if (!pngBlob) {
           toast.error('Could not generate PNG');
@@ -53,7 +46,7 @@ const Index = () => {
         const downloadUrl = URL.createObjectURL(pngBlob);
         const a = document.createElement('a');
         a.href = downloadUrl;
-        a.download = 'marketai-logo-1024x1024.png';
+        a.download = 'korex-logo-1024x1024.png';
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -76,13 +69,10 @@ const Index = () => {
       <div className="max-w-6xl mx-auto px-4 py-16">
         <div className="text-center mb-12">
           <div className="flex items-center justify-center gap-3 mb-6">
-            <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-              <Sparkles className="w-8 h-8 text-primary-foreground" />
-            </div>
-            <span className="font-bold text-4xl">MarketAI</span>
+            <img src="/korex-wordmark-lockup.svg" alt="Korex Intelligence Systems Logo" className="h-[56px]" />
           </div>
           <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            AI-Powered Marketing Dashboard
+            AI-Powered Marketing Intelligence
           </h1>
           <p className="text-xl text-muted-foreground mb-8">
             Transform your marketing with intelligent insights and automation

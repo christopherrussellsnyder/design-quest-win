@@ -482,19 +482,17 @@ const Settings: React.FC = () => {
   const renderAboutTab = () => (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold text-foreground mb-1">About MarketAI</h2>
+        <h2 className="text-xl font-semibold text-foreground mb-1">About Korex</h2>
         <p className="text-sm text-muted-foreground">Application information</p>
       </div>
       
       <Card className="bg-card border-border">
         <CardContent className="p-6">
           <div className="flex items-center gap-4 mb-4">
-            <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-primary to-primary/50 flex items-center justify-center text-2xl font-bold text-white">
-              M
-            </div>
+            <img src="/korex-logo-official.svg" alt="Korex" className="w-16 h-16 rounded-xl" />
             <div>
-              <h3 className="text-xl font-bold">MarketAI</h3>
-              <p className="text-sm text-muted-foreground">Version 2.0.0</p>
+              <h3 className="text-xl font-bold">Korex</h3>
+              <p className="text-sm text-muted-foreground">Intelligence Systems • Version 2.0.0</p>
             </div>
           </div>
           <p className="text-sm text-muted-foreground">

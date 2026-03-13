@@ -17,8 +17,8 @@ const articles: Article[] = [
     id: '1',
     category: 'Getting Started',
     title: 'Quick Start Guide',
-    description: 'Get started with MarketAI in 5 minutes',
-    content: `Welcome to MarketAI! Here's how to get started:
+    description: 'Get started with Korex in 5 minutes',
+    content: `Welcome to Korex Intelligence! Here's how to get started:
 
 **Step 1: Connect Your Social Accounts**
 Navigate to Settings → Connected Accounts and link your social media platforms.
@@ -78,7 +78,7 @@ Generated content is automatically saved to your Content Library for future use.
 - **Queue View**: Manage your posting queue
 
 **Best Times**
-MarketAI suggests optimal posting times based on your audience engagement patterns.
+Korex suggests optimal posting times based on your audience engagement patterns.
 
 **Recurring Posts**
 Set up posts to repeat daily, weekly, or monthly.`
@@ -125,7 +125,7 @@ AI-powered insights help you understand what content performs best.`
 - Upgrade your plan for more requests
 
 **Need More Help?**
-Contact support at support@marketai.com`
+Contact support at support@korex.io`
   },
   {
     id: '6',
@@ -144,7 +144,7 @@ Contact support at support@marketai.com`
 **How to Connect**
 1. Go to Settings → Connected Accounts
 2. Click "Connect" next to the platform
-3. Authorize MarketAI in the popup
+3. Authorize Korex in the popup
 4. Select which accounts to link
 
 **Permissions Required**
@@ -236,7 +236,7 @@ export default function HelpCenter() {
               </div>
               <div>
                 <h3 className="font-semibold text-foreground">Getting Started</h3>
-                <p className="text-sm text-muted-foreground">New to MarketAI? Start here</p>
+                <p className="text-sm text-muted-foreground">New to Korex? Start here</p>
               </div>
             </CardContent>
           </Card>

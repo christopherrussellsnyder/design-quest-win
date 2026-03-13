@@ -7,8 +7,8 @@ import {
 
 const faqs = [
   {
-    question: 'What is MarketAI?',
-    answer: 'MarketAI is an all-in-one social media marketing platform that helps you create, schedule, and analyze content across multiple platforms using AI-powered tools.'
+    question: 'What is Korex?',
+    answer: 'Korex is an AI-powered marketing intelligence platform that helps you create, schedule, and analyze content across multiple platforms using advanced AI tools.'
   },
   {
     question: 'Which social media platforms are supported?',
@@ -36,7 +36,7 @@ const faqs = [
   },
   {
     question: 'How do I connect my social media accounts?',
-    answer: 'Go to Settings → Connected Accounts and click "Connect" next to the platform you want to link. You\'ll be redirected to authorize MarketAI to access your account.'
+    answer: 'Go to Settings → Connected Accounts and click "Connect" next to the platform you want to link. You\'ll be redirected to authorize Korex to access your account.'
   },
   {
     question: 'Is my data secure?',
@@ -44,7 +44,7 @@ const faqs = [
   },
   {
     question: 'How do I contact support?',
-    answer: 'You can reach our support team via email at support@marketai.com or through the in-app chat. Pro and Enterprise users get priority support.'
+    answer: 'You can reach our support team via email at support@korex.io or through the in-app chat. Pro and Enterprise users get priority support.'
   }
 ];
 

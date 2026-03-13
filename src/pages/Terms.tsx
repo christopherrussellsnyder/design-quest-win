@@ -6,10 +6,10 @@ const Terms: React.FC = () => {
   return (
     <>
       <Helmet>
-        <title>Terms of Service | MarketAI</title>
-        <meta name="description" content="Terms of Service for MarketAI - AI-powered social media management platform for TikTok and other platforms." />
-        <meta property="og:title" content="Terms of Service | MarketAI" />
-        <meta property="og:description" content="Read MarketAI's Terms of Service for using our social media management platform." />
+        <title>Terms of Service | Korex</title>
+        <meta name="description" content="Terms of Service for Korex - AI-powered marketing intelligence platform." />
+        <meta property="og:title" content="Terms of Service | Korex" />
+        <meta property="og:description" content="Read Korex's Terms of Service for using our marketing intelligence platform." />
         <meta property="og:type" content="website" />
         <meta name="robots" content="index, follow" />
       </Helmet>
@@ -20,8 +20,8 @@ const Terms: React.FC = () => {
           <div className="max-w-[800px] mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16">
               <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-                <img src="/marketai-logo.svg" alt="MarketAI" className="w-8 h-8" />
-                <span className="text-xl font-bold text-foreground">MarketAI</span>
+                <img src="/korex-logo-transparent.svg" alt="Korex" className="w-8 h-8" />
+                <span className="text-xl font-bold text-foreground">Korex</span>
               </Link>
               <nav className="flex items-center gap-4">
                 <Link to="/privacy" className="text-sm text-muted-foreground hover:text-primary transition-colors">
@@ -35,34 +35,31 @@ const Terms: React.FC = () => {
         <main className="max-w-[800px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
           {/* Title */}
           <div className="text-center mb-12">
-            <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">Terms of Service for MarketAI</h1>
+            <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">Terms of Service for Korex</h1>
             <p className="text-muted-foreground">Last Updated: January 26, 2026</p>
           </div>
 
           <div className="space-y-8">
-            {/* Section 1 */}
             <section>
               <h2 className="text-xl font-semibold text-foreground mb-4">1. ACCEPTANCE OF TERMS</h2>
               <p className="text-muted-foreground leading-relaxed">
-                By accessing or using MarketAI ("the Service"), you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use the Service.
+                By accessing or using Korex ("the Service"), you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use the Service.
               </p>
             </section>
 
-            {/* Section 2 */}
             <section>
               <h2 className="text-xl font-semibold text-foreground mb-4">2. SERVICE DESCRIPTION</h2>
               <p className="text-muted-foreground leading-relaxed">
-                MarketAI is a social media management platform that allows users to create, schedule, and publish content to TikTok and other social media platforms. The Service uses artificial intelligence to help optimize content and posting strategies.
+                Korex is an AI-powered marketing intelligence platform that allows users to create, schedule, and publish content to social media platforms. The Service uses artificial intelligence to help optimize content and posting strategies.
               </p>
             </section>
 
-            {/* Section 3 */}
             <section>
               <h2 className="text-xl font-semibold text-foreground mb-4">3. USER OBLIGATIONS</h2>
               <p className="text-muted-foreground leading-relaxed mb-4">Users must:</p>
               <ul className="list-disc list-inside text-muted-foreground space-y-2 ml-4">
                 <li>Own or have rights to all content they post through the Service</li>
-                <li>Comply with TikTok's Community Guidelines and Terms of Service</li>
+                <li>Comply with platform Community Guidelines and Terms of Service</li>
                 <li>Not use the Service for spam, abuse, or illegal activities</li>
                 <li>Provide accurate information when creating an account</li>
                 <li>Keep their account credentials secure</li>
@@ -70,15 +67,14 @@ const Terms: React.FC = () => {
               </ul>
             </section>
 
-            {/* Section 4 */}
             <section>
-              <h2 className="text-xl font-semibold text-foreground mb-4">4. TIKTOK INTEGRATION</h2>
+              <h2 className="text-xl font-semibold text-foreground mb-4">4. PLATFORM INTEGRATION</h2>
               <p className="text-muted-foreground leading-relaxed mb-4">
-                Our Service integrates with TikTok's API to post content on your behalf. By connecting your TikTok account, you authorize MarketAI to:
+                Our Service integrates with social media platform APIs to post content on your behalf. By connecting your accounts, you authorize Korex to:
               </p>
               <ul className="list-disc list-inside text-muted-foreground space-y-2 ml-4 mb-4">
-                <li>Access your TikTok profile information</li>
-                <li>Upload and publish videos to your TikTok account</li>
+                <li>Access your profile information</li>
+                <li>Upload and publish content to your accounts</li>
                 <li>Access basic analytics about your posts</li>
               </ul>
               <p className="text-muted-foreground leading-relaxed">
@@ -86,15 +82,13 @@ const Terms: React.FC = () => {
               </p>
             </section>
 
-            {/* Section 5 */}
             <section>
               <h2 className="text-xl font-semibold text-foreground mb-4">5. INTELLECTUAL PROPERTY</h2>
               <p className="text-muted-foreground leading-relaxed">
-                All content you create and post remains your property. MarketAI does not claim ownership of your content. You grant MarketAI a limited license to process and transmit your content solely for the purpose of posting it to TikTok and other connected platforms.
+                All content you create and post remains your property. Korex does not claim ownership of your content. You grant Korex a limited license to process and transmit your content solely for the purpose of posting it to connected platforms.
               </p>
             </section>
 
-            {/* Section 6 */}
             <section>
               <h2 className="text-xl font-semibold text-foreground mb-4">6. DATA USAGE AND PRIVACY</h2>
               <p className="text-muted-foreground leading-relaxed">
@@ -102,31 +96,27 @@ const Terms: React.FC = () => {
               </p>
             </section>
 
-            {/* Section 7 */}
             <section>
               <h2 className="text-xl font-semibold text-foreground mb-4">7. DISCLAIMERS</h2>
               <p className="text-muted-foreground leading-relaxed">
-                The Service is provided "as is" without warranties of any kind, express or implied. MarketAI does not guarantee uninterrupted service, error-free operation, or that the Service will meet your specific requirements. We are not responsible for content posted to TikTok through the Service or any consequences resulting from such posts.
+                The Service is provided "as is" without warranties of any kind, express or implied. Korex does not guarantee uninterrupted service, error-free operation, or that the Service will meet your specific requirements. We are not responsible for content posted through the Service or any consequences resulting from such posts.
               </p>
             </section>
 
-            {/* Section 8 */}
             <section>
               <h2 className="text-xl font-semibold text-foreground mb-4">8. LIMITATION OF LIABILITY</h2>
               <p className="text-muted-foreground leading-relaxed">
-                To the maximum extent permitted by law, MarketAI shall not be liable for any indirect, incidental, special, consequential, or punitive damages, or any loss of profits or revenues, whether incurred directly or indirectly, or any loss of data, use, goodwill, or other intangible losses resulting from your use of the Service.
+                To the maximum extent permitted by law, Korex shall not be liable for any indirect, incidental, special, consequential, or punitive damages, or any loss of profits or revenues, whether incurred directly or indirectly, or any loss of data, use, goodwill, or other intangible losses resulting from your use of the Service.
               </p>
             </section>
 
-            {/* Section 9 */}
             <section>
               <h2 className="text-xl font-semibold text-foreground mb-4">9. TERMINATION</h2>
               <p className="text-muted-foreground leading-relaxed">
-                We reserve the right to suspend or terminate your account if you violate these Terms or TikTok's policies. You may terminate your account at any time by contacting us or deleting your account in Settings. Upon termination, all scheduled posts will be cancelled.
+                We reserve the right to suspend or terminate your account if you violate these Terms or platform policies. You may terminate your account at any time by contacting us or deleting your account in Settings. Upon termination, all scheduled posts will be cancelled.
               </p>
             </section>
 
-            {/* Section 10 */}
             <section>
               <h2 className="text-xl font-semibold text-foreground mb-4">10. CHANGES TO TERMS</h2>
               <p className="text-muted-foreground leading-relaxed">
@@ -134,7 +124,6 @@ const Terms: React.FC = () => {
               </p>
             </section>
 
-            {/* Section 11 */}
             <section>
               <h2 className="text-xl font-semibold text-foreground mb-4">11. GOVERNING LAW</h2>
               <p className="text-muted-foreground leading-relaxed">
@@ -142,7 +131,6 @@ const Terms: React.FC = () => {
               </p>
             </section>
 
-            {/* Section 12 */}
             <section>
               <h2 className="text-xl font-semibold text-foreground mb-4">12. CONTACT INFORMATION</h2>
               <p className="text-muted-foreground leading-relaxed mb-4">
@@ -151,8 +139,8 @@ const Terms: React.FC = () => {
               <div className="bg-card border border-border rounded-lg p-6">
                 <p className="text-foreground mb-2">
                   <strong>Email:</strong>{' '}
-                  <a href="mailto:support@marketai.app" className="text-primary hover:underline">
-                    support@marketai.app
+                  <a href="mailto:support@korex.io" className="text-primary hover:underline">
+                    support@korex.io
                   </a>
                 </p>
                 <p className="text-foreground">
@@ -168,7 +156,7 @@ const Terms: React.FC = () => {
           <div className="max-w-[800px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
               <p className="text-sm text-muted-foreground">
-                © 2026 MarketAI. All rights reserved.
+                © 2026 Korex Intelligence Systems. All rights reserved.
               </p>
               <div className="flex items-center gap-6">
                 <Link to="/terms" className="text-sm text-primary hover:underline">

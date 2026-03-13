@@ -80,7 +80,7 @@ const Cookies: React.FC = () => {
           <section className="mb-8">
             <h2 className="text-xl font-semibold text-foreground mb-4">6. Contact Us</h2>
             <p className="text-muted-foreground">
-              If you have any questions about our use of cookies, please contact us at privacy@marketai.com.
+              If you have any questions about our use of cookies, please contact us at privacy@korex.io.
             </p>
           </section>
         </div>

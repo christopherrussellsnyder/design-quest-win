@@ -13,8 +13,8 @@ import {
 const steps = [
   {
     icon: Rocket,
-    title: 'Welcome to MarketAI! 🎉',
-    description: 'Your all-in-one social media marketing platform. Let us show you around.',
+    title: 'Welcome to Korex Intelligence! 🎉',
+    description: 'Your AI-powered marketing intelligence platform. Let us show you around.',
     image: null
   },
   {
@@ -132,16 +132,16 @@ export function OnboardingModal({ isOpen, onComplete }: OnboardingModalProps) {
 
 export function useOnboarding() {
   const [showOnboarding, setShowOnboarding] = useState(() => {
-    return !localStorage.getItem('marketai_onboarding_complete');
+    return !localStorage.getItem('korex_onboarding_complete');
   });
 
   const completeOnboarding = () => {
-    localStorage.setItem('marketai_onboarding_complete', 'true');
+    localStorage.setItem('korex_onboarding_complete', 'true');
     setShowOnboarding(false);
   };
 
   const resetOnboarding = () => {
-    localStorage.removeItem('marketai_onboarding_complete');
+    localStorage.removeItem('korex_onboarding_complete');
     setShowOnboarding(true);
   };
 

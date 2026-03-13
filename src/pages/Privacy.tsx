@@ -6,22 +6,21 @@ const Privacy: React.FC = () => {
   return (
     <>
       <Helmet>
-        <title>Privacy Policy | MarketAI</title>
-        <meta name="description" content="Privacy Policy for MarketAI - Learn how we collect, use, and protect your data when using our social media management platform." />
-        <meta property="og:title" content="Privacy Policy | MarketAI" />
-        <meta property="og:description" content="Read MarketAI's Privacy Policy to understand how we handle your personal information." />
+        <title>Privacy Policy | Korex</title>
+        <meta name="description" content="Privacy Policy for Korex - Learn how we collect, use, and protect your data when using our marketing intelligence platform." />
+        <meta property="og:title" content="Privacy Policy | Korex" />
+        <meta property="og:description" content="Read Korex's Privacy Policy to understand how we handle your personal information." />
         <meta property="og:type" content="website" />
         <meta name="robots" content="index, follow" />
       </Helmet>
       
       <div className="min-h-screen bg-background">
-        {/* Header with Logo */}
         <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
           <div className="max-w-[800px] mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16">
               <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-                <img src="/marketai-logo.svg" alt="MarketAI" className="w-8 h-8" />
-                <span className="text-xl font-bold text-foreground">MarketAI</span>
+                <img src="/korex-logo-transparent.svg" alt="Korex" className="w-8 h-8" />
+                <span className="text-xl font-bold text-foreground">Korex</span>
               </Link>
               <nav className="flex items-center gap-4">
                 <Link to="/terms" className="text-sm text-muted-foreground hover:text-primary transition-colors">
@@ -33,22 +32,19 @@ const Privacy: React.FC = () => {
         </header>
 
         <main className="max-w-[800px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          {/* Title */}
           <div className="text-center mb-12">
-            <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">Privacy Policy for MarketAI</h1>
+            <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">Privacy Policy for Korex</h1>
             <p className="text-muted-foreground">Last Updated: January 26, 2026</p>
           </div>
 
           <div className="space-y-8">
-            {/* Section 1 */}
             <section>
               <h2 className="text-xl font-semibold text-foreground mb-4">1. INTRODUCTION</h2>
               <p className="text-muted-foreground leading-relaxed">
-                MarketAI ("we", "us", "our") respects your privacy and is committed to protecting your personal data. This Privacy Policy explains how we collect, use, and protect your information when you use our Service.
+                Korex Intelligence Systems ("we", "us", "our") respects your privacy and is committed to protecting your personal data. This Privacy Policy explains how we collect, use, and protect your information when you use our Service.
               </p>
             </section>
 
-            {/* Section 2 */}
             <section>
               <h2 className="text-xl font-semibold text-foreground mb-4">2. INFORMATION WE COLLECT</h2>
               
@@ -57,9 +53,9 @@ const Privacy: React.FC = () => {
                 When you create an account, we collect your name, email address, and login credentials.
               </p>
 
-              <h3 className="text-lg font-medium text-foreground mt-6 mb-3">2.2 TikTok Account Information</h3>
+              <h3 className="text-lg font-medium text-foreground mt-6 mb-3">2.2 Social Account Information</h3>
               <p className="text-muted-foreground leading-relaxed">
-                When you connect your TikTok account, we collect your TikTok username, profile information, and access tokens necessary to post on your behalf.
+                When you connect your social accounts, we collect your username, profile information, and access tokens necessary to post on your behalf.
               </p>
 
               <h3 className="text-lg font-medium text-foreground mt-6 mb-3">2.3 Content Data</h3>
@@ -78,13 +74,12 @@ const Privacy: React.FC = () => {
               </p>
             </section>
 
-            {/* Section 3 */}
             <section>
               <h2 className="text-xl font-semibold text-foreground mb-4">3. HOW WE USE YOUR INFORMATION</h2>
               <p className="text-muted-foreground leading-relaxed mb-4">We use your information to:</p>
               <ul className="list-disc list-inside text-muted-foreground space-y-2 ml-4">
                 <li>Provide and maintain the Service</li>
-                <li>Post content to TikTok and other platforms on your behalf</li>
+                <li>Post content to social platforms on your behalf</li>
                 <li>Analyze and improve the Service</li>
                 <li>Communicate with you about your account and updates</li>
                 <li>Ensure security and prevent fraud</li>
@@ -93,14 +88,13 @@ const Privacy: React.FC = () => {
               </ul>
             </section>
 
-            {/* Section 4 */}
             <section>
               <h2 className="text-xl font-semibold text-foreground mb-4">4. DATA SHARING AND DISCLOSURE</h2>
               <p className="text-muted-foreground leading-relaxed mb-4">
                 We share your data only in these circumstances:
               </p>
               <ul className="list-disc list-inside text-muted-foreground space-y-2 ml-4 mb-4">
-                <li><strong className="text-foreground">With TikTok:</strong> We share necessary data with TikTok's API to post content on your behalf</li>
+                <li><strong className="text-foreground">With Platforms:</strong> We share necessary data with platform APIs to post content on your behalf</li>
                 <li><strong className="text-foreground">With Service Providers:</strong> We use third-party services (hosting, analytics, email) that may access your data to provide their services</li>
                 <li><strong className="text-foreground">Legal Requirements:</strong> We may disclose data if required by law or to protect our rights</li>
                 <li><strong className="text-foreground">With Your Consent:</strong> We may share data with other parties if you explicitly consent</li>
@@ -110,7 +104,6 @@ const Privacy: React.FC = () => {
               </p>
             </section>
 
-            {/* Section 5 */}
             <section>
               <h2 className="text-xl font-semibold text-foreground mb-4">5. DATA SECURITY</h2>
               <p className="text-muted-foreground leading-relaxed mb-4">
@@ -127,15 +120,13 @@ const Privacy: React.FC = () => {
               </p>
             </section>
 
-            {/* Section 6 */}
             <section>
               <h2 className="text-xl font-semibold text-foreground mb-4">6. DATA RETENTION</h2>
               <p className="text-muted-foreground leading-relaxed">
-                We retain your data for as long as your account is active or as needed to provide the Service. If you delete your account, we will delete your personal data within 30 days, except where retention is required for legal compliance, dispute resolution, or enforcement of agreements. Content you've already posted to TikTok will remain on TikTok according to their policies.
+                We retain your data for as long as your account is active or as needed to provide the Service. If you delete your account, we will delete your personal data within 30 days, except where retention is required for legal compliance, dispute resolution, or enforcement of agreements.
               </p>
             </section>
 
-            {/* Section 7 */}
             <section>
               <h2 className="text-xl font-semibold text-foreground mb-4">7. YOUR RIGHTS</h2>
               <p className="text-muted-foreground leading-relaxed mb-4">You have the right to:</p>
@@ -145,14 +136,13 @@ const Privacy: React.FC = () => {
                 <li>Delete your account and data</li>
                 <li>Export your data in a portable format</li>
                 <li>Opt out of marketing communications</li>
-                <li>Revoke TikTok authorization at any time</li>
+                <li>Revoke platform authorization at any time</li>
               </ul>
               <p className="text-muted-foreground leading-relaxed">
                 To exercise these rights, contact us or use the settings in your account.
               </p>
             </section>
 
-            {/* Section 8 */}
             <section>
               <h2 className="text-xl font-semibold text-foreground mb-4">8. CHILDREN'S PRIVACY</h2>
               <p className="text-muted-foreground leading-relaxed">
@@ -160,7 +150,6 @@ const Privacy: React.FC = () => {
               </p>
             </section>
 
-            {/* Section 9 */}
             <section>
               <h2 className="text-xl font-semibold text-foreground mb-4">9. INTERNATIONAL DATA TRANSFERS</h2>
               <p className="text-muted-foreground leading-relaxed">
@@ -168,7 +157,6 @@ const Privacy: React.FC = () => {
               </p>
             </section>
 
-            {/* Section 10 */}
             <section>
               <h2 className="text-xl font-semibold text-foreground mb-4">10. COOKIES AND TRACKING</h2>
               <p className="text-muted-foreground leading-relaxed">
@@ -176,7 +164,6 @@ const Privacy: React.FC = () => {
               </p>
             </section>
 
-            {/* Section 11 */}
             <section>
               <h2 className="text-xl font-semibold text-foreground mb-4">11. THIRD-PARTY LINKS</h2>
               <p className="text-muted-foreground leading-relaxed">
@@ -184,7 +171,6 @@ const Privacy: React.FC = () => {
               </p>
             </section>
 
-            {/* Section 12 */}
             <section>
               <h2 className="text-xl font-semibold text-foreground mb-4">12. CHANGES TO THIS POLICY</h2>
               <p className="text-muted-foreground leading-relaxed">
@@ -192,7 +178,6 @@ const Privacy: React.FC = () => {
               </p>
             </section>
 
-            {/* Section 13 */}
             <section>
               <h2 className="text-xl font-semibold text-foreground mb-4">13. GDPR COMPLIANCE (FOR EU USERS)</h2>
               <p className="text-muted-foreground leading-relaxed">
@@ -200,7 +185,6 @@ const Privacy: React.FC = () => {
               </p>
             </section>
 
-            {/* Section 14 */}
             <section>
               <h2 className="text-xl font-semibold text-foreground mb-4">14. CCPA COMPLIANCE (FOR CALIFORNIA USERS)</h2>
               <p className="text-muted-foreground leading-relaxed">
@@ -208,7 +192,6 @@ const Privacy: React.FC = () => {
               </p>
             </section>
 
-            {/* Section 15 */}
             <section>
               <h2 className="text-xl font-semibold text-foreground mb-4">15. CONTACT INFORMATION</h2>
               <p className="text-muted-foreground leading-relaxed mb-4">
@@ -217,8 +200,8 @@ const Privacy: React.FC = () => {
               <div className="bg-card border border-border rounded-lg p-6">
                 <p className="text-foreground mb-2">
                   <strong>Email:</strong>{' '}
-                  <a href="mailto:privacy@marketai.app" className="text-primary hover:underline">
-                    privacy@marketai.app
+                  <a href="mailto:privacy@korex.io" className="text-primary hover:underline">
+                    privacy@korex.io
                   </a>
                 </p>
                 <p className="text-foreground">
@@ -234,7 +217,7 @@ const Privacy: React.FC = () => {
           <div className="max-w-[800px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
               <p className="text-sm text-muted-foreground">
-                © 2026 MarketAI. All rights reserved.
+                © 2026 Korex Intelligence Systems. All rights reserved.
               </p>
               <div className="flex items-center gap-6">
                 <Link to="/terms" className="text-sm text-muted-foreground hover:text-primary transition-colors">
