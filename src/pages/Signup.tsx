@@ -78,7 +78,7 @@ export default function Signup() {
 
         <div className="card-glass rounded-2xl p-8">
           <h1 className="text-2xl font-bold mb-2 text-foreground">Create your account</h1>
-          <p className="text-muted-foreground mb-6">Get started with AI-powered marketing intelligence</p>
+          <p className="text-muted-foreground mb-6">Get started with Korex Intelligence Systems</p>
 
           <form onSubmit={handleSignup} className="space-y-4">
             <div>

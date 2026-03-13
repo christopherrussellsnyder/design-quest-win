@@ -226,8 +226,8 @@ export default function ContentStrategies() {
   return (
     <>
       <Helmet>
-        <title>Content Strategies | MarketAI</title>
-        <meta name="description" content="View and manage your AI-generated content strategies" />
+        <title>Content Strategies | Korex</title>
+        <meta name="description" content="View and manage your Korex-generated content strategies" />
       </Helmet>
 
       <div className="min-h-screen bg-background">

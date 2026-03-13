@@ -14,7 +14,7 @@ const steps = [
   {
     icon: Rocket,
     title: 'Welcome to Korex Intelligence! 🎉',
-    description: 'Your AI-powered marketing intelligence platform. Let us show you around.',
+    description: 'Korex is your marketing intelligence platform. Let us show you around.',
     image: null
   },
   {
