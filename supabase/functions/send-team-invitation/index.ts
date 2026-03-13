@@ -36,7 +36,7 @@ const handler = async (req: Request): Promise<Response> => {
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
     
     // Get the base URL for the invite link
-    const origin = req.headers.get('origin') || Deno.env.get('SUPABASE_URL')?.replace('.supabase.co', '') || 'https://app.marketai.com';
+    const origin = req.headers.get('origin') || Deno.env.get('SUPABASE_URL')?.replace('.supabase.co', '') || 'https://app.korex.io';
     const inviteLink = `${origin}/accept-invite/${invitationToken}`;
     
     console.log("Processing invitation request:", { 
