@@ -61,9 +61,12 @@ export function ConversationSidebar({
         <>
           {/* Header */}
           <div className="p-4 border-b border-subtle">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="p-2 rounded-md bg-gradient-to-br from-primary to-korex-red-dark shadow-glow">
-                <img src="/korex-logo-transparent.svg" alt="Korex" className="w-5 h-5" />
+            <div className="flex items-center gap-3 mb-4">
+              <div className="relative">
+                <div className="absolute inset-0 rounded-lg bg-primary/20 blur-md scale-125" />
+                <div className="relative p-1.5 rounded-lg bg-secondary/80 border border-primary/20">
+                  <img src="/korex-logo-transparent.svg" alt="Korex" className="w-6 h-6" />
+                </div>
               </div>
               <div>
                 <h2 className="font-bold text-sm text-gradient">KOREX</h2>
