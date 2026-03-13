@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, MessageSquare, ChevronLeft, ChevronRight, Sparkles, MoreVertical, Trash2, Pencil, Star } from 'lucide-react';
+import { Plus, MessageSquare, ChevronLeft, ChevronRight, MoreVertical, Trash2, Pencil, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
@@ -62,12 +62,12 @@ export function ConversationSidebar({
           {/* Header */}
           <div className="p-4 border-b border-subtle">
             <div className="flex items-center gap-2 mb-4">
-              <div className="p-2 rounded-md bg-gradient-to-br from-primary to-arasaka-red-dark shadow-glow">
-                <Sparkles className="w-5 h-5 text-primary-foreground" />
+              <div className="p-2 rounded-md bg-gradient-to-br from-primary to-korex-red-dark shadow-glow">
+                <img src="/korex-logo-transparent.svg" alt="Korex" className="w-5 h-5" />
               </div>
               <div>
-                <h2 className="font-bold text-sm text-gradient">AI Strategist</h2>
-                <p className="text-xs text-muted-foreground">Marketing Intelligence</p>
+                <h2 className="font-bold text-sm text-gradient">KOREX</h2>
+                <p className="text-[10px] text-muted-foreground tracking-[0.2em] uppercase">Intelligence Systems</p>
               </div>
             </div>
             <Button 

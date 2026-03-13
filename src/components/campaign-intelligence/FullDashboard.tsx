@@ -233,7 +233,7 @@ export function CampaignIntelligenceFullDashboard({ onNavigateToCampaignBuilder 
             <Brain className="w-6 h-6 text-primary" />
             Campaign Intelligence
           </h2>
-          <p className="text-muted-foreground">AI-powered insights and 30-day content strategy</p>
+          <p className="text-muted-foreground">Intelligence insights and 30-day content strategy</p>
         </div>
         <div className="flex items-center gap-3 flex-wrap">
           <Select value={niche} onValueChange={setNiche}>
@@ -275,7 +275,7 @@ export function CampaignIntelligenceFullDashboard({ onNavigateToCampaignBuilder 
           <TabsTrigger value="platform">Platform Analysis</TabsTrigger>
           <TabsTrigger value="learnings">Past Learnings</TabsTrigger>
           <TabsTrigger value="strategy" className="relative">
-            AI Strategy
+            Intelligence Strategy
             {comprehensiveStrategy && (
               <span className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full" />
             )}
@@ -428,9 +428,9 @@ export function CampaignIntelligenceFullDashboard({ onNavigateToCampaignBuilder 
                   <div>
                     <CardTitle className="flex items-center gap-2">
                       <Sparkles className="w-5 h-5 text-primary" />
-                      AI-Generated 30-Day Strategy
+                      Intelligence-Generated 30-Day Strategy
                     </CardTitle>
-                    <CardDescription>Generate a comprehensive content strategy powered by AI</CardDescription>
+                    <CardDescription>Generate a comprehensive content strategy powered by Korex Intelligence</CardDescription>
                   </div>
                 </div>
               </CardHeader>

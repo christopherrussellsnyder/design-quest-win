@@ -698,11 +698,11 @@ I'll use this context to provide personalized marketing recommendations. You can
     <div className={cn('flex flex-col h-full bg-background', className)}>
       {/* Settings incomplete banner */}
       {!settingsComplete && (
-        <div className="mx-4 mt-3 bg-gradient-to-r from-[#C41E3A]/10 to-[#8B1429]/10 border border-[#C41E3A]/30 rounded-lg p-4 flex items-center justify-between gap-3">
+        <div className="mx-4 mt-3 bg-gradient-to-r from-primary/10 to-korex-red-dark/10 border border-primary/30 rounded-lg p-4 flex items-center justify-between gap-3">
           <p className="text-sm text-muted-foreground">
-            <span className="text-foreground font-medium">Recommendation:</span> Complete your business settings for more accurate AI strategies.
+            <span className="text-foreground font-medium">Recommendation:</span> Complete your business settings for more accurate strategies.
           </p>
-          <Button size="sm" variant="outline" className="border-[#C41E3A]/40 text-primary hover:bg-primary/10 shrink-0" onClick={() => navigate('/settings')}>
+          <Button size="sm" variant="outline" className="border-primary/40 text-primary hover:bg-primary/10 shrink-0" onClick={() => navigate('/settings')}>
             <Settings className="w-3.5 h-3.5 mr-1.5" />
             Complete Settings
           </Button>
@@ -720,7 +720,7 @@ I'll use this context to provide personalized marketing recommendations. You can
                 <Sparkles className="w-8 h-8 text-primary" />
               </div>
             </div>
-            <h2 className="text-2xl font-bold mb-2 tracking-tight">AI Marketing Strategist</h2>
+            <h2 className="text-2xl font-bold mb-2 tracking-tight">Korex Intelligence</h2>
             <p className="text-muted-foreground max-w-md mb-8 text-sm leading-relaxed">
               Get personalized marketing strategies, content ideas, and data-driven insights for your business.
             </p>
@@ -746,7 +746,7 @@ I'll use this context to provide personalized marketing recommendations. You can
                 </div>
                 <h3 className="font-semibold text-sm mb-1">Analyze Website</h3>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  Let AI understand your business
+                  Let Korex analyze your business
                 </p>
               </button>
               

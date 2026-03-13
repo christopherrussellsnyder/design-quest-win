@@ -88,7 +88,7 @@ export function CampaignIntelligenceDashboard() {
       });
       if (error) throw error;
       setAiStrategy(data?.strategy);
-      toast.success('AI strategy generated!');
+      toast.success('Intelligence strategy generated!');
     } catch (error) {
       toast.error('Failed to generate strategy');
     } finally {
@@ -117,7 +117,7 @@ export function CampaignIntelligenceDashboard() {
             <Brain className="w-6 h-6 text-primary" />
             Campaign Intelligence
           </h2>
-          <p className="text-muted-foreground">AI-powered insights for your campaigns</p>
+          <p className="text-muted-foreground">Intelligence insights for your campaigns</p>
         </div>
         <div className="flex items-center gap-3">
           <Select value={niche} onValueChange={setNiche}>
@@ -151,7 +151,7 @@ export function CampaignIntelligenceDashboard() {
           <TabsTrigger value="recommendations">Niche Insights</TabsTrigger>
           <TabsTrigger value="platform">Platform Analysis</TabsTrigger>
           <TabsTrigger value="learnings">Past Learnings</TabsTrigger>
-          <TabsTrigger value="ai-strategy">AI Strategy</TabsTrigger>
+          <TabsTrigger value="ai-strategy">Intelligence Strategy</TabsTrigger>
         </TabsList>
 
         <TabsContent value="recommendations" className="space-y-4">
@@ -291,9 +291,9 @@ export function CampaignIntelligenceDashboard() {
                 <div>
                   <CardTitle className="flex items-center gap-2">
                     <Sparkles className="w-5 h-5 text-primary" />
-                    AI-Generated Campaign Strategy
+                    Intelligence-Generated Campaign Strategy
                   </CardTitle>
-                  <CardDescription>Get personalized recommendations powered by AI</CardDescription>
+                  <CardDescription>Get personalized recommendations powered by Korex Intelligence</CardDescription>
                 </div>
                 <Button onClick={generateAIStrategy} disabled={loadingAI}>
                   {loadingAI ? <RefreshCw className="w-4 h-4 animate-spin mr-2" /> : <Brain className="w-4 h-4 mr-2" />}
@@ -338,7 +338,7 @@ export function CampaignIntelligenceDashboard() {
               ) : (
                 <div className="text-center py-8 text-muted-foreground">
                   <Sparkles className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                  <p>Click "Generate Strategy" to get AI-powered campaign recommendations</p>
+                  <p>Click "Generate Strategy" to get intelligence-driven campaign recommendations</p>
                 </div>
               )}
             </CardContent>

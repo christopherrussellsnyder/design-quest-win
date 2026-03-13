@@ -260,7 +260,7 @@ export function AIVideoGenerator() {
       await loadGeneratedVideos();
       await loadUsageStats();
       
-      toast({ title: 'Video generated successfully!', description: 'Your AI video is ready for preview.' });
+      toast({ title: 'Video generated successfully!', description: 'Your video is ready for preview.' });
     } catch (error: any) {
       console.error('Video generation error:', error);
       
@@ -326,9 +326,9 @@ export function AIVideoGenerator() {
         <div>
           <h2 className="text-2xl font-bold flex items-center gap-2">
             <Video className="h-6 w-6 text-primary" />
-            AI Video Generator
+            Video Generator
           </h2>
-          <p className="text-muted-foreground">Create professional video ads with AI avatars</p>
+          <p className="text-muted-foreground">Create professional video ads with intelligence avatars</p>
         </div>
         
         <div className="flex items-center gap-4">
@@ -735,7 +735,7 @@ export function AIVideoGenerator() {
             <CardHeader>
               <CardTitle>Generated Videos</CardTitle>
               <CardDescription>
-                Your previously generated AI videos
+                Your previously generated videos
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -747,7 +747,7 @@ export function AIVideoGenerator() {
                 <div className="text-center py-8 text-muted-foreground">
                   <Video className="h-12 w-12 mx-auto mb-3 opacity-50" />
                   <p>No videos generated yet</p>
-                  <p className="text-sm">Create your first AI video above!</p>
+                  <p className="text-sm">Create your first video above!</p>
                 </div>
               ) : (
                 <div className="grid gap-4">

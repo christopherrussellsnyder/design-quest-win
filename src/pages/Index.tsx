@@ -72,7 +72,7 @@ const Index = () => {
             <img src="/korex-wordmark-lockup.svg" alt="Korex Intelligence Systems Logo" className="h-[56px]" />
           </div>
           <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            AI-Powered Marketing Intelligence
+            Korex Intelligence Systems
           </h1>
           <p className="text-xl text-muted-foreground mb-8">
             Transform your marketing with intelligent insights and automation

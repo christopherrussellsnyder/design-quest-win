@@ -145,7 +145,7 @@ export function ABTestInsightsDashboard() {
             Test Insights Dashboard
           </h2>
           <p className="text-muted-foreground">
-            AI-powered analysis of your A/B testing performance
+            Intelligence analysis of your A/B testing performance
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -314,7 +314,7 @@ export function ABTestInsightsDashboard() {
                 <div>
                   <CardTitle className="flex items-center gap-2">
                     <Sparkles className="w-5 h-5 text-primary" />
-                    AI-Powered Recommendations
+                    Intelligence Recommendations
                   </CardTitle>
                   <CardDescription>
                     Get personalized test suggestions based on your historical data
@@ -429,7 +429,7 @@ export function ABTestInsightsDashboard() {
               ) : (
                 <div className="text-center py-12 text-muted-foreground">
                   <Sparkles className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                  <p>Click "Generate Recommendations" to get AI-powered suggestions</p>
+                  <p>Click "Generate Recommendations" to get intelligence-driven suggestions</p>
                 </div>
               )}
             </CardContent>
