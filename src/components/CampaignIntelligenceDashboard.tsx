@@ -117,7 +117,7 @@ export function CampaignIntelligenceDashboard() {
             <Brain className="w-6 h-6 text-primary" />
             Campaign Intelligence
           </h2>
-          <p className="text-muted-foreground">AI-powered insights for your campaigns</p>
+          <p className="text-muted-foreground">Intelligence insights for your campaigns</p>
         </div>
         <div className="flex items-center gap-3">
           <Select value={niche} onValueChange={setNiche}>
