@@ -51,7 +51,7 @@ export function validateEnvironment(): ValidationResult {
 export function logEnvironmentStatus(): void {
   const result = validateEnvironment();
 
-  console.group('🔧 MarketAI Environment Status');
+  console.group('🔧 Korex Environment Status');
 
   if (!result.isValid) {
     console.error('❌ Missing required environment variables:');
