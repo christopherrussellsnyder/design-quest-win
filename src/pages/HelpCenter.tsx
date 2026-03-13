@@ -144,7 +144,7 @@ Contact support at support@korex.io`
 **How to Connect**
 1. Go to Settings → Connected Accounts
 2. Click "Connect" next to the platform
-3. Authorize MarketAI in the popup
+3. Authorize Korex in the popup
 4. Select which accounts to link
 
 **Permissions Required**
