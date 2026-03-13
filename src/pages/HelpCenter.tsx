@@ -125,7 +125,7 @@ AI-powered insights help you understand what content performs best.`
 - Upgrade your plan for more requests
 
 **Need More Help?**
-Contact support at support@marketai.com`
+Contact support at support@korex.io`
   },
   {
     id: '6',
