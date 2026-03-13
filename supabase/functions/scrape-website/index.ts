@@ -376,7 +376,7 @@ async function discoverProductPages(productsUrl: string, baseDomain: string): Pr
   try {
     const response = await fetch(productsUrl, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 MarketAI/1.0',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Korex/1.0',
       },
     });
     
