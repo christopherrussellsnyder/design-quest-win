@@ -78,7 +78,7 @@ Generated content is automatically saved to your Content Library for future use.
 - **Queue View**: Manage your posting queue
 
 **Best Times**
-MarketAI suggests optimal posting times based on your audience engagement patterns.
+Korex suggests optimal posting times based on your audience engagement patterns.
 
 **Recurring Posts**
 Set up posts to repeat daily, weekly, or monthly.`
