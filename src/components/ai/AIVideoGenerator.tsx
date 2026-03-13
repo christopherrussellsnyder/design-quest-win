@@ -735,7 +735,7 @@ export function AIVideoGenerator() {
             <CardHeader>
               <CardTitle>Generated Videos</CardTitle>
               <CardDescription>
-                Your previously generated AI videos
+                Your previously generated videos
               </CardDescription>
             </CardHeader>
             <CardContent>
