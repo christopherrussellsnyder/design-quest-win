@@ -13,8 +13,8 @@ import {
 const steps = [
   {
     icon: Rocket,
-    title: 'Welcome to MarketAI! 🎉',
-    description: 'Your all-in-one social media marketing platform. Let us show you around.',
+    title: 'Welcome to Korex Intelligence! 🎉',
+    description: 'Your AI-powered marketing intelligence platform. Let us show you around.',
     image: null
   },
   {
