@@ -36,7 +36,7 @@ const faqs = [
   },
   {
     question: 'How do I connect my social media accounts?',
-    answer: 'Go to Settings → Connected Accounts and click "Connect" next to the platform you want to link. You\'ll be redirected to authorize MarketAI to access your account.'
+    answer: 'Go to Settings → Connected Accounts and click "Connect" next to the platform you want to link. You\'ll be redirected to authorize Korex to access your account.'
   },
   {
     question: 'Is my data secure?',
