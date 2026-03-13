@@ -15,8 +15,8 @@ const faqs = [
     answer: 'We support Facebook, Instagram, Twitter/X, LinkedIn, and TikTok. More platforms are being added regularly.'
   },
   {
-    question: 'How does the AI content generator work?',
-    answer: 'Simply describe your topic or idea, select your preferred tone and length, and our AI will generate engaging, platform-optimized content for you. You can edit and refine the generated content before publishing.'
+    question: 'How does the content generator work?',
+    answer: 'Simply describe your topic or idea, select your preferred tone and length, and Korex Intelligence will generate engaging, platform-optimized content for you. You can edit and refine the generated content before publishing.'
   },
   {
     question: 'Can I schedule posts in advance?',
