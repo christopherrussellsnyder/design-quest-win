@@ -7,8 +7,8 @@ import {
 
 const faqs = [
   {
-    question: 'What is MarketAI?',
-    answer: 'MarketAI is an all-in-one social media marketing platform that helps you create, schedule, and analyze content across multiple platforms using AI-powered tools.'
+    question: 'What is Korex?',
+    answer: 'Korex is an AI-powered marketing intelligence platform that helps you create, schedule, and analyze content across multiple platforms using advanced AI tools.'
   },
   {
     question: 'Which social media platforms are supported?',
