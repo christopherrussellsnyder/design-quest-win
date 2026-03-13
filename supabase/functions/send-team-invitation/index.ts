@@ -137,9 +137,9 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("Sending email via Resend to:", email);
 
     const emailResponse = await resend.emails.send({
-      from: "MarketAI Team <team@resend.dev>",
+      from: "Korex Team <team@resend.dev>",
       to: [email],
-      subject: `You've been invited to join a team on MarketAI`,
+      subject: `You've been invited to join a team on Korex`,
       html: emailHtml,
     });
 
