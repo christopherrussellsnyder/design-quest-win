@@ -275,7 +275,7 @@ export function CampaignIntelligenceFullDashboard({ onNavigateToCampaignBuilder 
           <TabsTrigger value="platform">Platform Analysis</TabsTrigger>
           <TabsTrigger value="learnings">Past Learnings</TabsTrigger>
           <TabsTrigger value="strategy" className="relative">
-            AI Strategy
+            Intelligence Strategy
             {comprehensiveStrategy && (
               <span className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full" />
             )}
