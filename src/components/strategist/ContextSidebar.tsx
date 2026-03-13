@@ -57,7 +57,7 @@ export function ContextSidebar({
               Business Context
             </h2>
             <p className="text-xs text-muted-foreground mt-1">
-              AI uses this context for personalized advice
+              Korex Intelligence uses this context for personalized advice
             </p>
           </div>
 

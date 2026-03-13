@@ -210,8 +210,8 @@ export default function AIStrategist() {
   return (
     <>
       <Helmet>
-        <title>AI Marketing Strategist | MarketAI</title>
-        <meta name="description" content="Chat with your AI marketing strategist for personalized strategies and insights" />
+        <title>Korex Intelligence | Intelligence Systems</title>
+        <meta name="description" content="Chat with Korex Intelligence for personalized marketing strategies and insights" />
       </Helmet>
 
       <div className="relative flex h-screen bg-background overflow-hidden">

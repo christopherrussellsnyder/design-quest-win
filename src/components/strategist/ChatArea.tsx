@@ -720,7 +720,7 @@ I'll use this context to provide personalized marketing recommendations. You can
                 <Sparkles className="w-8 h-8 text-primary" />
               </div>
             </div>
-            <h2 className="text-2xl font-bold mb-2 tracking-tight">AI Marketing Strategist</h2>
+            <h2 className="text-2xl font-bold mb-2 tracking-tight">Korex Intelligence</h2>
             <p className="text-muted-foreground max-w-md mb-8 text-sm leading-relaxed">
               Get personalized marketing strategies, content ideas, and data-driven insights for your business.
             </p>
