@@ -7,7 +7,7 @@ const Terms: React.FC = () => {
     <>
       <Helmet>
         <title>Terms of Service | Korex</title>
-        <meta name="description" content="Terms of Service for Korex - AI-powered marketing intelligence platform." />
+        <meta name="description" content="Terms of Service for Korex - Intelligence Systems platform." />
         <meta property="og:title" content="Terms of Service | Korex" />
         <meta property="og:description" content="Read Korex's Terms of Service for using our marketing intelligence platform." />
         <meta property="og:type" content="website" />
