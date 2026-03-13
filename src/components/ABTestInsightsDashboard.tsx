@@ -145,7 +145,7 @@ export function ABTestInsightsDashboard() {
             Test Insights Dashboard
           </h2>
           <p className="text-muted-foreground">
-            AI-powered analysis of your A/B testing performance
+            Intelligence analysis of your A/B testing performance
           </p>
         </div>
         <div className="flex items-center gap-3">
