@@ -17,8 +17,8 @@ const articles: Article[] = [
     id: '1',
     category: 'Getting Started',
     title: 'Quick Start Guide',
-    description: 'Get started with MarketAI in 5 minutes',
-    content: `Welcome to MarketAI! Here's how to get started:
+    description: 'Get started with Korex in 5 minutes',
+    content: `Welcome to Korex Intelligence! Here's how to get started:
 
 **Step 1: Connect Your Social Accounts**
 Navigate to Settings → Connected Accounts and link your social media platforms.
