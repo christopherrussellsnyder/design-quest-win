@@ -102,7 +102,7 @@ const handler = async (req: Request): Promise<Response> => {
               </p>
               
               <!-- Role Info -->
-              <div style="background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.2); border-radius: 12px; padding: 16px; margin-bottom: 32px;">
+              <div style="background: rgba(204, 0, 0, 0.1); border: 1px solid rgba(204, 0, 0, 0.2); border-radius: 12px; padding: 16px; margin-bottom: 32px;">
                 <p style="color: #a5b4fc; font-size: 14px; margin: 0;">
                   As a <strong>${role}</strong>, you'll be able to ${roleDescription}.
                 </p>
