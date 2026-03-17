@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bot, User, Loader2, Copy, Check, Volume2, RotateCcw } from 'lucide-react';
+import { User, Loader2, Copy, Check, Volume2, RotateCcw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Message } from '@/pages/AIStrategist';
 import ReactMarkdown from 'react-markdown';
