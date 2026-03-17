@@ -1,12 +1,24 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
-  <rect width="200" height="200" fill="#060606"/>
-  <g transform="translate(40, 30)">
-    <!-- Splintered K mark -->
-    <polygon points="0,0 30,0 70,55 30,55" fill="#CC0000"/>
-    <polygon points="0,140 30,140 30,85 0,55" fill="#CC0000"/>
-    <polygon points="35,58 70,0 100,0 55,70" fill="#CC0000" opacity="0.9"/>
-    <polygon points="35,82 55,70 100,140 70,140" fill="#CC0000" opacity="0.85"/>
-    <!-- Accent shard -->
-    <polygon points="105,55 120,40 120,100 105,85" fill="#FF1A1A" opacity="0.6"/>
-  </g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <!-- Background -->
+  <rect width="400" height="400" fill="#060606"/>
+
+  <!-- KOREX OFFICIAL MARK — Splintered K -->
+  <!-- Vertical spine -->
+  <rect x="72" y="32" width="48" height="336" fill="#CC0000"/>
+
+  <!-- Upper arm — primary shard -->
+  <polygon points="120,32 120,120 344,32 280,32" fill="#EEEEEE"/>
+
+  <!-- Upper arm — secondary shard (offset, dimmer) -->
+  <polygon points="120,88 120,168 344,32 272,32" fill="#CC0000" opacity="0.7"/>
+
+  <!-- Lower arm — secondary shard -->
+  <polygon points="120,232 120,312 344,368 272,368" fill="#CC0000" opacity="0.7"/>
+
+  <!-- Lower arm — primary shard -->
+  <polygon points="120,280 120,368 240,368 200,368" fill="#EEEEEE"/>
+
+  <!-- Shard split lines -->
+  <line x1="120" y1="88" x2="240" y2="32" stroke="#060606" strokeWidth="8"/>
+  <line x1="120" y1="312" x2="240" y2="368" stroke="#060606" strokeWidth="8"/>
 </svg>

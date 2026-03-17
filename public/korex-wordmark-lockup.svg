@@ -1,16 +1,40 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="480" height="80" viewBox="0 0 480 80">
-  <!-- K mark compact -->
-  <g transform="translate(8, 8)">
-    <polygon points="0,0 12,0 28,22 12,22" fill="#CC0000"/>
-    <polygon points="0,56 12,56 12,34 0,22" fill="#CC0000"/>
-    <polygon points="14,23 28,0 40,0 22,28" fill="#CC0000" opacity="0.9"/>
-    <polygon points="14,33 22,28 40,56 28,56" fill="#CC0000" opacity="0.85"/>
-    <polygon points="42,22 48,16 48,40 42,34" fill="#FF1A1A" opacity="0.6"/>
-  </g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 200" width="700" height="200">
+  <!-- Background -->
+  <rect width="700" height="200" fill="#060606"/>
+
+  <!-- SPLINTERED K MARK — scaled down -->
+  <rect x="30" y="20" width="22" height="160" fill="#CC0000"/>
+  <polygon points="52,20 52,58 158,20 126,20" fill="#EEEEEE"/>
+  <polygon points="52,42 52,80 158,20 124,20" fill="#CC0000" opacity="0.7"/>
+  <polygon points="52,110 52,148 158,180 128,180" fill="#CC0000" opacity="0.7"/>
+  <polygon points="52,134 52,180 114,180 96,180" fill="#EEEEEE"/>
+  <line x1="52" y1="42" x2="114" y2="20" stroke="#060606" strokeWidth="4"/>
+  <line x1="52" y1="148" x2="114" y2="180" stroke="#060606" strokeWidth="4"/>
+
   <!-- Divider line -->
-  <line x1="68" y1="16" x2="68" y2="64" stroke="#CC0000" stroke-width="1.5" opacity="0.4"/>
+  <rect x="188" y="30" width="2" height="140" fill="#CC0000" opacity="0.4"/>
+
   <!-- KOREX wordmark -->
-  <text x="82" y="48" font-family="Arial Black, Impact, sans-serif" font-size="38" font-weight="900" fill="#EEEEEE" letter-spacing="12">KOREX</text>
-  <!-- INTELLIGENCE SYSTEMS tagline -->
-  <text x="82" y="68" font-family="Arial, Helvetica, sans-serif" font-size="9" font-weight="400" fill="#EEEEEE" letter-spacing="6" opacity="0.65">INTELLIGENCE SYSTEMS</text>
+  <text
+    x="212"
+    y="130"
+    font-family="Arial Black, Arial Bold, sans-serif"
+    font-weight="900"
+    font-size="88"
+    letter-spacing="16"
+    fill="#EEEEEE"
+  >KOREX</text>
+
+  <!-- Tagline -->
+  <text
+    x="214"
+    y="158"
+    font-family="Arial, sans-serif"
+    font-size="11"
+    letter-spacing="6"
+    fill="#CC0000"
+  >INTELLIGENCE SYSTEMS</text>
+
+  <!-- Bottom red underline -->
+  <rect x="212" y="168" width="458" height="2" fill="#CC0000" opacity="0.5"/>
 </svg>
