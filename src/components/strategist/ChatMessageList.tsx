@@ -161,8 +161,8 @@ export const ChatMessageList = React.memo(function ChatMessageList({
       {/* Loading indicator */}
       {isLoading && messages[messages.length - 1]?.role === 'user' && (
         <div className="flex gap-3 animate-fade-in">
-          <div className="flex-shrink-0 w-8 h-8 rounded-xl bg-gradient-to-br from-primary/30 via-primary/20 to-transparent border border-primary/20 flex items-center justify-center">
-            <Bot className="w-4 h-4 text-primary" />
+          <div className="flex-shrink-0 w-8 h-8 rounded-xl bg-gradient-to-br from-primary/30 via-primary/20 to-transparent border border-primary/20 flex items-center justify-center overflow-hidden">
+            <img src="/korex-logo-transparent.svg" alt="Korex" className="w-5 h-5 object-contain" />
           </div>
           <div className="bg-secondary/80 border border-subtle rounded-2xl rounded-bl-md px-4 py-3 backdrop-blur-sm">
             <div className="flex items-center gap-3">
