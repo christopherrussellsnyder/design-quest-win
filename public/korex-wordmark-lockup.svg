@@ -28,10 +28,10 @@
   <!-- Tagline -->
   <text
     x="214"
-    y="158"
+    y="162"
     font-family="Arial, sans-serif"
-    font-size="11"
-    letter-spacing="6"
+    font-size="16"
+    letter-spacing="8"
     fill="#CC0000"
   >INTELLIGENCE SYSTEMS</text>
 
