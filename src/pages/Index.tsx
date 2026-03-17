@@ -68,12 +68,9 @@ const Index = () => {
     <div className="min-h-screen bg-background text-foreground">
       <div className="max-w-6xl mx-auto px-4 py-16">
         <div className="text-center mb-12">
-          <div className="flex items-center justify-center gap-3 mb-6">
-            <img src="/korex-wordmark-lockup.svg" alt="Korex Intelligence Systems Logo" className="h-[56px]" />
+          <div className="flex items-center justify-center gap-3 mb-8">
+            <img src="/korex-wordmark-lockup.svg" alt="Korex Intelligence Systems Logo" className="h-[120px]" />
           </div>
-          <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            Korex Intelligence Systems
-          </h1>
           <p className="text-xl text-muted-foreground mb-8">
             Transform your marketing with intelligent insights and automation
           </p>
