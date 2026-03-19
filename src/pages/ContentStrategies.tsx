@@ -163,22 +163,6 @@ export default function ContentStrategies() {
                     <Table className="w-4 h-4 mr-2" />
                     CSV
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => exportStrategyToJSON(selectedStrategy.strategy, selectedStrategy.posts)}
-                  >
-                    <FileJson className="w-4 h-4 mr-2" />
-                    JSON
-                  </Button>
-                  <Button
-                    variant={viewMode === 'calendar' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setViewMode(viewMode === 'list' ? 'calendar' : 'list')}
-                  >
-                    <Calendar className="w-4 h-4 mr-2" />
-                    {viewMode === 'list' ? 'Calendar' : 'List'}
-                  </Button>
                 </div>
               </div>
             </div>
