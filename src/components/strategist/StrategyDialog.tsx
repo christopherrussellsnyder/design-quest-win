@@ -36,12 +36,11 @@ const platforms = [
 const durations = [
   { value: 7, label: '7 days' },
   { value: 14, label: '14 days' },
-  { value: 30, label: '30 days' },
 ];
 
 export function StrategyDialog({ open, onOpenChange, onSubmit }: StrategyDialogProps) {
   const [platform, setPlatform] = useState('instagram');
-  const [duration, setDuration] = useState(30);
+  const [duration, setDuration] = useState(14);
 
   const handleSubmit = () => {
     onSubmit(platform, duration);
