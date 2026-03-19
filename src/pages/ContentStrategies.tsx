@@ -163,22 +163,6 @@ export default function ContentStrategies() {
                     <Table className="w-4 h-4 mr-2" />
                     CSV
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => exportStrategyToJSON(selectedStrategy.strategy, selectedStrategy.posts)}
-                  >
-                    <FileJson className="w-4 h-4 mr-2" />
-                    JSON
-                  </Button>
-                  <Button
-                    variant={viewMode === 'calendar' ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setViewMode(viewMode === 'list' ? 'calendar' : 'list')}
-                  >
-                    <Calendar className="w-4 h-4 mr-2" />
-                    {viewMode === 'list' ? 'Calendar' : 'List'}
-                  </Button>
                 </div>
               </div>
             </div>
@@ -193,27 +177,15 @@ export default function ContentStrategies() {
                     strategy={selectedStrategy.strategy}
                     postsCount={selectedStrategy.posts.length}
                     onExportCSV={() => exportStrategyToCSV(selectedStrategy.strategy, selectedStrategy.posts)}
-                    onExportPDF={() => exportStrategyToJSON(selectedStrategy.strategy, selectedStrategy.posts)}
                   />
                 </div>
               </div>
 
               {/* Main Content - Posts */}
               <div className="lg:col-span-2 space-y-4">
-                {viewMode === 'calendar' ? (
-                  <StrategyCalendarView
-                    posts={selectedStrategy.posts}
-                    startDate={selectedStrategy.strategy.start_date}
-                    onPostClick={(post) => {
-                      // Scroll to post in list view
-                      setViewMode('list');
-                    }}
-                  />
-                ) : (
-                  selectedStrategy.posts.map(post => (
-                    <StrategyPostCard key={post.id} post={post} />
-                  ))
-                )}
+                {selectedStrategy.posts.map(post => (
+                  <StrategyPostCard key={post.id} post={post} />
+                ))}
               </div>
             </div>
           </main>
