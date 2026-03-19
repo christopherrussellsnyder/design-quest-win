@@ -177,7 +177,6 @@ export default function ContentStrategies() {
                     strategy={selectedStrategy.strategy}
                     postsCount={selectedStrategy.posts.length}
                     onExportCSV={() => exportStrategyToCSV(selectedStrategy.strategy, selectedStrategy.posts)}
-                    onExportPDF={() => exportStrategyToJSON(selectedStrategy.strategy, selectedStrategy.posts)}
                   />
                 </div>
               </div>
