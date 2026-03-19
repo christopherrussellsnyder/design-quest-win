@@ -183,20 +183,9 @@ export default function ContentStrategies() {
 
               {/* Main Content - Posts */}
               <div className="lg:col-span-2 space-y-4">
-                {viewMode === 'calendar' ? (
-                  <StrategyCalendarView
-                    posts={selectedStrategy.posts}
-                    startDate={selectedStrategy.strategy.start_date}
-                    onPostClick={(post) => {
-                      // Scroll to post in list view
-                      setViewMode('list');
-                    }}
-                  />
-                ) : (
-                  selectedStrategy.posts.map(post => (
-                    <StrategyPostCard key={post.id} post={post} />
-                  ))
-                )}
+                {selectedStrategy.posts.map(post => (
+                  <StrategyPostCard key={post.id} post={post} />
+                ))}
               </div>
             </div>
           </main>
