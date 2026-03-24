@@ -190,6 +190,9 @@ export function ConversationSidebar({
               )}
             </div>
           </ScrollArea>
+
+          {/* User Profile */}
+          <UserProfileMenu />
         </>
       )}
     </div>
