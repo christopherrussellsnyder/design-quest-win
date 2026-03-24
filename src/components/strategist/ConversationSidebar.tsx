@@ -11,6 +11,7 @@ import {
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Conversation } from '@/pages/AIStrategist';
+import { UserProfileMenu } from '@/components/strategist/UserProfileMenu';
 
 interface ConversationSidebarProps {
   conversations: Conversation[];
@@ -189,6 +190,9 @@ export function ConversationSidebar({
               )}
             </div>
           </ScrollArea>
+
+          {/* User Profile */}
+          <UserProfileMenu />
         </>
       )}
     </div>
