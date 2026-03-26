@@ -173,6 +173,14 @@ const Settings: React.FC = () => {
         }, { onConflict: 'user_id' });
 
       if (error) throw error;
+
+      // Also update auth user_metadata so avatar syncs across the app
+      await supabase.auth.updateUser({
+        data: {
+          full_name: profile.fullName,
+          avatar_url: profile.avatarUrl,
+        }
+      });
       
       toast({
         title: 'Settings saved',
