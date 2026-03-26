@@ -170,7 +170,7 @@ const Settings: React.FC = () => {
           full_name: profile.fullName,
           avatar_url: profile.avatarUrl,
           updated_at: new Date().toISOString()
-        });
+        }, { onConflict: 'user_id' });
 
       if (error) throw error;
       
