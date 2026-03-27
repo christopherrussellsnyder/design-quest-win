@@ -2,7 +2,6 @@ import { Link } from 'react-router-dom';
 import { TrendingUp, Target, Zap } from 'lucide-react';
 
 const Index = () => {
-  const downloadLogoPNG = async () => {
     const size = 1024;
     const canvas = document.createElement('canvas');
     canvas.width = size;
