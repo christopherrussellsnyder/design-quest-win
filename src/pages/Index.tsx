@@ -1,7 +1,5 @@
 import { Link } from 'react-router-dom';
-import { TrendingUp, Target, Zap, Download } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
+import { TrendingUp, Target, Zap } from 'lucide-react';
 
 const Index = () => {
   const downloadLogoPNG = async () => {
