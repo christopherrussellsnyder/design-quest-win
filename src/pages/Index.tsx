@@ -89,20 +89,6 @@ const Index = () => {
             </Link>
           </div>
           
-          {/* Logo Download Section */}
-          <div className="mt-8 pt-6 border-t border-border/50">
-            <Button
-              onClick={downloadLogoPNG}
-              variant="outline"
-              className="gap-2"
-            >
-              <Download className="w-4 h-4" />
-              Download Logo (1024x1024 PNG)
-            </Button>
-            <p className="text-xs text-muted-foreground mt-2">
-              Transparent background • Optimized PNG format
-            </p>
-          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16">
