@@ -1,6 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 200" width="700" height="200">
-  <!-- Background -->
-  <rect width="700" height="200" fill="#060606"/>
+  <!-- Transparent background -->
 
   <!-- SPLINTERED K MARK — scaled down -->
   <rect x="30" y="20" width="22" height="160" fill="#CC0000"/>
