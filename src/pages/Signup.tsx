@@ -34,7 +34,7 @@ export default function Signup() {
     setLoading(true);
 
     try {
-      const redirectUrl = `${window.location.origin}/dashboard`;
+      const redirectUrl = `${window.location.origin}/ai-strategist`;
       
       const { data, error } = await supabase.auth.signUp({
         email,
