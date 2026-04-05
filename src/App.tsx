@@ -15,7 +15,6 @@ import Signup from "./pages/Signup";
 import NotFound from "./pages/NotFound";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
-import AcceptInvite from "./pages/AcceptInvite";
 
 // Lazy load components
 const AIStrategist = lazy(() => import("./pages/AIStrategist"));
@@ -101,10 +100,18 @@ const App = () => (
                   <Route path="/signup" element={<Signup />} />
                   <Route path="/forgot-password" element={<ForgotPassword />} />
                   <Route path="/reset-password" element={<ResetPassword />} />
-                  <Route path="/accept-invite/:token" element={<AcceptInvite />} />
-                  <Route path="/health" element={<HealthCheck />} />
                   
-                  {/* Redirect old routes to AI Strategist */}
+                  {/* Admin-only health check */}
+                  <Route
+                    path="/health"
+                    element={
+                      <ProtectedRoute>
+                        <HealthCheck />
+                      </ProtectedRoute>
+                    }
+                  />
+                  
+                  {/* Backward-compatible redirects */}
                   <Route path="/dashboard" element={<Navigate to="/ai-strategist" replace />} />
                   <Route path="/scheduler" element={<Navigate to="/ai-strategist" replace />} />
                   <Route path="/campaigns" element={<Navigate to="/ai-strategist" replace />} />
@@ -112,9 +119,13 @@ const App = () => (
                   <Route path="/ab-testing" element={<Navigate to="/ai-strategist" replace />} />
                   <Route path="/audience" element={<Navigate to="/ai-strategist" replace />} />
                   <Route path="/content-ai" element={<Navigate to="/ai-strategist" replace />} />
-                   <Route path="/ai-analytics" element={<Navigate to="/insights" replace />} />
-                   <Route path="/audience-intelligence" element={<Navigate to="/ai-strategist" replace />} />
+                  <Route path="/ai-analytics" element={<Navigate to="/insights" replace />} />
+                  <Route path="/audience-intelligence" element={<Navigate to="/ai-strategist" replace />} />
                   <Route path="/ai-assistant" element={<Navigate to="/ai-strategist" replace />} />
+                  <Route path="/intelligence" element={<Navigate to="/ai-strategist" replace />} />
+                  <Route path="/media-library" element={<Navigate to="/media" replace />} />
+                  <Route path="/business-settings" element={<Navigate to="/settings" replace />} />
+                  <Route path="/accept-invite/:token" element={<Navigate to="/ai-strategist" replace />} />
                   
                   {/* Main Routes (5 core pages) */}
                   <Route
@@ -157,7 +168,6 @@ const App = () => (
                       </ProtectedRoute>
                     }
                   />
-                  <Route path="/intelligence" element={<Navigate to="/ai-strategist" replace />} />
                   <Route
                     path="/media"
                     element={
@@ -167,22 +177,13 @@ const App = () => (
                     }
                   />
                   <Route
-                    path="/media-library"
-                    element={<Navigate to="/media" replace />}
+                    path="/settings"
+                    element={
+                      <ProtectedRoute>
+                        <Settings />
+                      </ProtectedRoute>
+                    }
                   />
-                    <Route
-                      path="/settings"
-                      element={
-                        <ProtectedRoute>
-                          <Settings />
-                        </ProtectedRoute>
-                      }
-                    />
-                     {/* Redirect /business-settings to /settings */}
-                     <Route
-                       path="/business-settings"
-                       element={<Navigate to="/settings" replace />}
-                     />
                   
                   {/* Static Pages */}
                   <Route path="/help" element={<HelpCenter />} />

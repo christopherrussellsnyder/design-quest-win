@@ -24,7 +24,7 @@ export default function Login() {
       if (data.session) {
         console.log('Login successful, session established');
         await new Promise(resolve => setTimeout(resolve, 500));
-        navigate('/dashboard');
+        navigate('/ai-strategist');
       }
     } catch (error: any) {
       console.error('Login error:', error);
