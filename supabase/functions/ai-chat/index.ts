@@ -238,7 +238,7 @@ Unique Value Proposition: ${bs.unique_value_proposition || 'Not set'}
 Additional Context: ${bs.additional_context || 'None'}
 `;
   } else {
-    prompt += `No business settings configured yet. User should complete settings at /business-settings for more personalized strategies.\n`;
+    prompt += `No business settings configured yet. User should complete settings at /settings for more personalized strategies.\n`;
   }
 
   // Conversation context with extended history

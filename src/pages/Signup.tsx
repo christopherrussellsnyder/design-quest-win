@@ -34,7 +34,7 @@ export default function Signup() {
     setLoading(true);
 
     try {
-      const redirectUrl = `${window.location.origin}/dashboard`;
+      const redirectUrl = `${window.location.origin}/ai-strategist`;
       
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -56,7 +56,7 @@ export default function Signup() {
       // Wait for session to be established
       if (data.session) {
         await new Promise(resolve => setTimeout(resolve, 100));
-        navigate('/dashboard');
+        navigate('/ai-strategist');
       }
     } catch (error: any) {
       console.error('Signup error:', error);

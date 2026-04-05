@@ -58,7 +58,7 @@ export default function ResetPassword() {
         title: 'Success',
         description: 'Password updated successfully!',
       });
-      navigate('/dashboard');
+      navigate('/ai-strategist');
     } catch (error: any) {
       toast({
         title: 'Error',

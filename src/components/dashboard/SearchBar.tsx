@@ -106,11 +106,7 @@ export default function SearchBar() {
   }, [query, user?.id]);
 
   const handleResultClick = (result: SearchResult) => {
-    if (result.type === 'campaign') {
-      navigate(`/campaigns/${result.id}`);
-    } else {
-      navigate('/scheduler');
-    }
+    navigate('/ai-strategist');
     setIsOpen(false);
     setQuery('');
   };
