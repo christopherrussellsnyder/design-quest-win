@@ -293,7 +293,7 @@ export function useScheduledPosts() {
           filter: `user_id=eq.${user.id}`,
         },
         (payload) => {
-          console.log('Real-time update received:', payload.eventType);
+          
           
           if (payload.eventType === 'INSERT') {
             const newPost = payload.new as ScheduledPost;

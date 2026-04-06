@@ -46,7 +46,7 @@ export default function Signup() {
 
       if (error) throw error;
 
-      console.log('Signup successful, session:', data.session ? 'Created' : 'Pending');
+      
 
       toast({
         title: 'Account created!',

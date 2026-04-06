@@ -97,7 +97,7 @@ export function useWebsiteAnalysis() {
       }
 
       // Step 1: Scrape website
-      console.log('Starting website scrape:', websiteUrl);
+      
       setProgress(20);
 
       const scrapeResponse = await fetch(
@@ -123,7 +123,7 @@ export function useWebsiteAnalysis() {
         throw new Error(scrapeResult.error || 'No data returned from scraping');
       }
 
-      console.log(`Scraped ${scrapeResult.data.totalPages} pages`);
+      
       setProgress(50);
       setCurrentStep('analyzing');
 
