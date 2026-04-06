@@ -12,7 +12,7 @@ if (import.meta.env.PROD) {
   initPerformanceMonitoring();
 }
 
-console.log("Main.tsx loaded");
+
 
 const rootElement = document.getElementById("root");
 

@@ -22,7 +22,7 @@ export default function Login() {
       if (error) throw error;
 
       if (data.session) {
-        console.log('Login successful, session established');
+        
         await new Promise(resolve => setTimeout(resolve, 500));
         navigate('/ai-strategist');
       }
