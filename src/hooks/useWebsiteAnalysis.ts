@@ -97,7 +97,7 @@ export function useWebsiteAnalysis() {
       }
 
       // Step 1: Scrape website
-      console.log('Starting website scrape:', websiteUrl);
+      
       setProgress(20);
 
       const scrapeResponse = await fetch(
