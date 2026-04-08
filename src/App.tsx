@@ -93,7 +93,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
         <ErrorBoundary>
-          <AuthProvider>
+          <SubscriptionProvider>
             <AnalyticsTracker>
               <Suspense fallback={<LoadingFallback />}>
                 <Routes>
