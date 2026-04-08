@@ -93,7 +93,8 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
         <ErrorBoundary>
-          <SubscriptionProvider>
+          <AuthProvider>
+            <SubscriptionProvider>
             <AnalyticsTracker>
               <Suspense fallback={<LoadingFallback />}>
                 <Routes>
@@ -102,6 +103,7 @@ const App = () => (
                   <Route path="/signup" element={<Signup />} />
                   <Route path="/forgot-password" element={<ForgotPassword />} />
                   <Route path="/reset-password" element={<ResetPassword />} />
+                  <Route path="/pricing" element={<Pricing />} />
                   
                   {/* Admin-only health check */}
                   <Route
@@ -198,6 +200,7 @@ const App = () => (
                 </Routes>
               </Suspense>
             </AnalyticsTracker>
+            </SubscriptionProvider>
           </AuthProvider>
         </ErrorBoundary>
         </BrowserRouter>
