@@ -30,6 +30,7 @@ const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const Cookies = lazy(() => import("./pages/Cookies"));
 const HelpCenter = lazy(() => import("./pages/HelpCenter"));
+const Pricing = lazy(() => import("./pages/Pricing"));
 
 
 const queryClient = new QueryClient();
