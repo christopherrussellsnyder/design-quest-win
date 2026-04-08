@@ -9,32 +9,6 @@ import {
   MonitorSmartphone, Star, Quote, Minus
 } from 'lucide-react';
 
-// --- Animated Counter ---
-const AnimatedCounter = ({ target, suffix = '', prefix = '' }: { target: string; suffix?: string; prefix?: string }) => {
-  const ref = useRef<HTMLSpanElement>(null);
-  const isInView = useInView(ref, { once: true });
-  const [count, setCount] = useState(0);
-  const numericTarget = parseInt(target.replace(/[^0-9]/g, ''));
-
-  useEffect(() => {
-    if (!isInView) return;
-    let start = 0;
-    const duration = 2000;
-    const step = Math.ceil(numericTarget / (duration / 16));
-    const timer = setInterval(() => {
-      start += step;
-      if (start >= numericTarget) {
-        setCount(numericTarget);
-        clearInterval(timer);
-      } else {
-        setCount(start);
-      }
-    }, 16);
-    return () => clearInterval(timer);
-  }, [isInView, numericTarget]);
-
-  return <span ref={ref}>{prefix}{count.toLocaleString()}{suffix}</span>;
-};
 
 // --- Section wrapper with scroll animation ---
 const AnimatedSection = ({ children, className = '', delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) => {
