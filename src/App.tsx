@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ErrorFallback } from "@/components/ErrorFallback";
 import { usePageTracking } from "@/lib/analytics";
@@ -29,6 +30,7 @@ const Terms = lazy(() => import("./pages/Terms"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const Cookies = lazy(() => import("./pages/Cookies"));
 const HelpCenter = lazy(() => import("./pages/HelpCenter"));
+const Pricing = lazy(() => import("./pages/Pricing"));
 
 
 const queryClient = new QueryClient();
@@ -92,6 +94,7 @@ const App = () => (
         <BrowserRouter>
         <ErrorBoundary>
           <AuthProvider>
+            <SubscriptionProvider>
             <AnalyticsTracker>
               <Suspense fallback={<LoadingFallback />}>
                 <Routes>
@@ -100,6 +103,7 @@ const App = () => (
                   <Route path="/signup" element={<Signup />} />
                   <Route path="/forgot-password" element={<ForgotPassword />} />
                   <Route path="/reset-password" element={<ResetPassword />} />
+                  <Route path="/pricing" element={<Pricing />} />
                   
                   {/* Admin-only health check */}
                   <Route
@@ -196,6 +200,7 @@ const App = () => (
                 </Routes>
               </Suspense>
             </AnalyticsTracker>
+            </SubscriptionProvider>
           </AuthProvider>
         </ErrorBoundary>
         </BrowserRouter>

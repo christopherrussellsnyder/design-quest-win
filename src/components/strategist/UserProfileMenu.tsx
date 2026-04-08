@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Settings, User, HelpCircle, LogOut, CreditCard, ChevronUp } from 'lucide-react';
+import { Settings, User, HelpCircle, LogOut, CreditCard, ChevronUp, BarChart3, FileText, Image } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSubscription } from '@/contexts/SubscriptionContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import {
@@ -21,9 +22,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { supabase } from '@/integrations/supabase/client';
 
 export function UserProfileMenu() {
   const { user, loading, signOut } = useAuth();
+  const { planLabel, subscribed, is_trialing, tier } = useSubscription();
   const navigate = useNavigate();
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -52,6 +55,12 @@ export function UserProfileMenu() {
     .slice(0, 2);
   const avatarUrl = user.user_metadata?.avatar_url;
 
+  const badgeColor = is_trialing
+    ? 'bg-yellow-500/20 text-yellow-400'
+    : subscribed
+      ? 'bg-green-500/20 text-green-400'
+      : 'bg-[#3A3B3E] text-[#6B6B73]';
+
   const handleLogout = async () => {
     setIsLoggingOut(true);
     try {
@@ -65,6 +74,20 @@ export function UserProfileMenu() {
     }
   };
 
+  const handleManageBilling = async () => {
+    if (!subscribed && !is_trialing) {
+      navigate('/pricing');
+      return;
+    }
+    try {
+      const { data, error } = await supabase.functions.invoke('customer-portal');
+      if (error) throw error;
+      if (data?.url) window.open(data.url, '_blank');
+    } catch {
+      navigate('/pricing');
+    }
+  };
+
   return (
     <>
       <DropdownMenu>
@@ -73,7 +96,6 @@ export function UserProfileMenu() {
             className="w-full flex items-center gap-3 p-4 border-t border-[hsl(var(--border-subtle))] bg-secondary hover:bg-surface-tertiary transition-colors duration-200 cursor-pointer focus:outline-none group"
             aria-label="User profile menu"
           >
-            {/* Avatar */}
             <div className="relative flex-shrink-0">
               {avatarUrl ? (
                 <img
@@ -86,18 +108,16 @@ export function UserProfileMenu() {
                   {initials}
                 </div>
               )}
-              {/* Online indicator */}
               <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-secondary" />
             </div>
 
-            {/* User info */}
             <div className="flex-1 min-w-0 text-left">
               <p className="text-sm font-semibold text-foreground truncate tracking-wide">
                 {fullName}
               </p>
-              <p className="text-xs text-muted-foreground truncate">
-                {email}
-              </p>
+              <span className={`inline-block text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${badgeColor}`}>
+                {planLabel}
+              </span>
             </div>
 
             <ChevronUp className="w-4 h-4 text-muted-foreground flex-shrink-0 group-hover:text-foreground transition-colors" />
@@ -121,6 +141,32 @@ export function UserProfileMenu() {
 
           <DropdownMenuItem
             className="flex items-center gap-3 px-3 py-2.5 cursor-pointer rounded-md hover:bg-surface-tertiary focus:bg-surface-tertiary transition-colors"
+            onClick={() => navigate('/insights')}
+          >
+            <BarChart3 className="w-4 h-4 text-muted-foreground" />
+            <span className="text-sm">Insights</span>
+          </DropdownMenuItem>
+
+          <DropdownMenuItem
+            className="flex items-center gap-3 px-3 py-2.5 cursor-pointer rounded-md hover:bg-surface-tertiary focus:bg-surface-tertiary transition-colors"
+            onClick={() => navigate('/strategies')}
+          >
+            <FileText className="w-4 h-4 text-muted-foreground" />
+            <span className="text-sm">Strategies</span>
+          </DropdownMenuItem>
+
+          <DropdownMenuItem
+            className="flex items-center gap-3 px-3 py-2.5 cursor-pointer rounded-md hover:bg-surface-tertiary focus:bg-surface-tertiary transition-colors"
+            onClick={() => navigate('/media')}
+          >
+            <Image className="w-4 h-4 text-muted-foreground" />
+            <span className="text-sm">Media</span>
+          </DropdownMenuItem>
+
+          <DropdownMenuSeparator className="bg-[hsl(var(--border-subtle))]" />
+
+          <DropdownMenuItem
+            className="flex items-center gap-3 px-3 py-2.5 cursor-pointer rounded-md hover:bg-surface-tertiary focus:bg-surface-tertiary transition-colors"
             onClick={() => navigate('/settings')}
           >
             <Settings className="w-4 h-4 text-muted-foreground" />
@@ -129,18 +175,10 @@ export function UserProfileMenu() {
 
           <DropdownMenuItem
             className="flex items-center gap-3 px-3 py-2.5 cursor-pointer rounded-md hover:bg-surface-tertiary focus:bg-surface-tertiary transition-colors"
-            onClick={() => navigate('/settings')}
-          >
-            <User className="w-4 h-4 text-muted-foreground" />
-            <span className="text-sm">Edit Profile</span>
-          </DropdownMenuItem>
-
-          <DropdownMenuItem
-            className="flex items-center gap-3 px-3 py-2.5 cursor-pointer rounded-md hover:bg-surface-tertiary focus:bg-surface-tertiary transition-colors"
-            onClick={() => navigate('/settings')}
+            onClick={handleManageBilling}
           >
             <CreditCard className="w-4 h-4 text-muted-foreground" />
-            <span className="text-sm">Usage & Billing</span>
+            <span className="text-sm">{subscribed ? 'Manage Billing' : 'Upgrade Plan'}</span>
           </DropdownMenuItem>
 
           <DropdownMenuSeparator className="bg-[hsl(var(--border-subtle))]" />
