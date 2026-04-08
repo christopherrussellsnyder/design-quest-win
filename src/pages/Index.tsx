@@ -1,14 +1,12 @@
 import { Link } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
-import { motion, useInView, useAnimation, AnimatePresence } from 'framer-motion';
+import { motion, useInView, AnimatePresence } from 'framer-motion';
 import {
   Lightbulb, BarChart3, Zap, Target, Rocket, Shield,
   Upload, Settings, Sparkles, TrendingUp, ChevronDown,
-  Check, X, ChevronLeft, ChevronRight, ArrowRight,
-  Lock, Globe, Award, Users, Calendar, DollarSign,
-  MonitorSmartphone, Star, Quote, Minus
+  Check, X, ArrowRight,
+  Lock, Globe, Award
 } from 'lucide-react';
-
 
 // --- Section wrapper with scroll animation ---
 const AnimatedSection = ({ children, className = '', delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) => {
@@ -73,21 +71,12 @@ const steps = [
   { icon: TrendingUp, title: 'Execute & Optimize', desc: 'Follow your content calendar and track performance with real-time insights.' },
 ];
 
-// --- Testimonials ---
-const testimonials = [
-  { quote: 'Korex cut our strategy planning time from 8 hours to 20 minutes while improving engagement by 40%.', name: 'Sarah Chen', role: 'CMO', company: 'TechFlow' },
-  { quote: 'The AI-generated content calendars are incredibly detailed. It feels like having a senior strategist on demand.', name: 'Marcus Rivera', role: 'Head of Marketing', company: 'GrowthLab' },
-  { quote: 'We manage 12 client accounts with Korex. The multi-platform analytics alone saved us 30 hours per week.', name: 'Emily Park', role: 'Agency Director', company: 'Spark Digital' },
-  { quote: 'As a startup founder, Korex gave us enterprise-level marketing intelligence at a fraction of the cost.', name: 'David Okonkwo', role: 'CEO', company: 'NovaTech' },
-  { quote: 'The business context engine understands our brand voice better than most freelancers we\'ve hired.', name: 'Lisa Nakamura', role: 'Brand Manager', company: 'Elevate Co' },
-];
-
 // --- Pricing ---
 const pricing = [
   {
-    name: 'Starter', price: '$0', period: '/month', popular: false,
-    features: ['5 AI strategies per month', 'Basic analytics uploads', 'Single platform support', 'Community access'],
-    cta: 'Get Started Free', missing: ['Advanced analytics', 'Priority support', 'Custom integrations'],
+    name: 'Starter', price: '$29', period: '/month', popular: false,
+    features: ['5 AI strategies per month', 'Basic analytics uploads', 'Single platform support', 'Email support'],
+    cta: 'Start Free Trial', missing: ['Advanced analytics', 'Priority support', 'Multi-client features'],
   },
   {
     name: 'Pro', price: '$99', period: '/month', popular: true,
@@ -95,16 +84,16 @@ const pricing = [
     cta: 'Start Pro Trial', missing: [],
   },
   {
-    name: 'Enterprise', price: 'Custom', period: '', popular: false,
-    features: ['Everything in Pro', 'Dedicated account manager', 'White-label options', 'Custom integrations', 'SLA guarantee', 'On-premise deployment'],
-    cta: 'Contact Sales', missing: [],
+    name: 'Agency', price: '$299', period: '/month', popular: false,
+    features: ['Everything in Pro', 'Multi-client management', 'White-label options', 'Custom integrations', 'Dedicated account manager', 'SLA guarantee'],
+    cta: 'Start Agency Trial', missing: [],
   },
 ];
 
 // --- FAQ ---
 const faqs = [
   { q: 'What platforms does Korex support?', a: 'Korex supports all major social and advertising platforms including Instagram, Facebook, LinkedIn, TikTok, Twitter, YouTube, Google Ads, and more. You can also upload screenshots from any platform for instant analysis.' },
-  { q: 'Do I need a credit card to start?', a: 'No. The Starter plan is completely free with no credit card required. You can upgrade to Pro anytime when you\'re ready for more advanced features.' },
+  { q: 'Do I need a credit card to start?', a: 'No. All plans include a 7-day free trial with no credit card required. You can explore Pro features risk-free before committing.' },
   { q: 'How does AI strategy generation work?', a: 'Our AI analyzes your business profile, target audience, industry trends, and past performance data to generate comprehensive content strategies with specific post ideas, optimal timing, and engagement predictions.' },
   { q: 'Is my data secure?', a: 'Absolutely. We use enterprise-grade encryption, row-level security policies, and SOC 2 compliant infrastructure to protect all your marketing data and business intelligence.' },
 ];
@@ -115,18 +104,10 @@ const platforms = [
 ];
 
 const Index = () => {
-  const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [billingAnnual, setBillingAnnual] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [showFloatingCta, setShowFloatingCta] = useState(false);
   const [floatingDismissed, setFloatingDismissed] = useState(false);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTestimonial(p => (p + 1) % testimonials.length);
-    }, 5000);
-    return () => clearInterval(timer);
-  }, []);
 
   useEffect(() => {
     const onScroll = () => setShowFloatingCta(window.scrollY > 800);
@@ -139,12 +120,10 @@ const Index = () => {
       {/* =================== HERO =================== */}
       <section className="relative min-h-screen flex flex-col items-center justify-center px-4 py-20">
         <ParticleField />
-        {/* Background K glow */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div className="w-[500px] h-[500px] opacity-[0.04] text-[400px] font-black select-none" style={{ fontFamily: 'Arial Black, sans-serif', color: '#CC0000' }}>K</div>
         </div>
         <div className="absolute inset-0 bg-gradient-to-br from-[#060606] via-[#0A0A0B] to-[#060606] opacity-90" />
-        {/* Red glow orb */}
         <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-[#CC0000]/5 blur-[120px] pointer-events-none" />
 
         <div className="relative z-10 text-center max-w-4xl mx-auto">
@@ -186,11 +165,10 @@ const Index = () => {
             </Link>
           </motion.div>
           <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }} className="text-sm text-[#6B6B73]">
-            No credit card required · Free forever plan
+            No credit card required · 7-day free trial
           </motion.p>
         </div>
 
-        {/* Scroll indicator */}
         <motion.div
           className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-[#6B6B73]"
           animate={{ y: [0, 8, 0] }} transition={{ repeat: Infinity, duration: 2 }}
@@ -198,28 +176,6 @@ const Index = () => {
           <span className="text-xs tracking-widest uppercase">Scroll to explore</span>
           <ChevronDown className="w-5 h-5" />
         </motion.div>
-      </section>
-
-      {/* =================== STATS BANNER =================== */}
-      <section className="relative py-16 border-y border-[#2A2B2E] bg-[#0A0A0B]">
-        <div className="max-w-6xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-          {[
-            { icon: Calendar, value: '1M', suffix: '+', label: 'Strategies Generated' },
-            { icon: DollarSign, value: '10M', suffix: '+', prefix: '$', label: 'Ad Spend Analyzed' },
-            { icon: BarChart3, value: '50K', suffix: '+', label: 'Analytics Uploads' },
-            { icon: Check, value: '99.9', suffix: '%', label: 'Uptime Guaranteed' },
-          ].map((stat, i) => (
-            <AnimatedSection key={i} delay={i * 0.1}>
-              <div className="group cursor-default">
-                <stat.icon className="w-6 h-6 text-[#CC0000] mx-auto mb-3" />
-                <div className="text-3xl sm:text-4xl font-black text-white mb-1" style={{ fontFamily: 'Arial Black, sans-serif' }}>
-                  <AnimatedCounter target={stat.value.replace(/[^0-9]/g, '')} suffix={stat.suffix} prefix={stat.value.includes('$') ? '$' : ''} />
-                </div>
-                <div className="text-sm text-[#A0A0A8]">{stat.label}</div>
-              </div>
-            </AnimatedSection>
-          ))}
-        </div>
       </section>
 
       {/* =================== FEATURES =================== */}
@@ -260,17 +216,14 @@ const Index = () => {
           </AnimatedSection>
 
           <div className="relative">
-            {/* Vertical line */}
             <div className="absolute left-6 md:left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-[#CC0000] via-[#CC0000]/50 to-transparent hidden sm:block" />
 
             {steps.map((step, i) => (
               <AnimatedSection key={i} delay={i * 0.15} className={`relative flex items-start gap-6 mb-12 ${i % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'}`}>
                 <div className="flex-1 hidden md:block" />
-                {/* Circle */}
                 <div className="relative z-10 w-12 h-12 rounded-full bg-[#CC0000] flex items-center justify-center text-white font-black text-lg shrink-0 shadow-[0_0_20px_rgba(204,0,0,0.3)]">
                   {i + 1}
                 </div>
-                {/* Card */}
                 <div className="flex-1 bg-[#16171A] border border-[#2A2B2E] rounded-xl p-6 hover:border-[#CC0000]/50 transition-all">
                   <div className="flex items-center gap-3 mb-3">
                     <step.icon className="w-5 h-5 text-[#CC0000]" />
@@ -301,55 +254,6 @@ const Index = () => {
               </div>
             ))}
           </motion.div>
-        </div>
-      </section>
-
-      {/* =================== TESTIMONIALS =================== */}
-      <section className="py-24 px-4">
-        <div className="max-w-4xl mx-auto">
-          <AnimatedSection className="text-center mb-12">
-            <h2 className="text-3xl sm:text-[42px] font-black mb-4" style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '3px' }}>
-              Trusted by{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#CC0000] to-[#FF1A1A]">Marketing Leaders</span>
-            </h2>
-          </AnimatedSection>
-
-          <div className="relative">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={currentTestimonial}
-                initial={{ opacity: 0, x: 60 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -60 }}
-                transition={{ duration: 0.4 }}
-                className="bg-[#16171A] border border-[#2A2B2E] rounded-2xl p-8 sm:p-12 text-center"
-              >
-                <Quote className="w-8 h-8 text-[#CC0000]/40 mx-auto mb-6" />
-                <p className="text-lg sm:text-xl italic text-[#EEEEEE] mb-8 leading-relaxed">
-                  "{testimonials[currentTestimonial].quote}"
-                </p>
-                <div>
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#CC0000] to-[#990000] mx-auto mb-3 flex items-center justify-center text-white font-bold text-lg">
-                    {testimonials[currentTestimonial].name[0]}
-                  </div>
-                  <p className="font-bold text-white">{testimonials[currentTestimonial].name}</p>
-                  <p className="text-sm text-[#A0A0A8]">{testimonials[currentTestimonial].role} at {testimonials[currentTestimonial].company}</p>
-                </div>
-              </motion.div>
-            </AnimatePresence>
-
-            <div className="flex items-center justify-center gap-3 mt-6">
-              <button onClick={() => setCurrentTestimonial(p => (p - 1 + testimonials.length) % testimonials.length)} className="p-2 text-[#6B6B73] hover:text-[#CC0000] transition-colors">
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-              {testimonials.map((_, i) => (
-                <button key={i} onClick={() => setCurrentTestimonial(i)} className={`w-2 h-2 rounded-full transition-all ${i === currentTestimonial ? 'bg-[#CC0000] w-6' : 'bg-[#3A3B3E]'}`} />
-              ))}
-              <button onClick={() => setCurrentTestimonial(p => (p + 1) % testimonials.length)} className="p-2 text-[#6B6B73] hover:text-[#CC0000] transition-colors">
-                <ChevronRight className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
         </div>
       </section>
 
@@ -385,9 +289,9 @@ const Index = () => {
                   <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
                   <div className="mb-6">
                     <span className="text-4xl font-black" style={{ fontFamily: 'Arial Black, sans-serif' }}>
-                      {plan.price === 'Custom' ? plan.price : billingAnnual && plan.price !== '$0' ? `$${Math.round(parseInt(plan.price.slice(1)) * 0.8)}` : plan.price}
+                      {billingAnnual ? `$${Math.round(parseInt(plan.price.slice(1)) * 0.8)}` : plan.price}
                     </span>
-                    {plan.period && <span className="text-[#6B6B73] text-sm">{plan.period}</span>}
+                    <span className="text-[#6B6B73] text-sm">{plan.period}</span>
                   </div>
                   <ul className="space-y-3 mb-8 flex-1">
                     {plan.features.map((f, fi) => (
@@ -404,11 +308,12 @@ const Index = () => {
                     ))}
                   </ul>
                   <Link
-                    to={plan.name === 'Enterprise' ? '/login' : '/signup'}
+                    to="/signup"
                     className={`block text-center py-3 rounded-lg font-bold text-sm transition-all ${plan.popular ? 'bg-gradient-to-r from-[#CC0000] to-[#990000] text-white hover:shadow-[0_0_20px_rgba(204,0,0,0.3)]' : 'border border-[#3A3B3E] text-[#EEEEEE] hover:border-[#CC0000] hover:text-[#CC0000]'}`}
                   >
                     {plan.cta}
                   </Link>
+                  <p className="text-xs text-[#6B6B73] text-center mt-3">7-day free trial included</p>
                 </div>
               </AnimatedSection>
             ))}
@@ -506,18 +411,17 @@ const Index = () => {
             <div>
               <h4 className="font-bold text-sm mb-4 tracking-wider uppercase text-[#A0A0A8]">Product</h4>
               <ul className="space-y-2 text-sm text-[#6B6B73]">
-                {['Features', 'Pricing', 'Integrations', 'Changelog'].map(l => (
-                  <li key={l}><span className="hover:text-[#CC0000] transition-colors cursor-pointer">{l}</span></li>
-                ))}
+                <li><span className="hover:text-[#CC0000] transition-colors cursor-pointer">Features</span></li>
+                <li><span className="hover:text-[#CC0000] transition-colors cursor-pointer">Pricing</span></li>
               </ul>
             </div>
             {/* Company */}
             <div>
               <h4 className="font-bold text-sm mb-4 tracking-wider uppercase text-[#A0A0A8]">Company</h4>
               <ul className="space-y-2 text-sm text-[#6B6B73]">
-                {['About', 'Blog', 'Careers', 'Contact'].map(l => (
-                  <li key={l}><span className="hover:text-[#CC0000] transition-colors cursor-pointer">{l}</span></li>
-                ))}
+                <li><span className="hover:text-[#CC0000] transition-colors cursor-pointer">About</span></li>
+                <li><span className="hover:text-[#CC0000] transition-colors cursor-pointer">Blog</span></li>
+                <li><span className="hover:text-[#CC0000] transition-colors cursor-pointer">Contact</span></li>
               </ul>
             </div>
             {/* Resources */}
@@ -525,9 +429,6 @@ const Index = () => {
               <h4 className="font-bold text-sm mb-4 tracking-wider uppercase text-[#A0A0A8]">Resources</h4>
               <ul className="space-y-2 text-sm text-[#6B6B73]">
                 <li><Link to="/help" className="hover:text-[#CC0000] transition-colors">Help Center</Link></li>
-                {['API Docs', 'Community', 'Case Studies'].map(l => (
-                  <li key={l}><span className="hover:text-[#CC0000] transition-colors cursor-pointer">{l}</span></li>
-                ))}
               </ul>
             </div>
             {/* Legal */}
