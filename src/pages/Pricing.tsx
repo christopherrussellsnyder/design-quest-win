@@ -1,6 +1,6 @@
 import { Link, useSearchParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { Check, X, Loader2 } from 'lucide-react';
+import { Check, Loader2, Shield } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { STRIPE_TIERS } from '@/config/stripe.config';
@@ -8,38 +8,41 @@ import { toast } from 'sonner';
 
 const plans = [
   {
-    key: 'starter' as const,
-    name: 'Starter',
-    price: '$29',
-    period: '/month',
-    popular: false,
-    features: ['5 AI strategies per month', 'Basic analytics uploads', 'Single platform support', 'Email support'],
-    missing: ['Advanced analytics', 'Priority support', 'Multi-client features'],
-  },
-  {
     key: 'pro' as const,
     name: 'Pro',
-    price: '$99',
-    period: '/month',
+    monthlyPrice: 49,
+    yearlyPrice: 490,
     popular: true,
-    features: ['Unlimited AI strategies', 'Multi-format analytics', 'All platform support', 'Priority support', 'Advanced reporting', 'Team collaboration'],
-    missing: [],
+    features: [
+      'Unlimited AI strategies',
+      'Unlimited analytics uploads',
+      'All platforms supported',
+      'Export to PDF',
+      'Priority support',
+      'Cancel anytime',
+    ],
   },
   {
     key: 'agency' as const,
     name: 'Agency',
-    price: '$299',
-    period: '/month',
+    monthlyPrice: 149,
+    yearlyPrice: 1490,
     popular: false,
-    features: ['Everything in Pro', 'Multi-client management', 'White-label options', 'Custom integrations', 'Dedicated account manager', 'SLA guarantee'],
-    missing: [],
+    features: [
+      'Everything in Pro',
+      'Multi-client management (coming soon)',
+      'White-label reports (coming soon)',
+      'API access (coming soon)',
+      'Dedicated support',
+    ],
+    badge: 'Popular for agencies',
   },
 ];
 
 export default function Pricing() {
   const [billingAnnual, setBillingAnnual] = useState(false);
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
-  const { tier, subscribed, is_trialing, refreshSubscription } = useSubscription();
+  const { tier, subscribed, refreshSubscription } = useSubscription();
   const [searchParams] = useSearchParams();
 
   useEffect(() => {
@@ -49,10 +52,11 @@ export default function Pricing() {
     }
   }, [searchParams, refreshSubscription]);
 
-  const handleCheckout = async (planKey: 'starter' | 'pro' | 'agency') => {
+  const handleCheckout = async (planKey: 'pro' | 'agency') => {
     setLoadingPlan(planKey);
     try {
-      const priceId = STRIPE_TIERS[planKey].price_id;
+      const interval = billingAnnual ? 'yearly' : 'monthly';
+      const priceId = STRIPE_TIERS[planKey][interval].price_id;
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: { priceId },
       });
@@ -82,15 +86,15 @@ export default function Pricing() {
 
   return (
     <div className="min-h-screen bg-[#060606] text-[#EEEEEE] py-20 px-4">
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
           <Link to="/" className="inline-block mb-8">
             <img src="/korex-wordmark-lockup.svg" alt="Korex" className="h-12 mx-auto" />
           </Link>
-          <h1 className="text-3xl sm:text-[42px] font-black mb-4" style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '3px' }}>
-            Choose Your Plan
+          <h1 className="text-3xl sm:text-[48px] font-black mb-4" style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '3px' }}>
+            Simple, Transparent Pricing
           </h1>
-          <p className="text-[#A0A0A8] mb-6">All plans include a 7-day free trial. No credit card required to start.</p>
+          <p className="text-[#A0A0A8] mb-6">Start with a 7-day free trial. No credit card required.</p>
           
           <div className="flex items-center justify-center gap-3">
             <span className={`text-sm ${!billingAnnual ? 'text-white' : 'text-[#6B6B73]'}`}>Monthly</span>
@@ -100,16 +104,17 @@ export default function Pricing() {
             >
               <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-transform ${billingAnnual ? 'translate-x-6' : 'translate-x-0.5'}`} />
             </button>
-            <span className={`text-sm ${billingAnnual ? 'text-white' : 'text-[#6B6B73]'}`}>Annual</span>
-            {billingAnnual && <span className="text-xs bg-[#CC0000]/20 text-[#CC0000] px-2 py-0.5 rounded-full font-semibold">Save 20%</span>}
+            <span className={`text-sm ${billingAnnual ? 'text-white' : 'text-[#6B6B73]'}`}>Yearly</span>
+            {billingAnnual && <span className="text-xs bg-[#CC0000]/20 text-[#CC0000] px-2 py-0.5 rounded-full font-semibold">Save 2 months</span>}
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
           {plans.map((plan) => {
             const isCurrentPlan = tier === plan.key && subscribed;
-            const price = parseInt(plan.price.slice(1));
-            const displayPrice = billingAnnual ? Math.round(price * 0.8) : price;
+            const displayPrice = billingAnnual ? Math.round(plan.yearlyPrice / 12) : plan.monthlyPrice;
+            const totalYearly = plan.yearlyPrice;
+            const savings = plan.monthlyPrice * 12 - plan.yearlyPrice;
 
             return (
               <div
@@ -129,12 +134,18 @@ export default function Pricing() {
                   </div>
                 )}
                 <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
-                <div className="mb-6">
+                <div className="mb-2">
                   <span className="text-4xl font-black" style={{ fontFamily: 'Arial Black, sans-serif' }}>
                     ${displayPrice}
                   </span>
-                  <span className="text-[#6B6B73] text-sm">{plan.period}</span>
+                  <span className="text-[#6B6B73] text-sm">/month</span>
                 </div>
+                {billingAnnual && (
+                  <p className="text-xs text-[#6B6B73] mb-4">
+                    ${totalYearly}/year · Save ${savings}
+                  </p>
+                )}
+                {!billingAnnual && <div className="mb-4" />}
                 <ul className="space-y-3 mb-8 flex-1">
                   {plan.features.map((f, fi) => (
                     <li key={fi} className="flex items-start gap-2 text-sm text-[#A0A0A8]">
@@ -142,17 +153,11 @@ export default function Pricing() {
                       {f}
                     </li>
                   ))}
-                  {plan.missing.map((f, fi) => (
-                    <li key={fi} className="flex items-start gap-2 text-sm text-[#3A3B3E]">
-                      <X className="w-4 h-4 shrink-0 mt-0.5" />
-                      {f}
-                    </li>
-                  ))}
                 </ul>
                 {isCurrentPlan ? (
                   <button
                     onClick={handleManage}
-                    className="block text-center py-3 rounded-lg font-bold text-sm border border-green-500 text-green-400 hover:bg-green-500/10 transition-all"
+                    className="block text-center py-3 rounded-lg font-bold text-sm border border-green-500 text-green-400 hover:bg-green-500/10 transition-all w-full"
                   >
                     Manage Subscription
                   </button>
@@ -166,16 +171,25 @@ export default function Pricing() {
                         : 'border border-[#3A3B3E] text-[#EEEEEE] hover:border-[#CC0000] hover:text-[#CC0000]'
                     }`}
                   >
-                    {loadingPlan === plan.key ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : 'Start Free Trial'}
+                    {loadingPlan === plan.key ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : 'Start 7-Day Free Trial'}
                   </button>
                 )}
-                <p className="text-xs text-[#6B6B73] text-center mt-3">7-day free trial included</p>
+                <p className="text-xs text-[#6B6B73] text-center mt-3">No credit card required</p>
+                {plan.badge && <p className="text-xs text-[#A0A0A8] text-center mt-1">{plan.badge}</p>}
               </div>
             );
           })}
         </div>
 
-        <div className="text-center mt-12">
+        {/* Money-back guarantee */}
+        <div className="text-center mt-10">
+          <div className="inline-flex items-center gap-2 bg-[#16171A] border border-[#2A2B2E] rounded-xl px-6 py-3">
+            <Shield className="w-5 h-5 text-[#CC0000]" />
+            <span className="text-sm text-[#A0A0A8]">30-Day Money-Back Guarantee</span>
+          </div>
+        </div>
+
+        <div className="text-center mt-8">
           <Link to="/" className="text-[#6B6B73] hover:text-[#CC0000] transition-colors text-sm">
             ← Back to home
           </Link>

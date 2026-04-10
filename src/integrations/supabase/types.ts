@@ -3873,6 +3873,51 @@ export type Database = {
           },
         ]
       }
+      subscriptions: {
+        Row: {
+          billing_interval: string | null
+          cancel_at_period_end: boolean | null
+          created_at: string
+          current_period_end: string | null
+          id: string
+          plan_type: string | null
+          status: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          trial_end: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          billing_interval?: string | null
+          cancel_at_period_end?: boolean | null
+          created_at?: string
+          current_period_end?: string | null
+          id?: string
+          plan_type?: string | null
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          trial_end?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          billing_interval?: string | null
+          cancel_at_period_end?: boolean | null
+          created_at?: string
+          current_period_end?: string | null
+          id?: string
+          plan_type?: string | null
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          trial_end?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       team_members: {
         Row: {
           accepted_at: string | null
@@ -4117,6 +4162,36 @@ export type Database = {
           time_period_start?: string | null
           trend_analysis?: Json | null
           uploaded_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      usage_tracking: {
+        Row: {
+          analytics_uploaded: number
+          created_at: string
+          id: string
+          month_year: string
+          strategies_generated: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          analytics_uploaded?: number
+          created_at?: string
+          id?: string
+          month_year: string
+          strategies_generated?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          analytics_uploaded?: number
+          created_at?: string
+          id?: string
+          month_year?: string
+          strategies_generated?: number
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
