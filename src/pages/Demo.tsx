@@ -4,7 +4,7 @@ import { Upload, Brain, TrendingUp, ArrowRight, Play } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 // REPLACE WITH ACTUAL VIDEO URL WHEN READY
-const DEMO_VIDEO_URL = '';
+const DEMO_VIDEO_URL: string = '';
 
 const VideoPlayer = () => {
   if (DEMO_VIDEO_URL && DEMO_VIDEO_URL.includes('youtube.com')) {
