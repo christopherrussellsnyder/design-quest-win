@@ -31,6 +31,11 @@ const Privacy = lazy(() => import("./pages/Privacy"));
 const Cookies = lazy(() => import("./pages/Cookies"));
 const HelpCenter = lazy(() => import("./pages/HelpCenter"));
 const Pricing = lazy(() => import("./pages/Pricing"));
+const Features = lazy(() => import("./pages/Features"));
+const About = lazy(() => import("./pages/About"));
+const Contact = lazy(() => import("./pages/Contact"));
+const Demo = lazy(() => import("./pages/Demo"));
+const AuthConfirm = lazy(() => import("./pages/AuthConfirm"));
 
 
 const queryClient = new QueryClient();
@@ -52,7 +57,7 @@ class ErrorBoundary extends Component<{ children: ReactNode }, ErrorBoundaryStat
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('Error caught by boundary:', error, errorInfo);
+    if (import.meta.env.DEV) console.error('Error caught by boundary:', error, errorInfo);
   }
 
   render() {
@@ -104,6 +109,11 @@ const App = () => (
                   <Route path="/forgot-password" element={<ForgotPassword />} />
                   <Route path="/reset-password" element={<ResetPassword />} />
                   <Route path="/pricing" element={<Pricing />} />
+                  <Route path="/features" element={<Features />} />
+                  <Route path="/about" element={<About />} />
+                  <Route path="/contact" element={<Contact />} />
+                  <Route path="/demo" element={<Demo />} />
+                  <Route path="/auth/confirm" element={<AuthConfirm />} />
                   
                   {/* Admin-only health check */}
                   <Route
