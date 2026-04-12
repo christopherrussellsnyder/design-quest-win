@@ -26,7 +26,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 export function UserProfileMenu() {
   const { user, loading, signOut } = useAuth();
-  const { planLabel, subscribed, is_trialing, tier } = useSubscription();
+  const { planLabel, subscribed, tier } = useSubscription();
   const navigate = useNavigate();
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
