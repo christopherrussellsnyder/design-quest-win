@@ -55,11 +55,9 @@ export function UserProfileMenu() {
     .slice(0, 2);
   const avatarUrl = user.user_metadata?.avatar_url;
 
-  const badgeColor = is_trialing
-    ? 'bg-yellow-500/20 text-yellow-400'
-    : subscribed
-      ? 'bg-green-500/20 text-green-400'
-      : 'bg-[#3A3B3E] text-[#6B6B73]';
+  const badgeColor = subscribed
+    ? 'bg-green-500/20 text-green-400'
+    : 'bg-[#3A3B3E] text-[#6B6B73]';
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -75,7 +73,7 @@ export function UserProfileMenu() {
   };
 
   const handleManageBilling = async () => {
-    if (!subscribed && !is_trialing) {
+    if (!subscribed) {
       navigate('/pricing');
       return;
     }
