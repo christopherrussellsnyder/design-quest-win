@@ -94,7 +94,7 @@ export default function Pricing() {
           <h1 className="text-3xl sm:text-[48px] font-black mb-4" style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '3px' }}>
             Simple, Transparent Pricing
           </h1>
-          <p className="text-[#A0A0A8] mb-6">Start with a 7-day free trial. No credit card required.</p>
+          <p className="text-[#A0A0A8] mb-6">Includes 2 free strategy generations. Upgrade anytime.</p>
           
           <div className="flex items-center justify-center gap-3">
             <span className={`text-sm ${!billingAnnual ? 'text-white' : 'text-[#6B6B73]'}`}>Monthly</span>
@@ -171,7 +171,7 @@ export default function Pricing() {
                         : 'border border-[#3A3B3E] text-[#EEEEEE] hover:border-[#CC0000] hover:text-[#CC0000]'
                     }`}
                   >
-                    {loadingPlan === plan.key ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : 'Start 7-Day Free Trial'}
+                    {loadingPlan === plan.key ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : 'Start Free'}
                   </button>
                 )}
                 <p className="text-xs text-[#6B6B73] text-center mt-3">No credit card required</p>

@@ -69,7 +69,7 @@ const faqs = [
   { q: 'Do I need to be tech-savvy?', a: 'Not at all. If you can take a screenshot and upload it, you can use Korex. The interface is simpler than Instagram.' },
   { q: 'What platforms do you support?', a: 'Any platform you can screenshot. Instagram, Facebook, TikTok, Google Ads, LinkedIn, Twitter, YouTube, Pinterest, Shopify — if you have analytics, we can analyze them.' },
   { q: 'How is this different from a marketing agency?', a: 'Cost: $49/month vs $3,000-$10,000/month. Speed: 60 seconds vs 2-3 weeks. Revisions: Unlimited vs 2-3 max. Data: Real-time analysis vs monthly reports.' },
-  { q: 'What happens during the free trial?', a: 'You get 7 days of access with 2 free strategy generations. No credit card required. After the trial, you can upgrade to continue using Korex or access your past strategies in read-only mode.' },
+  { q: 'What do I get with the free Starter plan?', a: 'You get 2 free strategy generations with no credit card required. After using them, you can upgrade to Pro for unlimited access or continue using basic features.' },
   { q: 'What if I don\'t like it?', a: 'We have a 30-day money-back guarantee. No questions asked.' },
   { q: 'Can I cancel anytime?', a: 'Yes. Cancel in 2 clicks. No contracts, no commitments.' },
 ];
@@ -152,9 +152,9 @@ const Index = () => {
             className="flex items-center justify-center gap-4 flex-wrap mb-4">
             <Link to="/signup"
               className="px-8 py-4 bg-gradient-to-r from-[#CC0000] to-[#990000] text-white text-lg font-bold rounded-lg hover:scale-105 transition-all duration-300 shadow-[0_0_30px_rgba(204,0,0,0.3)] hover:shadow-[0_0_40px_rgba(204,0,0,0.5)]">
-              Start Free Trial — No Credit Card
+              Start Free — No Credit Card Required
             </Link>
-            <Link to="/login"
+            <Link to="/demo"
               className="px-8 py-4 border border-[#CC0000] text-[#CC0000] text-lg font-bold rounded-lg hover:bg-[#CC0000] hover:text-white transition-all duration-300">
               Watch Demo
             </Link>
@@ -411,7 +411,7 @@ const Index = () => {
 
               <div className="mt-6 text-center">
                 <Link to="/signup" className="inline-flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-[#CC0000] to-[#990000] text-white font-bold rounded-lg hover:scale-105 transition-all shadow-[0_0_20px_rgba(204,0,0,0.3)]">
-                  Start Free Trial <ArrowRight className="w-4 h-4" />
+                  Start Free <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>
             </div>
@@ -560,7 +560,7 @@ const Index = () => {
                       ))}
                     </ul>
                     <Link to="/signup" className={`block text-center py-3 rounded-lg font-bold text-sm transition-all ${plan.popular ? 'bg-gradient-to-r from-[#CC0000] to-[#990000] text-white hover:shadow-[0_0_20px_rgba(204,0,0,0.3)]' : 'border border-[#3A3B3E] text-[#EEEEEE] hover:border-[#CC0000] hover:text-[#CC0000]'}`}>
-                      Start 7-Day Free Trial
+                      Start Free
                     </Link>
                     <p className="text-xs text-[#6B6B73] text-center mt-3">No credit card required</p>
                     {plan.badge && <p className="text-xs text-[#A0A0A8] text-center mt-1">{plan.badge}</p>}
@@ -624,12 +624,12 @@ const Index = () => {
           </p>
           <Link to="/signup"
             className="inline-flex items-center gap-2 px-10 py-4 bg-gradient-to-r from-[#CC0000] to-[#990000] text-white text-lg font-bold rounded-lg hover:scale-105 transition-all duration-300 shadow-[0_0_30px_rgba(204,0,0,0.3)]">
-            Start Your Free Trial — No Credit Card Required <ArrowRight className="w-5 h-5" />
+            Start Free — No Credit Card Required <ArrowRight className="w-5 h-5" />
           </Link>
           <div className="flex items-center justify-center gap-6 text-sm text-[#6B6B73] mt-6 flex-wrap">
             <span>✓ 2 free strategy generations</span>
-            <span>✓ 7-day full access</span>
-            <span>✓ Cancel anytime</span>
+            <span>✓ No credit card required</span>
+            <span>✓ Upgrade anytime</span>
           </div>
         </AnimatedSection>
       </section>
@@ -661,16 +661,16 @@ const Index = () => {
             <div>
               <h4 className="font-bold text-sm mb-4 tracking-wider uppercase text-[#A0A0A8]">Product</h4>
               <ul className="space-y-2 text-sm text-[#6B6B73]">
-                <li><span className="hover:text-[#CC0000] transition-colors cursor-pointer">Features</span></li>
+                <li><Link to="/features" className="hover:text-[#CC0000] transition-colors">Features</Link></li>
+                <li><Link to="/demo" className="hover:text-[#CC0000] transition-colors">Demo</Link></li>
                 <li><Link to="/pricing" className="hover:text-[#CC0000] transition-colors">Pricing</Link></li>
               </ul>
             </div>
             <div>
               <h4 className="font-bold text-sm mb-4 tracking-wider uppercase text-[#A0A0A8]">Company</h4>
               <ul className="space-y-2 text-sm text-[#6B6B73]">
-                <li><span className="hover:text-[#CC0000] transition-colors cursor-pointer">About</span></li>
-                <li><span className="hover:text-[#CC0000] transition-colors cursor-pointer">Blog</span></li>
-                <li><span className="hover:text-[#CC0000] transition-colors cursor-pointer">Contact</span></li>
+                <li><Link to="/about" className="hover:text-[#CC0000] transition-colors">About</Link></li>
+                <li><Link to="/contact" className="hover:text-[#CC0000] transition-colors">Contact</Link></li>
               </ul>
             </div>
             <div>
@@ -706,7 +706,7 @@ const Index = () => {
             className="fixed bottom-6 right-6 z-50 flex items-center gap-2">
             <Link to="/signup"
               className="px-6 py-3 bg-gradient-to-r from-[#CC0000] to-[#990000] text-white font-bold rounded-lg shadow-[0_0_20px_rgba(204,0,0,0.4)] hover:scale-105 transition-all text-sm">
-              Start Free Trial
+              Start Free
             </Link>
             <button onClick={() => setFloatingDismissed(true)}
               className="w-8 h-8 rounded-full bg-[#16171A] border border-[#2A2B2E] flex items-center justify-center text-[#6B6B73] hover:text-white transition-colors">
