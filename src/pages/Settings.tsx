@@ -477,7 +477,7 @@ const Settings: React.FC = () => {
         <CardContent>
           <div className="flex items-center justify-between">
             <div>
-              <Badge className="bg-primary/20 text-primary mb-2">Free Plan</Badge>
+              <Badge className="bg-primary text-primary-foreground font-semibold mb-2">Free Plan</Badge>
               <p className="text-sm text-muted-foreground">Basic features included</p>
             </div>
             <Button>Upgrade Plan</Button>
