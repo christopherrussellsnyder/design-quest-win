@@ -1,73 +1,53 @@
 project_id = "yxpzkcqeqzpgysvrrezc"
 
-[functions.generate-content]
-verify_jwt = true
-
-[functions.generate-content-enhanced]
-verify_jwt = true
-
-[functions.scheduler-intelligence]
-verify_jwt = true
-
-[functions.analytics-intelligence]
-verify_jwt = true
-
-[functions.predict-engagement]
-verify_jwt = true
-
-[functions.auto-optimize-timing]
-verify_jwt = true
-
-[functions.analyze-patterns]
-verify_jwt = true
-
-[functions.campaign-intelligence]
-verify_jwt = true
-
-[functions.competitor-analysis]
-verify_jwt = true
-
-[functions.ab-testing]
-verify_jwt = true
-
-[functions.ml-model-training]
-verify_jwt = true
-
-[functions.content-success-predictor]
-verify_jwt = true
-
-[functions.dynamic-optimization]
-verify_jwt = true
-
-[functions.generate-ai-video]
-verify_jwt = true
-
-[functions.send-team-invitation]
-verify_jwt = false
-
-[functions.analyze-audience-targeting]
-verify_jwt = true
-
-[functions.ab-test-optimization]
-verify_jwt = true
-
-[functions.generate-comprehensive-campaign-strategy]
-verify_jwt = true
-
-[functions.analyze-screenshot]
-verify_jwt = false
-
-[functions.ai-chat]
-verify_jwt = false
-
-[functions.scrape-website]
-verify_jwt = false
-
-[functions.analyze-business]
-verify_jwt = false
-
-[functions.generate-strategy]
-verify_jwt = false
-
-[functions.analyze-user-intelligence]
-verify_jwt = false
+[functions]
+  [functions.ab-test-optimization]
+    verify_jwt = true
+  [functions.ab-testing]
+    verify_jwt = true
+  [functions.ai-chat]
+    verify_jwt = false
+  [functions.analytics-intelligence]
+    verify_jwt = true
+  [functions.analyze-audience-targeting]
+    verify_jwt = true
+  [functions.analyze-business]
+    verify_jwt = false
+  [functions.analyze-patterns]
+    verify_jwt = true
+  [functions.analyze-screenshot]
+    verify_jwt = false
+  [functions.analyze-user-intelligence]
+    verify_jwt = false
+  [functions.auth-email-hook]
+    verify_jwt = false
+  [functions.auto-optimize-timing]
+    verify_jwt = true
+  [functions.campaign-intelligence]
+    verify_jwt = true
+  [functions.competitor-analysis]
+    verify_jwt = true
+  [functions.content-success-predictor]
+    verify_jwt = true
+  [functions.dynamic-optimization]
+    verify_jwt = true
+  [functions.generate-ai-video]
+    verify_jwt = true
+  [functions.generate-comprehensive-campaign-strategy]
+    verify_jwt = true
+  [functions.generate-content]
+    verify_jwt = true
+  [functions.generate-content-enhanced]
+    verify_jwt = true
+  [functions.generate-strategy]
+    verify_jwt = false
+  [functions.ml-model-training]
+    verify_jwt = true
+  [functions.predict-engagement]
+    verify_jwt = true
+  [functions.scheduler-intelligence]
+    verify_jwt = true
+  [functions.scrape-website]
+    verify_jwt = false
+  [functions.send-team-invitation]
+    verify_jwt = false
