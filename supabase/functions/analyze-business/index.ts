@@ -361,7 +361,7 @@ serve(async (req) => {
           { role: "user", content: analysisPrompt }
         ],
         temperature: 0.4,
-        max_tokens: 15000,
+        max_tokens: 32000,
       }),
     });
 
@@ -392,6 +392,7 @@ serve(async (req) => {
     let comprehensiveAnalysis: any;
     try {
       let jsonStr = analysisText.trim();
+      // Strip markdown code fences
       if (jsonStr.startsWith('```json')) {
         jsonStr = jsonStr.replace(/^```json\s*/, '').replace(/\s*```$/, '');
       } else if (jsonStr.startsWith('```')) {
@@ -401,19 +402,54 @@ serve(async (req) => {
       comprehensiveAnalysis = JSON.parse(jsonStr);
     } catch (parseError) {
       console.error('Failed to parse AI response as JSON:', parseError);
-      console.log('Raw response preview:', analysisText.slice(0, 500));
+      console.log('Raw response length:', analysisText.length);
+      console.log('Raw response start:', analysisText.slice(0, 300));
+      console.log('Raw response end:', analysisText.slice(-300));
       
-      const jsonMatch = analysisText.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
+      // Try to extract JSON object from the response
+      const firstBrace = analysisText.indexOf('{');
+      const lastBrace = analysisText.lastIndexOf('}');
+      
+      if (firstBrace !== -1 && lastBrace > firstBrace) {
         try {
-          comprehensiveAnalysis = JSON.parse(jsonMatch[0]);
-        } catch {
-          comprehensiveAnalysis = {
-            metadata: { website_url: scrapedContent.baseUrl, analysis_timestamp: new Date().toISOString(), pages_analyzed: scrapedContent.totalPages, data_completeness: 'Partial' },
-            business_identity: { business_name: scrapedContent.pages[0]?.title?.split('|')[0]?.split('-')[0]?.trim() || 'Unknown', industry: 'Unknown' },
-            executive_summary: { one_paragraph_overview: 'Unable to fully analyze the website. Please try again.', overall_assessment_score: 5 },
-            parsing_error: true, raw_analysis: analysisText.slice(0, 2000)
-          };
+          comprehensiveAnalysis = JSON.parse(analysisText.slice(firstBrace, lastBrace + 1));
+          console.log('Successfully parsed JSON after extraction');
+        } catch (e2) {
+          console.error('Second parse attempt failed:', e2);
+          // Try to fix truncated JSON by closing open braces/brackets
+          let truncatedJson = analysisText.slice(firstBrace, lastBrace + 1);
+          // Count unmatched braces and brackets
+          let braceCount = 0;
+          let bracketCount = 0;
+          let inString = false;
+          let escaped = false;
+          for (const char of truncatedJson) {
+            if (escaped) { escaped = false; continue; }
+            if (char === '\\') { escaped = true; continue; }
+            if (char === '"') { inString = !inString; continue; }
+            if (inString) continue;
+            if (char === '{') braceCount++;
+            else if (char === '}') braceCount--;
+            else if (char === '[') bracketCount++;
+            else if (char === ']') bracketCount--;
+          }
+          // Close any open strings, brackets, and braces
+          let fixedJson = truncatedJson;
+          if (inString) fixedJson += '"';
+          for (let i = 0; i < bracketCount; i++) fixedJson += ']';
+          for (let i = 0; i < braceCount; i++) fixedJson += '}';
+          
+          try {
+            comprehensiveAnalysis = JSON.parse(fixedJson);
+            console.log('Successfully parsed JSON after auto-closing');
+          } catch {
+            comprehensiveAnalysis = {
+              metadata: { website_url: scrapedContent.baseUrl, analysis_timestamp: new Date().toISOString(), pages_analyzed: scrapedContent.totalPages, data_completeness: 'Partial' },
+              business_identity: { business_name: scrapedContent.pages[0]?.title?.split('|')[0]?.split('-')[0]?.trim() || 'Unknown', industry: 'Unknown' },
+              executive_summary: { one_paragraph_overview: 'Analysis returned incomplete data. Please try again.', overall_assessment_score: 5 },
+              parsing_error: true
+            };
+          }
         }
       } else {
         comprehensiveAnalysis = {
