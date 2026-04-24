@@ -44,7 +44,7 @@ export function WizardLoadingState({ progress, currentStep }: Props) {
               <Sparkles className="w-5 h-5 text-yellow-500" />
             </>
           ) : (
-            'Generating Your 30-Day Strategy'
+            'Generating Your 14-Day Strategy'
           )}
         </h3>
         <p className="text-muted-foreground">

@@ -282,7 +282,7 @@ export function CampaignWizardModal({
         { step: 'Analyzing your business profile...', progress: 10 },
         { step: 'Understanding campaign objectives...', progress: 25 },
         { step: 'Researching platform best practices...', progress: 40 },
-        { step: 'Generating 30 days of content...', progress: 60 },
+        { step: 'Generating 14 days of content...', progress: 60 },
         { step: 'Optimizing posting schedule...', progress: 80 },
         { step: 'Finalizing strategy...', progress: 95 }
       ];

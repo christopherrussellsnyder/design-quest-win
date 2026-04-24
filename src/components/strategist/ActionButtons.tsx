@@ -68,7 +68,7 @@ export function ActionButtons({ content, onAction, hasPendingStrategy }: ActionB
     }
 
     // Detect strategy-related actions
-    if (lowerContent.includes('strategy') || lowerContent.includes('30-day') || lowerContent.includes('content plan')) {
+    if (lowerContent.includes('strategy') || lowerContent.includes('14-day') || lowerContent.includes('content plan')) {
       if (lowerContent.includes('created') || lowerContent.includes('generated') || lowerContent.includes('successfully')) {
         const strategyMatch = content.match(/\/strategies\/([a-f0-9-]+)/i);
         if (strategyMatch) {

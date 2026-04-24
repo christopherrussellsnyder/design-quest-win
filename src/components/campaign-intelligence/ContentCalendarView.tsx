@@ -132,7 +132,7 @@ export function ContentCalendarView({
         <div>
           <h3 className="text-lg font-semibold flex items-center gap-2">
             <Calendar className="w-5 h-5 text-primary" />
-            30-Day Content Calendar
+            14-Day Content Calendar
           </h3>
           <p className="text-sm text-muted-foreground">
             {format(startDate, 'MMM d')} - {format(addDays(startDate, 29), 'MMM d, yyyy')} • {posts.length} posts

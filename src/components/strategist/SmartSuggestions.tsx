@@ -115,7 +115,7 @@ function generateSmartSuggestions(
       icon: <Lightbulb className="w-3.5 h-3.5" />,
       iconColor: 'text-yellow-500',
       text: 'Create your first strategy',
-      prompt: 'Create a 30-day content strategy based on my analytics',
+      prompt: 'Create a 14-day content strategy based on my analytics',
       action: 'create_strategy',
       priority: 'high',
       badge: 'Recommended',

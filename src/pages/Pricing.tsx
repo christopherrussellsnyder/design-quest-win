@@ -181,15 +181,7 @@ export default function Pricing() {
           })}
         </div>
 
-        {/* Money-back guarantee */}
         <div className="text-center mt-10">
-          <div className="inline-flex items-center gap-2 bg-[#16171A] border border-[#2A2B2E] rounded-xl px-6 py-3">
-            <Shield className="w-5 h-5 text-[#CC0000]" />
-            <span className="text-sm text-[#A0A0A8]">30-Day Money-Back Guarantee</span>
-          </div>
-        </div>
-
-        <div className="text-center mt-8">
           <Link to="/" className="text-[#6B6B73] hover:text-[#CC0000] transition-colors text-sm">
             ← Back to home
           </Link>

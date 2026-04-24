@@ -43,7 +43,7 @@ const painPoints = [
 const howItWorks = [
   { icon: Upload, title: 'Upload Analytics', desc: 'Instagram, Facebook, TikTok, Google Ads — any platform' },
   { icon: Brain, title: 'AI Analysis', desc: 'Real-time performance data analysis in 30 seconds' },
-  { icon: BarChart3, title: 'Generate Strategy', desc: 'Complete 30-day strategy + content calendar' },
+  { icon: BarChart3, title: 'Generate Strategy', desc: 'Complete 14-day strategy + content calendar' },
   { icon: Download, title: 'Export & Implement', desc: 'Download as PDF or copy directly' },
 ];
 
@@ -60,7 +60,7 @@ const techSteps = [
   { name: 'OCR Analysis', time: '2 seconds', details: ['Extracts all metrics from screenshots', 'Supports any platform, any format'] },
   { name: 'Pattern Recognition', time: '10 seconds', details: ['Identifies top-performing content types', 'Maps engagement patterns', 'Analyzes audience behavior'] },
   { name: 'Algorithm Optimization', time: '15 seconds', details: ['Platform-specific ranking signals', 'Instagram: Engagement-first', 'TikTok: Watch time + completion rate'] },
-  { name: 'Strategy Generation', time: '25 seconds', details: ['Personalized 30-day plan', 'Content calendar with daily tasks', 'Performance prediction modeling'] },
+  { name: 'Strategy Generation', time: '25 seconds', details: ['Personalized 14-day plan', 'Content calendar with daily tasks', 'Performance prediction modeling'] },
   { name: 'Export & Implement', time: '8 seconds', details: ['Download as PDF or copy directly'] },
 ];
 
@@ -70,7 +70,6 @@ const faqs = [
   { q: 'What platforms do you support?', a: 'Any platform you can screenshot. Instagram, Facebook, TikTok, Google Ads, LinkedIn, Twitter, YouTube, Pinterest, Shopify — if you have analytics, we can analyze them.' },
   { q: 'How is this different from a marketing agency?', a: 'Cost: $49/month vs $3,000-$10,000/month. Speed: 60 seconds vs 2-3 weeks. Revisions: Unlimited vs 2-3 max. Data: Real-time analysis vs monthly reports.' },
   { q: 'What do I get with the free Starter plan?', a: 'You get 2 free strategy generations with no credit card required. After using them, you can upgrade to Pro for unlimited access or continue using basic features.' },
-  { q: 'What if I don\'t like it?', a: 'We have a 30-day money-back guarantee. No questions asked.' },
   { q: 'Can I cancel anytime?', a: 'Yes. Cancel in 2 clicks. No contracts, no commitments.' },
 ];
 
@@ -332,7 +331,7 @@ const Index = () => {
               </div>
               <div className="bg-[#16171A] border border-[#CC0000]/30 rounded-xl p-6">
                 <p className="text-xs uppercase tracking-wider text-[#CC0000] mb-2">Korex says:</p>
-                <p className="text-[#A0A0A8] text-sm italic">"Based on your data, your audience engages 3.2x more with educational content on Tuesdays at 2pm. Here's your 30-day calendar optimized for this pattern."</p>
+                <p className="text-[#A0A0A8] text-sm italic">"Based on your data, your audience engages 3.2x more with educational content on Tuesdays at 2pm. Here's your 14-day calendar optimized for this pattern."</p>
               </div>
             </div>
           </AnimatedSection>
@@ -570,12 +569,6 @@ const Index = () => {
             })}
           </div>
 
-          <AnimatedSection className="text-center mt-8" delay={0.2}>
-            <div className="inline-flex items-center gap-2 bg-[#16171A] border border-[#2A2B2E] rounded-xl px-6 py-3">
-              <Shield className="w-5 h-5 text-[#CC0000]" />
-              <span className="text-sm text-[#A0A0A8]">30-Day Money-Back Guarantee — If you don't save at least 5 hours in your first month, we'll refund you.</span>
-            </div>
-          </AnimatedSection>
         </div>
       </section>
 
