@@ -35,7 +35,7 @@ const starterCategories: StarterCategory[] = [
     icon: <Target className="w-5 h-5" />,
     gradient: 'from-accent-gold/20 to-accent-gold/5',
     prompts: [
-      "Create a 30-day Instagram strategy",
+      "Create a 14-day Instagram strategy",
       "Help me plan my content calendar",
     ],
   },
