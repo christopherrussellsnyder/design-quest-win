@@ -186,10 +186,10 @@ export default function Pricing() {
                         : 'border border-[#3A3B3E] text-[#EEEEEE] hover:border-[#CC0000] hover:text-[#CC0000]'
                     }`}
                   >
-                    {loadingPlan === plan.key ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : 'Start Free'}
+                    {loadingPlan === plan.key ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : 'Upgrade Now'}
                   </button>
                 )}
-                <p className="text-xs text-[#6B6B73] text-center mt-3">No credit card required</p>
+                <p className="text-xs text-[#6B6B73] text-center mt-3">Cancel anytime</p>
                 {plan.badge && <p className="text-xs text-[#A0A0A8] text-center mt-1">{plan.badge}</p>}
               </div>
             );
