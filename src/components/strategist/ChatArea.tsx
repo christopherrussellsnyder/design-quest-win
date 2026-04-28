@@ -717,7 +717,7 @@ I'll use this context to provide personalized marketing recommendations. You can
             <div className="relative mb-8">
               <div className="absolute inset-0 rounded-full bg-primary/20 blur-2xl scale-150" />
               <div className="relative p-5 rounded-2xl bg-gradient-to-br from-primary/20 via-primary/10 to-transparent border border-primary/20 backdrop-blur-sm">
-                <img src="/korex-logo-transparent.svg" alt="Korex" className="w-8 h-8" />
+                <img src="/korex-icon.png" alt="Korex" className="w-8 h-8" />
               </div>
             </div>
             <h2 className="text-2xl font-bold mb-2 tracking-tight">Korex Intelligence</h2>

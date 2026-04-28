@@ -11,7 +11,7 @@ const NotFound = () => {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background">
       <div className="text-center">
-        <img src="/korex-logo-transparent.svg" alt="Korex" className="w-16 h-16 mx-auto mb-6 opacity-40" />
+        <img src="/korex-icon.png" alt="Korex" className="w-16 h-16 mx-auto mb-6 opacity-40" />
         <h1 className="mb-4 text-4xl font-bold text-foreground">404</h1>
         <p className="mb-4 text-xl text-muted-foreground">Intelligence Not Found</p>
         <a href="/" className="text-primary underline hover:text-primary/90">
