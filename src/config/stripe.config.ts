@@ -29,7 +29,10 @@ export const STRIPE_TIERS = {
   },
 } as const;
 
-export const TRIAL_STRATEGY_LIMIT = 2;
+// Lifetime cap for the free Starter plan
+export const STARTER_STRATEGY_LIMIT = 2;
+// Backwards-compat alias (used by existing imports)
+export const TRIAL_STRATEGY_LIMIT = STARTER_STRATEGY_LIMIT;
 
 // Map all product IDs to tiers
 export const PRODUCT_TO_TIER: Record<string, string> = {
@@ -45,7 +48,5 @@ export interface SubscriptionState {
   subscribed: boolean;
   tier: SubscriptionTier;
   subscription_end: string | null;
-  trial_end: string | null;
-  is_trialing: boolean;
   isLoading: boolean;
 }
