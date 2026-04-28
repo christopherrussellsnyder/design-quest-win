@@ -35,7 +35,7 @@ export default function About() {
         <nav className="border-b border-[#2A2B2E] px-4 py-4">
           <div className="max-w-6xl mx-auto flex items-center justify-between">
             <Link to="/">
-              <img src="/korex-wordmark-lockup.svg" alt="Korex" className="h-8" />
+              <KorexLogoLockup height={32} showTagline={false} />
             </Link>
             <div className="hidden md:flex items-center gap-6 text-sm text-[#A0A0A8]">
               <Link to="/features" className="hover:text-white transition-colors">Features</Link>
