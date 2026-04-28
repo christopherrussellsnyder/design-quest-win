@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { KorexLogoLockup } from '@/components/branding/KorexLogoLockup';
 
 const getPasswordStrength = (password: string): { label: string; color: string; width: string } => {
   let score = 0;
