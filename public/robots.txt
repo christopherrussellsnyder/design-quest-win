@@ -22,4 +22,4 @@ Disallow: /campaigns/
 Disallow: /analytics/
 Disallow: /audience/
 
-Sitemap: https://yourdomain.com/sitemap.xml
+Sitemap: https://korexintelligencesystems.com/sitemap.xml
