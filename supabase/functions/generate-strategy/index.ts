@@ -255,6 +255,31 @@ serve(async (req) => {
     const { platform, durationDays = 30, goals, customInstructions, conversationId } = await req.json() as StrategyRequest;
     const effectiveGoals = goals?.length ? goals : ['Increase engagement', 'Grow followers', 'Drive conversions'];
 
+    // Server-side enforcement of Starter plan lifetime cap (2 strategies).
+    // Subscribed users (Pro/Agency) are unlimited; only check non-subscribed users.
+    const { data: localSub } = await supabase
+      .from('subscriptions')
+      .select('status, plan_type')
+      .eq('user_id', user.id)
+      .maybeSingle();
+    const isPaid = localSub?.status === 'active' && (localSub.plan_type === 'pro' || localSub.plan_type === 'agency');
+    if (!isPaid) {
+      const { data: usageRow } = await supabase
+        .from('usage_tracking')
+        .select('lifetime_strategies_generated')
+        .eq('user_id', user.id)
+        .order('lifetime_strategies_generated', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      const used = usageRow?.lifetime_strategies_generated ?? 0;
+      if (used >= 2) {
+        return new Response(
+          JSON.stringify({ error: 'Starter plan limit reached. Upgrade to Pro for unlimited strategies.', code: 'UPGRADE_REQUIRED' }),
+          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
+
     console.log(`Generating ${durationDays}-day strategy for ${platform} for user ${user.id}`);
 
     // Parallel fetch all context
@@ -473,6 +498,13 @@ serve(async (req) => {
     }
 
     console.log(`Strategy ${savedStrategy.id} saved with ${postsToInsert.length} posts`);
+
+    // Atomically bump lifetime strategy usage (powers Starter plan 2-strategy lockout)
+    try {
+      await supabase.rpc('increment_strategy_usage', { p_user_id: user.id });
+    } catch (e) {
+      console.warn('Failed to increment strategy usage:', e);
+    }
 
     return new Response(
       JSON.stringify({

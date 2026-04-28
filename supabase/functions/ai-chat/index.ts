@@ -369,12 +369,40 @@ async function fetchEnhancedContext(supabase: any, userId: string, conversationI
   let conversationHistory: Array<{role: string; content: string}> = [];
 
   try {
+    // Try fast in-memory + DB cache for global content_trends (identical for all users; refreshed every 5 min).
+    // This drops one Postgres roundtrip per chat turn at scale without affecting AI freshness.
+    const TRENDS_CACHE_KEY = 'global:content_trends:v1';
+    const trendsFromCachePromise = (async () => {
+      const { data: cached } = await supabase
+        .from('cache_entries')
+        .select('cached_data, expires_at')
+        .eq('cache_key', TRENDS_CACHE_KEY)
+        .gt('expires_at', new Date().toISOString())
+        .maybeSingle();
+      return cached?.cached_data ?? null;
+    })();
+
     const fetchPromises: Promise<any>[] = [
       supabase.from('business_context').select('*').eq('user_id', userId).eq('is_active', true).maybeSingle(),
       supabase.from('uploaded_analytics').select('*').eq('user_id', userId).order('uploaded_at', { ascending: false }).limit(3),
       supabase.from('content_strategies').select('id, platform, created_at, predicted_metrics, total_posts').eq('user_id', userId).order('created_at', { ascending: false }).limit(5),
       supabase.from('user_behavior_patterns').select('*').eq('user_id', userId),
-      supabase.from('content_trends').select('*').eq('is_active', true).order('last_updated', { ascending: false }).limit(15),
+      trendsFromCachePromise.then(async (cachedTrends) => {
+        if (cachedTrends) return { data: cachedTrends };
+        const fresh = await supabase.from('content_trends').select('*').eq('is_active', true).order('last_updated', { ascending: false }).limit(15);
+        if (fresh?.data) {
+          // 5-minute TTL keeps the AI on the latest trends while cutting reads ~20x
+          const expires = new Date(Date.now() + 5 * 60 * 1000).toISOString();
+          await supabase.from('cache_entries').upsert({
+            cache_key: TRENDS_CACHE_KEY,
+            cache_type: 'content_trends',
+            cached_data: fresh.data,
+            user_id: userId,
+            expires_at: expires,
+          }, { onConflict: 'cache_key' });
+        }
+        return fresh;
+      }),
       supabase.from('content_performance').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(10),
       supabase.from('ai_learning_metrics').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(50),
       supabase.from('user_business_settings').select('*').eq('user_id', userId).maybeSingle(),

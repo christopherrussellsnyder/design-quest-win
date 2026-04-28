@@ -63,7 +63,15 @@ export default function Pricing() {
       });
       if (error) throw error;
       if (data?.url) {
-        window.open(data.url, '_blank');
+        // Mobile browsers block window.open() after an await (gesture is "consumed"),
+        // so use top-level navigation on touch devices and a new tab on desktop.
+        const isMobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches;
+        if (isMobile) {
+          window.location.href = data.url;
+        } else {
+          const opened = window.open(data.url, '_blank');
+          if (!opened) window.location.href = data.url;
+        }
       }
     } catch (err) {
       toast.error('Failed to start checkout. Please try again.');
@@ -78,7 +86,13 @@ export default function Pricing() {
       const { data, error } = await supabase.functions.invoke('customer-portal');
       if (error) throw error;
       if (data?.url) {
-        window.open(data.url, '_blank');
+        const isMobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches;
+        if (isMobile) {
+          window.location.href = data.url;
+        } else {
+          const opened = window.open(data.url, '_blank');
+          if (!opened) window.location.href = data.url;
+        }
       }
     } catch (err) {
       toast.error('Failed to open billing portal.');
@@ -95,7 +109,7 @@ export default function Pricing() {
           <h1 className="text-3xl sm:text-[48px] font-black mb-4" style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '3px' }}>
             Simple, Transparent Pricing
           </h1>
-          <p className="text-[#A0A0A8] mb-6">Includes 2 free strategy generations. Upgrade anytime.</p>
+          <p className="text-[#A0A0A8] mb-6">Free Starter plan includes 2 strategy generations. Upgrade anytime for unlimited access.</p>
           
           <div className="flex items-center justify-center gap-3">
             <span className={`text-sm ${!billingAnnual ? 'text-white' : 'text-[#6B6B73]'}`}>Monthly</span>
@@ -172,10 +186,10 @@ export default function Pricing() {
                         : 'border border-[#3A3B3E] text-[#EEEEEE] hover:border-[#CC0000] hover:text-[#CC0000]'
                     }`}
                   >
-                    {loadingPlan === plan.key ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : 'Start Free'}
+                    {loadingPlan === plan.key ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : 'Upgrade Now'}
                   </button>
                 )}
-                <p className="text-xs text-[#6B6B73] text-center mt-3">No credit card required</p>
+                <p className="text-xs text-[#6B6B73] text-center mt-3">Cancel anytime</p>
                 {plan.badge && <p className="text-xs text-[#A0A0A8] text-center mt-1">{plan.badge}</p>}
               </div>
             );

@@ -4309,6 +4309,7 @@ export type Database = {
           analytics_uploaded: number
           created_at: string
           id: string
+          lifetime_strategies_generated: number
           month_year: string
           strategies_generated: number
           updated_at: string
@@ -4318,6 +4319,7 @@ export type Database = {
           analytics_uploaded?: number
           created_at?: string
           id?: string
+          lifetime_strategies_generated?: number
           month_year: string
           strategies_generated?: number
           updated_at?: string
@@ -4327,6 +4329,7 @@ export type Database = {
           analytics_uploaded?: number
           created_at?: string
           id?: string
+          lifetime_strategies_generated?: number
           month_year?: string
           strategies_generated?: number
           updated_at?: string
@@ -4931,6 +4934,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      increment_strategy_usage: { Args: { p_user_id: string }; Returns: number }
       move_to_dlq: {
         Args: {
           dlq_name: string
