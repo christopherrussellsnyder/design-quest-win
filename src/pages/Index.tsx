@@ -133,7 +133,7 @@ const Index = () => {
 
         <div className="relative z-10 text-center max-w-4xl mx-auto">
           <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-            <img src="/korex-wordmark-lockup.svg" alt="Korex Intelligence Systems" className="h-[120px] mx-auto mb-10" />
+            <KorexLogoLockup height={96} className="mx-auto mb-10" />
           </motion.div>
 
           <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.2 }}
