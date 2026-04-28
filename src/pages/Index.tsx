@@ -7,6 +7,7 @@ import {
   Clock, DollarSign, Users, Zap,
   Lock, Globe, Award
 } from 'lucide-react';
+import { KorexLogoLockup } from '@/components/branding/KorexLogoLockup';
 
 // --- Section wrapper ---
 const AnimatedSection = ({ children, className = '', delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) => {
