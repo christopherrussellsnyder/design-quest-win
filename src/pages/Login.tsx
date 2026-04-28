@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { KorexLogoLockup } from '@/components/branding/KorexLogoLockup';
 
 export default function Login() {
   const [email, setEmail] = useState('');
