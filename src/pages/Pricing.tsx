@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { STRIPE_TIERS } from '@/config/stripe.config';
 import { toast } from 'sonner';
+import { KorexLogoLockup } from '@/components/branding/KorexLogoLockup';
 
 const plans = [
   {
