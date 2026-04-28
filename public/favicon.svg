@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <!-- Solid black background so the icon reads on Google's circular favicon crop -->
+  <rect width="400" height="400" fill="#060606"/>
+
+  <!-- KOREX K MARK — same shapes as in-app logo, scaled to fill the canvas -->
+  <!-- Vertical spine -->
+  <rect x="60" y="40" width="70" height="320" fill="#CC0000"/>
+
+  <!-- Upper arm — primary white shard -->
+  <polygon points="130,40 130,140 360,40 280,40" fill="#EEEEEE"/>
+  <!-- Upper arm — secondary red shard -->
+  <polygon points="130,110 130,200 360,40 270,40" fill="#CC0000" opacity="0.75"/>
+
+  <!-- Lower arm — secondary red shard -->
+  <polygon points="130,200 130,290 360,360 270,360" fill="#CC0000" opacity="0.75"/>
+  <!-- Lower arm — primary white shard -->
+  <polygon points="130,260 130,360 250,360 200,360" fill="#EEEEEE"/>
+</svg>
