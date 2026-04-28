@@ -90,7 +90,7 @@ export default function Pricing() {
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
           <Link to="/" className="inline-block mb-8">
-            <img src="/korex-wordmark-lockup.svg" alt="Korex" className="h-12 mx-auto" />
+            <KorexLogoLockup height={48} className="mx-auto" />
           </Link>
           <h1 className="text-3xl sm:text-[48px] font-black mb-4" style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '3px' }}>
             Simple, Transparent Pricing
