@@ -63,7 +63,15 @@ export default function Pricing() {
       });
       if (error) throw error;
       if (data?.url) {
-        window.open(data.url, '_blank');
+        // Mobile browsers block window.open() after an await (gesture is "consumed"),
+        // so use top-level navigation on touch devices and a new tab on desktop.
+        const isMobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches;
+        if (isMobile) {
+          window.location.href = data.url;
+        } else {
+          const opened = window.open(data.url, '_blank');
+          if (!opened) window.location.href = data.url;
+        }
       }
     } catch (err) {
       toast.error('Failed to start checkout. Please try again.');
@@ -78,7 +86,13 @@ export default function Pricing() {
       const { data, error } = await supabase.functions.invoke('customer-portal');
       if (error) throw error;
       if (data?.url) {
-        window.open(data.url, '_blank');
+        const isMobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches;
+        if (isMobile) {
+          window.location.href = data.url;
+        } else {
+          const opened = window.open(data.url, '_blank');
+          if (!opened) window.location.href = data.url;
+        }
       }
     } catch (err) {
       toast.error('Failed to open billing portal.');
