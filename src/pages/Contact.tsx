@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Mail, Clock, DollarSign, Wrench, Handshake, ArrowRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { KorexLogoLockup } from '@/components/branding/KorexLogoLockup';
 
 const contactReasons = [
   { icon: DollarSign, title: 'Sales & Pricing', description: 'Questions about plans, enterprise, or custom pricing.' },
