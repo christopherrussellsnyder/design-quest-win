@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { KorexLogoLockup } from '@/components/branding/KorexLogoLockup';
 
 export default function AuthConfirm() {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
