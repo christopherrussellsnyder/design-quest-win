@@ -649,7 +649,7 @@ const Index = () => {
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
             <div className="col-span-2 md:col-span-1">
-              <img src="/korex-wordmark-lockup.svg" alt="Korex" className="h-10 mb-4" />
+              <KorexLogoLockup height={40} showTagline={false} className="mb-4" />
               <p className="text-sm text-[#6B6B73] leading-relaxed">Intelligence-driven marketing systems for modern teams.</p>
             </div>
             <div>
