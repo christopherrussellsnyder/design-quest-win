@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Brain, BarChart3, MessageSquare, Users, FileText, Briefcase, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { KorexLogoLockup } from '@/components/branding/KorexLogoLockup';
 
 const features = [
   {
