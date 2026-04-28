@@ -499,6 +499,13 @@ serve(async (req) => {
 
     console.log(`Strategy ${savedStrategy.id} saved with ${postsToInsert.length} posts`);
 
+    // Atomically bump lifetime strategy usage (powers Starter plan 2-strategy lockout)
+    try {
+      await supabase.rpc('increment_strategy_usage', { p_user_id: user.id });
+    } catch (e) {
+      console.warn('Failed to increment strategy usage:', e);
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
