@@ -2,6 +2,8 @@ import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Upload, Brain, TrendingUp, ArrowRight, Play } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { KorexLogoLockup } from '@/components/branding/KorexLogoLockup';
+import korexIcon from '/korex-icon.png';
 
 // REPLACE WITH ACTUAL VIDEO URL WHEN READY
 const DEMO_VIDEO_URL: string = '';
