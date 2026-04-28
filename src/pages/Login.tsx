@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { KorexLogoLockup } from '@/components/branding/KorexLogoLockup';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -55,7 +56,7 @@ export default function Login() {
     <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="flex flex-col items-center justify-center mb-8">
-          <img src="/korex-wordmark-lockup.svg" alt="Korex Intelligence Systems Logo" className="h-[100px]" />
+          <KorexLogoLockup height={80} />
         </div>
 
         <div className="card-glass rounded-2xl p-8">

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { KorexLogoLockup } from '@/components/branding/KorexLogoLockup';
 
 const getPasswordStrength = (password: string): { label: string; color: string; width: string } => {
   let score = 0;
@@ -86,7 +87,7 @@ export default function Signup() {
     return (
       <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-4">
         <div className="w-full max-w-md text-center">
-          <img src="/korex-wordmark-lockup.svg" alt="Korex" className="h-16 mx-auto mb-10" />
+          <KorexLogoLockup height={56} className="mx-auto mb-10" />
           <div className="card-glass rounded-2xl p-8">
             <h1 className="text-2xl font-bold mb-2">Verify Your Email Address</h1>
             <p className="text-muted-foreground mb-2">
@@ -111,7 +112,7 @@ export default function Signup() {
     <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="flex flex-col items-center justify-center mb-8">
-          <img src="/korex-wordmark-lockup.svg" alt="Korex Intelligence Systems Logo" className="h-[60px] mb-2" />
+          <KorexLogoLockup height={56} showTagline={false} className="mb-2" />
         </div>
 
         <div className="card-glass rounded-2xl p-8">

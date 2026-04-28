@@ -2,6 +2,8 @@ import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Upload, Brain, TrendingUp, ArrowRight, Play } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { KorexLogoLockup } from '@/components/branding/KorexLogoLockup';
+import korexIcon from '/korex-icon.png';
 
 // REPLACE WITH ACTUAL VIDEO URL WHEN READY
 const DEMO_VIDEO_URL: string = '';
@@ -33,7 +35,7 @@ const VideoPlayer = () => {
       style={{ boxShadow: '0 0 40px rgba(204,0,0,0.15)' }}>
       <div className="absolute inset-0 bg-gradient-to-br from-[#CC0000]/10 to-transparent" />
       <div className="relative z-10 text-center">
-        <img src="/korex-wordmark-lockup.svg" alt="Korex" className="h-12 mx-auto mb-6 opacity-40" />
+        <img src={korexIcon} alt="Korex" className="h-12 mx-auto mb-6 opacity-40" />
         <motion.div
           animate={{ scale: [1, 1.15, 1] }}
           transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
@@ -78,7 +80,7 @@ export default function Demo() {
         <nav className="border-b border-[#2A2B2E] px-4 py-4">
           <div className="max-w-6xl mx-auto flex items-center justify-between">
             <Link to="/">
-              <img src="/korex-wordmark-lockup.svg" alt="Korex" className="h-8" />
+              <KorexLogoLockup height={32} showTagline={false} />
             </Link>
             <div className="hidden md:flex items-center gap-6 text-sm text-[#A0A0A8]">
               <Link to="/features" className="hover:text-white transition-colors">Features</Link>

@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Brain, BarChart3, MessageSquare, Users, FileText, Briefcase, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { KorexLogoLockup } from '@/components/branding/KorexLogoLockup';
 
 const features = [
   {
@@ -49,7 +50,7 @@ export default function Features() {
         <nav className="border-b border-[#2A2B2E] px-4 py-4">
           <div className="max-w-6xl mx-auto flex items-center justify-between">
             <Link to="/">
-              <img src="/korex-wordmark-lockup.svg" alt="Korex" className="h-8" />
+              <KorexLogoLockup height={32} showTagline={false} />
             </Link>
             <div className="hidden md:flex items-center gap-6 text-sm text-[#A0A0A8]">
               <Link to="/features" className="text-[#CC0000]">Features</Link>

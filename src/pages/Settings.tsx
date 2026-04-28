@@ -497,7 +497,7 @@ const Settings: React.FC = () => {
       <Card className="bg-card border-border">
         <CardContent className="p-6">
           <div className="flex items-center gap-4 mb-4">
-            <img src="/korex-logo-official.svg" alt="Korex" className="w-16 h-16 rounded-xl" />
+            <img src="/korex-icon.png" alt="Korex" className="w-16 h-16 rounded-xl" />
             <div>
               <h3 className="text-xl font-bold">Korex</h3>
               <p className="text-sm text-muted-foreground">Intelligence Systems • Version 2.0.0</p>

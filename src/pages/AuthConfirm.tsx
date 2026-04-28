@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { KorexLogoLockup } from '@/components/branding/KorexLogoLockup';
 
 export default function AuthConfirm() {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
@@ -38,7 +39,7 @@ export default function AuthConfirm() {
   return (
     <div className="min-h-screen bg-[#060606] text-[#EEEEEE] flex items-center justify-center p-4">
       <div className="w-full max-w-md text-center">
-        <img src="/korex-wordmark-lockup.svg" alt="Korex" className="h-16 mx-auto mb-10" />
+        <KorexLogoLockup height={56} className="mx-auto mb-10" />
 
         {status === 'loading' && (
           <div>
