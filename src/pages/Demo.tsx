@@ -35,7 +35,7 @@ const VideoPlayer = () => {
       style={{ boxShadow: '0 0 40px rgba(204,0,0,0.15)' }}>
       <div className="absolute inset-0 bg-gradient-to-br from-[#CC0000]/10 to-transparent" />
       <div className="relative z-10 text-center">
-        <img src="/korex-wordmark-lockup.svg" alt="Korex" className="h-12 mx-auto mb-6 opacity-40" />
+        <img src={korexIcon} alt="Korex" className="h-12 mx-auto mb-6 opacity-40" />
         <motion.div
           animate={{ scale: [1, 1.15, 1] }}
           transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
