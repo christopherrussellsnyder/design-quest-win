@@ -87,7 +87,7 @@ export default function Signup() {
     return (
       <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-4">
         <div className="w-full max-w-md text-center">
-          <img src="/korex-wordmark-lockup.svg" alt="Korex" className="h-16 mx-auto mb-10" />
+          <KorexLogoLockup height={56} className="mx-auto mb-10" />
           <div className="card-glass rounded-2xl p-8">
             <h1 className="text-2xl font-bold mb-2">Verify Your Email Address</h1>
             <p className="text-muted-foreground mb-2">
