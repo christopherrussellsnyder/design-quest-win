@@ -1,5 +1,5 @@
 import { Link, useSearchParams } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Check, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useSubscription } from '@/contexts/SubscriptionContext';
@@ -45,6 +45,8 @@ export default function Pricing() {
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const { tier, subscribed, refreshSubscription } = useSubscription();
   const [searchParams] = useSearchParams();
+  const checkoutFormRef = useRef<HTMLFormElement>(null);
+  const [checkoutForm, setCheckoutForm] = useState({ priceId: '', accessToken: '' });
 
   useEffect(() => {
     if (searchParams.get('checkout') === 'success') {
@@ -58,20 +60,24 @@ export default function Pricing() {
     try {
       const interval = billingAnnual ? 'yearly' : 'monthly';
       const priceId = STRIPE_TIERS[planKey][interval].price_id;
+      const isMobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches;
+
+      if (isMobile) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.access_token) throw new Error('User not authenticated');
+
+        setCheckoutForm({ priceId, accessToken: session.access_token });
+        window.setTimeout(() => checkoutFormRef.current?.submit(), 0);
+        return;
+      }
+
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: { priceId },
       });
       if (error) throw error;
       if (data?.url) {
-        // Mobile browsers block window.open() after an await (gesture is "consumed"),
-        // so use top-level navigation on touch devices and a new tab on desktop.
-        const isMobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches;
-        if (isMobile) {
-          window.location.href = data.url;
-        } else {
-          const opened = window.open(data.url, '_blank');
-          if (!opened) window.location.href = data.url;
-        }
+        const opened = window.open(data.url, '_blank');
+        if (!opened) window.location.href = data.url;
       }
     } catch (err) {
       toast.error('Failed to start checkout. Please try again.');
@@ -101,6 +107,15 @@ export default function Pricing() {
 
   return (
     <div className="min-h-screen bg-[#060606] text-[#EEEEEE] py-20 px-4">
+      <form
+        ref={checkoutFormRef}
+        action={`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-checkout`}
+        method="POST"
+        className="hidden"
+      >
+        <input type="hidden" name="priceId" value={checkoutForm.priceId} />
+        <input type="hidden" name="access_token" value={checkoutForm.accessToken} />
+      </form>
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
           <Link to="/" className="inline-block mb-8">
