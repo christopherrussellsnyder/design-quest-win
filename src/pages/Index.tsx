@@ -640,7 +640,7 @@ const Index = () => {
               <h4 className="font-bold text-sm mb-4 tracking-wider uppercase text-[#A0A0A8]">Product</h4>
               <ul className="space-y-2 text-sm text-[#6B6B73]">
                 <li><Link to="/features" className="hover:text-[#CC0000] transition-colors">Features</Link></li>
-                <li><Link to="/demo" className="hover:text-[#CC0000] transition-colors">Demo</Link></li>
+                
                 <li><Link to="/pricing" className="hover:text-[#CC0000] transition-colors">Pricing</Link></li>
               </ul>
             </div>
