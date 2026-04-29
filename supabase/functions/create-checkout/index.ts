@@ -18,14 +18,28 @@ serve(async (req) => {
   );
 
   try {
-    const authHeader = req.headers.get("Authorization")!;
-    const token = authHeader.replace("Bearer ", "");
+    const contentType = req.headers.get("content-type") || "";
+    const isFormPost = contentType.includes("application/x-www-form-urlencoded") || contentType.includes("multipart/form-data");
+    const formData = isFormPost ? await req.formData() : null;
+    const authHeader = req.headers.get("Authorization");
+    const token = formData?.get("access_token")?.toString() || authHeader?.replace("Bearer ", "");
+    if (!token) throw new Error("User not authenticated");
+
     const { data } = await supabaseClient.auth.getUser(token);
     const user = data.user;
     if (!user?.email) throw new Error("User not authenticated");
 
-    const { priceId } = await req.json();
+    const payload = formData ? null : await req.json();
+    const priceId = formData?.get("priceId")?.toString() || payload?.priceId;
     if (!priceId) throw new Error("Price ID is required");
+
+    const allowedPriceIds = new Set([
+      "price_1TKjFMB3lJMypeTCDX5ocIGJ",
+      "price_1TKjFeB3lJMypeTCAXRa1u1e",
+      "price_1TKjGBB3lJMypeTCYvd6pNta",
+      "price_1TKjGeB3lJMypeTCVkybzQnM",
+    ]);
+    if (!allowedPriceIds.has(priceId)) throw new Error("Invalid price ID");
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { apiVersion: "2025-08-27.basil" });
     
@@ -45,6 +59,10 @@ serve(async (req) => {
       success_url: `${origin}/ai-strategist?checkout=success`,
       cancel_url: `${origin}/pricing?checkout=canceled`,
     });
+
+    if (isFormPost && session.url) {
+      return Response.redirect(session.url, 303);
+    }
 
     return new Response(JSON.stringify({ url: session.url }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
