@@ -36,6 +36,9 @@ const About = lazy(() => import("./pages/About"));
 const Contact = lazy(() => import("./pages/Contact"));
 const Demo = lazy(() => import("./pages/Demo"));
 const AuthConfirm = lazy(() => import("./pages/AuthConfirm"));
+const Unsubscribe = lazy(() => import("./pages/Unsubscribe"));
+
+import { EmailFunnelOptInPrompt } from "@/components/EmailFunnelOptInPrompt";
 
 
 const queryClient = new QueryClient();
@@ -101,6 +104,7 @@ const App = () => (
           <AuthProvider>
             <SubscriptionProvider>
             <AnalyticsTracker>
+              <EmailFunnelOptInPrompt />
               <Suspense fallback={<LoadingFallback />}>
                 <Routes>
                   <Route path="/" element={<Index />} />
@@ -114,6 +118,7 @@ const App = () => (
                   <Route path="/contact" element={<Contact />} />
                   <Route path="/demo" element={<Demo />} />
                   <Route path="/auth/confirm" element={<AuthConfirm />} />
+                  <Route path="/unsubscribe" element={<Unsubscribe />} />
                   
                   {/* Admin-only health check */}
                   <Route
