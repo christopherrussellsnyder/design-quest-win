@@ -2781,6 +2781,51 @@ export type Database = {
         }
         Relationships: []
       }
+      email_subscribers: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          current_step: number
+          email: string
+          full_name: string | null
+          id: string
+          next_send_at: string | null
+          status: string
+          subscribed_at: string
+          unsubscribed_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          current_step?: number
+          email: string
+          full_name?: string | null
+          id?: string
+          next_send_at?: string | null
+          status?: string
+          subscribed_at?: string
+          unsubscribed_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          current_step?: number
+          email?: string
+          full_name?: string | null
+          id?: string
+          next_send_at?: string | null
+          status?: string
+          subscribed_at?: string
+          unsubscribed_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       email_unsubscribe_tokens: {
         Row: {
           created_at: string
@@ -2857,6 +2902,38 @@ export type Database = {
             columns: ["post_id"]
             isOneToOne: false
             referencedRelation: "scheduled_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      funnel_email_log: {
+        Row: {
+          id: string
+          sent_at: string
+          step: number
+          subscriber_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          sent_at?: string
+          step: number
+          subscriber_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          sent_at?: string
+          step?: number
+          subscriber_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "funnel_email_log_subscriber_id_fkey"
+            columns: ["subscriber_id"]
+            isOneToOne: false
+            referencedRelation: "email_subscribers"
             referencedColumns: ["id"]
           },
         ]
