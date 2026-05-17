@@ -17,14 +17,14 @@ export const KorexLogoLockup = ({
   height = 48,
   showTagline = true,
 }: KorexLogoLockupProps) => {
-  const iconSize = height;
-  const wordSize = Math.round(height * 0.7);
-  const taglineSize = Math.max(8, Math.round(height * 0.13));
+  const iconSize = Math.round(height * 1.35);
+  const wordSize = Math.round(height * 0.6);
+  const taglineSize = Math.max(8, Math.round(height * 0.11));
 
   return (
     <div
-      className={`inline-flex items-center gap-3 ${className}`}
-      style={{ height }}
+      className={`inline-flex items-center gap-4 ${className}`}
+      style={{ height: iconSize }}
     >
       <img
         src={korexIcon}
@@ -37,17 +37,17 @@ export const KorexLogoLockup = ({
         className="self-stretch border-l border-primary/40"
         aria-hidden="true"
       />
-      <div className="flex flex-col justify-center leading-none">
+      <div className="flex flex-col justify-center items-center leading-none">
         <span
-          className="font-black tracking-[0.15em] text-foreground"
-          style={{ fontSize: wordSize }}
+          className="font-black tracking-[0.15em] text-foreground inline-block"
+          style={{ fontSize: wordSize, marginRight: "-0.15em" }}
         >
           KOREX
         </span>
         {showTagline && (
           <span
-            className="text-primary tracking-[0.4em] mt-1"
-            style={{ fontSize: taglineSize }}
+            className="text-primary tracking-[0.4em] mt-2 inline-block"
+            style={{ fontSize: taglineSize, marginRight: "-0.4em" }}
           >
             INTELLIGENCE SYSTEMS
           </span>
