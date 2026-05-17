@@ -17,9 +17,9 @@ export const KorexLogoLockup = ({
   height = 48,
   showTagline = true,
 }: KorexLogoLockupProps) => {
-  const iconSize = Math.round(height * 1.35);
-  const wordSize = Math.round(height * 0.6);
-  const taglineSize = Math.max(8, Math.round(height * 0.11));
+  const iconSize = Math.round(height * 1.25);
+  const wordSize = Math.round(height * 0.85);
+  const taglineSize = Math.max(10, Math.round(height * 0.17));
 
   return (
     <div
