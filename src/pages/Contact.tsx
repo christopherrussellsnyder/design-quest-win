@@ -124,8 +124,8 @@ export default function Contact() {
 
               <div className="flex items-center gap-3 mb-2">
                 <Mail className="w-5 h-5 text-[#CC0000]" />
-                <a href="mailto:support@korexintelligence.com" className="text-[#A0A0A8] hover:text-white transition-colors">
-                  support@korexintelligence.com
+                <a href="mailto:support@korexintelligencesystems.com" className="text-[#A0A0A8] hover:text-white transition-colors">
+                  support@korexintelligencesystems.com
                 </a>
               </div>
               <div className="flex items-center gap-3 mb-10">
