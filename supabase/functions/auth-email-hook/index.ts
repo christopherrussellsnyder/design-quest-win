@@ -36,7 +36,7 @@ const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
 }
 
 // Configuration
-const SITE_NAME = "design-quest-win"
+const SITE_NAME = "Korex Intelligence Systems"
 const SENDER_DOMAIN = "notify.korexintelligencesystems.com"
 const ROOT_DOMAIN = "korexintelligencesystems.com"
 const FROM_DOMAIN = "notify.korexintelligencesystems.com" // Domain shown in From address (may be root or sender subdomain)
