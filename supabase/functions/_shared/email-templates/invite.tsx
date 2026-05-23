@@ -23,7 +23,7 @@ interface InviteEmailProps {
   confirmationUrl: string
 }
 
-const LOGO_URL = 'https://yxpzkcqeqzpgysvrrezc.supabase.co/storage/v1/object/public/email-assets/korex-logo.svg'
+const LOGO_URL = 'https://yxpzkcqeqzpgysvrrezc.supabase.co/storage/v1/object/public/email-assets/korex-wordmark-lockup.png'
 
 export const InviteEmail = ({
   siteName,
@@ -36,7 +36,7 @@ export const InviteEmail = ({
     <Body style={main}>
       <Container style={container}>
         <Section style={logoSection}>
-          <Img src={LOGO_URL} width="180" height="40" alt="Korex Intelligence Systems" style={logo} />
+          <Img src={LOGO_URL} width="240" height="69" alt="Korex Intelligence Systems" style={logo} />
         </Section>
         <Hr style={divider} />
         <Heading style={h1}>You've been invited</Heading>
