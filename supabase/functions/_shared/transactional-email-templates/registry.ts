@@ -14,6 +14,7 @@ import { template as funnelStep2 } from './funnel-step-2-features.tsx'
 import { template as funnelStep3 } from './funnel-step-3-tutorial.tsx'
 import { template as funnelStep4 } from './funnel-step-4-social-proof.tsx'
 import { template as funnelStep5 } from './funnel-step-5-upgrade.tsx'
+import { template as contactFormNotification } from './contact-form-notification.tsx'
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'funnel-step-1-welcome': funnelStep1,
@@ -21,4 +22,5 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'funnel-step-3-tutorial': funnelStep3,
   'funnel-step-4-social-proof': funnelStep4,
   'funnel-step-5-upgrade': funnelStep5,
+  'contact-form-notification': contactFormNotification,
 }
