@@ -73,6 +73,24 @@ export default function Contact() {
 
       if (dbError) throw dbError;
 
+      // Send notification email (don't block success on email failure)
+      try {
+        await supabase.functions.invoke('send-transactional-email', {
+          body: {
+            templateName: 'contact-form-notification',
+            recipientEmail: 'korexintelligencesystems@gmail.com',
+            templateData: {
+              name: trimmedName,
+              email: trimmedEmail,
+              subject,
+              message: trimmedMessage,
+            },
+          },
+        });
+      } catch (emailErr) {
+        console.error('Failed to send contact notification email:', emailErr);
+      }
+
       recentSubmissions.push(now);
       sessionStorage.setItem('contact_submissions', JSON.stringify(recentSubmissions));
       setSubmitted(true);
