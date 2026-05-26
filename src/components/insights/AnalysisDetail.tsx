@@ -75,16 +75,21 @@ export function AnalysisDetail({ upload }: AnalysisDetailProps) {
 
   const getPlatformColor = (platform: string) => {
     const colors: Record<string, string> = {
-      instagram: 'bg-pink-500/20 text-pink-400',
-      facebook: 'bg-blue-500/20 text-blue-400',
-      twitter: 'bg-sky-500/20 text-sky-400',
-      tiktok: 'bg-slate-500/20 text-slate-300',
-      linkedin: 'bg-blue-600/20 text-blue-500',
-      youtube: 'bg-red-500/20 text-red-400',
-      google: 'bg-green-500/20 text-green-400',
+      instagram: 'bg-pink-500/20 text-pink-300 border-pink-500/30',
+      facebook: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
+      twitter: 'bg-sky-500/20 text-sky-300 border-sky-500/30',
+      tiktok: 'bg-slate-500/20 text-slate-200 border-slate-500/30',
+      linkedin: 'bg-blue-600/20 text-blue-300 border-blue-500/30',
+      youtube: 'bg-red-500/20 text-red-300 border-red-500/30',
+      google: 'bg-green-500/20 text-green-300 border-green-500/30',
+      shopify: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
+      pinterest: 'bg-rose-500/20 text-rose-300 border-rose-500/30',
     };
-    return colors[platform?.toLowerCase()] || 'bg-primary/20 text-primary';
+    const key = platform?.toLowerCase() || '';
+    const match = Object.keys(colors).find((k) => key.includes(k));
+    return match ? colors[match] : 'bg-muted text-foreground border-border';
   };
+
 
   const metrics = upload.extracted_data || {};
   

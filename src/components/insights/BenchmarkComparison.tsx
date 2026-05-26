@@ -75,7 +75,7 @@ export function BenchmarkComparison({ benchmark }: BenchmarkComparisonProps) {
       )}
 
       {/* Engagement Rate Comparison */}
-      {benchmark.engagement_rate_analysis?.user_rate !== null && (
+      {benchmark.engagement_rate_analysis && benchmark.engagement_rate_analysis.user_rate != null && (
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <Activity className="w-4 h-4 text-primary" />
@@ -113,7 +113,7 @@ export function BenchmarkComparison({ benchmark }: BenchmarkComparisonProps) {
       )}
 
       {/* Reach Rate */}
-      {benchmark.reach_rate_analysis?.user_reach_rate !== null && (
+      {benchmark.reach_rate_analysis && benchmark.reach_rate_analysis.user_reach_rate != null && (
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <Target className="w-4 h-4 text-primary" />
