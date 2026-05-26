@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Search, Book, Video, MessageCircle, ArrowLeft } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -158,6 +159,7 @@ export default function HelpCenter() {
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('All');
   const [selected, setSelected] = useState<Article | null>(null);
+  const navigate = useNavigate();
 
   const categories = ['All', ...Array.from(new Set(articles.map(a => a.category)))];
   
@@ -253,7 +255,7 @@ export default function HelpCenter() {
             </CardContent>
           </Card>
           
-          <Card className="cursor-pointer hover:border-primary transition-colors">
+          <Card className="cursor-pointer hover:border-primary transition-colors" onClick={() => navigate('/contact')}>
             <CardContent className="flex items-center gap-4 p-6">
               <div className="p-3 bg-primary/10 rounded-lg">
                 <MessageCircle className="w-6 h-6 text-primary" />
