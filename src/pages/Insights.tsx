@@ -284,25 +284,25 @@ export default function Insights() {
   };
 
   const getPlatformColor = (platform: string) => {
-    const colors: Record<string, string> = {
-      instagram: 'bg-pink-500/20 text-pink-400',
-      facebook: 'bg-blue-500/20 text-blue-400',
-      'facebook ads': 'bg-blue-600/20 text-blue-500',
-      twitter: 'bg-sky-500/20 text-sky-400',
-      tiktok: 'bg-slate-500/20 text-slate-300',
-      'tiktok ads': 'bg-slate-600/20 text-slate-400',
-      linkedin: 'bg-blue-600/20 text-blue-500',
-      'linkedin ads': 'bg-blue-700/20 text-blue-400',
-      google: 'bg-green-500/20 text-green-400',
-      'google ads': 'bg-green-600/20 text-green-500',
-      shopify: 'bg-emerald-500/20 text-emerald-400',
-      youtube: 'bg-red-500/20 text-red-400',
-      pinterest: 'bg-red-400/20 text-red-300',
-      snapchat: 'bg-yellow-500/20 text-yellow-400',
-      'microsoft ads': 'bg-cyan-500/20 text-cyan-400',
-      'amazon ads': 'bg-orange-500/20 text-orange-400',
+    const colorMap: Record<string, string> = {
+      instagram: 'bg-pink-500/20 text-pink-300 border-pink-500/30',
+      facebook: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
+      twitter: 'bg-sky-500/20 text-sky-300 border-sky-500/30',
+      tiktok: 'bg-slate-500/20 text-slate-200 border-slate-500/30',
+      linkedin: 'bg-blue-600/20 text-blue-300 border-blue-600/30',
+      google: 'bg-green-500/20 text-green-300 border-green-500/30',
+      shopify: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
+      youtube: 'bg-red-500/20 text-red-300 border-red-500/30',
+      pinterest: 'bg-red-400/20 text-red-200 border-red-400/30',
+      snapchat: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30',
+      microsoft: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30',
+      amazon: 'bg-orange-500/20 text-orange-300 border-orange-500/30',
     };
-    return colors[platform?.toLowerCase()] || 'bg-primary/20 text-primary';
+    const key = platform?.toLowerCase() || '';
+    for (const [k, v] of Object.entries(colorMap)) {
+      if (key.includes(k)) return v;
+    }
+    return 'bg-muted text-foreground border-border';
   };
 
   return (
