@@ -3,7 +3,7 @@ import {
   Copy, Edit, Sparkles, Clock, Eye, Heart, Hash, 
   ChevronDown, ChevronUp, Check, Image, Video, 
   FileText, Layout, MessageCircle, Share2, Bookmark,
-  Lightbulb, Target, Palette, AlertCircle, Zap, ThumbsUp
+  Lightbulb, Target, Palette, AlertCircle, Zap, ThumbsUp, Loader2, FlaskConical
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -13,6 +13,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/hooks/use-toast';
 import { StrategyPost } from '@/hooks/useStrategyGeneration';
 import { format } from 'date-fns';
+import { supabase } from '@/integrations/supabase/client';
+
+interface CaptionVariant {
+  label: string;
+  angle?: string;
+  hook?: string;
+  caption: string;
+}
 
 interface StrategyPostCardProps {
   post: StrategyPost;
