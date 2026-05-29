@@ -54,6 +54,41 @@ const confidenceColors: Record<string, string> = {
 export function StrategyPostCard({ post, onEdit, onAskAI }: StrategyPostCardProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [variants, setVariants] = useState<CaptionVariant[]>([]);
+  const [activeCaption, setActiveCaption] = useState<string>(post.caption);
+  const [loadingVariants, setLoadingVariants] = useState(false);
+
+  const generateVariants = async () => {
+    setLoadingVariants(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-caption-variants', {
+        body: {
+          caption: activeCaption,
+          hook: post.hook,
+          platform: (post as any).platform,
+          postType: post.post_type,
+          theme: post.theme,
+          contentCategory: post.content_category,
+        },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      const v: CaptionVariant[] = data?.variants || [];
+      if (!v.length) throw new Error('No variants returned');
+      setVariants(v);
+      toast({ title: 'A/B variants generated', description: 'Two alternative angles ready to compare.' });
+    } catch (e: any) {
+      toast({ title: 'Could not generate variants', description: e?.message || 'Try again in a moment.', variant: 'destructive' });
+    } finally {
+      setLoadingVariants(false);
+    }
+  };
+
+  const useVariant = (v: CaptionVariant) => {
+    setActiveCaption(v.caption);
+    toast({ title: `${v.label} applied`, description: 'Caption swapped in for this post.' });
+  };
+
 
   const copyToClipboard = async (text: string, field: string) => {
     await navigator.clipboard.writeText(text);
