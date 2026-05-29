@@ -3,7 +3,7 @@ import {
   Copy, Edit, Sparkles, Clock, Eye, Heart, Hash, 
   ChevronDown, ChevronUp, Check, Image, Video, 
   FileText, Layout, MessageCircle, Share2, Bookmark,
-  Lightbulb, Target, Palette, AlertCircle, Zap, ThumbsUp
+  Lightbulb, Target, Palette, AlertCircle, Zap, ThumbsUp, Loader2, FlaskConical
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -13,6 +13,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/hooks/use-toast';
 import { StrategyPost } from '@/hooks/useStrategyGeneration';
 import { format } from 'date-fns';
+import { supabase } from '@/integrations/supabase/client';
+
+interface CaptionVariant {
+  label: string;
+  angle?: string;
+  hook?: string;
+  caption: string;
+}
 
 interface StrategyPostCardProps {
   post: StrategyPost;
@@ -46,6 +54,41 @@ const confidenceColors: Record<string, string> = {
 export function StrategyPostCard({ post, onEdit, onAskAI }: StrategyPostCardProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [variants, setVariants] = useState<CaptionVariant[]>([]);
+  const [activeCaption, setActiveCaption] = useState<string>(post.caption);
+  const [loadingVariants, setLoadingVariants] = useState(false);
+
+  const generateVariants = async () => {
+    setLoadingVariants(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-caption-variants', {
+        body: {
+          caption: activeCaption,
+          hook: post.hook,
+          platform: (post as any).platform,
+          postType: post.post_type,
+          theme: post.theme,
+          contentCategory: post.content_category,
+        },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      const v: CaptionVariant[] = data?.variants || [];
+      if (!v.length) throw new Error('No variants returned');
+      setVariants(v);
+      toast({ title: 'A/B variants generated', description: 'Two alternative angles ready to compare.' });
+    } catch (e: any) {
+      toast({ title: 'Could not generate variants', description: e?.message || 'Try again in a moment.', variant: 'destructive' });
+    } finally {
+      setLoadingVariants(false);
+    }
+  };
+
+  const useVariant = (v: CaptionVariant) => {
+    setActiveCaption(v.caption);
+    toast({ title: `${v.label} applied`, description: 'Caption swapped in for this post.' });
+  };
+
 
   const copyToClipboard = async (text: string, field: string) => {
     await navigator.clipboard.writeText(text);
@@ -233,14 +276,99 @@ export function StrategyPostCard({ post, onEdit, onAskAI }: StrategyPostCardProp
 
                   {/* Caption */}
                   <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="text-sm font-semibold text-foreground">Full Caption</h4>
-                      <CopyButton text={post.caption} field="caption" label="Copy" />
+                    <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
+                      <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                        Full Caption
+                        {activeCaption !== post.caption && (
+                          <Badge variant="outline" className="text-[10px] text-primary border-primary/30">Variant active</Badge>
+                        )}
+                      </h4>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={generateVariants}
+                          disabled={loadingVariants}
+                          className="gap-1"
+                        >
+                          {loadingVariants ? (
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                          ) : (
+                            <FlaskConical className="w-3 h-3" />
+                          )}
+                          {variants.length ? 'Regenerate A/B' : 'Generate A/B variants'}
+                        </Button>
+                        <CopyButton text={activeCaption} field="caption" label="Copy" />
+                      </div>
                     </div>
                     <p className="text-sm text-muted-foreground whitespace-pre-line bg-muted/50 p-3 rounded-lg max-h-48 overflow-y-auto">
-                      {post.caption}
+                      {activeCaption}
                     </p>
+                    {activeCaption !== post.caption && (
+                      <button
+                        onClick={() => setActiveCaption(post.caption)}
+                        className="text-xs text-muted-foreground hover:text-foreground mt-1 underline"
+                      >
+                        Revert to original
+                      </button>
+                    )}
+
+                    {variants.length > 0 && (
+                      <div className="mt-3 space-y-2">
+                        <p className="text-xs text-muted-foreground uppercase tracking-wide">A/B Variants</p>
+                        <div className="grid gap-2 md:grid-cols-2">
+                          {variants.map((v, i) => {
+                            const isActive = activeCaption === v.caption;
+                            return (
+                              <div
+                                key={i}
+                                className={`p-3 rounded-lg border ${isActive ? 'border-primary bg-primary/5' : 'border-border bg-muted/30'}`}
+                              >
+                                <div className="flex items-center justify-between mb-1">
+                                  <Badge variant="outline" className="text-[10px]">{v.label}</Badge>
+                                  {v.angle && (
+                                    <span className="text-[10px] text-muted-foreground italic">{v.angle}</span>
+                                  )}
+                                </div>
+                                {v.hook && (
+                                  <p className="text-sm font-semibold text-foreground mb-1 leading-tight">"{v.hook}"</p>
+                                )}
+                                <p className="text-xs text-muted-foreground whitespace-pre-line max-h-32 overflow-y-auto">
+                                  {v.caption}
+                                </p>
+                                <div className="flex items-center gap-2 mt-2">
+                                  <Button
+                                    size="sm"
+                                    variant={isActive ? 'secondary' : 'default'}
+                                    className="h-7 text-xs gap-1"
+                                    onClick={() => useVariant(v)}
+                                    disabled={isActive}
+                                  >
+                                    <Check className="w-3 h-3" />
+                                    {isActive ? 'In use' : 'Use this'}
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    className="h-7 text-xs gap-1"
+                                    onClick={() => copyToClipboard(v.caption, `variant-${i}`)}
+                                  >
+                                    {copiedField === `variant-${i}` ? (
+                                      <Check className="w-3 h-3 text-green-500" />
+                                    ) : (
+                                      <Copy className="w-3 h-3" />
+                                    )}
+                                    Copy
+                                  </Button>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
                   </div>
+
 
                   {/* Hashtags with breakdown */}
                   {post.hashtags && post.hashtags.length > 0 && (
