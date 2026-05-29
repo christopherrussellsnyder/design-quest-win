@@ -515,7 +515,7 @@ const Index = () => {
                 <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-transform ${billingAnnual ? 'translate-x-6' : 'translate-x-0.5'}`} />
               </button>
               <span className={`text-sm ${billingAnnual ? 'text-white' : 'text-[#6B6B73]'}`}>Yearly</span>
-              {billingAnnual && <span className="text-xs bg-[#CC0000]/20 text-[#CC0000] px-2 py-0.5 rounded-full font-semibold">Save 2 months</span>}
+              <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${billingAnnual ? 'bg-[#CC0000]/20 text-[#CC0000]' : 'bg-[#CC0000]/10 text-[#CC0000]/70'}`}>2 months free</span>
             </div>
           </AnimatedSection>
 
