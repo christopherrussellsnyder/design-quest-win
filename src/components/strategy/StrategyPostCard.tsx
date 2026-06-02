@@ -218,7 +218,12 @@ export function StrategyPostCard({ post, onEdit, onAskAI }: StrategyPostCardProp
       }
       if (data?.error) {
         if (data.billing_required) {
-          toast({ title: 'Replicate credits required', description: data.error, variant: 'destructive' });
+          const fallbackUrl = await saveLocalVideoFallback(generatedImage);
+          setGeneratedVideo(fallbackUrl);
+          toast({
+            title: 'Video generated',
+            description: 'Saved with built-in motion rendering. Add Replicate credits for advanced AI video motion.',
+          });
         } else if (data.reconnect_required) {
           toast({ title: 'Reconnect Replicate', description: data.error, variant: 'destructive' });
         } else if (data.upgrade_required) {
