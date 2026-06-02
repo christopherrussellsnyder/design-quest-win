@@ -162,10 +162,7 @@ Deno.serve(async (req) => {
     // Download and persist to ai-videos bucket
     const videoRes = await fetch(videoUrl);
     if (!videoRes.ok) {
-      return new Response(JSON.stringify({ error: "Failed to download generated video" }), {
-        status: 502,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonResponse({ error: "Failed to download generated video" }, 502);
     }
     const videoBytes = new Uint8Array(await videoRes.arrayBuffer());
     const path = `${userId}/generated/${Date.now()}-${predId}.mp4`;
@@ -173,32 +170,29 @@ Deno.serve(async (req) => {
       .from("ai-videos")
       .upload(path, videoBytes, { contentType: "video/mp4", upsert: false });
     if (uploadErr) {
-      return new Response(JSON.stringify({ error: `Upload failed: ${uploadErr.message}` }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonResponse({ error: `Upload failed: ${uploadErr.message}` }, 500);
     }
     const { data: pub } = supabase.storage.from("ai-videos").getPublicUrl(path);
 
     // Best-effort: register in media_library if table exists
     try {
+      const filename = path.split("/").pop() || `${predId}.mp4`;
       await supabase.from("media_library").insert({
         user_id: userId,
-        url: pub.publicUrl,
-        type: "video",
-        source: "ai-generated",
-        prompt,
+        filename,
+        original_filename: filename,
+        file_type: "video",
+        mime_type: "video/mp4",
+        file_size: videoBytes.byteLength,
+        storage_url: pub.publicUrl,
+        title: "AI-generated post video",
+        description: prompt,
+        tags: ["ai-generated", "strategy-post"],
       });
     } catch (_) { /* ignore */ }
 
-    return new Response(JSON.stringify({ url: pub.publicUrl, prompt, predictionId: predId }), {
-      status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return jsonResponse({ url: pub.publicUrl, prompt, predictionId: predId });
   } catch (e: any) {
-    return new Response(JSON.stringify({ error: e?.message || "Unexpected error" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return jsonResponse({ error: e?.message || "Unexpected error" }, 500);
   }
 });
