@@ -237,7 +237,22 @@ export function StrategyPostCard({ post, onEdit, onAskAI }: StrategyPostCardProp
       setGeneratedVideo(data.url);
       toast({ title: 'Video generated', description: 'Saved to your Media Library.' });
     } catch (e: any) {
-      toast({ title: 'Could not generate video', description: e?.message || 'Try again in a moment.', variant: 'destructive' });
+      const message = e?.message || 'Try again in a moment.';
+      if (generatedImage && /insufficient credit|replicate error:\s*402|status\":402|\b402\b/i.test(message)) {
+        try {
+          const fallbackUrl = await saveLocalVideoFallback(generatedImage);
+          setGeneratedVideo(fallbackUrl);
+          toast({
+            title: 'Video generated',
+            description: 'Saved with built-in motion rendering. Add Replicate credits for advanced AI video motion.',
+          });
+          return;
+        } catch (fallbackError: any) {
+          toast({ title: 'Could not generate video', description: fallbackError?.message || message, variant: 'destructive' });
+          return;
+        }
+      }
+      toast({ title: 'Could not generate video', description: message, variant: 'destructive' });
     } finally {
       setGeneratingVideo(false);
     }
