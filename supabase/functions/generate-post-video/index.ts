@@ -1,5 +1,5 @@
 // Generate an AI video for a strategy post via Replicate (image-to-video).
-// Gated to Pro/Agency tier. Uploads result to the ai-videos bucket.
+// Uploads result to the ai-videos bucket.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
@@ -8,6 +8,46 @@ const corsHeaders = {
 };
 
 const GATEWAY = "https://connector-gateway.lovable.dev/replicate/v1";
+
+function jsonResponse(body: Record<string, unknown>, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
+function extractProviderMessage(status: number, text: string) {
+  try {
+    const parsed = JSON.parse(text);
+    return parsed.detail || parsed.message || parsed.title || text;
+  } catch (_) {
+    return text;
+  }
+}
+
+function providerErrorResponse(status: number, text: string) {
+  const providerMessage = extractProviderMessage(status, text);
+  if (status === 402) {
+    return jsonResponse({
+      error: "The connected Replicate account has insufficient credits to render this video. Add credits to that Replicate account, wait a few minutes, then click Animate to video again.",
+      billing_required: true,
+      provider_status: status,
+      provider_message: providerMessage,
+    });
+  }
+  if (status === 401 || status === 403) {
+    return jsonResponse({
+      error: "The Replicate connection could not be authorized. Reconnect Replicate, then try again.",
+      reconnect_required: true,
+      provider_status: status,
+      provider_message: providerMessage,
+    });
+  }
+  return jsonResponse({
+    error: `Replicate could not start the video render: ${providerMessage}`,
+    provider_status: status,
+  });
+}
 
 function buildVideoPrompt(input: {
   caption?: string;
@@ -39,10 +79,7 @@ Deno.serve(async (req) => {
     const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
     if (!LOVABLE_API_KEY || !REPLICATE_API_KEY) {
-      return new Response(JSON.stringify({ error: "Replicate connector not configured" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonResponse({ error: "Replicate connector not configured" }, 500);
     }
 
     const authHeader = req.headers.get("Authorization") || "";
@@ -50,10 +87,7 @@ Deno.serve(async (req) => {
     const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
     const { data: userData, error: userErr } = await supabase.auth.getUser(token);
     if (userErr || !userData?.user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonResponse({ error: "Unauthorized" }, 401);
     }
     const userId = userData.user.id;
 
@@ -67,10 +101,7 @@ Deno.serve(async (req) => {
     } = body || {};
 
     if (!imageUrl || typeof imageUrl !== "string") {
-      return new Response(JSON.stringify({ error: "imageUrl is required (generate an image first)" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonResponse({ error: "imageUrl is required (generate an image first)" }, 400);
     }
 
     const prompt = buildVideoPrompt({ caption, hook, theme, visualDescription, motionPrompt });
@@ -90,19 +121,13 @@ Deno.serve(async (req) => {
 
     if (!createRes.ok) {
       const errText = await createRes.text();
-      return new Response(JSON.stringify({ error: `Replicate error: ${createRes.status} ${errText}` }), {
-        status: 502,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return providerErrorResponse(createRes.status, errText);
     }
 
     const created = await createRes.json();
     const predId = created.id;
     if (!predId) {
-      return new Response(JSON.stringify({ error: "No prediction id returned" }), {
-        status: 502,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonResponse({ error: "No prediction id returned" }, 502);
     }
 
     // Poll for up to ~3 minutes
@@ -121,35 +146,23 @@ Deno.serve(async (req) => {
       status = p.status;
       if (status === "succeeded") { output = p.output; break; }
       if (status === "failed" || status === "canceled") {
-        return new Response(JSON.stringify({ error: `Generation ${status}: ${p.error || "unknown"}` }), {
-          status: 502,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return jsonResponse({ error: `Generation ${status}: ${p.error || "unknown"}` }, 502);
       }
     }
 
     if (!output) {
-      return new Response(JSON.stringify({ error: "Video generation timed out. Please try again." }), {
-        status: 504,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonResponse({ error: "Video generation timed out. Please try again." }, 504);
     }
 
     const videoUrl = Array.isArray(output) ? output[0] : output;
     if (!videoUrl || typeof videoUrl !== "string") {
-      return new Response(JSON.stringify({ error: "Invalid output from Replicate" }), {
-        status: 502,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonResponse({ error: "Invalid output from Replicate" }, 502);
     }
 
     // Download and persist to ai-videos bucket
     const videoRes = await fetch(videoUrl);
     if (!videoRes.ok) {
-      return new Response(JSON.stringify({ error: "Failed to download generated video" }), {
-        status: 502,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonResponse({ error: "Failed to download generated video" }, 502);
     }
     const videoBytes = new Uint8Array(await videoRes.arrayBuffer());
     const path = `${userId}/generated/${Date.now()}-${predId}.mp4`;
@@ -157,32 +170,29 @@ Deno.serve(async (req) => {
       .from("ai-videos")
       .upload(path, videoBytes, { contentType: "video/mp4", upsert: false });
     if (uploadErr) {
-      return new Response(JSON.stringify({ error: `Upload failed: ${uploadErr.message}` }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonResponse({ error: `Upload failed: ${uploadErr.message}` }, 500);
     }
     const { data: pub } = supabase.storage.from("ai-videos").getPublicUrl(path);
 
     // Best-effort: register in media_library if table exists
     try {
+      const filename = path.split("/").pop() || `${predId}.mp4`;
       await supabase.from("media_library").insert({
         user_id: userId,
-        url: pub.publicUrl,
-        type: "video",
-        source: "ai-generated",
-        prompt,
+        filename,
+        original_filename: filename,
+        file_type: "video",
+        mime_type: "video/mp4",
+        file_size: videoBytes.byteLength,
+        storage_url: pub.publicUrl,
+        title: "AI-generated post video",
+        description: prompt,
+        tags: ["ai-generated", "strategy-post"],
       });
     } catch (_) { /* ignore */ }
 
-    return new Response(JSON.stringify({ url: pub.publicUrl, prompt, predictionId: predId }), {
-      status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return jsonResponse({ url: pub.publicUrl, prompt, predictionId: predId });
   } catch (e: any) {
-    return new Response(JSON.stringify({ error: e?.message || "Unexpected error" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return jsonResponse({ error: e?.message || "Unexpected error" }, 500);
   }
 });
