@@ -1,5 +1,5 @@
 // Generate an AI video for a strategy post via Replicate (image-to-video).
-// Gated to Pro/Agency tier. Uploads result to the ai-videos bucket.
+// Uploads result to the ai-videos bucket.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
@@ -8,6 +8,46 @@ const corsHeaders = {
 };
 
 const GATEWAY = "https://connector-gateway.lovable.dev/replicate/v1";
+
+function jsonResponse(body: Record<string, unknown>, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
+function extractProviderMessage(status: number, text: string) {
+  try {
+    const parsed = JSON.parse(text);
+    return parsed.detail || parsed.message || parsed.title || text;
+  } catch (_) {
+    return text;
+  }
+}
+
+function providerErrorResponse(status: number, text: string) {
+  const providerMessage = extractProviderMessage(status, text);
+  if (status === 402) {
+    return jsonResponse({
+      error: "The connected Replicate account has insufficient credits to render this video. Add credits to that Replicate account, wait a few minutes, then click Animate to video again.",
+      billing_required: true,
+      provider_status: status,
+      provider_message: providerMessage,
+    });
+  }
+  if (status === 401 || status === 403) {
+    return jsonResponse({
+      error: "The Replicate connection could not be authorized. Reconnect Replicate, then try again.",
+      reconnect_required: true,
+      provider_status: status,
+      provider_message: providerMessage,
+    });
+  }
+  return jsonResponse({
+    error: `Replicate could not start the video render: ${providerMessage}`,
+    provider_status: status,
+  });
+}
 
 function buildVideoPrompt(input: {
   caption?: string;
