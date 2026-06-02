@@ -61,6 +61,47 @@ export function StrategyPostCard({ post, onEdit, onAskAI }: StrategyPostCardProp
   const [generatingImage, setGeneratingImage] = useState(false);
   const [stylePrompt, setStylePrompt] = useState('');
   const [showStyleInput, setShowStyleInput] = useState(false);
+  const [generatedVideo, setGeneratedVideo] = useState<string | null>(null);
+  const [generatingVideo, setGeneratingVideo] = useState(false);
+  const [motionPrompt, setMotionPrompt] = useState('');
+  const [showMotionInput, setShowMotionInput] = useState(false);
+
+  const generateVideo = async () => {
+    if (!generatedImage) {
+      toast({ title: 'Generate an image first', description: 'Video animates the AI-generated image.', variant: 'destructive' });
+      return;
+    }
+    setGeneratingVideo(true);
+    try {
+      const vg: any = post.visual_guidance || {};
+      const { data, error } = await supabase.functions.invoke('generate-post-video', {
+        body: {
+          imageUrl: generatedImage,
+          caption: activeCaption,
+          hook: post.hook,
+          theme: post.theme,
+          visualDescription: vg.description,
+          motionPrompt: motionPrompt || undefined,
+        },
+      });
+      if (error) throw error;
+      if (data?.error) {
+        if (data.upgrade_required) {
+          toast({ title: 'Pro/Agency only', description: data.error, variant: 'destructive' });
+        } else {
+          throw new Error(data.error);
+        }
+        return;
+      }
+      if (!data?.url) throw new Error('No video URL returned');
+      setGeneratedVideo(data.url);
+      toast({ title: 'Video generated', description: 'Saved to your Media Library.' });
+    } catch (e: any) {
+      toast({ title: 'Could not generate video', description: e?.message || 'Try again in a moment.', variant: 'destructive' });
+    } finally {
+      setGeneratingVideo(false);
+    }
+  };
 
   const generateImage = async () => {
     setGeneratingImage(true);
