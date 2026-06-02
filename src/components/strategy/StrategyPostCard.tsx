@@ -28,6 +28,19 @@ interface StrategyPostCardProps {
   onAskAI?: (post: StrategyPost) => void;
 }
 
+const getFunctionErrorMessage = async (error: any, fallback: string) => {
+  const context = error?.context;
+  if (context && typeof context.json === 'function') {
+    try {
+      const payload = await context.clone().json();
+      return payload?.error || payload?.message || fallback;
+    } catch (_) {
+      // Fall through to the SDK message below.
+    }
+  }
+  return error?.message || fallback;
+};
+
 const postTypeIcons: Record<string, React.ReactNode> = {
   carousel: <Layout className="w-4 h-4" />,
   reel: <Video className="w-4 h-4" />,
@@ -84,9 +97,15 @@ export function StrategyPostCard({ post, onEdit, onAskAI }: StrategyPostCardProp
           motionPrompt: motionPrompt || undefined,
         },
       });
-      if (error) throw error;
+      if (error) {
+        throw new Error(await getFunctionErrorMessage(error, 'Video generation failed.'));
+      }
       if (data?.error) {
-        if (data.upgrade_required) {
+        if (data.billing_required) {
+          toast({ title: 'Replicate credits required', description: data.error, variant: 'destructive' });
+        } else if (data.reconnect_required) {
+          toast({ title: 'Reconnect Replicate', description: data.error, variant: 'destructive' });
+        } else if (data.upgrade_required) {
           toast({ title: 'Pro/Agency only', description: data.error, variant: 'destructive' });
         } else {
           throw new Error(data.error);
