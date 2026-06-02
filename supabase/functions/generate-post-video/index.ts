@@ -57,23 +57,8 @@ Deno.serve(async (req) => {
     }
     const userId = userData.user.id;
 
-    // Gate to Pro/Agency tier
-    const { data: sub } = await supabase
-      .from("subscriptions")
-      .select("plan_type,status")
-      .eq("user_id", userId)
-      .maybeSingle();
-    const tier = (sub?.plan_type || "").toLowerCase();
-    const isPaid = sub?.status === "active" && (tier === "pro" || tier === "agency");
-    if (!isPaid) {
-      return new Response(JSON.stringify({
-        error: "Video generation is a Pro/Agency feature. Upgrade to animate your posts.",
-        upgrade_required: true,
-      }), {
-        status: 402,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    // Note: tier gating disabled for now — open to all authenticated users.
+
 
     const body = await req.json();
     const {
