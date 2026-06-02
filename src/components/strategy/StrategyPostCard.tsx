@@ -118,6 +118,45 @@ const renderMotionVideoBlob = async (imageUrl: string) => {
   return done;
 };
 
+const saveLocalVideoFallback = async (imageUrl: string) => {
+  const { data: userResult, error: userError } = await supabase.auth.getUser();
+  const user = userResult?.user;
+  if (userError || !user) throw new Error('Please sign in before generating video.');
+
+  const videoBlob = await renderMotionVideoBlob(imageUrl);
+  const fileName = `${user.id}/${Date.now()}_ai_motion_video.webm`;
+  const { error: uploadError } = await supabase.storage
+    .from('media')
+    .upload(fileName, videoBlob, {
+      contentType: videoBlob.type || 'video/webm',
+      upsert: false,
+      cacheControl: '3600',
+    });
+  if (uploadError) throw uploadError;
+
+  const { data: publicUrl } = supabase.storage.from('media').getPublicUrl(fileName);
+  const url = publicUrl.publicUrl;
+  const originalFilename = fileName.split('/').pop() || 'ai_motion_video.webm';
+
+  await supabase.from('media_library').insert({
+    user_id: user.id,
+    filename: originalFilename,
+    original_filename: originalFilename,
+    file_type: 'video',
+    mime_type: videoBlob.type || 'video/webm',
+    file_size: videoBlob.size,
+    storage_url: url,
+    title: 'AI motion video',
+    description: 'Animated from an AI-generated post image.',
+    tags: ['ai-generated', 'strategy-post'],
+    times_used: 0,
+    avg_engagement_rate: 0,
+    total_impressions: 0,
+  });
+
+  return url;
+};
+
 const postTypeIcons: Record<string, React.ReactNode> = {
   carousel: <Layout className="w-4 h-4" />,
   reel: <Video className="w-4 h-4" />,
