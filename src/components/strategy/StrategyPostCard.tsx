@@ -41,6 +41,83 @@ const getFunctionErrorMessage = async (error: any, fallback: string) => {
   return error?.message || fallback;
 };
 
+const loadCanvasImage = (url: string) => new Promise<HTMLImageElement>((resolve, reject) => {
+  const img = new window.Image();
+  img.crossOrigin = 'anonymous';
+  img.onload = () => resolve(img);
+  img.onerror = () => reject(new Error('Could not load the generated image for animation.'));
+  img.src = url;
+});
+
+const renderMotionVideoBlob = async (imageUrl: string) => {
+  if (!('MediaRecorder' in window)) {
+    throw new Error('This browser cannot render the fallback video format.');
+  }
+
+  const image = await loadCanvasImage(imageUrl);
+  const canvas = document.createElement('canvas');
+  canvas.width = 1080;
+  canvas.height = 1080;
+  const context = canvas.getContext('2d');
+  if (!context) throw new Error('Could not prepare the video renderer.');
+
+  const stream = canvas.captureStream(30);
+  const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
+    ? 'video/webm;codecs=vp9'
+    : 'video/webm';
+  const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 2800000 });
+  const chunks: BlobPart[] = [];
+  recorder.ondataavailable = (event) => {
+    if (event.data.size > 0) chunks.push(event.data);
+  };
+
+  const done = new Promise<Blob>((resolve, reject) => {
+    recorder.onerror = () => reject(new Error('Video rendering failed.'));
+    recorder.onstop = () => resolve(new Blob(chunks, { type: mimeType }));
+  });
+
+  const durationMs = 6500;
+  const startedAt = performance.now();
+  recorder.start(250);
+
+  const draw = (now: number) => {
+    const progress = Math.min((now - startedAt) / durationMs, 1);
+    const eased = 0.5 - Math.cos(progress * Math.PI) / 2;
+    const cover = Math.max(canvas.width / image.width, canvas.height / image.height);
+    const scale = cover * (1.05 + eased * 0.12);
+    const width = image.width * scale;
+    const height = image.height * scale;
+    const panX = Math.sin(progress * Math.PI * 1.2) * canvas.width * 0.025;
+    const panY = (eased - 0.5) * canvas.height * 0.05;
+
+    context.fillStyle = 'hsl(0 0% 4%)';
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.drawImage(
+      image,
+      (canvas.width - width) / 2 + panX,
+      (canvas.height - height) / 2 + panY,
+      width,
+      height,
+    );
+
+    const vignette = context.createRadialGradient(540, 500, 260, 540, 540, 760);
+    vignette.addColorStop(0, 'hsl(0 0% 0% / 0)');
+    vignette.addColorStop(1, 'hsl(0 0% 0% / 0.34)');
+    context.fillStyle = vignette;
+    context.fillRect(0, 0, canvas.width, canvas.height);
+
+    if (progress < 1) {
+      requestAnimationFrame(draw);
+    } else {
+      recorder.stop();
+      stream.getTracks().forEach((track) => track.stop());
+    }
+  };
+
+  requestAnimationFrame(draw);
+  return done;
+};
+
 const postTypeIcons: Record<string, React.ReactNode> = {
   carousel: <Layout className="w-4 h-4" />,
   reel: <Video className="w-4 h-4" />,
