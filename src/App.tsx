@@ -39,6 +39,9 @@ const AuthConfirm = lazy(() => import("./pages/AuthConfirm"));
 const Unsubscribe = lazy(() => import("./pages/Unsubscribe"));
 
 import { EmailFunnelOptInPrompt } from "@/components/EmailFunnelOptInPrompt";
+import { LaunchBanner } from "@/components/LaunchBanner";
+import { SupportWidget } from "@/components/SupportWidget";
+
 
 
 const queryClient = new QueryClient();
