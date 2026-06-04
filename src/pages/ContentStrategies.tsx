@@ -173,11 +173,15 @@ export default function ContentStrategies() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Sidebar - Strategy Overview */}
               <div className="lg:col-span-1">
-                <div className="sticky top-24">
+                <div className="sticky top-24 space-y-4">
                   <StrategyOverviewCard
                     strategy={selectedStrategy.strategy}
                     postsCount={selectedStrategy.posts.length}
                     onExportCSV={() => exportStrategyToCSV(selectedStrategy.strategy, selectedStrategy.posts)}
+                  />
+                  <CampaignStructureCard
+                    data={(selectedStrategy.strategy as any).recommended_campaign_structure}
+                    platform={selectedStrategy.strategy.platform}
                   />
                 </div>
               </div>
