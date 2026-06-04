@@ -107,8 +107,11 @@ const App = () => (
           <AuthProvider>
             <SubscriptionProvider>
             <AnalyticsTracker>
+              <LaunchBanner />
               <EmailFunnelOptInPrompt />
+              <SupportWidget />
               <Suspense fallback={<LoadingFallback />}>
+
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/login" element={<Login />} />
