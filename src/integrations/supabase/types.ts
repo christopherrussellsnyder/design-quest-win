@@ -1709,6 +1709,60 @@ export type Database = {
         }
         Relationships: []
       }
+      campaign_intelligence_signals: {
+        Row: {
+          alternative_to_test: string | null
+          audience_approach: string | null
+          budget_split: Json | null
+          confidence_score: number | null
+          created_at: string
+          creative_volume: string | null
+          id: string
+          niche: string
+          platform: string
+          profit_margin_trend: string | null
+          rationale: string | null
+          recommended_structure: string
+          refreshed_at: string
+          roas_trend: string | null
+          sources: Json | null
+        }
+        Insert: {
+          alternative_to_test?: string | null
+          audience_approach?: string | null
+          budget_split?: Json | null
+          confidence_score?: number | null
+          created_at?: string
+          creative_volume?: string | null
+          id?: string
+          niche: string
+          platform: string
+          profit_margin_trend?: string | null
+          rationale?: string | null
+          recommended_structure: string
+          refreshed_at?: string
+          roas_trend?: string | null
+          sources?: Json | null
+        }
+        Update: {
+          alternative_to_test?: string | null
+          audience_approach?: string | null
+          budget_split?: Json | null
+          confidence_score?: number | null
+          created_at?: string
+          creative_volume?: string | null
+          id?: string
+          niche?: string
+          platform?: string
+          profit_margin_trend?: string | null
+          rationale?: string | null
+          recommended_structure?: string
+          refreshed_at?: string
+          roas_trend?: string | null
+          sources?: Json | null
+        }
+        Relationships: []
+      }
       campaign_performance_tracking: {
         Row: {
           campaign_id: string | null
@@ -2601,6 +2655,7 @@ export type Database = {
           predicted_impressions: number | null
           predicted_metrics: Json | null
           predicted_website_clicks: number | null
+          recommended_campaign_structure: Json | null
           risk_assessment: Json | null
           start_date: string
           strategic_approach: Json | null
@@ -2628,6 +2683,7 @@ export type Database = {
           predicted_impressions?: number | null
           predicted_metrics?: Json | null
           predicted_website_clicks?: number | null
+          recommended_campaign_structure?: Json | null
           risk_assessment?: Json | null
           start_date: string
           strategic_approach?: Json | null
@@ -2655,6 +2711,7 @@ export type Database = {
           predicted_impressions?: number | null
           predicted_metrics?: Json | null
           predicted_website_clicks?: number | null
+          recommended_campaign_structure?: Json | null
           risk_assessment?: Json | null
           start_date?: string
           strategic_approach?: Json | null
@@ -4104,6 +4161,36 @@ export type Database = {
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
           trial_end?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      support_conversations: {
+        Row: {
+          created_at: string
+          escalated: boolean
+          escalated_at: string | null
+          id: string
+          messages: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          escalated?: boolean
+          escalated_at?: string | null
+          id?: string
+          messages?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          escalated?: boolean
+          escalated_at?: string | null
+          id?: string
+          messages?: Json
           updated_at?: string
           user_id?: string
         }
