@@ -25,6 +25,16 @@ interface BusinessCtx {
   uvp: string;
   geoFocus: string;
 }
+function normalizePlatformForIntel(p: string): string {
+  const s = (p || '').toLowerCase();
+  if (s.includes('facebook') || s.includes('meta') || s.includes('instagram')) return 'meta';
+  if (s.includes('tiktok')) return 'tiktok';
+  if (s.includes('linkedin')) return 'linkedin';
+  if (s.includes('google') || s.includes('youtube')) return 'google';
+  if (s.includes('twitter') || s === 'x') return 'twitter';
+  return 'meta';
+}
+
 
 function getBusinessContext(businessContext: any, userSettings: any, businessInfo: any): BusinessCtx {
   // Priority: userSettings > businessInfo > businessContext
