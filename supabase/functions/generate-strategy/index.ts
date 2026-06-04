@@ -460,6 +460,7 @@ serve(async (req) => {
         success_milestones: overview.success_milestones,
         risk_assessment: overview.risk_assessment,
         implementation_guide: overview.implementation_guide,
+        recommended_campaign_structure: overview.recommended_campaign_structure || null,
         post_type_distribution: overview.post_type_distribution,
         theme_distribution: overview.content_mix,
         predicted_impressions: predictedMetrics.total_impressions,
