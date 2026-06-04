@@ -30,6 +30,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { useStrategyGeneration, StrategyPost, StrategyOverview } from '@/hooks/useStrategyGeneration';
 import { StrategyOverviewCard } from '@/components/strategy/StrategyOverviewCard';
+import { CampaignStructureCard } from '@/components/strategy/CampaignStructureCard';
 import { StrategyPostCard } from '@/components/strategy/StrategyPostCard';
 import { StrategyCalendarView } from '@/components/strategy/StrategyCalendarView';
 import { exportStrategyToCSV, exportStrategyToJSON } from '@/components/strategy/StrategyExport';
