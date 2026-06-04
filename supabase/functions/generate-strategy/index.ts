@@ -57,7 +57,7 @@ function getBusinessContext(businessContext: any, userSettings: any, businessInf
   };
 }
 
-function buildOverviewPrompt(ctx: BusinessCtx, platform: string, durationDays: number, goals: string[], analyticsSection: string, customInstructions?: string): string {
+function buildOverviewPrompt(ctx: BusinessCtx, platform: string, durationDays: number, goals: string[], analyticsSection: string, intelligenceSection: string, customInstructions?: string): string {
   const startDate = new Date();
   const endDate = new Date(startDate);
   endDate.setDate(endDate.getDate() + durationDays);
@@ -68,11 +68,14 @@ ${ctx.products ? `Products: ${ctx.products}` : ''}
 ${ctx.competitors ? `Competitors: ${ctx.competitors}` : ''}
 ${ctx.uvp ? `UVP: ${ctx.uvp}` : ''}
 ${analyticsSection}
+${intelligenceSection}
 Goals: ${goals.join(', ')}
 ${customInstructions ? `Special requirements: ${customInstructions}` : ''}
 
 Use 4-week arc: Week1=Awareness, Week2=Engagement, Week3=Consideration, Week4=Conversion.
 Content mix: 30% educational, 25% promotional, 20% engagement, 15% social proof, 10% behind-scenes.
+
+You MUST also produce a "recommended_campaign_structure" section advising the user on which paid ad campaign optimization type to run on ${platform} (CBO, ABO, Advantage+, manual, etc.), grounded in (1) their business profile + goals AND (2) the live platform intelligence above about what's currently driving the best ROAS / profit margins in their niche. Be specific and prescriptive.
 
 Return ONLY valid JSON (no markdown):
 {
@@ -91,7 +94,18 @@ Return ONLY valid JSON (no markdown):
     "key_tactics": ["string"],
     "success_milestones": {"week_1":"string","week_2":"string","week_3":"string","week_4":"string"},
     "risk_assessment": {"potential_challenges":["string"],"mitigation_strategies":["string"],"pivot_triggers":["string"]},
-    "implementation_guide": {"posting_schedule":"string","content_creation_timeline":"string","engagement_protocol":"string","monitoring_schedule":"string","adjustment_criteria":"string"}
+    "implementation_guide": {"posting_schedule":"string","content_creation_timeline":"string","engagement_protocol":"string","monitoring_schedule":"string","adjustment_criteria":"string"},
+    "recommended_campaign_structure": {
+      "structure_type": "CBO | ABO | Advantage+ | Manual | Hybrid",
+      "rationale": "2-3 sentence explanation tying business profile + niche performance signals to this choice",
+      "budget_split": {"prospecting": 70, "retargeting": 30},
+      "audience_approach": "string describing audience targeting strategy",
+      "creative_volume": "string (e.g. '3-5 creatives per ad set, refresh every 7 days')",
+      "why_this_works_in_your_niche": "string citing the current niche performance trend",
+      "roas_trend_signal": "string (e.g. 'CBO outperforming ABO by 18% in ${ctx.industry} this quarter')",
+      "alternative_to_test": "string describing a secondary structure to A/B test against",
+      "first_30_day_action_plan": "string (e.g. 'Launch 1 CBO with 3 ad sets...')"
+    }
   },
   "weekly_breakdown": [
     {"week":1,"theme":"string","objective":"string","post_count":7,"key_messages":["string"],"expected_metrics":{"reach":0,"engagement_rate":0,"follower_growth":0},"focus_areas":["string"]},
