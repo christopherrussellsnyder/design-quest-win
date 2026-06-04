@@ -316,9 +316,29 @@ serve(async (req) => {
 
     const systemPrompt = 'You are a world-class content strategist. Generate detailed, actionable content strategies. Always respond with valid JSON only, no markdown formatting or code blocks.';
 
+    // Fetch matching campaign intelligence signals for platform+niche
+    const niche = (ctx.industry || 'general').toLowerCase().trim();
+    const { data: intelSignals } = await supabase
+      .from('campaign_intelligence_signals')
+      .select('*')
+      .eq('platform', normalizePlatformForIntel(platform))
+      .in('niche', [niche, 'general'])
+      .order('refreshed_at', { ascending: false })
+      .limit(2);
+
+    let intelligenceSection = '';
+    if (intelSignals && intelSignals.length > 0) {
+      const lines = intelSignals.map((s: any) => 
+        `- ${s.platform.toUpperCase()} / ${s.niche}: ${s.recommended_structure} currently outperforming. Confidence ${s.confidence_score}/10. ROAS trend: ${s.roas_trend || 'n/a'}. Profit-margin trend: ${s.profit_margin_trend || 'n/a'}. Rationale: ${s.rationale || ''}. Audience: ${s.audience_approach || ''}. Creative: ${s.creative_volume || ''}. Alt to test: ${s.alternative_to_test || ''}.`
+      );
+      intelligenceSection = `Live Platform Intelligence (refreshed ${new Date(intelSignals[0].refreshed_at).toISOString().split('T')[0]}):\n${lines.join('\n')}\n\nUse this intelligence to ground the recommended_campaign_structure section in current platform reality, not generic best practices.`;
+    } else {
+      intelligenceSection = `Live Platform Intelligence: No fresh niche-specific signals available; recommend based on general best practices for ${platform} in ${ctx.industry}.`;
+    }
+
     // ========== STEP 1: Generate strategy overview ==========
     console.log('Step 1: Generating strategy overview...');
-    const overviewPrompt = buildOverviewPrompt(ctx, platform, durationDays, effectiveGoals, analyticsSection, customInstructions);
+    const overviewPrompt = buildOverviewPrompt(ctx, platform, durationDays, effectiveGoals, analyticsSection, intelligenceSection, customInstructions);
     const overviewText = await callAI(LOVABLE_API_KEY, overviewPrompt, systemPrompt, 8000);
     
     let overviewData: any;
