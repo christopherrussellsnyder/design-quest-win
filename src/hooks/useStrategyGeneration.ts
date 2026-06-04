@@ -75,6 +75,7 @@ export interface StrategyOverview {
   implementation_guide?: ImplementationGuide | null;
   post_type_distribution?: Record<string, number> | null;
   theme_distribution?: Record<string, number> | null;
+  recommended_campaign_structure?: Record<string, any> | null;
   version?: number;
 }
 
