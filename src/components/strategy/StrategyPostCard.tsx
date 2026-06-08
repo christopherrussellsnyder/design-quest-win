@@ -75,73 +75,8 @@ export function StrategyPostCard({ post, onEdit, onAskAI }: StrategyPostCardProp
   const [generatingImage, setGeneratingImage] = useState(false);
   const [stylePrompt, setStylePrompt] = useState('');
   const [showStyleInput, setShowStyleInput] = useState(false);
-  const [generatedVideo, setGeneratedVideo] = useState<string | null>(null);
-  const [generatingVideo, setGeneratingVideo] = useState(false);
-  const [motionPrompt, setMotionPrompt] = useState('');
-  const [showMotionInput, setShowMotionInput] = useState(false);
 
-  const generateVideo = async () => {
-    if (!generatedImage) {
-      toast({ title: 'Generate an image first', description: 'Video animates the AI-generated image.', variant: 'destructive' });
-      return;
-    }
-    setGeneratingVideo(true);
-    try {
-      const vg: any = post.visual_guidance || {};
-      const { data, error } = await supabase.functions.invoke('generate-post-video', {
-        body: {
-          imageUrl: generatedImage,
-          caption: activeCaption,
-          hook: post.hook,
-          theme: post.theme,
-          visualDescription: vg.description,
-          motionPrompt: motionPrompt || undefined,
-        },
-      });
-      if (error) {
-        throw new Error(await getFunctionErrorMessage(error, 'Video generation failed.'));
-      }
-      if (data?.error) {
-        if (data.billing_required) {
-          const fallbackUrl = await saveLocalVideoFallback(generatedImage);
-          setGeneratedVideo(fallbackUrl);
-          toast({
-            title: 'Video generated',
-            description: 'Saved with built-in motion rendering. Add Replicate credits for advanced AI video motion.',
-          });
-        } else if (data.reconnect_required) {
-          toast({ title: 'Reconnect Replicate', description: data.error, variant: 'destructive' });
-        } else if (data.upgrade_required) {
-          toast({ title: 'Pro/Agency only', description: data.error, variant: 'destructive' });
-        } else {
-          throw new Error(data.error);
-        }
-        return;
-      }
-      if (!data?.url) throw new Error('No video URL returned');
-      setGeneratedVideo(data.url);
-      toast({ title: 'Video generated', description: 'Saved to your Media Library.' });
-    } catch (e: any) {
-      const message = e?.message || 'Try again in a moment.';
-      if (generatedImage && /insufficient credit|replicate error:\s*402|status\":402|\b402\b/i.test(message)) {
-        try {
-          const fallbackUrl = await saveLocalVideoFallback(generatedImage);
-          setGeneratedVideo(fallbackUrl);
-          toast({
-            title: 'Video generated',
-            description: 'Saved with built-in motion rendering. Add Replicate credits for advanced AI video motion.',
-          });
-          return;
-        } catch (fallbackError: any) {
-          toast({ title: 'Could not generate video', description: fallbackError?.message || message, variant: 'destructive' });
-          return;
-        }
-      }
-      toast({ title: 'Could not generate video', description: message, variant: 'destructive' });
-    } finally {
-      setGeneratingVideo(false);
-    }
-  };
+
 
   const generateImage = async () => {
     setGeneratingImage(true);
