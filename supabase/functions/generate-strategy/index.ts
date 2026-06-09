@@ -24,6 +24,18 @@ interface BusinessCtx {
   competitors: string;
   uvp: string;
   geoFocus: string;
+  // Rich audience demographics (anti-oversaturation)
+  ageRange: string;
+  genderSplit: string;
+  incomeLevel: string;
+  educationLevels: string;
+  painPoints: string;
+  buyingBehavior: string;
+  clv: string;
+  // Product differentiation (anti-oversaturation)
+  competitiveAdvantage: string;
+  brandValues: string;
+  contentRestrictions: string;
 }
 function normalizePlatformForIntel(p: string): string {
   const s = (p || '').toLowerCase();
@@ -37,33 +49,61 @@ function normalizePlatformForIntel(p: string): string {
 
 
 function getBusinessContext(businessContext: any, userSettings: any, businessInfo: any): BusinessCtx {
-  // Priority: userSettings > businessInfo > businessContext
   const us = userSettings || {};
   const bi = businessInfo || {};
   const bp = businessContext?.business_profile || {};
   const ta = (us.target_audience as any) || {};
 
+  const ageRange = bi.target_age_min && bi.target_age_max
+    ? `${bi.target_age_min}-${bi.target_age_max === 65 ? '65+' : bi.target_age_max}`
+    : (ta.age_range || '');
+
+  const gd = bi.gender_distribution || {};
+  const genderSplit = (gd.male || gd.female || gd.other)
+    ? `Male ${gd.male || 0}% / Female ${gd.female || 0}% / Other ${gd.other || 0}%`
+    : '';
+
+  const edu = Array.isArray(bi.education_levels) ? bi.education_levels.join(', ') : '';
+  const geo = Array.isArray(bi.geographic_focus)
+    ? bi.geographic_focus.join(', ')
+    : (us.geographic_focus || '');
+  const brandValues = Array.isArray(bi.brand_values) ? bi.brand_values.join(', ') : '';
+
+  const audienceParts = [
+    ageRange && `Age ${ageRange}`,
+    genderSplit,
+    bi.income_level && `Income: ${bi.income_level}`,
+    edu && `Education: ${edu}`,
+    bi.buying_behavior && `Buying behavior: ${bi.buying_behavior}`,
+    ta.demographics,
+  ].filter(Boolean);
+
   return {
     businessName: us.business_name || bi.business_name || bp.businessName || 'your business',
     industry: us.industry || bi.industry || bp.industry || 'general',
     businessType: us.business_type || bi.business_type || bp.businessType || 'B2C',
-    targetAudience: [
-      ta.age_range || (bi.target_age_min && bi.target_age_max ? `${bi.target_age_min}-${bi.target_age_max}` : ''),
-      ta.demographics || '',
-      ta.pain_points || bi.customer_pain_points || '',
-    ].filter(Boolean).join(' | ') || '25-44 consumers',
-    brandVoice: us.brand_voice || 
+    targetAudience: audienceParts.join(' | ') || '25-44 consumers',
+    brandVoice: us.brand_voice ||
       (bi.brand_voice_traits ? (Array.isArray(bi.brand_voice_traits) ? bi.brand_voice_traits.join(', ') : String(bi.brand_voice_traits)) : '') ||
       bp.brandIdentity?.toneCharacteristics?.join(', ') || 'professional, engaging',
     products: (Array.isArray(us.products_services) ? us.products_services.join(', ') : '') ||
-      bi.primary_products_services || 
+      bi.primary_products_services ||
       bp.productsServices?.map((p: any) => p.name || p).join(', ') || '',
     competitors: (Array.isArray(us.competitors) ? us.competitors.join(', ') : '') ||
       (bi.top_competitors ? (Array.isArray(bi.top_competitors) ? bi.top_competitors.map((c: any) => c.name || c).join(', ') : '') : '') ||
       bp.competitors?.join(', ') || '',
-    uvp: us.unique_value_proposition || bi.unique_value_proposition || bi.competitive_advantage || '',
-    geoFocus: us.geographic_focus || 
-      (bi.geographic_focus ? (Array.isArray(bi.geographic_focus) ? bi.geographic_focus.join(', ') : String(bi.geographic_focus)) : '') || '',
+    uvp: us.unique_value_proposition || bi.unique_value_proposition || '',
+    geoFocus: geo,
+    ageRange,
+    genderSplit,
+    incomeLevel: bi.income_level || '',
+    educationLevels: edu,
+    painPoints: ta.pain_points || bi.customer_pain_points || '',
+    buyingBehavior: bi.buying_behavior || '',
+    clv: bi.customer_lifetime_value ? `$${bi.customer_lifetime_value}` : '',
+    competitiveAdvantage: bi.competitive_advantage || '',
+    brandValues,
+    contentRestrictions: bi.content_restrictions || '',
   };
 }
 
@@ -73,19 +113,38 @@ function buildOverviewPrompt(ctx: BusinessCtx, platform: string, durationDays: n
   endDate.setDate(endDate.getDate() + durationDays);
 
   return `Create a ${durationDays}-day ${platform} content strategy for ${ctx.businessName} (${ctx.industry}, ${ctx.businessType}).
-Target: ${ctx.targetAudience}. Voice: ${ctx.brandVoice}.
-${ctx.products ? `Products: ${ctx.products}` : ''}
-${ctx.competitors ? `Competitors: ${ctx.competitors}` : ''}
-${ctx.uvp ? `UVP: ${ctx.uvp}` : ''}
+
+=== TARGET AUDIENCE (USE THESE EXACT DEMOGRAPHICS — DO NOT GENERALIZE) ===
+${ctx.ageRange ? `- Age range: ${ctx.ageRange}` : ''}
+${ctx.genderSplit ? `- Gender split: ${ctx.genderSplit}` : ''}
+${ctx.incomeLevel ? `- Income level: ${ctx.incomeLevel}` : ''}
+${ctx.educationLevels ? `- Education: ${ctx.educationLevels}` : ''}
+${ctx.buyingBehavior ? `- Buying behavior: ${ctx.buyingBehavior} (tailor CTAs and proof formats to this)` : ''}
+${ctx.geoFocus ? `- Geographic focus: ${ctx.geoFocus} (reference local context, time zones, cultural cues)` : ''}
+${ctx.painPoints ? `- Customer pain points (address explicitly in hooks/body): ${ctx.painPoints}` : ''}
+${ctx.clv ? `- Avg customer lifetime value: ${ctx.clv} (calibrate offer aggressiveness accordingly)` : ''}
+
+=== BUSINESS DIFFERENTIATION (USE TO AVOID GENERIC NICHE PLAYBOOKS) ===
+- Products/services SOLD BY THIS BUSINESS (not the whole niche): ${ctx.products || 'unspecified'}
+${ctx.uvp ? `- Unique value proposition: ${ctx.uvp}` : ''}
+${ctx.competitiveAdvantage ? `- Competitive advantage vs competitors: ${ctx.competitiveAdvantage}` : ''}
+${ctx.brandValues ? `- Brand values: ${ctx.brandValues}` : ''}
+${ctx.competitors ? `- Competitors to differentiate AGAINST (do NOT mimic — explicitly position differently): ${ctx.competitors}` : ''}
+${ctx.contentRestrictions ? `- Content restrictions (never violate): ${ctx.contentRestrictions}` : ''}
+
+Voice: ${ctx.brandVoice}.
 ${analyticsSection}
 ${intelligenceSection}
 Goals: ${goals.join(', ')}
 ${customInstructions ? `Special requirements: ${customInstructions}` : ''}
 
+=== ANTI-OVERSATURATION DIRECTIVE (CRITICAL) ===
+Two businesses in the same niche can sell completely different products to completely different audiences. You MUST build this strategy around the SPECIFIC products, audience demographics, pain points, and differentiators above — NOT around generic "${ctx.industry}" best practices. Every post hook, angle, CTA, and creative direction must be traceable to one or more of: this business's specific products, its UVP/competitive advantage, the exact age/gender/income/behavior profile of its audience, or its stated pain points. Reject any idea that would also fit a competitor with the same niche label. If a recommendation could appear unchanged in another ${ctx.industry} brand's strategy, replace it with something specific to ${ctx.businessName}.
+
 Use 4-week arc: Week1=Awareness, Week2=Engagement, Week3=Consideration, Week4=Conversion.
 Content mix: 30% educational, 25% promotional, 20% engagement, 15% social proof, 10% behind-scenes.
 
-You MUST also produce a "recommended_campaign_structure" section advising the user on which paid ad campaign optimization type to run on ${platform} (CBO, ABO, Advantage+, manual, etc.), grounded in (1) their business profile + goals AND (2) the live platform intelligence above about what's currently driving the best ROAS / profit margins in their niche. Be specific and prescriptive.
+You MUST also produce a "recommended_campaign_structure" section advising the user on which paid ad campaign optimization type to run on ${platform} (CBO, ABO, Advantage+, manual, etc.), grounded in (1) their business profile + goals AND (2) the live platform intelligence above about what's currently driving the best ROAS / profit margins in their niche. The audience_approach field MUST reflect the exact demographics above (age ${ctx.ageRange || 'n/a'}, ${ctx.genderSplit || 'n/a'}, ${ctx.incomeLevel || 'n/a'}, ${ctx.geoFocus || 'n/a'}), not a generic niche audience.
 
 Return ONLY valid JSON (no markdown):
 {
@@ -96,11 +155,13 @@ Return ONLY valid JSON (no markdown):
     "start_date": "${startDate.toISOString().split('T')[0]}",
     "end_date": "${endDate.toISOString().split('T')[0]}",
     "total_posts": ${durationDays},
-    "strategic_approach": {"core_strategy":"string","key_differentiator":"string","competitive_edge":"string"},
+    "strategic_approach": {"core_strategy":"string","key_differentiator":"string explicitly referencing this business's UVP/competitive advantage, not the niche","competitive_edge":"string explicitly contrasting with named competitors"},
     "goals": ${JSON.stringify(goals)},
     "content_mix": {"educational":30,"promotional":25,"engagement":20,"social_proof":15,"behind_scenes":10},
     "post_type_distribution": {"carousel":0,"reel":0,"single_image":0,"video":0,"story":0},
     "predicted_metrics": {"total_reach":0,"total_impressions":0,"avg_engagement_rate":0,"expected_follower_growth":0,"expected_follower_growth_percentage":0,"expected_profile_visits":0,"expected_website_clicks":0,"expected_conversions":0},
+    "audience_alignment": {"primary_age_band":"${ctx.ageRange || 'unspecified'}","gender_focus":"${ctx.genderSplit || 'unspecified'}","income_tier":"${ctx.incomeLevel || 'unspecified'}","geo":"${ctx.geoFocus || 'unspecified'}","top_pain_points_addressed":["string"],"behavior_tactics":"string describing how content matches the ${ctx.buyingBehavior || 'stated'} buying behavior"},
+    "differentiation_plan": {"vs_competitors":"string naming how this strategy avoids what ${ctx.competitors || 'competitors'} are doing","product_specific_angles":["string anchored to actual products: ${ctx.products || 'unspecified'}"],"avoid_generic_niche_tropes":["string listing common ${ctx.industry} cliches this strategy will NOT use"]},
     "key_tactics": ["string"],
     "success_milestones": {"week_1":"string","week_2":"string","week_3":"string","week_4":"string"},
     "risk_assessment": {"potential_challenges":["string"],"mitigation_strategies":["string"],"pivot_triggers":["string"]},
@@ -109,7 +170,7 @@ Return ONLY valid JSON (no markdown):
       "structure_type": "CBO | ABO | Advantage+ | Manual | Hybrid",
       "rationale": "2-3 sentence explanation tying business profile + niche performance signals to this choice",
       "budget_split": {"prospecting": 70, "retargeting": 30},
-      "audience_approach": "string describing audience targeting strategy",
+      "audience_approach": "string — MUST reference exact demographics (age ${ctx.ageRange}, ${ctx.genderSplit}, ${ctx.incomeLevel}, ${ctx.geoFocus}), interest stacks, and exclusions to avoid bidding against direct competitors",
       "creative_volume": "string (e.g. '3-5 creatives per ad set, refresh every 7 days')",
       "why_this_works_in_your_niche": "string citing the current niche performance trend",
       "roas_trend_signal": "string (e.g. 'CBO outperforming ABO by 18% in ${ctx.industry} this quarter')",
@@ -138,10 +199,22 @@ function buildBatchPostsPrompt(ctx: BusinessCtx, platform: string, startDay: num
   }
 
   return `Generate posts ${startDay}-${endDay} for ${ctx.businessName}'s ${platform} strategy.
-Business: ${ctx.industry} ${ctx.businessType}. Voice: ${ctx.brandVoice}. Target: ${ctx.targetAudience}.
+Business: ${ctx.industry} ${ctx.businessType}. Voice: ${ctx.brandVoice}.
+
+=== AUDIENCE (write FOR these specific people, not the generic niche) ===
+${ctx.ageRange ? `Age: ${ctx.ageRange}. ` : ''}${ctx.genderSplit ? `${ctx.genderSplit}. ` : ''}${ctx.incomeLevel ? `Income: ${ctx.incomeLevel}. ` : ''}${ctx.geoFocus ? `Geo: ${ctx.geoFocus}. ` : ''}${ctx.buyingBehavior ? `Buying behavior: ${ctx.buyingBehavior}. ` : ''}
+${ctx.painPoints ? `Pain points to address: ${ctx.painPoints}` : ''}
+
+=== THIS BUSINESS'S PRODUCTS & DIFFERENTIATION (anchor every post to these) ===
 ${ctx.products ? `Products: ${ctx.products}` : ''}
+${ctx.uvp ? `UVP: ${ctx.uvp}` : ''}
+${ctx.competitiveAdvantage ? `Competitive advantage: ${ctx.competitiveAdvantage}` : ''}
+${ctx.competitors ? `Differentiate AGAINST: ${ctx.competitors}` : ''}
+${ctx.contentRestrictions ? `Restrictions: ${ctx.contentRestrictions}` : ''}
 
 Weekly themes: ${JSON.stringify(weeklyThemes.map(w => ({ week: w.week, theme: w.theme, objective: w.objective })))}
+
+CRITICAL: Every hook, body, and CTA must be traceable to either (a) one of this business's specific products, (b) its UVP/competitive advantage, or (c) a stated audience pain point or demographic detail. Reject generic ${ctx.industry} content that could be reused by a competitor unchanged.
 
 Return ONLY a valid JSON array (no markdown, no wrapping object). Each element:
 {
@@ -155,7 +228,7 @@ Return ONLY a valid JSON array (no markdown, no wrapping object). Each element:
   "hashtag_strategy": {"hashtags":["#tag1","#tag2"],"mix_breakdown":{"high_volume":["3 tags 100K+"],"medium_volume":["5 tags 10K-100K"],"niche":["4 tags 1K-10K"],"branded":["2 brand tags"]}},
   "visual_guidance": {"visual_type":"string","description":"string","color_palette":"string","text_overlay":"string","attention_hook":"string"},
   "performance_prediction": {"predicted_reach":0,"predicted_impressions":0,"predicted_engagement_rate":0.0,"predicted_likes":0,"predicted_comments":0,"predicted_shares":0,"predicted_saves":0,"confidence_level":"High|Medium|Low","prediction_basis":"string"},
-  "strategic_rationale": {"why_this_day":"string","arc_positioning":"string","builds_toward":"string","success_metrics":"string"},
+  "strategic_rationale": {"why_this_day":"string","arc_positioning":"string","builds_toward":"string","success_metrics":"string","differentiation_anchor":"string naming WHICH product/UVP/pain-point this post is anchored to"},
   "optimization_tips": {"engagement_boosters":["string"],"a_b_test_ideas":["string"],"potential_issues":["string"],"risk_mitigation":["string"]}
 }
 
