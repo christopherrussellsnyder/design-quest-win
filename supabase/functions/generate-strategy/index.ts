@@ -24,6 +24,18 @@ interface BusinessCtx {
   competitors: string;
   uvp: string;
   geoFocus: string;
+  // Rich audience demographics (anti-oversaturation)
+  ageRange: string;
+  genderSplit: string;
+  incomeLevel: string;
+  educationLevels: string;
+  painPoints: string;
+  buyingBehavior: string;
+  clv: string;
+  // Product differentiation (anti-oversaturation)
+  competitiveAdvantage: string;
+  brandValues: string;
+  contentRestrictions: string;
 }
 function normalizePlatformForIntel(p: string): string {
   const s = (p || '').toLowerCase();
@@ -37,33 +49,61 @@ function normalizePlatformForIntel(p: string): string {
 
 
 function getBusinessContext(businessContext: any, userSettings: any, businessInfo: any): BusinessCtx {
-  // Priority: userSettings > businessInfo > businessContext
   const us = userSettings || {};
   const bi = businessInfo || {};
   const bp = businessContext?.business_profile || {};
   const ta = (us.target_audience as any) || {};
 
+  const ageRange = bi.target_age_min && bi.target_age_max
+    ? `${bi.target_age_min}-${bi.target_age_max === 65 ? '65+' : bi.target_age_max}`
+    : (ta.age_range || '');
+
+  const gd = bi.gender_distribution || {};
+  const genderSplit = (gd.male || gd.female || gd.other)
+    ? `Male ${gd.male || 0}% / Female ${gd.female || 0}% / Other ${gd.other || 0}%`
+    : '';
+
+  const edu = Array.isArray(bi.education_levels) ? bi.education_levels.join(', ') : '';
+  const geo = Array.isArray(bi.geographic_focus)
+    ? bi.geographic_focus.join(', ')
+    : (us.geographic_focus || '');
+  const brandValues = Array.isArray(bi.brand_values) ? bi.brand_values.join(', ') : '';
+
+  const audienceParts = [
+    ageRange && `Age ${ageRange}`,
+    genderSplit,
+    bi.income_level && `Income: ${bi.income_level}`,
+    edu && `Education: ${edu}`,
+    bi.buying_behavior && `Buying behavior: ${bi.buying_behavior}`,
+    ta.demographics,
+  ].filter(Boolean);
+
   return {
     businessName: us.business_name || bi.business_name || bp.businessName || 'your business',
     industry: us.industry || bi.industry || bp.industry || 'general',
     businessType: us.business_type || bi.business_type || bp.businessType || 'B2C',
-    targetAudience: [
-      ta.age_range || (bi.target_age_min && bi.target_age_max ? `${bi.target_age_min}-${bi.target_age_max}` : ''),
-      ta.demographics || '',
-      ta.pain_points || bi.customer_pain_points || '',
-    ].filter(Boolean).join(' | ') || '25-44 consumers',
-    brandVoice: us.brand_voice || 
+    targetAudience: audienceParts.join(' | ') || '25-44 consumers',
+    brandVoice: us.brand_voice ||
       (bi.brand_voice_traits ? (Array.isArray(bi.brand_voice_traits) ? bi.brand_voice_traits.join(', ') : String(bi.brand_voice_traits)) : '') ||
       bp.brandIdentity?.toneCharacteristics?.join(', ') || 'professional, engaging',
     products: (Array.isArray(us.products_services) ? us.products_services.join(', ') : '') ||
-      bi.primary_products_services || 
+      bi.primary_products_services ||
       bp.productsServices?.map((p: any) => p.name || p).join(', ') || '',
     competitors: (Array.isArray(us.competitors) ? us.competitors.join(', ') : '') ||
       (bi.top_competitors ? (Array.isArray(bi.top_competitors) ? bi.top_competitors.map((c: any) => c.name || c).join(', ') : '') : '') ||
       bp.competitors?.join(', ') || '',
-    uvp: us.unique_value_proposition || bi.unique_value_proposition || bi.competitive_advantage || '',
-    geoFocus: us.geographic_focus || 
-      (bi.geographic_focus ? (Array.isArray(bi.geographic_focus) ? bi.geographic_focus.join(', ') : String(bi.geographic_focus)) : '') || '',
+    uvp: us.unique_value_proposition || bi.unique_value_proposition || '',
+    geoFocus: geo,
+    ageRange,
+    genderSplit,
+    incomeLevel: bi.income_level || '',
+    educationLevels: edu,
+    painPoints: ta.pain_points || bi.customer_pain_points || '',
+    buyingBehavior: bi.buying_behavior || '',
+    clv: bi.customer_lifetime_value ? `$${bi.customer_lifetime_value}` : '',
+    competitiveAdvantage: bi.competitive_advantage || '',
+    brandValues,
+    contentRestrictions: bi.content_restrictions || '',
   };
 }
 
