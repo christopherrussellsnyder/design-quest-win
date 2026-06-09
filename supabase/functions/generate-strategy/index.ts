@@ -147,9 +147,65 @@ Return ONLY valid JSON (no markdown):
     "implementation_guide": {"posting_schedule":"string","content_creation_timeline":"string","engagement_protocol":"string","monitoring_schedule":"string","adjustment_criteria":"string"},
     "recommended_campaign_structure": {
       "structure_type": "CBO | ABO | Advantage+ | Manual | Hybrid",
+  return `Create a ${durationDays}-day ${platform} content strategy for ${ctx.businessName} (${ctx.industry}, ${ctx.businessType}).
+
+=== TARGET AUDIENCE (USE THESE EXACT DEMOGRAPHICS — DO NOT GENERALIZE) ===
+${ctx.ageRange ? `- Age range: ${ctx.ageRange}` : ''}
+${ctx.genderSplit ? `- Gender split: ${ctx.genderSplit}` : ''}
+${ctx.incomeLevel ? `- Income level: ${ctx.incomeLevel}` : ''}
+${ctx.educationLevels ? `- Education: ${ctx.educationLevels}` : ''}
+${ctx.buyingBehavior ? `- Buying behavior: ${ctx.buyingBehavior} (tailor CTAs and proof formats to this)` : ''}
+${ctx.geoFocus ? `- Geographic focus: ${ctx.geoFocus} (reference local context, time zones, cultural cues)` : ''}
+${ctx.painPoints ? `- Customer pain points (address explicitly in hooks/body): ${ctx.painPoints}` : ''}
+${ctx.clv ? `- Avg customer lifetime value: ${ctx.clv} (calibrate offer aggressiveness accordingly)` : ''}
+
+=== BUSINESS DIFFERENTIATION (USE TO AVOID GENERIC NICHE PLAYBOOKS) ===
+- Products/services SOLD BY THIS BUSINESS (not the whole niche): ${ctx.products || 'unspecified'}
+${ctx.uvp ? `- Unique value proposition: ${ctx.uvp}` : ''}
+${ctx.competitiveAdvantage ? `- Competitive advantage vs competitors: ${ctx.competitiveAdvantage}` : ''}
+${ctx.brandValues ? `- Brand values: ${ctx.brandValues}` : ''}
+${ctx.competitors ? `- Competitors to differentiate AGAINST (do NOT mimic — explicitly position differently): ${ctx.competitors}` : ''}
+${ctx.contentRestrictions ? `- Content restrictions (never violate): ${ctx.contentRestrictions}` : ''}
+
+Voice: ${ctx.brandVoice}.
+${analyticsSection}
+${intelligenceSection}
+Goals: ${goals.join(', ')}
+${customInstructions ? `Special requirements: ${customInstructions}` : ''}
+
+=== ANTI-OVERSATURATION DIRECTIVE (CRITICAL) ===
+Two businesses in the same niche can sell completely different products to completely different audiences. You MUST build this strategy around the SPECIFIC products, audience demographics, pain points, and differentiators above — NOT around generic "${ctx.industry}" best practices. Every post hook, angle, CTA, and creative direction must be traceable to one or more of: this business's specific products, its UVP/competitive advantage, the exact age/gender/income/behavior profile of its audience, or its stated pain points. Reject any idea that would also fit a competitor with the same niche label. If a recommendation could appear unchanged in another ${ctx.industry} brand's strategy, replace it with something specific to ${ctx.businessName}.
+
+Use 4-week arc: Week1=Awareness, Week2=Engagement, Week3=Consideration, Week4=Conversion.
+Content mix: 30% educational, 25% promotional, 20% engagement, 15% social proof, 10% behind-scenes.
+
+You MUST also produce a "recommended_campaign_structure" section advising the user on which paid ad campaign optimization type to run on ${platform} (CBO, ABO, Advantage+, manual, etc.), grounded in (1) their business profile + goals AND (2) the live platform intelligence above about what's currently driving the best ROAS / profit margins in their niche. The audience_approach field MUST reflect the exact demographics above (age ${ctx.ageRange || 'n/a'}, ${ctx.genderSplit || 'n/a'}, ${ctx.incomeLevel || 'n/a'}, ${ctx.geoFocus || 'n/a'}), not a generic niche audience.
+
+Return ONLY valid JSON (no markdown):
+{
+  "strategy_overview": {
+    "title": "string",
+    "platform": "${platform}",
+    "duration_days": ${durationDays},
+    "start_date": "${startDate.toISOString().split('T')[0]}",
+    "end_date": "${endDate.toISOString().split('T')[0]}",
+    "total_posts": ${durationDays},
+    "strategic_approach": {"core_strategy":"string","key_differentiator":"string explicitly referencing this business's UVP/competitive advantage, not the niche","competitive_edge":"string explicitly contrasting with named competitors"},
+    "goals": ${JSON.stringify(goals)},
+    "content_mix": {"educational":30,"promotional":25,"engagement":20,"social_proof":15,"behind_scenes":10},
+    "post_type_distribution": {"carousel":0,"reel":0,"single_image":0,"video":0,"story":0},
+    "predicted_metrics": {"total_reach":0,"total_impressions":0,"avg_engagement_rate":0,"expected_follower_growth":0,"expected_follower_growth_percentage":0,"expected_profile_visits":0,"expected_website_clicks":0,"expected_conversions":0},
+    "audience_alignment": {"primary_age_band":"${ctx.ageRange || 'unspecified'}","gender_focus":"${ctx.genderSplit || 'unspecified'}","income_tier":"${ctx.incomeLevel || 'unspecified'}","geo":"${ctx.geoFocus || 'unspecified'}","top_pain_points_addressed":["string"],"behavior_tactics":"string describing how content matches the ${ctx.buyingBehavior || 'stated'} buying behavior"},
+    "differentiation_plan": {"vs_competitors":"string naming how this strategy avoids what ${ctx.competitors || 'competitors'} are doing","product_specific_angles":["string anchored to actual products: ${ctx.products || 'unspecified'}"],"avoid_generic_niche_tropes":["string listing common ${ctx.industry} cliches this strategy will NOT use"]},
+    "key_tactics": ["string"],
+    "success_milestones": {"week_1":"string","week_2":"string","week_3":"string","week_4":"string"},
+    "risk_assessment": {"potential_challenges":["string"],"mitigation_strategies":["string"],"pivot_triggers":["string"]},
+    "implementation_guide": {"posting_schedule":"string","content_creation_timeline":"string","engagement_protocol":"string","monitoring_schedule":"string","adjustment_criteria":"string"},
+    "recommended_campaign_structure": {
+      "structure_type": "CBO | ABO | Advantage+ | Manual | Hybrid",
       "rationale": "2-3 sentence explanation tying business profile + niche performance signals to this choice",
       "budget_split": {"prospecting": 70, "retargeting": 30},
-      "audience_approach": "string describing audience targeting strategy",
+      "audience_approach": "string — MUST reference exact demographics (age ${ctx.ageRange}, ${ctx.genderSplit}, ${ctx.incomeLevel}, ${ctx.geoFocus}), interest stacks, and exclusions to avoid bidding against direct competitors",
       "creative_volume": "string (e.g. '3-5 creatives per ad set, refresh every 7 days')",
       "why_this_works_in_your_niche": "string citing the current niche performance trend",
       "roas_trend_signal": "string (e.g. 'CBO outperforming ABO by 18% in ${ctx.industry} this quarter')",
