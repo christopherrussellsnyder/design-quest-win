@@ -113,41 +113,6 @@ function buildOverviewPrompt(ctx: BusinessCtx, platform: string, durationDays: n
   endDate.setDate(endDate.getDate() + durationDays);
 
   return `Create a ${durationDays}-day ${platform} content strategy for ${ctx.businessName} (${ctx.industry}, ${ctx.businessType}).
-Target: ${ctx.targetAudience}. Voice: ${ctx.brandVoice}.
-${ctx.products ? `Products: ${ctx.products}` : ''}
-${ctx.competitors ? `Competitors: ${ctx.competitors}` : ''}
-${ctx.uvp ? `UVP: ${ctx.uvp}` : ''}
-${analyticsSection}
-${intelligenceSection}
-Goals: ${goals.join(', ')}
-${customInstructions ? `Special requirements: ${customInstructions}` : ''}
-
-Use 4-week arc: Week1=Awareness, Week2=Engagement, Week3=Consideration, Week4=Conversion.
-Content mix: 30% educational, 25% promotional, 20% engagement, 15% social proof, 10% behind-scenes.
-
-You MUST also produce a "recommended_campaign_structure" section advising the user on which paid ad campaign optimization type to run on ${platform} (CBO, ABO, Advantage+, manual, etc.), grounded in (1) their business profile + goals AND (2) the live platform intelligence above about what's currently driving the best ROAS / profit margins in their niche. Be specific and prescriptive.
-
-Return ONLY valid JSON (no markdown):
-{
-  "strategy_overview": {
-    "title": "string",
-    "platform": "${platform}",
-    "duration_days": ${durationDays},
-    "start_date": "${startDate.toISOString().split('T')[0]}",
-    "end_date": "${endDate.toISOString().split('T')[0]}",
-    "total_posts": ${durationDays},
-    "strategic_approach": {"core_strategy":"string","key_differentiator":"string","competitive_edge":"string"},
-    "goals": ${JSON.stringify(goals)},
-    "content_mix": {"educational":30,"promotional":25,"engagement":20,"social_proof":15,"behind_scenes":10},
-    "post_type_distribution": {"carousel":0,"reel":0,"single_image":0,"video":0,"story":0},
-    "predicted_metrics": {"total_reach":0,"total_impressions":0,"avg_engagement_rate":0,"expected_follower_growth":0,"expected_follower_growth_percentage":0,"expected_profile_visits":0,"expected_website_clicks":0,"expected_conversions":0},
-    "key_tactics": ["string"],
-    "success_milestones": {"week_1":"string","week_2":"string","week_3":"string","week_4":"string"},
-    "risk_assessment": {"potential_challenges":["string"],"mitigation_strategies":["string"],"pivot_triggers":["string"]},
-    "implementation_guide": {"posting_schedule":"string","content_creation_timeline":"string","engagement_protocol":"string","monitoring_schedule":"string","adjustment_criteria":"string"},
-    "recommended_campaign_structure": {
-      "structure_type": "CBO | ABO | Advantage+ | Manual | Hybrid",
-  return `Create a ${durationDays}-day ${platform} content strategy for ${ctx.businessName} (${ctx.industry}, ${ctx.businessType}).
 
 === TARGET AUDIENCE (USE THESE EXACT DEMOGRAPHICS — DO NOT GENERALIZE) ===
 ${ctx.ageRange ? `- Age range: ${ctx.ageRange}` : ''}
