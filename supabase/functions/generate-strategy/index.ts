@@ -199,10 +199,22 @@ function buildBatchPostsPrompt(ctx: BusinessCtx, platform: string, startDay: num
   }
 
   return `Generate posts ${startDay}-${endDay} for ${ctx.businessName}'s ${platform} strategy.
-Business: ${ctx.industry} ${ctx.businessType}. Voice: ${ctx.brandVoice}. Target: ${ctx.targetAudience}.
+Business: ${ctx.industry} ${ctx.businessType}. Voice: ${ctx.brandVoice}.
+
+=== AUDIENCE (write FOR these specific people, not the generic niche) ===
+${ctx.ageRange ? `Age: ${ctx.ageRange}. ` : ''}${ctx.genderSplit ? `${ctx.genderSplit}. ` : ''}${ctx.incomeLevel ? `Income: ${ctx.incomeLevel}. ` : ''}${ctx.geoFocus ? `Geo: ${ctx.geoFocus}. ` : ''}${ctx.buyingBehavior ? `Buying behavior: ${ctx.buyingBehavior}. ` : ''}
+${ctx.painPoints ? `Pain points to address: ${ctx.painPoints}` : ''}
+
+=== THIS BUSINESS'S PRODUCTS & DIFFERENTIATION (anchor every post to these) ===
 ${ctx.products ? `Products: ${ctx.products}` : ''}
+${ctx.uvp ? `UVP: ${ctx.uvp}` : ''}
+${ctx.competitiveAdvantage ? `Competitive advantage: ${ctx.competitiveAdvantage}` : ''}
+${ctx.competitors ? `Differentiate AGAINST: ${ctx.competitors}` : ''}
+${ctx.contentRestrictions ? `Restrictions: ${ctx.contentRestrictions}` : ''}
 
 Weekly themes: ${JSON.stringify(weeklyThemes.map(w => ({ week: w.week, theme: w.theme, objective: w.objective })))}
+
+CRITICAL: Every hook, body, and CTA must be traceable to either (a) one of this business's specific products, (b) its UVP/competitive advantage, or (c) a stated audience pain point or demographic detail. Reject generic ${ctx.industry} content that could be reused by a competitor unchanged.
 
 Return ONLY a valid JSON array (no markdown, no wrapping object). Each element:
 {
@@ -216,7 +228,7 @@ Return ONLY a valid JSON array (no markdown, no wrapping object). Each element:
   "hashtag_strategy": {"hashtags":["#tag1","#tag2"],"mix_breakdown":{"high_volume":["3 tags 100K+"],"medium_volume":["5 tags 10K-100K"],"niche":["4 tags 1K-10K"],"branded":["2 brand tags"]}},
   "visual_guidance": {"visual_type":"string","description":"string","color_palette":"string","text_overlay":"string","attention_hook":"string"},
   "performance_prediction": {"predicted_reach":0,"predicted_impressions":0,"predicted_engagement_rate":0.0,"predicted_likes":0,"predicted_comments":0,"predicted_shares":0,"predicted_saves":0,"confidence_level":"High|Medium|Low","prediction_basis":"string"},
-  "strategic_rationale": {"why_this_day":"string","arc_positioning":"string","builds_toward":"string","success_metrics":"string"},
+  "strategic_rationale": {"why_this_day":"string","arc_positioning":"string","builds_toward":"string","success_metrics":"string","differentiation_anchor":"string naming WHICH product/UVP/pain-point this post is anchored to"},
   "optimization_tips": {"engagement_boosters":["string"],"a_b_test_ideas":["string"],"potential_issues":["string"],"risk_mitigation":["string"]}
 }
 
