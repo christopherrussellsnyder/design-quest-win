@@ -141,6 +141,16 @@ ${customInstructions ? `Special requirements: ${customInstructions}` : ''}
 === ANTI-OVERSATURATION DIRECTIVE (CRITICAL) ===
 Two businesses in the same niche can sell completely different products to completely different audiences. You MUST build this strategy around the SPECIFIC products, audience demographics, pain points, and differentiators above — NOT around generic "${ctx.industry}" best practices. Every post hook, angle, CTA, and creative direction must be traceable to one or more of: this business's specific products, its UVP/competitive advantage, the exact age/gender/income/behavior profile of its audience, or its stated pain points. Reject any idea that would also fit a competitor with the same niche label. If a recommendation could appear unchanged in another ${ctx.industry} brand's strategy, replace it with something specific to ${ctx.businessName}.
 
+=== DIFFERENTIATE THE CONTENT, NOT THE FUNDAMENTALS (QUALITY FLOOR) ===
+The anti-oversaturation directive applies ONLY to angle, hook narrative, and creative anchor. It does NOT apply to proven engagement mechanics — those must remain best-in-class regardless of differentiation:
+- Posting cadence, optimal time windows, and platform-native format ratios (Reels vs carousels vs static) stay grounded in what currently works on ${platform}.
+- Hook structures (3-second pattern interrupt, curiosity gap, stakes-first, contrarian opener), retention curves (loop, payoff, open loop), and CTA placement remain battle-tested.
+- Continue to apply proven frameworks: AIDA, PAS (Problem-Agitate-Solve), Hook-Retention-CTA, Hero/Hub/Help content model, and platform-specific best practices. Differentiation happens INSIDE these frameworks, never instead of them.
+- Two brands can both use a "3-second pattern interrupt" — what differs is the specific product, pain point, or UVP that anchors it.
+
+=== QUALITY GUARDRAIL (NON-NEGOTIABLE) ===
+Differentiation must never come at the cost of proven engagement mechanics. If a "unique" angle is measurably weaker than a conventional one (weaker hook, unclear CTA, format that under-performs on ${platform}, vague claim), choose the conventional execution and differentiate via product specificity, audience pain-point precision, or UVP — NOT via novelty for its own sake. Originality is a tiebreaker, not a substitute for fundamentals.
+
 Use 4-week arc: Week1=Awareness, Week2=Engagement, Week3=Consideration, Week4=Conversion.
 Content mix: 30% educational, 25% promotional, 20% engagement, 15% social proof, 10% behind-scenes.
 
@@ -215,6 +225,12 @@ ${ctx.contentRestrictions ? `Restrictions: ${ctx.contentRestrictions}` : ''}
 Weekly themes: ${JSON.stringify(weeklyThemes.map(w => ({ week: w.week, theme: w.theme, objective: w.objective })))}
 
 CRITICAL: Every hook, body, and CTA must be traceable to either (a) one of this business's specific products, (b) its UVP/competitive advantage, or (c) a stated audience pain point or demographic detail. Reject generic ${ctx.industry} content that could be reused by a competitor unchanged.
+
+QUALITY FLOOR (apply to every post — these are non-negotiable, differentiation does NOT override them):
+- Use proven hook structures (3-second pattern interrupt, curiosity gap, stakes-first, contrarian, bold statement) and proven frameworks (AIDA, PAS, Hook-Retention-CTA). Differentiate the substance INSIDE the framework, never the framework itself.
+- Hook must scroll-stop in <3 seconds. Single clear CTA. Platform-native format (${platform} best practices). Specific claims, no vague filler.
+- If a "unique" angle would weaken the hook, retention, or CTA versus a conventional one, use the conventional execution and differentiate via product specificity, pain-point precision, or UVP instead. Originality is a tiebreaker, not a substitute for engagement mechanics.
+- The differentiation_anchor must reference a REAL input (actual product, stated UVP, stated competitive advantage, stated pain point, or specific demographic detail) — never an invented angle.
 
 Return ONLY a valid JSON array (no markdown, no wrapping object). Each element:
 {
