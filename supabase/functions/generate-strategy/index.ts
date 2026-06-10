@@ -226,6 +226,12 @@ Weekly themes: ${JSON.stringify(weeklyThemes.map(w => ({ week: w.week, theme: w.
 
 CRITICAL: Every hook, body, and CTA must be traceable to either (a) one of this business's specific products, (b) its UVP/competitive advantage, or (c) a stated audience pain point or demographic detail. Reject generic ${ctx.industry} content that could be reused by a competitor unchanged.
 
+QUALITY FLOOR (apply to every post — these are non-negotiable, differentiation does NOT override them):
+- Use proven hook structures (3-second pattern interrupt, curiosity gap, stakes-first, contrarian, bold statement) and proven frameworks (AIDA, PAS, Hook-Retention-CTA). Differentiate the substance INSIDE the framework, never the framework itself.
+- Hook must scroll-stop in <3 seconds. Single clear CTA. Platform-native format (${platform} best practices). Specific claims, no vague filler.
+- If a "unique" angle would weaken the hook, retention, or CTA versus a conventional one, use the conventional execution and differentiate via product specificity, pain-point precision, or UVP instead. Originality is a tiebreaker, not a substitute for engagement mechanics.
+- The differentiation_anchor must reference a REAL input (actual product, stated UVP, stated competitive advantage, stated pain point, or specific demographic detail) — never an invented angle.
+
 Return ONLY a valid JSON array (no markdown, no wrapping object). Each element:
 {
   "day_number": ${startDay},
