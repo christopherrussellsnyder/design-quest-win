@@ -200,7 +200,7 @@ Return ONLY valid JSON (no markdown):
 Fill all values with specific, actionable content personalized for ${ctx.businessName} in ${ctx.industry}. Use realistic metric predictions.`;
 }
 
-function buildBatchPostsPrompt(ctx: BusinessCtx, platform: string, startDay: number, endDay: number, weeklyThemes: any[], startDate: string): string {
+function buildBatchPostsPrompt(ctx: BusinessCtx, platform: string, startDay: number, endDay: number, weeklyThemes: any[], startDate: string, performanceFeedbackSection: string): string {
   const postDates: string[] = [];
   const base = new Date(startDate);
   for (let d = startDay; d <= endDay; d++) {
