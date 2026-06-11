@@ -135,6 +135,7 @@ ${ctx.contentRestrictions ? `- Content restrictions (never violate): ${ctx.conte
 Voice: ${ctx.brandVoice}.
 ${analyticsSection}
 ${intelligenceSection}
+${performanceFeedbackSection}
 Goals: ${goals.join(', ')}
 ${customInstructions ? `Special requirements: ${customInstructions}` : ''}
 
