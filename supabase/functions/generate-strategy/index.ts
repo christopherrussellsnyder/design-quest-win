@@ -107,7 +107,7 @@ function getBusinessContext(businessContext: any, userSettings: any, businessInf
   };
 }
 
-function buildOverviewPrompt(ctx: BusinessCtx, platform: string, durationDays: number, goals: string[], analyticsSection: string, intelligenceSection: string, customInstructions?: string): string {
+function buildOverviewPrompt(ctx: BusinessCtx, platform: string, durationDays: number, goals: string[], analyticsSection: string, intelligenceSection: string, performanceFeedbackSection: string, customInstructions?: string): string {
   const startDate = new Date();
   const endDate = new Date(startDate);
   endDate.setDate(endDate.getDate() + durationDays);
@@ -135,6 +135,7 @@ ${ctx.contentRestrictions ? `- Content restrictions (never violate): ${ctx.conte
 Voice: ${ctx.brandVoice}.
 ${analyticsSection}
 ${intelligenceSection}
+${performanceFeedbackSection}
 Goals: ${goals.join(', ')}
 ${customInstructions ? `Special requirements: ${customInstructions}` : ''}
 
@@ -199,7 +200,7 @@ Return ONLY valid JSON (no markdown):
 Fill all values with specific, actionable content personalized for ${ctx.businessName} in ${ctx.industry}. Use realistic metric predictions.`;
 }
 
-function buildBatchPostsPrompt(ctx: BusinessCtx, platform: string, startDay: number, endDay: number, weeklyThemes: any[], startDate: string): string {
+function buildBatchPostsPrompt(ctx: BusinessCtx, platform: string, startDay: number, endDay: number, weeklyThemes: any[], startDate: string, performanceFeedbackSection: string): string {
   const postDates: string[] = [];
   const base = new Date(startDate);
   for (let d = startDay; d <= endDay; d++) {
@@ -223,6 +224,8 @@ ${ctx.competitors ? `Differentiate AGAINST: ${ctx.competitors}` : ''}
 ${ctx.contentRestrictions ? `Restrictions: ${ctx.contentRestrictions}` : ''}
 
 Weekly themes: ${JSON.stringify(weeklyThemes.map(w => ({ week: w.week, theme: w.theme, objective: w.objective })))}
+
+${performanceFeedbackSection}
 
 CRITICAL: Every hook, body, and CTA must be traceable to either (a) one of this business's specific products, (b) its UVP/competitive advantage, or (c) a stated audience pain point or demographic detail. Reject generic ${ctx.industry} content that could be reused by a competitor unchanged.
 
@@ -435,9 +438,84 @@ serve(async (req) => {
       intelligenceSection = `Live Platform Intelligence: No fresh niche-specific signals available; recommend based on general best practices for ${platform} in ${ctx.industry}.`;
     }
 
+    // ========== INSIGHTS FEEDBACK LOOP ==========
+    // Pull the user's actual historical performance and feed proven learnings back into prompts.
+    const normalizedPlatform = normalizePlatformForIntel(platform);
+    const [topPostsRes, contentPatternsRes, optimalSlotsRes, baselineRes, topHashtagsRes] = await Promise.all([
+      supabase.rpc('get_top_performing_posts', { p_user_id: user.id, p_platform: normalizedPlatform, p_limit: 5 }),
+      supabase.from('content_performance_patterns').select('pattern_type,pattern_value,avg_engagement_rate,post_count').eq('user_id', user.id).order('performance_score', { ascending: false }).limit(20),
+      supabase.rpc('get_optimal_time_slots', { p_user_id: user.id, p_platform: normalizedPlatform, p_limit: 5 }),
+      supabase.rpc('get_user_baseline_metrics', { p_user_id: user.id, p_platform: normalizedPlatform }),
+      supabase.rpc('get_top_performing_elements', { p_user_id: user.id, p_element_type: 'hashtags', p_limit: 8 }),
+    ]);
+
+    const topPosts = topPostsRes.data || [];
+    const patterns = contentPatternsRes.data || [];
+    const slots = optimalSlotsRes.data || [];
+    const baseline = (baselineRes.data && baselineRes.data[0]) || null;
+    const topHashtags = topHashtagsRes.data || [];
+
+    let performanceFeedbackSection = '';
+    if (topPosts.length > 0 || patterns.length > 0 || slots.length > 0 || baseline) {
+      const lines: string[] = ['=== PROVEN PERFORMANCE LEARNINGS (FROM THIS USER\'S ACTUAL HISTORY — APPLY, DO NOT IGNORE) ==='];
+
+      if (baseline) {
+        lines.push(`- Baseline (last 90 days, ${normalizedPlatform}): avg engagement rate ${Number(baseline.avg_engagement_rate || 0).toFixed(2)}%, avg impressions ${baseline.avg_impressions || 0}, posts analyzed ${baseline.total_posts || 0}. New strategy must AT MINIMUM match this baseline; aim to exceed by 15-25%.`);
+      }
+
+      // Group patterns by type and show the best value per type
+      const bestByType: Record<string, any> = {};
+      for (const p of patterns) {
+        const t = p.pattern_type;
+        if (!bestByType[t] || (p.avg_engagement_rate || 0) > (bestByType[t].avg_engagement_rate || 0)) {
+          bestByType[t] = p;
+        }
+      }
+      const typeLabels: Record<string, string> = {
+        content_type: 'Best-performing content type',
+        content_length: 'Best-performing content length',
+        posting_time: 'Best-performing posting window',
+        has_question: 'Question-style posts',
+      };
+      for (const [t, p] of Object.entries(bestByType)) {
+        const label = typeLabels[t] || t;
+        lines.push(`- ${label}: "${p.pattern_value}" — ${Number(p.avg_engagement_rate || 0).toFixed(2)}% avg engagement across ${p.post_count} posts. Lean into this in the content mix and post-type distribution.`);
+      }
+
+      if (slots.length > 0) {
+        const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const slotLines = slots.slice(0, 5).map((s: any) => `${dayNames[s.day_of_week]} ${s.hour_of_day}:00 (${Number(s.avg_engagement_rate || 0).toFixed(2)}%, confidence ${s.confidence})`).join('; ');
+        lines.push(`- Proven optimal posting times for this audience: ${slotLines}. Schedule posts on these days/hours wherever the weekly arc allows.`);
+      }
+
+      if (topHashtags.length > 0) {
+        const tagLines = topHashtags.slice(0, 6).map((h: any) => `${h.element} (${Number(h.avg_engagement || 0).toFixed(2)}%, used ${h.usage_count}x)`).join(', ');
+        lines.push(`- Top-performing hashtags from past posts: ${tagLines}. Prioritize these in the hashtag strategy where topically relevant; do not invent random tags when proven ones exist.`);
+      }
+
+      if (topPosts.length > 0) {
+        const previews = topPosts.slice(0, 3).map((p: any, i: number) => {
+          const preview = (p.content || '').replace(/\s+/g, ' ').substring(0, 140);
+          return `  ${i + 1}. [${Number(p.engagement_rate || 0).toFixed(2)}% eng, ${p.total_engagement || 0} total] "${preview}${(p.content || '').length > 140 ? '…' : ''}"`;
+        }).join('\n');
+        lines.push(`- Top 3 highest-engagement past posts (study hook patterns, length, and tone — then apply, don't copy):\n${previews}`);
+      }
+
+      lines.push('');
+      lines.push('FEEDBACK-LOOP RULES:');
+      lines.push('1. Every recommendation above is empirically validated by THIS user\'s audience. Treat it as a higher-confidence signal than generic best practices.');
+      lines.push('2. If you deviate from a proven learning (e.g. recommend a content type not in their top performers), you MUST justify why in the strategic_rationale — typically because it serves a goal the historical data doesn\'t yet cover (e.g. new product launch, new audience segment).');
+      lines.push('3. Predicted metrics for new posts must be calibrated against the baseline above. Predicting 8% engagement when their baseline is 2% without strong justification is unrealistic.');
+      lines.push('4. As performance data grows, future strategies will compound on these learnings — do not break the loop by ignoring proven signals.');
+
+      performanceFeedbackSection = lines.join('\n');
+    } else {
+      performanceFeedbackSection = '=== PROVEN PERFORMANCE LEARNINGS ===\nNo historical performance data for this user yet. Use general best practices for now; future strategies will incorporate their actual results as posts are published and analytics uploaded.';
+    }
+
     // ========== STEP 1: Generate strategy overview ==========
     console.log('Step 1: Generating strategy overview...');
-    const overviewPrompt = buildOverviewPrompt(ctx, platform, durationDays, effectiveGoals, analyticsSection, intelligenceSection, customInstructions);
+    const overviewPrompt = buildOverviewPrompt(ctx, platform, durationDays, effectiveGoals, analyticsSection, intelligenceSection, performanceFeedbackSection, customInstructions);
     const overviewText = await callAI(LOVABLE_API_KEY, overviewPrompt, systemPrompt, 8000);
     
     let overviewData: any;
@@ -471,7 +549,7 @@ serve(async (req) => {
       const [startDay, endDay] = batches[batchIdx];
       console.log(`Batch ${batchIdx + 1}/${batches.length}: posts ${startDay}-${endDay}`);
 
-      const batchPrompt = buildBatchPostsPrompt(ctx, platform, startDay, endDay, weeklyBreakdown, startDateStr);
+      const batchPrompt = buildBatchPostsPrompt(ctx, platform, startDay, endDay, weeklyBreakdown, startDateStr, performanceFeedbackSection);
       
       let batchPosts: any[] = [];
       let retries = 0;
