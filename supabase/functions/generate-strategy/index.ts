@@ -225,6 +225,8 @@ ${ctx.contentRestrictions ? `Restrictions: ${ctx.contentRestrictions}` : ''}
 
 Weekly themes: ${JSON.stringify(weeklyThemes.map(w => ({ week: w.week, theme: w.theme, objective: w.objective })))}
 
+${performanceFeedbackSection}
+
 CRITICAL: Every hook, body, and CTA must be traceable to either (a) one of this business's specific products, (b) its UVP/competitive advantage, or (c) a stated audience pain point or demographic detail. Reject generic ${ctx.industry} content that could be reused by a competitor unchanged.
 
 QUALITY FLOOR (apply to every post — these are non-negotiable, differentiation does NOT override them):
