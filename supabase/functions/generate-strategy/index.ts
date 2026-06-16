@@ -605,7 +605,7 @@ serve(async (req) => {
 
     // ========== STEP 3: Save to database ==========
     const validPlatforms = ['instagram', 'facebook', 'tiktok', 'linkedin', 'twitter', 'multi'];
-    const normalizedPlatform = validPlatforms.includes(platform) ? platform : 'multi';
+    const dbPlatform = validPlatforms.includes(platform) ? platform : 'multi';
     const predictedMetrics = overview.predicted_metrics || {};
 
     const { data: savedStrategy, error: strategyError } = await supabase
@@ -613,7 +613,7 @@ serve(async (req) => {
       .insert({
         user_id: user.id,
         title: overview.title,
-        platform: normalizedPlatform,
+        platform: dbPlatform,
         duration_days: durationDays,
         start_date: overview.start_date,
         end_date: overview.end_date,
