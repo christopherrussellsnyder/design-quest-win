@@ -107,7 +107,7 @@ function getBusinessContext(businessContext: any, userSettings: any, businessInf
   };
 }
 
-function buildOverviewPrompt(ctx: BusinessCtx, platform: string, durationDays: number, goals: string[], analyticsSection: string, intelligenceSection: string, performanceFeedbackSection: string, customInstructions?: string): string {
+function buildOverviewPrompt(ctx: BusinessCtx, platform: string, durationDays: number, goals: string[], analyticsSection: string, intelligenceSection: string, performanceFeedbackSection: string, promotionsSection: string, customInstructions?: string): string {
   const startDate = new Date();
   const endDate = new Date(startDate);
   endDate.setDate(endDate.getDate() + durationDays);
@@ -136,6 +136,7 @@ Voice: ${ctx.brandVoice}.
 ${analyticsSection}
 ${intelligenceSection}
 ${performanceFeedbackSection}
+${promotionsSection}
 Goals: ${goals.join(', ')}
 ${customInstructions ? `Special requirements: ${customInstructions}` : ''}
 
@@ -200,7 +201,7 @@ Return ONLY valid JSON (no markdown):
 Fill all values with specific, actionable content personalized for ${ctx.businessName} in ${ctx.industry}. Use realistic metric predictions.`;
 }
 
-function buildBatchPostsPrompt(ctx: BusinessCtx, platform: string, startDay: number, endDay: number, weeklyThemes: any[], startDate: string, performanceFeedbackSection: string): string {
+function buildBatchPostsPrompt(ctx: BusinessCtx, platform: string, startDay: number, endDay: number, weeklyThemes: any[], startDate: string, performanceFeedbackSection: string, promotionsSection: string): string {
   const postDates: string[] = [];
   const base = new Date(startDate);
   for (let d = startDay; d <= endDay; d++) {
@@ -227,7 +228,9 @@ Weekly themes: ${JSON.stringify(weeklyThemes.map(w => ({ week: w.week, theme: w.
 
 ${performanceFeedbackSection}
 
-CRITICAL: Every hook, body, and CTA must be traceable to either (a) one of this business's specific products, (b) its UVP/competitive advantage, or (c) a stated audience pain point or demographic detail. Reject generic ${ctx.industry} content that could be reused by a competitor unchanged.
+${promotionsSection}
+
+CRITICAL: Every hook, body, and CTA must be traceable to either (a) one of this business's specific products, (b) its UVP/competitive advantage, (c) a stated audience pain point or demographic detail, or (d) an active promotion listed above when the post date falls within a promo window. Reject generic ${ctx.industry} content that could be reused by a competitor unchanged.
 
 QUALITY FLOOR (apply to every post — these are non-negotiable, differentiation does NOT override them):
 - Use proven hook structures (3-second pattern interrupt, curiosity gap, stakes-first, contrarian, bold statement) and proven frameworks (AIDA, PAS, Hook-Retention-CTA). Differentiate the substance INSIDE the framework, never the framework itself.
