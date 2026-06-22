@@ -160,10 +160,14 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
               </div>
               <div className="flex items-center gap-3">
                 <div className="text-right hidden sm:block">
-                  <span className="text-xs text-muted-foreground">
-                    {completedFields}/{totalFields} fields
-                  </span>
-                  <Progress value={percentage} className="w-20 h-1.5 mt-1" />
+                  {totalFields > 0 && (
+                    <>
+                      <span className="text-xs text-muted-foreground">
+                        {completedFields}/{totalFields} fields
+                      </span>
+                      <Progress value={percentage} className="w-20 h-1.5 mt-1" />
+                    </>
+                  )}
                 </div>
                 <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
               </div>
