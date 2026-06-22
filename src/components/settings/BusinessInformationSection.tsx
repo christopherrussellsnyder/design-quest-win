@@ -8,13 +8,14 @@ import { Progress } from '@/components/ui/progress';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { 
   Building2, Users, Palette, Image, BarChart3, ChevronDown, 
-  Save, Loader2, Info, HelpCircle, CheckCircle2
+  Save, Loader2, Info, HelpCircle, CheckCircle2, Tag
 } from 'lucide-react';
 import { CompanyDetailsSection } from './business-info/CompanyDetailsSection';
 import { TargetAudienceSection } from './business-info/TargetAudienceSection';
 import { BrandIdentitySection } from './business-info/BrandIdentitySection';
 import { MarketingAssetsSection } from './business-info/MarketingAssetsSection';
 import { PerformanceMetricsSection } from './business-info/PerformanceMetricsSection';
+import { PromotionsSection } from './business-info/PromotionsSection';
 
 export interface BusinessInformation {
   // Company Details
@@ -159,10 +160,14 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
               </div>
               <div className="flex items-center gap-3">
                 <div className="text-right hidden sm:block">
-                  <span className="text-xs text-muted-foreground">
-                    {completedFields}/{totalFields} fields
-                  </span>
-                  <Progress value={percentage} className="w-20 h-1.5 mt-1" />
+                  {totalFields > 0 && (
+                    <>
+                      <span className="text-xs text-muted-foreground">
+                        {completedFields}/{totalFields} fields
+                      </span>
+                      <Progress value={percentage} className="w-20 h-1.5 mt-1" />
+                    </>
+                  )}
                 </div>
                 <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
               </div>
@@ -193,7 +198,8 @@ export const BusinessInformationSection: React.FC = () => {
     audience: false,
     brand: false,
     assets: false,
-    metrics: false
+    metrics: false,
+    promotions: false
   });
 
   const toggleSection = (section: keyof typeof openSections) => {
@@ -519,6 +525,18 @@ export const BusinessInformationSection: React.FC = () => {
             businessInfo={businessInfo}
             setBusinessInfo={setBusinessInfo}
           />
+        </CollapsibleSection>
+
+        <CollapsibleSection
+          title="Promotions, Sales & Discounts"
+          description="Active offers auto-injected into strategy generation"
+          icon={Tag}
+          isOpen={openSections.promotions}
+          onToggle={() => toggleSection('promotions')}
+          completedFields={0}
+          totalFields={0}
+        >
+          <PromotionsSection />
         </CollapsibleSection>
       </div>
 

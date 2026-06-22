@@ -107,7 +107,7 @@ function getBusinessContext(businessContext: any, userSettings: any, businessInf
   };
 }
 
-function buildOverviewPrompt(ctx: BusinessCtx, platform: string, durationDays: number, goals: string[], analyticsSection: string, intelligenceSection: string, performanceFeedbackSection: string, customInstructions?: string): string {
+function buildOverviewPrompt(ctx: BusinessCtx, platform: string, durationDays: number, goals: string[], analyticsSection: string, intelligenceSection: string, performanceFeedbackSection: string, promotionsSection: string, customInstructions?: string): string {
   const startDate = new Date();
   const endDate = new Date(startDate);
   endDate.setDate(endDate.getDate() + durationDays);
@@ -136,6 +136,7 @@ Voice: ${ctx.brandVoice}.
 ${analyticsSection}
 ${intelligenceSection}
 ${performanceFeedbackSection}
+${promotionsSection}
 Goals: ${goals.join(', ')}
 ${customInstructions ? `Special requirements: ${customInstructions}` : ''}
 
@@ -200,7 +201,7 @@ Return ONLY valid JSON (no markdown):
 Fill all values with specific, actionable content personalized for ${ctx.businessName} in ${ctx.industry}. Use realistic metric predictions.`;
 }
 
-function buildBatchPostsPrompt(ctx: BusinessCtx, platform: string, startDay: number, endDay: number, weeklyThemes: any[], startDate: string, performanceFeedbackSection: string): string {
+function buildBatchPostsPrompt(ctx: BusinessCtx, platform: string, startDay: number, endDay: number, weeklyThemes: any[], startDate: string, performanceFeedbackSection: string, promotionsSection: string): string {
   const postDates: string[] = [];
   const base = new Date(startDate);
   for (let d = startDay; d <= endDay; d++) {
@@ -227,7 +228,9 @@ Weekly themes: ${JSON.stringify(weeklyThemes.map(w => ({ week: w.week, theme: w.
 
 ${performanceFeedbackSection}
 
-CRITICAL: Every hook, body, and CTA must be traceable to either (a) one of this business's specific products, (b) its UVP/competitive advantage, or (c) a stated audience pain point or demographic detail. Reject generic ${ctx.industry} content that could be reused by a competitor unchanged.
+${promotionsSection}
+
+CRITICAL: Every hook, body, and CTA must be traceable to either (a) one of this business's specific products, (b) its UVP/competitive advantage, (c) a stated audience pain point or demographic detail, or (d) an active promotion listed above when the post date falls within a promo window. Reject generic ${ctx.industry} content that could be reused by a competitor unchanged.
 
 QUALITY FLOOR (apply to every post — these are non-negotiable, differentiation does NOT override them):
 - Use proven hook structures (3-second pattern interrupt, curiosity gap, stakes-first, contrarian, bold statement) and proven frameworks (AIDA, PAS, Hook-Retention-CTA). Differentiate the substance INSIDE the framework, never the framework itself.
@@ -398,16 +401,57 @@ serve(async (req) => {
 
     console.log(`Generating ${durationDays}-day strategy for ${platform} for user ${user.id}`);
 
-    // Parallel fetch all context
-    const [businessRes, analyticsRes, settingsRes, businessInfoRes] = await Promise.all([
+    // Compute strategy date range
+    const stratStart = new Date();
+    const stratEnd = new Date();
+    stratEnd.setDate(stratEnd.getDate() + durationDays);
+    const stratStartISO = stratStart.toISOString().split('T')[0];
+    const stratEndISO = stratEnd.toISOString().split('T')[0];
+
+    // Parallel fetch all context (includes active promotions overlapping the strategy window)
+    const [businessRes, analyticsRes, settingsRes, businessInfoRes, promosRes] = await Promise.all([
       supabase.from('business_context').select('*').eq('user_id', user.id).eq('is_active', true).maybeSingle(),
       supabase.from('uploaded_analytics').select('*').eq('user_id', user.id).order('uploaded_at', { ascending: false }).limit(3),
       supabase.from('user_business_settings').select('*').eq('user_id', user.id).maybeSingle(),
       supabase.from('business_information').select('*').eq('user_id', user.id).maybeSingle(),
+      supabase.from('business_promotions').select('*').eq('user_id', user.id).eq('is_active', true)
+        .lte('start_date', stratEndISO).gte('end_date', stratStartISO)
+        .order('priority', { ascending: false }).order('start_date', { ascending: true }),
     ]);
 
     const ctx = getBusinessContext(businessRes.data, settingsRes.data, businessInfoRes.data);
     const recentAnalytics = analyticsRes.data || [];
+    const activePromos = promosRes.data || [];
+
+    // Build promotions section — filter by platform if specified
+    const normalizedReqPlatform = normalizePlatformForIntel(platform);
+    const relevantPromos = activePromos.filter((p: any) => {
+      const platforms = Array.isArray(p.platforms) ? p.platforms : [];
+      if (platforms.length === 0) return true; // no platform restriction = applies to all
+      return platforms.some((pl: string) => normalizePlatformForIntel(pl) === normalizedReqPlatform || pl.toLowerCase() === platform.toLowerCase());
+    });
+
+    let promotionsSection = '';
+    if (relevantPromos.length > 0) {
+      const lines = ['=== ACTIVE PROMOTIONS / SALES / DISCOUNTS (PLAN POSTS AROUND THESE — NON-NEGOTIABLE) ==='];
+      for (const p of relevantPromos) {
+        const codeStr = p.promo_code ? ` | Code: ${p.promo_code}` : '';
+        const valStr = p.discount_value ? ` | Value: ${p.discount_value}` : '';
+        const targetStr = p.target_products ? ` | Target: ${p.target_products}` : '';
+        const urlStr = p.cta_url ? ` | URL: ${p.cta_url}` : '';
+        const notesStr = p.notes ? ` | Notes: ${p.notes}` : '';
+        lines.push(`- "${p.name}" [${p.promo_type}, priority=${p.priority}] ${p.start_date} → ${p.end_date}: ${p.offer_details}${valStr}${codeStr}${targetStr}${urlStr}${notesStr}`);
+      }
+      lines.push('');
+      lines.push('PROMOTION INTEGRATION RULES:');
+      lines.push('1. Allocate posts directly within each promo\'s active date range — teaser before, launch day, mid-promo urgency, last-chance/closing-day posts.');
+      lines.push('2. High-priority promos get heavier post share; weave the offer into the promotional content bucket (the 25% promotional mix) rather than displacing educational/engagement content entirely.');
+      lines.push('3. Include the promo code verbatim in CTAs when provided. Match the offer language and target audience exactly — do not generalize "20% off" to "great discount."');
+      lines.push('4. For limited-time/flash promos, use urgency tactics (countdowns, scarcity, deadline reminders). For seasonal/launch promos, build anticipation arcs.');
+      lines.push('5. Never schedule a promo post outside its date range. Never promote an expired offer.');
+      promotionsSection = lines.join('\n');
+    }
+
 
     // Build analytics section
     let analyticsSection = '';
@@ -515,7 +559,7 @@ serve(async (req) => {
 
     // ========== STEP 1: Generate strategy overview ==========
     console.log('Step 1: Generating strategy overview...');
-    const overviewPrompt = buildOverviewPrompt(ctx, platform, durationDays, effectiveGoals, analyticsSection, intelligenceSection, performanceFeedbackSection, customInstructions);
+    const overviewPrompt = buildOverviewPrompt(ctx, platform, durationDays, effectiveGoals, analyticsSection, intelligenceSection, performanceFeedbackSection, promotionsSection, customInstructions);
     const overviewText = await callAI(LOVABLE_API_KEY, overviewPrompt, systemPrompt, 8000);
     
     let overviewData: any;
@@ -549,7 +593,7 @@ serve(async (req) => {
       const [startDay, endDay] = batches[batchIdx];
       console.log(`Batch ${batchIdx + 1}/${batches.length}: posts ${startDay}-${endDay}`);
 
-      const batchPrompt = buildBatchPostsPrompt(ctx, platform, startDay, endDay, weeklyBreakdown, startDateStr, performanceFeedbackSection);
+      const batchPrompt = buildBatchPostsPrompt(ctx, platform, startDay, endDay, weeklyBreakdown, startDateStr, performanceFeedbackSection, promotionsSection);
       
       let batchPosts: any[] = [];
       let retries = 0;

@@ -1440,6 +1440,66 @@ export type Database = {
         }
         Relationships: []
       }
+      business_promotions: {
+        Row: {
+          created_at: string
+          cta_url: string | null
+          discount_value: string | null
+          end_date: string
+          id: string
+          is_active: boolean
+          name: string
+          notes: string | null
+          offer_details: string
+          platforms: Json
+          priority: string
+          promo_code: string | null
+          promo_type: string
+          start_date: string
+          target_products: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          cta_url?: string | null
+          discount_value?: string | null
+          end_date: string
+          id?: string
+          is_active?: boolean
+          name: string
+          notes?: string | null
+          offer_details: string
+          platforms?: Json
+          priority?: string
+          promo_code?: string | null
+          promo_type?: string
+          start_date: string
+          target_products?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          cta_url?: string | null
+          discount_value?: string | null
+          end_date?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          notes?: string | null
+          offer_details?: string
+          platforms?: Json
+          priority?: string
+          promo_code?: string | null
+          promo_type?: string
+          start_date?: string
+          target_products?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       cache_entries: {
         Row: {
           cache_key: string
