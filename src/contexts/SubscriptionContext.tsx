@@ -17,6 +17,7 @@ interface SubscriptionContextType extends SubscriptionState {
   planLabel: string;
   strategiesUsed: number;
   canGenerateStrategy: boolean;
+  isPro: boolean;
 }
 
 const defaultState: SubscriptionState = {
@@ -32,6 +33,7 @@ const SubscriptionContext = createContext<SubscriptionContextType>({
   planLabel: 'Starter',
   strategiesUsed: 0,
   canGenerateStrategy: true,
+  isPro: false,
 });
 
 export const useSubscription = () => useContext(SubscriptionContext);
@@ -77,9 +79,10 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     : 'Starter';
 
   const canGenerateStrategy = state.subscribed || strategiesUsed < TRIAL_STRATEGY_LIMIT;
+  const isPro = state.subscribed && (state.tier === 'pro' || state.tier === 'agency');
 
   return (
-    <SubscriptionContext.Provider value={{ ...state, refreshSubscription: checkSubscription, planLabel, strategiesUsed, canGenerateStrategy }}>
+    <SubscriptionContext.Provider value={{ ...state, refreshSubscription: checkSubscription, planLabel, strategiesUsed, canGenerateStrategy, isPro }}>
       {children}
     </SubscriptionContext.Provider>
   );
