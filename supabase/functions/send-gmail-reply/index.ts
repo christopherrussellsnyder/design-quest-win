@@ -58,10 +58,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const admin = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
-    );
+    const admin = serviceClient();
     const { data: roles } = await admin
       .from('user_roles').select('role').eq('user_id', user.id);
     const allowed = (roles ?? []).some((r: any) => r.role === 'owner' || r.role === 'admin');
