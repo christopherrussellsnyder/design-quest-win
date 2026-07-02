@@ -63,7 +63,7 @@ Deno.serve(async (req) => {
     // Auth: get user from JWT
     const authHeader = req.headers.get("Authorization") || "";
     const token = authHeader.replace("Bearer ", "");
-    const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
+    const supabase = serviceClient();
     const { data: userData, error: userErr } = await supabase.auth.getUser(token);
     if (userErr || !userData?.user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
