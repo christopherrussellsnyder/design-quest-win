@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { serviceClient } from "../_shared/supabase.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -434,7 +434,7 @@ serve(async (req) => {
     const formattedInsights = formatInsightsForDisplay(analysisData);
 
     // Save to database
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+    const supabase = serviceClient();
 
     const { data: analyticsRecord, error: insertError } = await supabase
       .from('uploaded_analytics')

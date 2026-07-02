@@ -1,5 +1,5 @@
 // Generate an AI image for a strategy post and upload it to the user's media bucket.
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { serviceClient } from "../_shared/supabase.ts";
 import { requirePro } from "../_shared/require-pro.ts";
 
 const corsHeaders = {
@@ -53,8 +53,6 @@ Deno.serve(async (req) => {
     if (gate instanceof Response) return gate;
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-    const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     if (!LOVABLE_API_KEY) {
       return new Response(JSON.stringify({ error: "LOVABLE_API_KEY not configured" }), {
         status: 500,
@@ -65,7 +63,7 @@ Deno.serve(async (req) => {
     // Auth: get user from JWT
     const authHeader = req.headers.get("Authorization") || "";
     const token = authHeader.replace("Bearer ", "");
-    const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
+    const supabase = serviceClient();
     const { data: userData, error: userErr } = await supabase.auth.getUser(token);
     if (userErr || !userData?.user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
