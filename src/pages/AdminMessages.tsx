@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Mail, Send, Loader2, CheckCircle2, ArrowLeft } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
@@ -20,37 +21,36 @@ interface Submission {
 
 export default function AdminMessages() {
   const { user, loading: authLoading } = useAuth();
-  const [checking, setChecking] = useState(true);
-  const [allowed, setAllowed] = useState(false);
-  const [items, setItems] = useState<Submission[]>([]);
+  const qc = useQueryClient();
   const [selected, setSelected] = useState<Submission | null>(null);
   const [reply, setReply] = useState('');
   const [subjectOverride, setSubjectOverride] = useState('');
-  const [sending, setSending] = useState(false);
   const [filter, setFilter] = useState<'all' | 'new' | 'replied'>('all');
 
-  useEffect(() => {
-    if (!user) return;
-    (async () => {
-      const { data } = await supabase.from('user_roles').select('role').eq('user_id', user.id);
-      const ok = (data ?? []).some((r) => r.role === 'owner' || r.role === 'admin');
-      setAllowed(ok);
-      setChecking(false);
-      if (ok) loadItems();
-    })();
-  }, [user]);
+  const roleQuery = useQuery({
+    queryKey: ['user-role', user?.id],
+    enabled: !!user,
+    staleTime: 5 * 60_000,
+    queryFn: async () => {
+      const { data } = await supabase.from('user_roles').select('role').eq('user_id', user!.id);
+      return (data ?? []).some((r) => r.role === 'owner' || r.role === 'admin');
+    },
+  });
+  const allowed = roleQuery.data === true;
 
-  const loadItems = async () => {
-    const { data, error } = await supabase
-      .from('contact_submissions')
-      .select('*')
-      .order('created_at', { ascending: false });
-    if (error) {
-      toast({ title: 'Failed to load messages', description: error.message, variant: 'destructive' });
-      return;
-    }
-    setItems((data ?? []) as Submission[]);
-  };
+  const itemsQuery = useQuery({
+    queryKey: ['contact_submissions'],
+    enabled: allowed,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('contact_submissions')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as Submission[];
+    },
+  });
+  const items = itemsQuery.data ?? [];
 
   const openReply = (s: Submission) => {
     setSelected(s);
@@ -58,26 +58,32 @@ export default function AdminMessages() {
     setReply(`Hi ${s.name.split(' ')[0]},\n\nThanks for reaching out to Korex Intelligence Systems.\n\n\n\nBest,\nThe Korex Team`);
   };
 
-  const sendReply = async () => {
-    if (!selected || !reply.trim()) return;
-    setSending(true);
-    try {
+  const sendMutation = useMutation({
+    mutationFn: async () => {
+      if (!selected || !reply.trim()) throw new Error('Empty reply');
       const { data, error } = await supabase.functions.invoke('send-gmail-reply', {
         body: { submissionId: selected.id, body: reply.trim(), subject: subjectOverride.trim() },
       });
       if (error || (data as any)?.error) {
         throw new Error((data as any)?.error || error?.message || 'Failed to send');
       }
-      toast({ title: 'Reply sent', description: `Delivered to ${selected.email}` });
+      return data;
+    },
+    onSuccess: () => {
+      toast({ title: 'Reply sent', description: `Delivered to ${selected?.email}` });
       setSelected(null);
       setReply('');
-      loadItems();
-    } catch (e: any) {
+      qc.invalidateQueries({ queryKey: ['contact_submissions'] });
+    },
+    onError: (e: any) => {
       toast({ title: 'Send failed', description: e.message, variant: 'destructive' });
-    } finally {
-      setSending(false);
-    }
-  };
+    },
+  });
+  const sending = sendMutation.isPending;
+  const sendReply = () => sendMutation.mutate();
+
+  const checking = roleQuery.isLoading;
+
 
   if (authLoading || checking) {
     return (

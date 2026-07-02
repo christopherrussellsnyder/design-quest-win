@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -93,8 +94,7 @@ function formatFileSize(bytes: number): string {
 export default function Insights() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [uploads, setUploads] = useState<UploadedAnalytics[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const qc = useQueryClient();
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState('');
   const [uploadPercent, setUploadPercent] = useState(0);
@@ -103,29 +103,30 @@ export default function Insights() {
   const [uploadFileSize, setUploadFileSize] = useState(0);
   const [uploadFileFormat, setUploadFileFormat] = useState('');
 
-  useEffect(() => {
-    if (user) loadUploads();
-  }, [user]);
-
-  const loadUploads = async () => {
-    if (!user) return;
-    setIsLoading(true);
-    try {
+  const uploadsQuery = useQuery({
+    queryKey: ['uploaded_analytics', user?.id],
+    enabled: !!user,
+    queryFn: async () => {
       const { data, error } = await supabase
         .from('uploaded_analytics')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', user!.id)
         .order('uploaded_at', { ascending: false });
       if (error) throw error;
-      setUploads(data || []);
-      if (data && data.length > 0 && !selectedUpload) setSelectedUpload(data[0]);
-    } catch (error) {
-      console.error('Error loading uploads:', error);
-      toast.error('Failed to load analytics');
-    } finally {
-      setIsLoading(false);
-    }
+      return (data || []) as UploadedAnalytics[];
+    },
+  });
+  const uploads = uploadsQuery.data ?? [];
+  const isLoading = uploadsQuery.isLoading;
+
+  useEffect(() => {
+    if (uploads.length > 0 && !selectedUpload) setSelectedUpload(uploads[0]);
+  }, [uploads, selectedUpload]);
+
+  const loadUploads = async () => {
+    await qc.invalidateQueries({ queryKey: ['uploaded_analytics', user?.id] });
   };
+
 
   const parseTextFile = async (file: File, fileFormat: string): Promise<string> => {
     const text = await file.text();

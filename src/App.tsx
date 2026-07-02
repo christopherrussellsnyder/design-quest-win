@@ -45,7 +45,16 @@ import { SupportWidget } from "@/components/SupportWidget";
 
 
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 60_000,
+      gcTime: 5 * 60_000,
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
 
 // Error Boundary Component
 interface ErrorBoundaryState {
