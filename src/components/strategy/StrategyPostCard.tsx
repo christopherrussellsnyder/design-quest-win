@@ -14,6 +14,8 @@ import { toast } from '@/hooks/use-toast';
 import { StrategyPost } from '@/hooks/useStrategyGeneration';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
+import { useSubscription } from '@/contexts/SubscriptionContext';
+import { UpgradeModal } from '@/components/UpgradeModal';
 
 interface CaptionVariant {
   label: string;
@@ -75,10 +77,13 @@ export function StrategyPostCard({ post, onEdit, onAskAI }: StrategyPostCardProp
   const [generatingImage, setGeneratingImage] = useState(false);
   const [stylePrompt, setStylePrompt] = useState('');
   const [showStyleInput, setShowStyleInput] = useState(false);
+  const [showUpgrade, setShowUpgrade] = useState(false);
+  const { isPro } = useSubscription();
 
 
 
   const generateImage = async () => {
+    if (!isPro) { setShowUpgrade(true); return; }
     setGeneratingImage(true);
     try {
       const vg: any = post.visual_guidance || {};
@@ -108,6 +113,7 @@ export function StrategyPostCard({ post, onEdit, onAskAI }: StrategyPostCardProp
   };
 
   const generateVariants = async () => {
+    if (!isPro) { setShowUpgrade(true); return; }
     setLoadingVariants(true);
     try {
       const { data, error } = await supabase.functions.invoke('generate-caption-variants', {
