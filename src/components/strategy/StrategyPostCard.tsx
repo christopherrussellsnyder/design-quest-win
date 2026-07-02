@@ -848,5 +848,6 @@ export function StrategyPostCard({ post, onEdit, onAskAI }: StrategyPostCardProp
         </CardContent>
       </Collapsible>
     </Card>
+    </>
   );
 }
