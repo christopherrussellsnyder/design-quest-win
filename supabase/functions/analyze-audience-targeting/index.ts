@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { serviceClient, userClient } from "../_shared/supabase.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -34,11 +34,7 @@ serve(async (req) => {
       throw new Error('No authorization header');
     }
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey, {
-      global: { headers: { Authorization: authHeader } }
-    });
+    const supabase = userClient(authHeader);
 
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     if (userError || !user) {
