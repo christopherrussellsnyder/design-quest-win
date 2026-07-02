@@ -1,5 +1,5 @@
 // Generate an AI image for a strategy post and upload it to the user's media bucket.
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { serviceClient } from "../_shared/supabase.ts";
 import { requirePro } from "../_shared/require-pro.ts";
 
 const corsHeaders = {
