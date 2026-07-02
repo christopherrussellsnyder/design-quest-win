@@ -34,11 +34,8 @@ serve(async (req) => {
       throw new Error('No authorization header');
     }
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey, {
-      global: { headers: { Authorization: authHeader } }
-    });
+    const { userClient } = await import("../_shared/supabase.ts");
+    const supabase = userClient(authHeader);
 
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     if (userError || !user) {
