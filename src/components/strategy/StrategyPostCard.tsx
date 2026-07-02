@@ -196,6 +196,8 @@ export function StrategyPostCard({ post, onEdit, onAskAI }: StrategyPostCardProp
   );
 
   return (
+    <>
+    <UpgradeModal open={showUpgrade} onClose={() => setShowUpgrade(false)} />
     <Card className="bg-card border-border hover:border-primary/50 transition-colors">
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
         <CardContent className="p-4">
