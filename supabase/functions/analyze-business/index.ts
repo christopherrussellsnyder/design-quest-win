@@ -514,7 +514,7 @@ serve(async (req) => {
     };
 
     // Save to database
-    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const supabase = anonClient();
     
     await supabase.from('business_context').update({ is_active: false }).eq('user_id', userId);
     
