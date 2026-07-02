@@ -1,18 +1,20 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useCallback } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { TRIAL_STRATEGY_LIMIT } from '@/config/stripe.config';
 
 export type SubscriptionTier = 'pro' | 'agency' | null;
 
-interface SubscriptionState {
+interface SubscriptionData {
   subscribed: boolean;
   tier: SubscriptionTier;
   subscription_end: string | null;
-  isLoading: boolean;
+  strategies_used: number;
 }
 
-interface SubscriptionContextType extends SubscriptionState {
+interface SubscriptionContextType extends Omit<SubscriptionData, 'strategies_used'> {
+  isLoading: boolean;
   refreshSubscription: () => Promise<void>;
   planLabel: string;
   strategiesUsed: number;
@@ -20,15 +22,16 @@ interface SubscriptionContextType extends SubscriptionState {
   isPro: boolean;
 }
 
-const defaultState: SubscriptionState = {
+const defaultData: SubscriptionData = {
   subscribed: false,
   tier: null,
   subscription_end: null,
-  isLoading: true,
+  strategies_used: 0,
 };
 
 const SubscriptionContext = createContext<SubscriptionContextType>({
-  ...defaultState,
+  ...defaultData,
+  isLoading: true,
   refreshSubscription: async () => {},
   planLabel: 'Starter',
   strategiesUsed: 0,
@@ -38,39 +41,44 @@ const SubscriptionContext = createContext<SubscriptionContextType>({
 
 export const useSubscription = () => useContext(SubscriptionContext);
 
+const SUB_QUERY_KEY = ['subscription'] as const;
+
+async function fetchSubscription(force = false): Promise<SubscriptionData> {
+  const { data, error } = await supabase.functions.invoke('check-subscription', {
+    body: force ? { force: true } : {},
+  });
+  if (error) throw error;
+  return {
+    subscribed: !!data?.subscribed,
+    tier: (data?.tier as SubscriptionTier) ?? null,
+    subscription_end: data?.subscription_end ?? null,
+    strategies_used: data?.strategies_used ?? 0,
+  };
+}
+
 export function SubscriptionProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
-  const [state, setState] = useState<SubscriptionState>(defaultState);
-  const [strategiesUsed, setStrategiesUsed] = useState(0);
+  const queryClient = useQueryClient();
 
-  const checkSubscription = useCallback(async () => {
-    if (!user) {
-      setState({ ...defaultState, isLoading: false });
-      return;
-    }
+  const { data, isLoading } = useQuery({
+    queryKey: [...SUB_QUERY_KEY, user?.id ?? 'anon'],
+    queryFn: () => fetchSubscription(false),
+    enabled: !!user,
+    // Subscription state changes rarely. Cache for 5min; refresh in background beyond that.
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    retry: 1,
+  });
 
-    try {
-      const { data, error } = await supabase.functions.invoke('check-subscription');
-      if (error) throw error;
+  const state = data ?? defaultData;
 
-      setState({
-        subscribed: data.subscribed || false,
-        tier: (data.tier as SubscriptionTier) || null,
-        subscription_end: data.subscription_end || null,
-        isLoading: false,
-      });
-      setStrategiesUsed(data.strategies_used || 0);
-    } catch (err) {
-      if (import.meta.env.DEV) console.error('Subscription check failed:', err);
-      setState({ ...defaultState, isLoading: false });
-    }
-  }, [user]);
-
-  useEffect(() => {
-    checkSubscription();
-    const interval = setInterval(checkSubscription, 60000);
-    return () => clearInterval(interval);
-  }, [checkSubscription]);
+  const refreshSubscription = useCallback(async () => {
+    // Force a Stripe re-check (bypasses the edge function's local cache).
+    const fresh = await fetchSubscription(true);
+    queryClient.setQueryData([...SUB_QUERY_KEY, user?.id ?? 'anon'], fresh);
+  }, [queryClient, user?.id]);
 
   const planLabel = state.subscribed
     ? state.tier
@@ -78,11 +86,23 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
       : 'Active'
     : 'Starter';
 
-  const canGenerateStrategy = state.subscribed || strategiesUsed < TRIAL_STRATEGY_LIMIT;
+  const canGenerateStrategy = state.subscribed || state.strategies_used < TRIAL_STRATEGY_LIMIT;
   const isPro = state.subscribed && (state.tier === 'pro' || state.tier === 'agency');
 
   return (
-    <SubscriptionContext.Provider value={{ ...state, refreshSubscription: checkSubscription, planLabel, strategiesUsed, canGenerateStrategy, isPro }}>
+    <SubscriptionContext.Provider
+      value={{
+        subscribed: state.subscribed,
+        tier: state.tier,
+        subscription_end: state.subscription_end,
+        isLoading: isLoading && !!user,
+        refreshSubscription,
+        planLabel,
+        strategiesUsed: state.strategies_used,
+        canGenerateStrategy,
+        isPro,
+      }}
+    >
       {children}
     </SubscriptionContext.Provider>
   );
