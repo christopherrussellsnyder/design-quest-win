@@ -566,9 +566,7 @@ serve(async (req) => {
     let dbConversationHistory: Array<{role: string; content: string}> = [];
 
     if (userId) {
-      const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-      const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-      const supabase = createClient(supabaseUrl, supabaseKey);
+      const supabase = serviceClient();
       const { context: dbContext, businessSettings: dbSettings, conversationHistory } = await fetchEnhancedContext(supabase, userId, conversationId);
       fullContext = {
         ...dbContext,
