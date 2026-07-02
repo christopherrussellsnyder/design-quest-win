@@ -2328,25 +2328,43 @@ export type Database = {
         Row: {
           created_at: string
           email: string
+          gmail_message_id: string | null
+          gmail_thread_id: string | null
           id: string
           message: string
           name: string
+          replied_at: string | null
+          replied_by: string | null
+          reply_body: string | null
+          status: string
           subject: string
         }
         Insert: {
           created_at?: string
           email: string
+          gmail_message_id?: string | null
+          gmail_thread_id?: string | null
           id?: string
           message: string
           name: string
+          replied_at?: string | null
+          replied_by?: string | null
+          reply_body?: string | null
+          status?: string
           subject: string
         }
         Update: {
           created_at?: string
           email?: string
+          gmail_message_id?: string | null
+          gmail_thread_id?: string | null
           id?: string
           message?: string
           name?: string
+          replied_at?: string | null
+          replied_by?: string | null
+          reply_body?: string | null
+          status?: string
           subject?: string
         }
         Relationships: []
