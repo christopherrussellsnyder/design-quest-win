@@ -34,7 +34,6 @@ serve(async (req) => {
       throw new Error('No authorization header');
     }
 
-    const { userClient } = await import("../_shared/supabase.ts");
     const supabase = userClient(authHeader);
 
     const { data: { user }, error: userError } = await supabase.auth.getUser();
