@@ -550,7 +550,7 @@ serve(async (req) => {
 
     // === NEW: Seed initial behavior patterns based on business characteristics ===
     try {
-      const supabaseAdmin = createClient(SUPABASE_URL, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+      const supabaseAdmin = serviceClient();
       const industry = (businessProfile.industry || '').toLowerCase();
       const businessType = (businessProfile.businessType || '').toLowerCase();
       const priceRange = (businessProfile.priceRange || '').toLowerCase();
