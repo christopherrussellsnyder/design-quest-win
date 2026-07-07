@@ -258,13 +258,25 @@ export function useStrategyGeneration() {
       });
 
       return result;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Strategy generation error:', error);
-      toast({
-        title: 'Generation Failed',
-        description: error instanceof Error ? error.message : 'Failed to generate strategy',
-        variant: 'destructive',
-      });
+      const code = error?.code as string | undefined;
+      const message = error instanceof Error ? error.message : 'Failed to generate strategy';
+
+      // Sales funnel: plan-limit or credit-depletion opens the upgrade modal instead of a raw toast.
+      if (code === 'UPGRADE_REQUIRED' || code === 'AI_CREDITS_DEPLETED') {
+        window.dispatchEvent(
+          new CustomEvent('korex:upgrade-required', {
+            detail: { reason: code, message },
+          })
+        );
+      } else {
+        toast({
+          title: 'Generation Failed',
+          description: message,
+          variant: 'destructive',
+        });
+      }
       return null;
     } finally {
       setIsGenerating(false);
