@@ -382,7 +382,9 @@ serve(async (req) => {
       .eq('user_id', user.id)
       .maybeSingle();
     const isPaid = localSub?.status === 'active' && (localSub.plan_type === 'pro' || localSub.plan_type === 'agency');
-    if (!isPaid) {
+    const FOUNDER_EMAILS = new Set(['chrissnyder3456@gmail.com']);
+    const isFounder = !!user.email && FOUNDER_EMAILS.has(user.email.toLowerCase());
+    if (!isPaid && !isFounder) {
       const { data: usageRow } = await supabase
         .from('usage_tracking')
         .select('lifetime_strategies_generated')
@@ -393,7 +395,7 @@ serve(async (req) => {
       const used = usageRow?.lifetime_strategies_generated ?? 0;
       if (used >= 2) {
         return new Response(
-          JSON.stringify({ error: 'Starter plan limit reached. Upgrade to Pro for unlimited strategies.', code: 'UPGRADE_REQUIRED' }),
+          JSON.stringify({ error: "You've used both of your Starter strategies. Upgrade to Pro or Agency to keep generating unlimited strategies.", code: 'UPGRADE_REQUIRED' }),
           { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }

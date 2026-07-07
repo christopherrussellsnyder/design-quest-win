@@ -225,14 +225,18 @@ export function useStrategyGeneration() {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         const serverMsg = errorData.error as string | undefined;
-        if (response.status === 429) {
-          throw new Error(serverMsg || 'Rate limit exceeded. Please wait a moment and try again.');
-        }
-        if (response.status === 402) {
-          // Server distinguishes UPGRADE_REQUIRED (plan limit) from AI_CREDITS_DEPLETED (workspace credits)
-          throw new Error(serverMsg || 'Payment required.');
-        }
-        throw new Error(serverMsg || `Failed to generate strategy (HTTP ${response.status})`);
+        const code = errorData.code as string | undefined;
+        const err: any = new Error(
+          serverMsg ||
+            (response.status === 429
+              ? 'Rate limit exceeded. Please wait a moment and try again.'
+              : response.status === 402
+              ? 'Payment required.'
+              : `Failed to generate strategy (HTTP ${response.status})`)
+        );
+        err.status = response.status;
+        err.code = code;
+        throw err;
       }
 
       const data = await response.json();
@@ -254,13 +258,25 @@ export function useStrategyGeneration() {
       });
 
       return result;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Strategy generation error:', error);
-      toast({
-        title: 'Generation Failed',
-        description: error instanceof Error ? error.message : 'Failed to generate strategy',
-        variant: 'destructive',
-      });
+      const code = error?.code as string | undefined;
+      const message = error instanceof Error ? error.message : 'Failed to generate strategy';
+
+      // Sales funnel: plan-limit or credit-depletion opens the upgrade modal instead of a raw toast.
+      if (code === 'UPGRADE_REQUIRED' || code === 'AI_CREDITS_DEPLETED') {
+        window.dispatchEvent(
+          new CustomEvent('korex:upgrade-required', {
+            detail: { reason: code, message },
+          })
+        );
+      } else {
+        toast({
+          title: 'Generation Failed',
+          description: message,
+          variant: 'destructive',
+        });
+      }
       return null;
     } finally {
       setIsGenerating(false);
