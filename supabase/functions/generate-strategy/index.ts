@@ -282,7 +282,7 @@ async function callAI(apiKey: string, prompt: string, systemPrompt: string, maxT
     console.error('AI Gateway error:', response.status, errorText);
     if (response.status === 429) throw new Error('RATE_LIMIT');
     if (response.status === 402) throw new Error('PAYMENT_REQUIRED');
-    throw new Error(`AI service error: ${response.status}`);
+    throw new Error(`AI service error ${response.status}: ${errorText.slice(0, 300)}`);
   }
 
   const aiResponse = await response.json();
