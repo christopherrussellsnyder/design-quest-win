@@ -225,14 +225,18 @@ export function useStrategyGeneration() {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         const serverMsg = errorData.error as string | undefined;
-        if (response.status === 429) {
-          throw new Error(serverMsg || 'Rate limit exceeded. Please wait a moment and try again.');
-        }
-        if (response.status === 402) {
-          // Server distinguishes UPGRADE_REQUIRED (plan limit) from AI_CREDITS_DEPLETED (workspace credits)
-          throw new Error(serverMsg || 'Payment required.');
-        }
-        throw new Error(serverMsg || `Failed to generate strategy (HTTP ${response.status})`);
+        const code = errorData.code as string | undefined;
+        const err: any = new Error(
+          serverMsg ||
+            (response.status === 429
+              ? 'Rate limit exceeded. Please wait a moment and try again.'
+              : response.status === 402
+              ? 'Payment required.'
+              : `Failed to generate strategy (HTTP ${response.status})`)
+        );
+        err.status = response.status;
+        err.code = code;
+        throw err;
       }
 
       const data = await response.json();
