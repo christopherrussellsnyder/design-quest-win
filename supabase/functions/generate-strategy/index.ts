@@ -619,7 +619,7 @@ serve(async (req) => {
           }
           if (e.message === 'PAYMENT_REQUIRED') {
             return new Response(
-              JSON.stringify({ error: 'AI credits exhausted. Please add credits to continue.' }),
+              JSON.stringify({ error: 'Workspace AI credits are depleted. Add credits in Lovable → Settings → Plans & credits, then retry.', code: 'AI_CREDITS_DEPLETED' }),
               { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
             );
           }
