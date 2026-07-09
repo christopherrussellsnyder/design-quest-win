@@ -5,6 +5,7 @@ import { InterfaceVideo } from "./InterfaceVideo";
 import { InterfaceVideoV2 } from "./InterfaceVideoV2";
 import { InterfaceVideoV3 } from "./InterfaceVideoV3";
 import { InterfaceVideoV4 } from "./InterfaceVideoV4";
+import { DemoTour, DEMO_TOUR_DURATION } from "./DemoTour";
 
 export const RemotionRoot: React.FC = () => (
   <>
