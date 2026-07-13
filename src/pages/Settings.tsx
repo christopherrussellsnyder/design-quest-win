@@ -19,8 +19,9 @@ import {
   Upload, Globe, Sparkles, RefreshCw
 } from 'lucide-react';
 import { BusinessInformationSection } from '@/components/settings/BusinessInformationSection';
+import { WorkspacesSection } from '@/components/settings/WorkspacesSection';
 
-type SettingsTab = 'profile' | 'business' | 'ai' | 'notifications' | 'billing' | 'about';
+type SettingsTab = 'profile' | 'workspaces' | 'business' | 'ai' | 'notifications' | 'billing' | 'about';
 
 interface UserProfile {
   fullName: string;
