@@ -58,6 +58,7 @@ export interface UpdatePostData {
 
 export function useScheduledPosts() {
   const { user } = useAuth();
+  const { activeWorkspaceId } = useWorkspace();
   const { toast } = useToast();
   const [posts, setPosts] = useState<ScheduledPost[]>([]);
   const [loading, setLoading] = useState(true);
@@ -65,7 +66,7 @@ export function useScheduledPosts() {
 
   // Fetch all posts from database
   const fetchPosts = useCallback(async () => {
-    if (!user?.id) {
+    if (!user?.id || !activeWorkspaceId) {
       setPosts([]);
       setLoading(false);
       return;
@@ -78,7 +79,7 @@ export function useScheduledPosts() {
       const { data, error: fetchError } = await supabase
         .from('scheduled_posts')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('workspace_id', activeWorkspaceId)
         .order('scheduled_time', { ascending: true, nullsFirst: false });
 
       if (fetchError) {
