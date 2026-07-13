@@ -236,6 +236,7 @@ const App = () => (
               </Suspense>
               <UpgradePromptModal />
             </AnalyticsTracker>
+            </WorkspaceProvider>
             </SubscriptionProvider>
           </AuthProvider>
         </ErrorBoundary>
