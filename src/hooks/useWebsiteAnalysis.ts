@@ -110,7 +110,7 @@ export function useWebsiteAnalysis() {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           },
-          body: JSON.stringify({ websiteUrl, userId: user.id }),
+          body: JSON.stringify({ websiteUrl, userId: user.id, workspace_id: activeWorkspaceId }),
         }
       );
 
