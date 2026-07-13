@@ -40,6 +40,8 @@ const Demo = lazy(() => import("./pages/Demo"));
 const AuthConfirm = lazy(() => import("./pages/AuthConfirm"));
 const Unsubscribe = lazy(() => import("./pages/Unsubscribe"));
 const AdminMessages = lazy(() => import("./pages/AdminMessages"));
+const Reports = lazy(() => import("./pages/Reports"));
+const PublicReport = lazy(() => import("./pages/PublicReport"));
 
 import { EmailFunnelOptInPrompt } from "@/components/EmailFunnelOptInPrompt";
 import { LaunchBanner } from "@/components/LaunchBanner";
@@ -139,6 +141,8 @@ const App = () => (
                   <Route path="/auth/confirm" element={<AuthConfirm />} />
                   <Route path="/unsubscribe" element={<Unsubscribe />} />
                   <Route path="/admin/messages" element={<ProtectedRoute><AdminMessages /></ProtectedRoute>} />
+                  <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
+                  <Route path="/r/:token" element={<PublicReport />} />
                   
                   {/* Admin-only health check */}
                   <Route
