@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { useWorkspace } from '@/contexts/WorkspaceContext';
 
 export interface BusinessProfile {
   businessName: string;
