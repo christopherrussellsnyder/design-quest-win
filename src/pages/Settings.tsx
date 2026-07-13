@@ -16,7 +16,7 @@ import { Slider } from '@/components/ui/slider';
 import { 
   User, Palette, Bell, Settings as SettingsIcon, 
   CreditCard, Info, Loader2, Save, ArrowLeft,
-  Upload, Globe, Sparkles, RefreshCw
+  Upload, Globe, Sparkles, RefreshCw, Building2
 } from 'lucide-react';
 import { BusinessInformationSection } from '@/components/settings/BusinessInformationSection';
 import { WorkspacesSection } from '@/components/settings/WorkspacesSection';
