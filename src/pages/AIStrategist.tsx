@@ -5,6 +5,7 @@ import { Settings } from 'lucide-react';
 import { ConversationSidebar } from '@/components/strategist/ConversationSidebar';
 import { ChatArea } from '@/components/strategist/ChatArea';
 import { ContextSidebar } from '@/components/strategist/ContextSidebar';
+import { WorkspaceSwitcher } from '@/components/workspace/WorkspaceSwitcher';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { BusinessProfile } from '@/hooks/useWebsiteAnalysis';
