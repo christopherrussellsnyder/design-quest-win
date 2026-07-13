@@ -12,6 +12,7 @@ interface StrategyRequest {
   goals?: string[];
   customInstructions?: string;
   conversationId?: string;
+  workspace_id?: string | null;
 }
 
 interface BusinessCtx {
@@ -371,7 +372,7 @@ serve(async (req) => {
       );
     }
 
-    const { platform, durationDays = 30, goals, customInstructions, conversationId } = await req.json() as StrategyRequest;
+    const { platform, durationDays = 30, goals, customInstructions, conversationId, workspace_id: bodyWorkspaceId } = await req.json() as StrategyRequest;
     const effectiveGoals = goals?.length ? goals : ['Increase engagement', 'Grow followers', 'Drive conversions'];
 
     // Server-side enforcement of Starter plan lifetime cap (2 strategies).
@@ -654,10 +655,22 @@ serve(async (req) => {
     const dbPlatform = validPlatforms.includes(platform) ? platform : 'multi';
     const predictedMetrics = overview.predicted_metrics || {};
 
+    // Resolve workspace_id: body override -> user_profiles.active_workspace_id
+    let workspaceId = bodyWorkspaceId ?? null;
+    if (!workspaceId) {
+      const { data: prof } = await supabase
+        .from('user_profiles')
+        .select('active_workspace_id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      workspaceId = (prof as any)?.active_workspace_id ?? null;
+    }
+
     const { data: savedStrategy, error: strategyError } = await supabase
       .from('content_strategies')
       .insert({
         user_id: user.id,
+        workspace_id: workspaceId,
         title: overview.title,
         platform: dbPlatform,
         duration_days: durationDays,

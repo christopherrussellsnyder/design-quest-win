@@ -192,7 +192,7 @@ serve(async (req) => {
     }
 
     const body = await req.json();
-    const { imageBase64, userId, screenshotUrl, imageUrl, textData, fileType, fileFormat, fileName, fileSize, contentType } = body;
+    const { imageBase64, userId, workspace_id: bodyWorkspaceId, screenshotUrl, imageUrl, textData, fileType, fileFormat, fileName, fileSize, contentType } = body;
 
     if (!userId) {
       return new Response(JSON.stringify({ error: 'userId is required' }),
@@ -436,10 +436,22 @@ serve(async (req) => {
     // Save to database
     const supabase = serviceClient();
 
+    // Resolve workspace_id: body override -> user_profiles.active_workspace_id
+    let workspaceId = bodyWorkspaceId ?? null;
+    if (!workspaceId) {
+      const { data: prof } = await supabase
+        .from('user_profiles')
+        .select('active_workspace_id')
+        .eq('user_id', userId)
+        .maybeSingle();
+      workspaceId = (prof as any)?.active_workspace_id ?? null;
+    }
+
     const { data: analyticsRecord, error: insertError } = await supabase
       .from('uploaded_analytics')
       .insert({
         user_id: userId,
+        workspace_id: workspaceId,
         image_url: screenshotUrl || imageUrl || null,
         platform: analysisData.metadata?.platform || null,
         platform_confidence: analysisData.metadata?.platform_confidence || null,
