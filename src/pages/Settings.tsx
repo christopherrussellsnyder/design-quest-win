@@ -200,6 +200,7 @@ const Settings: React.FC = () => {
 
   const tabs = [
     { id: 'profile' as const, label: 'Profile', icon: User },
+    { id: 'workspaces' as const, label: 'Workspaces', icon: Building2 },
     { id: 'business' as const, label: 'Business Context', icon: Globe },
     { id: 'ai' as const, label: 'AI Preferences', icon: Sparkles },
     { id: 'notifications' as const, label: 'Notifications', icon: Bell },
