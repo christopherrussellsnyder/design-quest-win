@@ -28,6 +28,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/contexts/AuthContext';
+import { useWorkspace } from '@/contexts/WorkspaceContext';
 import { useStrategyGeneration, StrategyPost, StrategyOverview } from '@/hooks/useStrategyGeneration';
 import { StrategyOverviewCard } from '@/components/strategy/StrategyOverviewCard';
 import { CampaignStructureCard } from '@/components/strategy/CampaignStructureCard';
@@ -65,7 +66,7 @@ export default function ContentStrategies() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [strategyToDelete, setStrategyToDelete] = useState<string | null>(null);
 
-  const { activeWorkspaceId } = require('@/contexts/WorkspaceContext').useWorkspace();
+  const { activeWorkspaceId } = useWorkspace();
 
   useEffect(() => {
     if (user) {
