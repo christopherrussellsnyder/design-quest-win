@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useCallback, useEffect, useState, useMemo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSubscription } from '@/contexts/SubscriptionContext';
@@ -50,6 +51,7 @@ export const useWorkspace = () => useContext(WorkspaceContext);
 export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const { tier, subscribed } = useSubscription();
+  const queryClient = useQueryClient();
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [activeWorkspaceId, setActiveWorkspaceId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -111,8 +113,10 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
         .from('user_profiles')
         .update({ active_workspace_id: id, updated_at: new Date().toISOString() })
         .eq('user_id', user.id);
+      // Drop all workspace-scoped caches so pages refetch under the new context.
+      queryClient.invalidateQueries();
     },
-    [user?.id, activeWorkspaceId]
+    [user?.id, activeWorkspaceId, queryClient]
   );
 
   const createWorkspace = useCallback(

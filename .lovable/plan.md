@@ -1,115 +1,110 @@
-# Phase 1 — Multi-Brand Workspaces
+# Finish Phase 1 + Ship Phase 2: White-Label Reports
 
-Give Agency-tier users the ability to manage multiple client brands from one login, with isolated data per brand and a Slack-style switcher.
+## Part A — Finish Phase 1 (workspace scoping)
 
-## Goal
+### A1. Client hooks/pages: filter by `activeWorkspaceId`
+Thread `workspace_id` filter into every read and set it on every insert.
 
-An Agency user (e.g. "Chris's Marketing Co") can create separate brand workspaces ("Client A Coffee Shop", "Client B Law Firm"), each with its own business context, strategies, campaigns, content library, and analytics — completely siloed. Switching brands changes the entire app context.
+Files to update:
+- `src/hooks/useStrategyGeneration.ts` — pass `workspace_id` in edge-function body
+- `src/hooks/useWebsiteAnalysis.ts` — pass `workspace_id`
+- `src/hooks/useScreenshotAnalysis.ts` — pass `workspace_id`
+- `src/pages/ContentStrategies.tsx` — `.eq('workspace_id', activeWorkspaceId)`
+- `src/pages/ContentLibrary.tsx` — same
+- `src/pages/Insights.tsx` — filter `uploaded_analytics` by workspace
+- `src/pages/MediaLibrary.tsx` — filter `media_library` (add scoping if needed)
+- `src/components/settings/BusinessInformationSection.tsx` — read/write `business_context` by workspace
+- `src/components/settings/business-info/PromotionsSection.tsx` — `business_promotions` by workspace
+- `src/components/campaign-intelligence/**` — `campaigns` + `campaign_drafts` by workspace
 
-## Architecture
+### A2. Edge functions: accept + persist `workspace_id`
+Update these to read `workspace_id` from body (fallback: active workspace via `user_profiles`) and set on inserts:
+- `generate-strategy`
+- `generate-comprehensive-campaign-strategy`
+- `analyze-business`
+- `scrape-website`
+- `analyze-screenshot`
+- `analytics-intelligence`
+- `campaign-intelligence`
 
-```text
-User (auth.users)
-  └── owns → Workspaces (client brands)   ← Agency tier can create many; Pro/Starter = 1
-        ├── business_context
-        ├── campaigns
-        ├── scheduled_posts
-        ├── content_library
-        ├── strategy_posts
-        ├── uploaded_analytics
-        └── business_promotions
+### A3. Workspace switch cache reset
+On `switchWorkspace`, call `queryClient.invalidateQueries()` so stale per-workspace data is dropped.
+
+---
+
+## Part B — Phase 2: White-Label Reports
+
+### B1. Schema
+New migration:
 ```
-
-Every scoped table gains a `workspace_id` column. RLS switches from `user_id = auth.uid()` to `workspace_id IN (user's accessible workspaces)`.
-
-## Scope (what's in / what's out)
-
-**In:**
-- `workspaces` table + membership model
-- `workspace_id` added to 8 core tables with backfill
-- RLS rewritten on those 8 tables via a `has_workspace_access()` security-definer helper
-- Active workspace tracked per user (stored in `user_profiles.active_workspace_id`)
-- Workspace switcher UI in the sidebar
-- Create / rename / delete workspace flow
-- Tier gating: Starter/Pro = 1 workspace, Agency = up to 10, Founder = unlimited
-- Edge-function updates: `generate-strategy`, `analyze-website`, `generate-content`, `analyze-uploaded-content`, `caption-variants`, `generate-visual` read `workspace_id` from the request and scope queries to it
-
-**Out (future phases):**
-- White-label branding per workspace (Phase 2)
-- Inviting teammates into a specific workspace (Phase 3 — table exists, flow doesn't)
-- Cross-workspace reporting rollups
-- API access
-
-## Data Model
-
-```sql
--- Core workspace record
-workspaces (
-  id uuid pk,
-  owner_id uuid → auth.users,
-  name text,
-  slug text unique,
-  logo_url text nullable,
-  is_default boolean,
+public.brand_kits
+  workspace_id uuid PK -> workspaces(id) on delete cascade
+  logo_url text
+  primary_color text default '#CC0000'
+  accent_color text default '#0F1013'
+  company_name text
+  tagline text
+  contact_email text
+  contact_website text
+  footer_note text
   created_at, updated_at
-)
 
--- Membership (owner is auto-member; ready for Phase 3 invites)
-workspace_members (
-  workspace_id uuid → workspaces,
-  user_id uuid → auth.users,
-  role text ('owner' | 'manager' | 'viewer'),
-  pk (workspace_id, user_id)
-)
-
--- Helper (security definer)
-has_workspace_access(_user_id uuid, _workspace_id uuid) → boolean
+public.client_reports
+  id uuid PK
+  workspace_id uuid -> workspaces(id)
+  created_by uuid -> auth.users
+  title text
+  period_start date, period_end date
+  metrics jsonb        -- rolled-up numbers
+  insights jsonb       -- AI narrative
+  strategy_snapshot jsonb
+  share_token text unique
+  is_public boolean default false
+  expires_at timestamptz
+  view_count int default 0
+  created_at, updated_at
 ```
+Both tables: GRANTs + RLS keyed to `has_workspace_access(auth.uid(), workspace_id)`. `client_reports` gets an additional anon SELECT policy where `is_public = true AND share_token IS NOT NULL AND (expires_at IS NULL OR expires_at > now())`, with `GRANT SELECT ON public.client_reports TO anon`.
 
-`user_profiles.active_workspace_id uuid` added to remember the last-selected workspace.
+### B2. Edge function `generate-client-report`
+- Inputs: `workspace_id`, `period_start`, `period_end`, optional `include_ai_narrative`
+- Aggregates: `scheduled_posts` (impressions, engagement, top posts), `uploaded_analytics` (latest insights), active `content_strategies`, `business_promotions`
+- Uses Lovable AI (`google/gemini-3-flash-preview`) to write a 4-paragraph client-facing narrative
+- Inserts into `client_reports`, returns id + share_token
 
-## Migration Strategy
+### B3. UI
+- `src/components/settings/BrandKitSection.tsx` — new Settings tab for Agency users: upload logo, pick colors, company name, tagline, footer note. Gated to `tier === 'agency'` or founder.
+- `src/pages/Reports.tsx` — Agency-only route: list past reports, "Generate report" modal (workspace picker + date range), row actions (copy public link, download PDF, delete).
+- `src/pages/PublicReport.tsx` — public route `/r/:token`, no auth, renders branded report with brand-kit colors/logo, uses `react-helmet-async` for title.
+- `src/components/reports/ReportView.tsx` — shared render (metrics cards, top posts, AI narrative, strategy snapshot). Used by both authed and public view.
+- Add "Print / Save as PDF" button that calls `window.print()` with a `@media print` stylesheet — avoids adding a PDF library. PDF via server render can come later.
 
-1. Create `workspaces` + `workspace_members` + helper function.
-2. For each existing user, create a default workspace named after their business (or "My Workspace") and insert an `owner` membership.
-3. Add nullable `workspace_id` to the 8 scoped tables, backfill from `user_id → default workspace`, then set `NOT NULL`.
-4. Drop old `user_id`-only RLS policies and replace with `has_workspace_access(auth.uid(), workspace_id)` policies. `user_id` column stays (for authorship), but access control moves to workspace.
-5. Set `user_profiles.active_workspace_id` to the default workspace for each user.
+### B4. Routing + nav
+- Add `/reports` (protected, Agency-gated) and `/r/:token` (public) in `src/App.tsx`.
+- Add "Reports" link in the sidebar for Agency users.
 
-This is done in a single migration so nothing is ever half-migrated.
+### B5. Gating
+- Non-Agency users hitting `/reports` see `UpgradePromptModal`.
+- Brand kit tab hidden for non-Agency (except founder).
 
-## Frontend Changes
+---
 
-- New `useWorkspace()` hook + `WorkspaceProvider` at the app root. Exposes `activeWorkspace`, `workspaces`, `switchWorkspace(id)`, `createWorkspace()`.
-- All existing queries add `.eq('workspace_id', activeWorkspace.id)` — done via a shared `useWorkspaceQuery` wrapper so we don't hand-edit 40 components.
-- Sidebar gets a workspace switcher at the top (dropdown showing all accessible workspaces + "New workspace" button for Agency tier).
-- Settings gets a "Workspaces" section for rename/delete/create.
-- Tier gate: `createWorkspace()` checks subscription tier and shows `UpgradePromptModal` if Starter/Pro user tries to create a 2nd.
+## Technical notes
+- Reuse `has_workspace_access` for all new RLS.
+- `share_token`: `encode(gen_random_bytes(16), 'hex')` default; unique index.
+- Increment `view_count` via a small `increment-report-view` edge function (public, rate-limited by token).
+- Print stylesheet: hide app chrome, force light background using brand kit colors on the report container only (does not affect the main dark theme).
+- No new dependencies required.
 
-## Edge Function Changes
+## Out of scope (deferred)
+- Server-side PDF rendering (Puppeteer/Chromium). `window.print()` is enough for launch.
+- Scheduled recurring reports.
+- Report email delivery via Resend.
 
-Six functions take an optional `workspace_id` in the request body. Where they currently do `.eq('user_id', user.id)` on scoped tables, they switch to `.eq('workspace_id', workspaceId)` after verifying access via `has_workspace_access`. Founder bypass still works.
-
-## Risk & Rollout
-
-- **Riskiest step:** the RLS rewrite. Mitigation: the migration keeps `user_id` columns intact so we can roll back policies without data loss; every new policy is tested against the founder account first.
-- **Perf:** add indexes on `(workspace_id)` and `(workspace_id, created_at)` for the hot tables (`scheduled_posts`, `strategy_posts`, `campaigns`).
-- **Backwards compat:** users with a single workspace see zero UI change beyond a small workspace pill in the sidebar. No feature removed.
-
-## Build Order
-
-1. Migration (schema + backfill + RLS + indexes)
-2. `WorkspaceProvider` + `useWorkspace` hook + sidebar switcher
-3. Refactor data hooks (`useCampaigns`, `useStrategies`, `useContentLibrary`, etc.) to scope by workspace
-4. Update the 6 edge functions
-5. Settings → Workspaces management UI
-6. Tier gate + `UpgradePromptModal` hook-up
-7. QA pass with founder account + a fresh Agency test account
-
-## Technical Notes
-
-- `has_workspace_access` is a `SECURITY DEFINER` function using `workspace_members` — same pattern as the existing `has_role` helper, so no recursive-RLS risk.
-- Founder account (`chrissnyder3456@gmail.com`) gets unlimited workspaces via the existing founder-bypass check.
-- We keep `user_id` on scoped tables to preserve authorship trails (who created the post) even though access is workspace-scoped.
-
-Estimated build time from here: ~4-5 focused work sessions. Approve and I'll start with the migration.
+## Delivery order
+1. Migration (brand_kits + client_reports).
+2. Workspace scoping in hooks/pages (Part A1).
+3. Edge functions accept `workspace_id` (Part A2) + cache reset on switch (A3).
+4. `generate-client-report` + `increment-report-view` edge functions.
+5. Brand kit UI, Reports page, PublicReport page, routes + nav.
+6. Verify: create workspace → generate report → open public link in incognito.
