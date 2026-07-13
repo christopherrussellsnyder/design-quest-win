@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { useWorkspace } from '@/contexts/WorkspaceContext';
 
 export interface StrategicApproach {
   core_strategy?: string;
@@ -159,6 +160,7 @@ export interface GeneratedStrategy {
 }
 
 export function useStrategyGeneration() {
+  const { activeWorkspaceId } = useWorkspace();
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
   const [progressMessage, setProgressMessage] = useState('');
@@ -216,6 +218,7 @@ export function useStrategyGeneration() {
             goals,
             customInstructions,
             conversationId,
+            workspace_id: activeWorkspaceId,
           }),
         }
       );
@@ -337,11 +340,13 @@ export function useStrategyGeneration() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return [];
 
-    const { data, error } = await supabase
+    let q = supabase
       .from('content_strategies')
       .select('*')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false });
+    if (activeWorkspaceId) q = q.eq('workspace_id', activeWorkspaceId);
+    const { data, error } = await q;
 
     if (error) {
       console.error('Error fetching strategies:', error);

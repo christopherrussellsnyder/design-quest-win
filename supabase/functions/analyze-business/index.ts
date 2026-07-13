@@ -325,7 +325,7 @@ serve(async (req) => {
   }
 
   try {
-    const { scrapedContent, userId } = await req.json() as { scrapedContent: ScrapedContent; userId: string };
+    const { scrapedContent, userId, workspace_id: bodyWorkspaceId } = await req.json() as { scrapedContent: ScrapedContent; userId: string; workspace_id?: string | null };
     
     if (!scrapedContent || !userId) {
       return new Response(
@@ -516,12 +516,24 @@ serve(async (req) => {
     // Save to database
     const supabase = anonClient();
     
+    // Resolve workspace_id
+    let workspaceId = bodyWorkspaceId ?? null;
+    if (!workspaceId) {
+      const { data: prof } = await serviceClient()
+        .from('user_profiles')
+        .select('active_workspace_id')
+        .eq('user_id', userId)
+        .maybeSingle();
+      workspaceId = (prof as any)?.active_workspace_id ?? null;
+    }
+
     await supabase.from('business_context').update({ is_active: false }).eq('user_id', userId);
     
     const { data: savedContext, error: saveError } = await supabase
       .from('business_context')
       .insert({
         user_id: userId,
+        workspace_id: workspaceId,
         website_url: scrapedContent.baseUrl,
         scraped_pages: scrapedContent.pages,
         business_profile: businessProfile,

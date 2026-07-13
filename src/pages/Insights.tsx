@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useWorkspace } from '@/contexts/WorkspaceContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -94,6 +95,7 @@ function formatFileSize(bytes: number): string {
 export default function Insights() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { activeWorkspaceId } = useWorkspace();
   const qc = useQueryClient();
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState('');
@@ -104,14 +106,16 @@ export default function Insights() {
   const [uploadFileFormat, setUploadFileFormat] = useState('');
 
   const uploadsQuery = useQuery({
-    queryKey: ['uploaded_analytics', user?.id],
+    queryKey: ['uploaded_analytics', user?.id, activeWorkspaceId],
     enabled: !!user,
     queryFn: async () => {
-      const { data, error } = await supabase
+      let q = supabase
         .from('uploaded_analytics')
         .select('*')
         .eq('user_id', user!.id)
         .order('uploaded_at', { ascending: false });
+      if (activeWorkspaceId) q = q.eq('workspace_id', activeWorkspaceId);
+      const { data, error } = await q;
       if (error) throw error;
       return (data || []) as UploadedAnalytics[];
     },
@@ -124,7 +128,7 @@ export default function Insights() {
   }, [uploads, selectedUpload]);
 
   const loadUploads = async () => {
-    await qc.invalidateQueries({ queryKey: ['uploaded_analytics', user?.id] });
+    await qc.invalidateQueries({ queryKey: ['uploaded_analytics', user?.id, activeWorkspaceId] });
   };
 
 
@@ -208,6 +212,7 @@ export default function Insights() {
             body: {
               imageBase64: base64.split(',')[1],
               userId: user.id,
+              workspace_id: activeWorkspaceId,
               screenshotUrl: publicUrl,
               fileType: file.type,
               fileFormat,
@@ -246,6 +251,7 @@ export default function Insights() {
           body: {
             textData,
             userId: user.id,
+            workspace_id: activeWorkspaceId,
             screenshotUrl: publicUrl,
             fileType: file.type,
             fileFormat,

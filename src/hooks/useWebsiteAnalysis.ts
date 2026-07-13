@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { useWorkspace } from '@/contexts/WorkspaceContext';
 
 export interface BusinessProfile {
   businessName: string;
@@ -78,6 +79,7 @@ type AnalysisStep = 'idle' | 'scraping' | 'analyzing' | 'saving' | 'complete' | 
 type AnalysisDepth = 'quick' | 'standard' | 'comprehensive';
 
 export function useWebsiteAnalysis() {
+  const { activeWorkspaceId } = useWorkspace();
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [currentStep, setCurrentStep] = useState<AnalysisStep>('idle');
   const [progress, setProgress] = useState(0);
@@ -108,7 +110,7 @@ export function useWebsiteAnalysis() {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           },
-          body: JSON.stringify({ websiteUrl, userId: user.id }),
+          body: JSON.stringify({ websiteUrl, userId: user.id, workspace_id: activeWorkspaceId }),
         }
       );
 
@@ -138,7 +140,8 @@ export function useWebsiteAnalysis() {
           },
           body: JSON.stringify({ 
             scrapedContent: scrapeResult.data, 
-            userId: user.id 
+            userId: user.id,
+            workspace_id: activeWorkspaceId,
           }),
         }
       );
@@ -182,7 +185,7 @@ export function useWebsiteAnalysis() {
     } finally {
       setIsAnalyzing(false);
     }
-  }, []);
+  }, [activeWorkspaceId]);
 
   const fetchActiveContext = useCallback(async (): Promise<BusinessContext | null> => {
     try {
