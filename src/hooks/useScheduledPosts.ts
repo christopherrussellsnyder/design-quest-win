@@ -106,11 +106,11 @@ export function useScheduledPosts() {
     } finally {
       setLoading(false);
     }
-  }, [user?.id, toast]);
+  }, [user?.id, activeWorkspaceId, toast]);
 
   // Create a new post
   const createPost = useCallback(async (postData: CreatePostData): Promise<ScheduledPost | null> => {
-    if (!user?.id) {
+    if (!user?.id || !activeWorkspaceId) {
       toast({
         title: 'Authentication required',
         description: 'Please log in to create posts.',
@@ -122,6 +122,7 @@ export function useScheduledPosts() {
     try {
       const insertData = {
         user_id: user.id,
+        workspace_id: activeWorkspaceId,
         title: postData.title,
         content: postData.content,
         platforms: [postData.platform],
