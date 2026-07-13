@@ -340,11 +340,13 @@ export function useStrategyGeneration() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return [];
 
-    const { data, error } = await supabase
+    let q = supabase
       .from('content_strategies')
       .select('*')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false });
+    if (activeWorkspaceId) q = q.eq('workspace_id', activeWorkspaceId);
+    const { data, error } = await q;
 
     if (error) {
       console.error('Error fetching strategies:', error);
