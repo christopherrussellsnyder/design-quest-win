@@ -79,6 +79,7 @@ type AnalysisStep = 'idle' | 'scraping' | 'analyzing' | 'saving' | 'complete' | 
 type AnalysisDepth = 'quick' | 'standard' | 'comprehensive';
 
 export function useWebsiteAnalysis() {
+  const { activeWorkspaceId } = useWorkspace();
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [currentStep, setCurrentStep] = useState<AnalysisStep>('idle');
   const [progress, setProgress] = useState(0);
