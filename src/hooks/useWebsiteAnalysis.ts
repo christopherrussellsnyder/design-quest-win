@@ -185,7 +185,7 @@ export function useWebsiteAnalysis() {
     } finally {
       setIsAnalyzing(false);
     }
-  }, []);
+  }, [activeWorkspaceId]);
 
   const fetchActiveContext = useCallback(async (): Promise<BusinessContext | null> => {
     try {
