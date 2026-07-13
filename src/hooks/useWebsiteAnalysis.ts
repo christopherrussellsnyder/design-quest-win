@@ -140,7 +140,8 @@ export function useWebsiteAnalysis() {
           },
           body: JSON.stringify({ 
             scrapedContent: scrapeResult.data, 
-            userId: user.id 
+            userId: user.id,
+            workspace_id: activeWorkspaceId,
           }),
         }
       );
