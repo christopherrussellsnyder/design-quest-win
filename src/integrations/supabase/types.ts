@@ -1074,6 +1074,56 @@ export type Database = {
         }
         Relationships: []
       }
+      brand_kits: {
+        Row: {
+          accent_color: string
+          company_name: string | null
+          contact_email: string | null
+          contact_website: string | null
+          created_at: string
+          footer_note: string | null
+          logo_url: string | null
+          primary_color: string
+          tagline: string | null
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          accent_color?: string
+          company_name?: string | null
+          contact_email?: string | null
+          contact_website?: string | null
+          created_at?: string
+          footer_note?: string | null
+          logo_url?: string | null
+          primary_color?: string
+          tagline?: string | null
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          accent_color?: string
+          company_name?: string | null
+          contact_email?: string | null
+          contact_website?: string | null
+          created_at?: string
+          footer_note?: string | null
+          logo_url?: string | null
+          primary_color?: string
+          tagline?: string | null
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brand_kits_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: true
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       brand_settings: {
         Row: {
           accent_color: string | null
@@ -2209,6 +2259,68 @@ export type Database = {
             columns: ["campaign_id"]
             isOneToOne: false
             referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_reports: {
+        Row: {
+          created_at: string
+          created_by: string
+          expires_at: string | null
+          id: string
+          insights: Json
+          is_public: boolean
+          metrics: Json
+          period_end: string
+          period_start: string
+          share_token: string
+          strategy_snapshot: Json
+          title: string
+          updated_at: string
+          view_count: number
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          expires_at?: string | null
+          id?: string
+          insights?: Json
+          is_public?: boolean
+          metrics?: Json
+          period_end: string
+          period_start: string
+          share_token?: string
+          strategy_snapshot?: Json
+          title: string
+          updated_at?: string
+          view_count?: number
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          expires_at?: string | null
+          id?: string
+          insights?: Json
+          is_public?: boolean
+          metrics?: Json
+          period_end?: string
+          period_start?: string
+          share_token?: string
+          strategy_snapshot?: Json
+          title?: string
+          updated_at?: string
+          view_count?: number
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_reports_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
             referencedColumns: ["id"]
           },
         ]
@@ -5338,6 +5450,10 @@ export type Database = {
           p_tokens: number
           p_user_id: string
         }
+        Returns: undefined
+      }
+      increment_report_view: {
+        Args: { _share_token: string }
         Returns: undefined
       }
       increment_strategy_usage: { Args: { p_user_id: string }; Returns: number }
