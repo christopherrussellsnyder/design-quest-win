@@ -51,6 +51,7 @@ export const useWorkspace = () => useContext(WorkspaceContext);
 export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const { tier, subscribed } = useSubscription();
+  const queryClient = useQueryClient();
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [activeWorkspaceId, setActiveWorkspaceId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
