@@ -113,8 +113,10 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
         .from('user_profiles')
         .update({ active_workspace_id: id, updated_at: new Date().toISOString() })
         .eq('user_id', user.id);
+      // Drop all workspace-scoped caches so pages refetch under the new context.
+      queryClient.invalidateQueries();
     },
-    [user?.id, activeWorkspaceId]
+    [user?.id, activeWorkspaceId, queryClient]
   );
 
   const createWorkspace = useCallback(
