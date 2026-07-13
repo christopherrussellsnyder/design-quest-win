@@ -39,10 +39,12 @@ interface AIPreferences {
 
 const Settings: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user, signOut } = useAuth();
   const { toast } = useToast();
   
-  const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
+  const initialTab = (searchParams.get('tab') as SettingsTab) || 'profile';
+  const [activeTab, setActiveTab] = useState<SettingsTab>(initialTab);
   const [isSaving, setIsSaving] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [isLoadingSettings, setIsLoadingSettings] = useState(true);
