@@ -96,6 +96,7 @@ function fileToBase64(file: File): Promise<string> {
 }
 
 export function useScreenshotAnalysis() {
+  const { activeWorkspaceId } = useWorkspace();
   const [isUploading, setIsUploading] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
@@ -144,7 +145,7 @@ export function useScreenshotAnalysis() {
       }
 
       const { data, error } = await supabase.functions.invoke('analyze-screenshot', {
-        body: { imageUrl, userId: user.id },
+        body: { imageUrl, userId: user.id, workspace_id: activeWorkspaceId },
       });
 
       if (error) {
@@ -160,7 +161,7 @@ export function useScreenshotAnalysis() {
     } finally {
       setIsAnalyzing(false);
     }
-  }, []);
+  }, [activeWorkspaceId]);
 
   const analyzeFile = useCallback(async (file: File): Promise<AnalysisResult | null> => {
     const fileType = detectFileType(file);
@@ -190,6 +191,7 @@ export function useScreenshotAnalysis() {
             body: {
               imageBase64: base64,
               userId: user.id,
+              workspace_id: activeWorkspaceId,
               screenshotUrl: imageUrl,
               contentType: 'application/pdf',
               fileType: 'pdf',
@@ -214,6 +216,7 @@ export function useScreenshotAnalysis() {
             body: {
               textData: parsedText,
               userId: user.id,
+              workspace_id: activeWorkspaceId,
               fileType,
               fileName: file.name,
             },
@@ -237,7 +240,7 @@ export function useScreenshotAnalysis() {
       });
       return null;
     }
-  }, [uploadScreenshot, analyzeScreenshot]);
+  }, [uploadScreenshot, analyzeScreenshot, activeWorkspaceId]);
 
   // Keep legacy method for backward compat
   const uploadAndAnalyze = useCallback(async (file: File): Promise<AnalysisResult | null> => {

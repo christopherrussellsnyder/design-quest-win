@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useWorkspace } from '@/contexts/WorkspaceContext';
 import { 
   Search, Filter, Grid, List, Plus, Star, Folder, ChevronRight, 
   MoreVertical, Copy, Trash2, Edit, Calendar, Eye, X, Upload,
@@ -56,6 +57,7 @@ const CONTENT_TYPES = ['text', 'image', 'video', 'carousel', 'story'];
 export default function ContentLibrary() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { activeWorkspaceId } = useWorkspace();
   
   // Data state
   const [content, setContent] = useState<ContentItem[]>([]);
@@ -84,17 +86,19 @@ export default function ContentLibrary() {
       fetchContent();
       fetchFolders();
     }
-  }, [user]);
+  }, [user, activeWorkspaceId]);
 
   const fetchContent = async () => {
     if (!user) return;
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      let q = supabase
         .from('content_library')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
+      if (activeWorkspaceId) q = q.eq('workspace_id', activeWorkspaceId);
+      const { data, error } = await q;
 
       if (error) throw error;
       setContent(data || []);

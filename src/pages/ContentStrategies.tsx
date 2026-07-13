@@ -65,11 +65,13 @@ export default function ContentStrategies() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [strategyToDelete, setStrategyToDelete] = useState<string | null>(null);
 
+  const { activeWorkspaceId } = require('@/contexts/WorkspaceContext').useWorkspace();
+
   useEffect(() => {
     if (user) {
       loadStrategies();
     }
-  }, [user]);
+  }, [user, activeWorkspaceId]);
 
   useEffect(() => {
     if (strategyId) {
