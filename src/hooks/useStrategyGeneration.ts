@@ -160,6 +160,7 @@ export interface GeneratedStrategy {
 }
 
 export function useStrategyGeneration() {
+  const { activeWorkspaceId } = useWorkspace();
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState(0);
   const [progressMessage, setProgressMessage] = useState('');
