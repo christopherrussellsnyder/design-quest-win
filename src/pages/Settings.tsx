@@ -533,6 +533,7 @@ const Settings: React.FC = () => {
   const renderContent = () => {
     switch (activeTab) {
       case 'profile': return renderProfileTab();
+      case 'workspaces': return <WorkspacesSection />;
       case 'business': return renderBusinessTab();
       case 'ai': return renderAIPreferencesTab();
       case 'notifications': return renderNotificationsTab();
