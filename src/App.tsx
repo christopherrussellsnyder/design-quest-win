@@ -118,6 +118,7 @@ const App = () => (
         <ErrorBoundary>
           <AuthProvider>
             <SubscriptionProvider>
+            <WorkspaceProvider>
             <AnalyticsTracker>
               <LaunchBanner />
               <EmailFunnelOptInPrompt />
