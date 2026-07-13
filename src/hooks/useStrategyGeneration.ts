@@ -218,6 +218,7 @@ export function useStrategyGeneration() {
             goals,
             customInstructions,
             conversationId,
+            workspace_id: activeWorkspaceId,
           }),
         }
       );
