@@ -7,6 +7,7 @@ import { UpgradePromptModal } from "@/components/upgrade/UpgradePromptModal";
 import { HelmetProvider } from "react-helmet-async";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
+import { WorkspaceProvider } from "@/contexts/WorkspaceContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ErrorFallback } from "@/components/ErrorFallback";
 import { usePageTracking } from "@/lib/analytics";
@@ -117,6 +118,7 @@ const App = () => (
         <ErrorBoundary>
           <AuthProvider>
             <SubscriptionProvider>
+            <WorkspaceProvider>
             <AnalyticsTracker>
               <LaunchBanner />
               <EmailFunnelOptInPrompt />
@@ -234,6 +236,7 @@ const App = () => (
               </Suspense>
               <UpgradePromptModal />
             </AnalyticsTracker>
+            </WorkspaceProvider>
             </SubscriptionProvider>
           </AuthProvider>
         </ErrorBoundary>

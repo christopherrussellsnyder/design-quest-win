@@ -5,6 +5,7 @@ import { Settings } from 'lucide-react';
 import { ConversationSidebar } from '@/components/strategist/ConversationSidebar';
 import { ChatArea } from '@/components/strategist/ChatArea';
 import { ContextSidebar } from '@/components/strategist/ContextSidebar';
+import { WorkspaceSwitcher } from '@/components/workspace/WorkspaceSwitcher';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { BusinessProfile } from '@/hooks/useWebsiteAnalysis';
@@ -217,7 +218,10 @@ export default function AIStrategist() {
       <div className="relative flex h-screen bg-background overflow-hidden">
         <AnimatedDotGrid />
         
-        {/* Settings button - floating top-right */}
+        {/* Top bar - workspace switcher + settings */}
+        <div className="absolute top-3 left-1/2 -translate-x-1/2 z-50">
+          <WorkspaceSwitcher />
+        </div>
         <div className="absolute top-3 right-3 z-50">
           <Button variant="ghost" size="icon" onClick={() => navigate('/settings')} className="text-[#A0A0A8] hover:text-white hover:bg-[#16171A]" title="Business Settings">
             <Settings className="w-4 h-4" />

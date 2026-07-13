@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -16,11 +16,12 @@ import { Slider } from '@/components/ui/slider';
 import { 
   User, Palette, Bell, Settings as SettingsIcon, 
   CreditCard, Info, Loader2, Save, ArrowLeft,
-  Upload, Globe, Sparkles, RefreshCw
+  Upload, Globe, Sparkles, RefreshCw, Building2
 } from 'lucide-react';
 import { BusinessInformationSection } from '@/components/settings/BusinessInformationSection';
+import { WorkspacesSection } from '@/components/settings/WorkspacesSection';
 
-type SettingsTab = 'profile' | 'business' | 'ai' | 'notifications' | 'billing' | 'about';
+type SettingsTab = 'profile' | 'workspaces' | 'business' | 'ai' | 'notifications' | 'billing' | 'about';
 
 interface UserProfile {
   fullName: string;
@@ -38,10 +39,12 @@ interface AIPreferences {
 
 const Settings: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user, signOut } = useAuth();
   const { toast } = useToast();
   
-  const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
+  const initialTab = (searchParams.get('tab') as SettingsTab) || 'profile';
+  const [activeTab, setActiveTab] = useState<SettingsTab>(initialTab);
   const [isSaving, setIsSaving] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [isLoadingSettings, setIsLoadingSettings] = useState(true);
@@ -199,6 +202,7 @@ const Settings: React.FC = () => {
 
   const tabs = [
     { id: 'profile' as const, label: 'Profile', icon: User },
+    { id: 'workspaces' as const, label: 'Workspaces', icon: Building2 },
     { id: 'business' as const, label: 'Business Context', icon: Globe },
     { id: 'ai' as const, label: 'AI Preferences', icon: Sparkles },
     { id: 'notifications' as const, label: 'Notifications', icon: Bell },
@@ -531,6 +535,7 @@ const Settings: React.FC = () => {
   const renderContent = () => {
     switch (activeTab) {
       case 'profile': return renderProfileTab();
+      case 'workspaces': return <WorkspacesSection />;
       case 'business': return renderBusinessTab();
       case 'ai': return renderAIPreferencesTab();
       case 'notifications': return renderNotificationsTab();

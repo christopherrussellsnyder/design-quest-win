@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useWorkspace } from '@/contexts/WorkspaceContext';
 import { useToast } from '@/hooks/use-toast';
 import { toast as sonnerToast } from 'sonner';
 
@@ -57,6 +58,7 @@ export interface UpdatePostData {
 
 export function useScheduledPosts() {
   const { user } = useAuth();
+  const { activeWorkspaceId } = useWorkspace();
   const { toast } = useToast();
   const [posts, setPosts] = useState<ScheduledPost[]>([]);
   const [loading, setLoading] = useState(true);
@@ -64,7 +66,7 @@ export function useScheduledPosts() {
 
   // Fetch all posts from database
   const fetchPosts = useCallback(async () => {
-    if (!user?.id) {
+    if (!user?.id || !activeWorkspaceId) {
       setPosts([]);
       setLoading(false);
       return;
@@ -77,7 +79,7 @@ export function useScheduledPosts() {
       const { data, error: fetchError } = await supabase
         .from('scheduled_posts')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('workspace_id', activeWorkspaceId)
         .order('scheduled_time', { ascending: true, nullsFirst: false });
 
       if (fetchError) {
@@ -104,11 +106,11 @@ export function useScheduledPosts() {
     } finally {
       setLoading(false);
     }
-  }, [user?.id, toast]);
+  }, [user?.id, activeWorkspaceId, toast]);
 
   // Create a new post
   const createPost = useCallback(async (postData: CreatePostData): Promise<ScheduledPost | null> => {
-    if (!user?.id) {
+    if (!user?.id || !activeWorkspaceId) {
       toast({
         title: 'Authentication required',
         description: 'Please log in to create posts.',
@@ -120,6 +122,7 @@ export function useScheduledPosts() {
     try {
       const insertData = {
         user_id: user.id,
+        workspace_id: activeWorkspaceId,
         title: postData.title,
         content: postData.content,
         platforms: [postData.platform],
@@ -276,29 +279,26 @@ export function useScheduledPosts() {
 
   // Set up real-time subscription
   useEffect(() => {
-    if (!user?.id) return;
+    if (!user?.id || !activeWorkspaceId) return;
 
     // Initial fetch
     fetchPosts();
 
-    // Set up real-time subscription
+    // Set up real-time subscription scoped to active workspace
     const channel = supabase
-      .channel('scheduled_posts_changes')
+      .channel(`scheduled_posts_${activeWorkspaceId}`)
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
           table: 'scheduled_posts',
-          filter: `user_id=eq.${user.id}`,
+          filter: `workspace_id=eq.${activeWorkspaceId}`,
         },
         (payload) => {
-          
-          
           if (payload.eventType === 'INSERT') {
             const newPost = payload.new as ScheduledPost;
             setPosts(prev => {
-              // Avoid duplicates
               if (prev.some(p => p.id === newPost.id)) return prev;
               return [...prev, { ...newPost, is_recurring: newPost.is_recurring ?? false }]
                 .sort((a, b) => new Date(a.scheduled_time).getTime() - new Date(b.scheduled_time).getTime());
@@ -319,7 +319,7 @@ export function useScheduledPosts() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user?.id, fetchPosts]);
+  }, [user?.id, activeWorkspaceId, fetchPosts]);
 
   return {
     posts,
