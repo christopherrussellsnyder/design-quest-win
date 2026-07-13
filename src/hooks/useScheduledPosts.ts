@@ -279,29 +279,26 @@ export function useScheduledPosts() {
 
   // Set up real-time subscription
   useEffect(() => {
-    if (!user?.id) return;
+    if (!user?.id || !activeWorkspaceId) return;
 
     // Initial fetch
     fetchPosts();
 
-    // Set up real-time subscription
+    // Set up real-time subscription scoped to active workspace
     const channel = supabase
-      .channel('scheduled_posts_changes')
+      .channel(`scheduled_posts_${activeWorkspaceId}`)
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
           table: 'scheduled_posts',
-          filter: `user_id=eq.${user.id}`,
+          filter: `workspace_id=eq.${activeWorkspaceId}`,
         },
         (payload) => {
-          
-          
           if (payload.eventType === 'INSERT') {
             const newPost = payload.new as ScheduledPost;
             setPosts(prev => {
-              // Avoid duplicates
               if (prev.some(p => p.id === newPost.id)) return prev;
               return [...prev, { ...newPost, is_recurring: newPost.is_recurring ?? false }]
                 .sort((a, b) => new Date(a.scheduled_time).getTime() - new Date(b.scheduled_time).getTime());
@@ -322,7 +319,7 @@ export function useScheduledPosts() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user?.id, fetchPosts]);
+  }, [user?.id, activeWorkspaceId, fetchPosts]);
 
   return {
     posts,
