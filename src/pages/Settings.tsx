@@ -20,9 +20,11 @@ import {
 } from 'lucide-react';
 import { BusinessInformationSection } from '@/components/settings/BusinessInformationSection';
 import { WorkspacesSection } from '@/components/settings/WorkspacesSection';
+import { TeamMembersSection } from '@/components/settings/TeamMembersSection';
 import { BrandKitSection } from '@/components/settings/BrandKitSection';
+import { Users } from 'lucide-react';
 
-type SettingsTab = 'profile' | 'workspaces' | 'brandkit' | 'business' | 'ai' | 'notifications' | 'billing' | 'about';
+type SettingsTab = 'profile' | 'workspaces' | 'team' | 'brandkit' | 'business' | 'ai' | 'notifications' | 'billing' | 'about';
 
 interface UserProfile {
   fullName: string;
@@ -204,6 +206,7 @@ const Settings: React.FC = () => {
   const tabs = [
     { id: 'profile' as const, label: 'Profile', icon: User },
     { id: 'workspaces' as const, label: 'Workspaces', icon: Building2 },
+    { id: 'team' as const, label: 'Team', icon: Users },
     { id: 'brandkit' as const, label: 'Brand Kit', icon: Palette },
     { id: 'business' as const, label: 'Business Context', icon: Globe },
     { id: 'ai' as const, label: 'AI Preferences', icon: Sparkles },
@@ -538,6 +541,7 @@ const Settings: React.FC = () => {
     switch (activeTab) {
       case 'profile': return renderProfileTab();
       case 'workspaces': return <WorkspacesSection />;
+      case 'team': return <TeamMembersSection />;
       case 'brandkit': return <BrandKitSection />;
       case 'business': return renderBusinessTab();
       case 'ai': return renderAIPreferencesTab();

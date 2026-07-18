@@ -42,6 +42,7 @@ const Unsubscribe = lazy(() => import("./pages/Unsubscribe"));
 const AdminMessages = lazy(() => import("./pages/AdminMessages"));
 const Reports = lazy(() => import("./pages/Reports"));
 const PublicReport = lazy(() => import("./pages/PublicReport"));
+const AcceptWorkspaceInvite = lazy(() => import("./pages/AcceptWorkspaceInvite"));
 
 import { EmailFunnelOptInPrompt } from "@/components/EmailFunnelOptInPrompt";
 import { LaunchBanner } from "@/components/LaunchBanner";
@@ -143,6 +144,7 @@ const App = () => (
                   <Route path="/admin/messages" element={<ProtectedRoute><AdminMessages /></ProtectedRoute>} />
                   <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
                   <Route path="/r/:token" element={<PublicReport />} />
+                  <Route path="/accept-workspace-invite/:token" element={<AcceptWorkspaceInvite />} />
                   
                   {/* Admin-only health check */}
                   <Route
