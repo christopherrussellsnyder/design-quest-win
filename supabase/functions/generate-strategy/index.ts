@@ -464,7 +464,7 @@ function buildFallbackPosts(ctx: BusinessCtx, platform: string, durationDays: nu
     const postType = postTypes[day % postTypes.length];
     const hook = hookTemplates[day % hookTemplates.length](day);
 
-    const body = `At ${ctx.businessName}, we know that ${audience} deals with ${ctx.painPoints || 'real challenges'} every day. Here's what actually works — grounded in ${ctx.uvp || 'what we've built'}, not generic advice. ${ctx.competitiveAdvantage ? `Our edge: ${ctx.competitiveAdvantage}.` : ''}`;
+    const body = `At ${ctx.businessName}, we know that ${audience} deals with ${ctx.painPoints || 'real challenges'} every day. Here is what actually works — grounded in ${ctx.uvp || 'what we have built'}, not generic advice. ${ctx.competitiveAdvantage ? `Our edge: ${ctx.competitiveAdvantage}.` : ''}`;
     const cta = category === 'promotional' ? 'Tap the link in bio to get started.' : category === 'engagement' ? 'Drop your answer in the comments 👇' : 'Save this post for later.';
 
     posts.push({
