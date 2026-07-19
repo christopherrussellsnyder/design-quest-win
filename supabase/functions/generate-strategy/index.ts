@@ -336,6 +336,165 @@ function parseJSONSafe(text: string): any {
   throw new Error('Failed to parse JSON after all repair attempts');
 }
 
+// ============ DETERMINISTIC FALLBACK GENERATOR ============
+// Runs when AI generation fails so users NEVER get an empty strategy.
+// Ported from generate-comprehensive-campaign-strategy for reliability.
+function buildFallbackOverview(ctx: BusinessCtx, platform: string, durationDays: number, goals: string[]): any {
+  const startDate = new Date();
+  const endDate = new Date(startDate);
+  endDate.setDate(endDate.getDate() + durationDays);
+  const week4Count = Math.max(durationDays - 21, 7);
+  return {
+    strategy_overview: {
+      title: `${ctx.businessName} ${durationDays}-Day ${platform} Strategy`,
+      platform,
+      duration_days: durationDays,
+      start_date: startDate.toISOString().split('T')[0],
+      end_date: endDate.toISOString().split('T')[0],
+      total_posts: durationDays,
+      strategic_approach: {
+        core_strategy: `Structured 4-phase content arc tailored to ${ctx.businessName} in ${ctx.industry}`,
+        key_differentiator: ctx.uvp || ctx.competitiveAdvantage || 'Personalized business context and audience alignment',
+        competitive_edge: ctx.competitors ? `Positioned differently from ${ctx.competitors}` : 'Anchored to your specific products and audience',
+      },
+      goals,
+      content_mix: { educational: 30, promotional: 25, engagement: 20, social_proof: 15, behind_scenes: 10 },
+      post_type_distribution: { carousel: 30, reel: 30, single_image: 20, video: 15, story: 5 },
+      predicted_metrics: {
+        total_reach: durationDays * 800,
+        total_impressions: durationDays * 1500,
+        avg_engagement_rate: 3.5,
+        expected_follower_growth: Math.floor(durationDays * 15),
+        expected_follower_growth_percentage: 5,
+        expected_profile_visits: durationDays * 40,
+        expected_website_clicks: durationDays * 12,
+        expected_conversions: Math.floor(durationDays * 1.2),
+      },
+      audience_alignment: {
+        primary_age_band: ctx.ageRange || 'unspecified',
+        gender_focus: ctx.genderSplit || 'unspecified',
+        income_tier: ctx.incomeLevel || 'unspecified',
+        geo: ctx.geoFocus || 'unspecified',
+        top_pain_points_addressed: ctx.painPoints ? [ctx.painPoints] : ['General audience pain points'],
+        behavior_tactics: `Content tuned for ${ctx.buyingBehavior || 'general audience'} buying behavior`,
+      },
+      differentiation_plan: {
+        vs_competitors: ctx.competitors ? `Avoid the tactics used by ${ctx.competitors}` : 'Anchor content to your specific products',
+        product_specific_angles: [ctx.products || 'Your core offering'],
+        avoid_generic_niche_tropes: [`Generic ${ctx.industry} advice`, 'Vague motivational content'],
+      },
+      key_tactics: [
+        'Post consistently at optimal time windows',
+        'Use proven hook structures (pattern interrupt, curiosity gap)',
+        'Respond to comments within the first hour',
+        'Weekly A/B testing of hooks and CTAs',
+      ],
+      success_milestones: {
+        week_1: 'Establish brand awareness baseline',
+        week_2: 'Drive first meaningful engagement lifts',
+        week_3: 'Build trust via social proof and case studies',
+        week_4: 'Convert warm audience with clear offers',
+      },
+      risk_assessment: {
+        potential_challenges: ['Algorithm variance', 'Content fatigue', 'Competing niche noise'],
+        mitigation_strategies: ['Vary post formats', 'Rotate hook styles', 'Monitor weekly performance'],
+        pivot_triggers: ['Engagement drop >20% for 3+ days', 'Zero conversions after week 2'],
+      },
+      implementation_guide: {
+        posting_schedule: `${durationDays} posts across ${Math.ceil(durationDays / 7)} weeks`,
+        content_creation_timeline: 'Batch produce 3-5 days at a time',
+        engagement_protocol: 'Reply to all comments within 1 hour',
+        monitoring_schedule: 'Daily performance check, weekly deep review',
+        adjustment_criteria: 'Adjust hooks/CTAs if engagement drops below baseline',
+      },
+      recommended_campaign_structure: {
+        structure_type: 'Advantage+',
+        rationale: `Advantage+ / auto-optimized campaigns are currently outperforming manual setups on ${platform} across most niches. Start here, layer in manual ABO for retargeting once you have data.`,
+        budget_split: { prospecting: 70, retargeting: 30 },
+        audience_approach: `Broad targeting aligned to ${ctx.ageRange || 'core age band'}, ${ctx.geoFocus || 'core geography'}. Exclude existing customers and warm audiences from prospecting.`,
+        creative_volume: '3-5 creatives per ad set, refresh every 7 days',
+        why_this_works_in_your_niche: `Advantage+/auto-optimization compounds fastest when creative volume is fresh and the audience signal is broad`,
+        roas_trend_signal: 'Auto-optimized structures currently outperforming manual ABO in most niches this quarter',
+        alternative_to_test: 'Manual ABO with tight interest stacks — test after 14 days of Advantage+ data',
+        first_30_day_action_plan: 'Launch 1 Advantage+ campaign with 3 creative variants. Refresh creative weekly. Layer retargeting after day 14.',
+      },
+    },
+    weekly_breakdown: [
+      { week: 1, theme: 'Awareness & Introduction', objective: 'Build brand recognition', post_count: 7, key_messages: ['Who we are', 'What makes us different', 'Our story'], expected_metrics: { reach: 5000, engagement_rate: 3.0, follower_growth: 50 }, focus_areas: ['brand introduction', 'value proposition'] },
+      { week: 2, theme: 'Engagement & Community', objective: 'Spark conversations', post_count: 7, key_messages: ['Join the conversation', 'Your voice matters'], expected_metrics: { reach: 6500, engagement_rate: 4.0, follower_growth: 80 }, focus_areas: ['polls', 'questions', 'UGC'] },
+      { week: 3, theme: 'Consideration & Trust', objective: 'Build credibility', post_count: 7, key_messages: ['Real results', 'How it works'], expected_metrics: { reach: 7500, engagement_rate: 4.2, follower_growth: 100 }, focus_areas: ['testimonials', 'case studies'] },
+      { week: 4, theme: 'Conversion & Action', objective: 'Drive conversions', post_count: week4Count, key_messages: ['Take action', 'Limited time'], expected_metrics: { reach: 8000, engagement_rate: 4.5, follower_growth: 120 }, focus_areas: ['offers', 'CTAs', 'urgency'] },
+    ],
+  };
+}
+
+function buildFallbackPosts(ctx: BusinessCtx, platform: string, durationDays: number, startDateStr: string): any[] {
+  const postTypes = ['carousel', 'reel', 'single_image', 'video', 'story'];
+  const categories: Array<'educational' | 'promotional' | 'engagement' | 'social_proof' | 'behind_scenes'> = ['educational', 'promotional', 'engagement', 'social_proof', 'behind_scenes'];
+  const times = ['09:00', '12:00', '15:00', '18:00', '20:00'];
+  const themes = [
+    { week: 1, name: 'Awareness & Introduction' },
+    { week: 2, name: 'Engagement & Community' },
+    { week: 3, name: 'Consideration & Trust' },
+    { week: 4, name: 'Conversion & Action' },
+  ];
+
+  const anchor = ctx.products || ctx.uvp || `${ctx.businessName}'s core offering`;
+  const audience = ctx.ageRange || ctx.painPoints || 'your ideal customer';
+
+  const hookTemplates = [
+    (i: number) => `3 things about ${ctx.industry} nobody talks about`,
+    (i: number) => `Stop doing this if you want ${ctx.industry} results`,
+    (i: number) => `The truth about ${anchor.split(',')[0] || ctx.industry}`,
+    (i: number) => `Why ${audience} keeps missing this`,
+    (i: number) => `We tested this so you don't have to`,
+    (i: number) => `Real talk: ${ctx.industry} edition`,
+    (i: number) => `${i + 1} ways ${ctx.businessName} does it differently`,
+  ];
+
+  const posts: any[] = [];
+  const base = new Date(startDateStr);
+
+  for (let day = 1; day <= durationDays; day++) {
+    const date = new Date(base);
+    date.setDate(date.getDate() + day - 1);
+    const week = Math.min(Math.ceil(day / 7), 4);
+    const theme = themes[week - 1];
+    const category = categories[day % categories.length];
+    const postType = postTypes[day % postTypes.length];
+    const hook = hookTemplates[day % hookTemplates.length](day);
+
+    const body = `At ${ctx.businessName}, we know that ${audience} deals with ${ctx.painPoints || 'real challenges'} every day. Here's what actually works — grounded in ${ctx.uvp || 'what we've built'}, not generic advice. ${ctx.competitiveAdvantage ? `Our edge: ${ctx.competitiveAdvantage}.` : ''}`;
+    const cta = category === 'promotional' ? 'Tap the link in bio to get started.' : category === 'engagement' ? 'Drop your answer in the comments 👇' : 'Save this post for later.';
+
+    posts.push({
+      day_number: day,
+      post_date: date.toISOString().split('T')[0],
+      post_time: times[day % times.length],
+      week_number: week,
+      week_theme: theme.name,
+      content_details: { post_type: postType, content_category: category, specific_theme: theme.name, primary_emotion: 'curiosity', content_pillar: category },
+      copy_elements: {
+        hook: { text: hook, technique: 'curiosity_gap', psychological_principle: 'information gap' },
+        opening: `Most ${ctx.industry} advice misses the point.`,
+        body,
+        cta: { text: cta, type: category === 'promotional' ? 'buy' : category === 'engagement' ? 'comment' : 'save', strength: 'medium' },
+        full_caption: `${hook}\n\nMost ${ctx.industry} advice misses the point.\n\n${body}\n\n${cta}`,
+      },
+      hashtag_strategy: {
+        hashtags: [`#${ctx.industry.replace(/\s+/g, '')}`, `#${platform}`, '#marketing', '#business', '#growth'],
+        mix_breakdown: { high_volume: ['#marketing', '#business'], medium_volume: [`#${ctx.industry.replace(/\s+/g, '')}`], niche: [`#${platform}`], branded: [`#${ctx.businessName.replace(/\s+/g, '')}`] },
+      },
+      visual_guidance: { visual_type: postType, description: `High-quality ${postType} showcasing ${anchor}`, color_palette: 'brand colors', text_overlay: hook, attention_hook: 'bold text overlay in first frame' },
+      performance_prediction: { predicted_reach: 800, predicted_impressions: 1500, predicted_engagement_rate: 3.5, predicted_likes: 45, predicted_comments: 8, predicted_shares: 4, predicted_saves: 6, confidence_level: 'Medium', prediction_basis: 'Fallback baseline — refine after real performance data uploaded' },
+      strategic_rationale: { why_this_day: `Aligns with week ${week} theme: ${theme.name}`, arc_positioning: `${theme.name} phase`, builds_toward: week < 4 ? 'trust and consideration' : 'conversion', success_metrics: 'engagement rate above baseline', differentiation_anchor: anchor },
+      optimization_tips: { engagement_boosters: ['Post at optimal window', 'Reply to comments in first hour'], a_b_test_ideas: ['Test alternate hook', 'Test soft vs hard CTA'], potential_issues: ['Algorithm reach variance'], risk_mitigation: ['Repost as story if underperforming'] },
+    });
+  }
+  return posts;
+}
+
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
