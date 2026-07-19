@@ -54,6 +54,7 @@ export default function Features() {
             </Link>
             <div className="hidden md:flex items-center gap-6 text-sm text-[#A0A0A8]">
               <Link to="/features" className="text-[#CC0000]">Features</Link>
+              <Link to="/how-it-works" className="hover:text-white transition-colors">How It Works</Link>
               <Link to="/demo" className="hover:text-white transition-colors">Demo</Link>
               <Link to="/about" className="hover:text-white transition-colors">About</Link>
               <Link to="/pricing" className="hover:text-white transition-colors">Pricing</Link>
