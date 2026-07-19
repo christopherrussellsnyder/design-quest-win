@@ -34,6 +34,7 @@ const Cookies = lazy(() => import("./pages/Cookies"));
 const HelpCenter = lazy(() => import("./pages/HelpCenter"));
 const Pricing = lazy(() => import("./pages/Pricing"));
 const Features = lazy(() => import("./pages/Features"));
+const HowItWorks = lazy(() => import("./pages/HowItWorks"));
 const About = lazy(() => import("./pages/About"));
 const Contact = lazy(() => import("./pages/Contact"));
 const Demo = lazy(() => import("./pages/Demo"));
@@ -136,6 +137,7 @@ const App = () => (
                   <Route path="/reset-password" element={<ResetPassword />} />
                   <Route path="/pricing" element={<Pricing />} />
                   <Route path="/features" element={<Features />} />
+                  <Route path="/how-it-works" element={<HowItWorks />} />
                   <Route path="/about" element={<About />} />
                   <Route path="/contact" element={<Contact />} />
                   <Route path="/demo" element={<Demo />} />
