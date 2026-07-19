@@ -725,19 +725,18 @@ serve(async (req) => {
     const overviewText = await callAI(LOVABLE_API_KEY, overviewPrompt, systemPrompt, 8000);
     
     let overviewData: any;
+    let overviewUsedFallback = false;
     try {
       overviewData = parseJSONSafe(overviewText);
     } catch (e) {
-      console.error('Overview parse failed:', e, 'Text:', overviewText.substring(0, 500));
-      return new Response(
-        JSON.stringify({ error: 'Failed to generate strategy overview. Please try again.' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      console.error('Overview parse failed — using deterministic fallback:', e, 'Text:', overviewText.substring(0, 500));
+      overviewData = buildFallbackOverview(ctx, platform, durationDays, effectiveGoals);
+      overviewUsedFallback = true;
     }
 
     const overview = overviewData.strategy_overview;
     const weeklyBreakdown = overviewData.weekly_breakdown || [];
-    console.log('Overview generated successfully');
+    console.log(overviewUsedFallback ? 'Overview: deterministic fallback' : 'Overview generated successfully');
 
     // ========== STEP 2: Generate posts in batches ==========
     const batchSize = 10;
@@ -801,10 +800,14 @@ serve(async (req) => {
     }
 
     if (allPosts.length === 0) {
-      return new Response(
-        JSON.stringify({ error: 'Failed to generate posts. Please try again or reduce duration.' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      console.warn('AI produced zero posts across all batches — using deterministic fallback');
+      const fallbackPosts = buildFallbackPosts(ctx, platform, durationDays, startDateStr);
+      allPosts.push(...fallbackPosts);
+    } else if (allPosts.length < durationDays) {
+      console.warn(`AI produced only ${allPosts.length}/${durationDays} posts — filling remainder from deterministic fallback`);
+      const covered = new Set(allPosts.map((p: any) => p.day_number).filter(Boolean));
+      const filler = buildFallbackPosts(ctx, platform, durationDays, startDateStr).filter((p: any) => !covered.has(p.day_number));
+      allPosts.push(...filler);
     }
 
     console.log(`Total posts generated: ${allPosts.length}`);
