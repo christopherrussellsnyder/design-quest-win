@@ -23,27 +23,43 @@ export const KorexLogoLockup = ({
   lgHeight,
   showTagline = true,
 }: KorexLogoLockupProps) => {
-  const desktopHeight = lgHeight ?? mdHeight ?? height;
-  const tabletHeight = mdHeight ?? height;
+  const base = Math.max(16, height);
+  const md = Math.max(16, mdHeight ?? height);
+  const lg = Math.max(16, lgHeight ?? md);
+
+  const icon = (h: number) => Math.round(h * 1.25);
+  const word = (h: number) => Math.round(icon(h) * 0.55);
+  const tagline = (h: number) => Math.max(10, Math.round(icon(h) * 0.10));
+
+  const iconH = `h-[${icon(base)}px] md:h-[${icon(md)}px] lg:h-[${icon(lg)}px]`;
+  const wordCls = `text-[${word(base)}px] md:text-[${word(md)}px] lg:text-[${word(lg)}px]`;
+  const taglineCls = `text-[${tagline(base)}px] md:text-[${tagline(md)}px] lg:text-[${tagline(lg)}px]`;
 
   return (
-    <div className={`inline-flex items-center gap-4 md:gap-6 ${className}`}>
+    <div
+      className={`inline-flex items-center gap-4 md:gap-6 ${className}`}
+      style={{ height: icon(base) }}
+    >
       <img
         src={korexIcon}
         alt=""
         aria-hidden="true"
-        className="object-contain h-16 md:h-24 lg:h-36 w-auto"
+        className={`object-contain w-auto ${iconH}`}
       />
       <div
         className="self-stretch border-l border-primary/40"
         aria-hidden="true"
       />
       <div className="flex flex-col justify-center items-start leading-none">
-        <span className="font-black tracking-[0.18em] text-foreground inline-block text-[2.1rem] md:text-[3.3rem] lg:text-[5rem]">
+        <span
+          className={`font-black tracking-[0.18em] text-foreground inline-block ${wordCls}`}
+        >
           KOREX
         </span>
         {showTagline && (
-          <span className="text-primary tracking-[0.5em] mt-[0.36em] inline-block text-[0.55rem] md:text-[0.85rem] lg:text-[1.25rem]">
+          <span
+            className={`text-primary tracking-[0.5em] mt-[0.36em] inline-block ${taglineCls}`}
+          >
             INTELLIGENCE SYSTEMS
           </span>
         )}
