@@ -299,3 +299,26 @@
   0% { background-position: 0px 0px; }
   100% { background-position: 24px 48px; }
 }
+
+/* Responsive Korex logo lockup */
+.korex-logo-lockup {
+  --korex-icon-size: var(--korex-icon-base);
+  --korex-word-size: var(--korex-word-base);
+  --korex-tagline-size: var(--korex-tagline-base);
+}
+
+@media (min-width: 768px) {
+  .korex-logo-lockup {
+    --korex-icon-size: var(--korex-icon-md, var(--korex-icon-base));
+    --korex-word-size: var(--korex-word-md, var(--korex-word-base));
+    --korex-tagline-size: var(--korex-tagline-md, var(--korex-tagline-base));
+  }
+}
+
+@media (min-width: 1024px) {
+  .korex-logo-lockup {
+    --korex-icon-size: var(--korex-icon-lg, var(--korex-icon-md, var(--korex-icon-base)));
+    --korex-word-size: var(--korex-word-lg, var(--korex-word-md, var(--korex-word-base)));
+    --korex-tagline-size: var(--korex-tagline-lg, var(--korex-tagline-md, var(--korex-tagline-base)));
+  }
+}
