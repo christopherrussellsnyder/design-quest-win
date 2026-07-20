@@ -31,20 +31,29 @@ export const KorexLogoLockup = ({
   const word = (h: number) => Math.round(icon(h) * 0.55);
   const tagline = (h: number) => Math.max(10, Math.round(icon(h) * 0.10));
 
-  const iconH = `h-[${icon(base)}px] md:h-[${icon(md)}px] lg:h-[${icon(lg)}px]`;
-  const wordCls = `text-[${word(base)}px] md:text-[${word(md)}px] lg:text-[${word(lg)}px]`;
-  const taglineCls = `text-[${tagline(base)}px] md:text-[${tagline(md)}px] lg:text-[${tagline(lg)}px]`;
+  const vars = {
+    "--korex-icon-base": `${icon(base)}px`,
+    "--korex-icon-md": `${icon(md)}px`,
+    "--korex-icon-lg": `${icon(lg)}px`,
+    "--korex-word-base": `${word(base)}px`,
+    "--korex-word-md": `${word(md)}px`,
+    "--korex-word-lg": `${word(lg)}px`,
+    "--korex-tagline-base": `${tagline(base)}px`,
+    "--korex-tagline-md": `${tagline(md)}px`,
+    "--korex-tagline-lg": `${tagline(lg)}px`,
+  } as React.CSSProperties;
 
   return (
     <div
-      className={`inline-flex items-center gap-4 md:gap-6 ${className}`}
-      style={{ height: icon(base) }}
+      className={`korex-logo-lockup inline-flex items-center gap-4 md:gap-6 ${className}`}
+      style={vars}
     >
       <img
         src={korexIcon}
         alt=""
         aria-hidden="true"
-        className={`object-contain w-auto ${iconH}`}
+        className="object-contain w-auto"
+        style={{ height: "var(--korex-icon-size)" }}
       />
       <div
         className="self-stretch border-l border-primary/40"
@@ -52,13 +61,15 @@ export const KorexLogoLockup = ({
       />
       <div className="flex flex-col justify-center items-start leading-none">
         <span
-          className={`font-black tracking-[0.18em] text-foreground inline-block ${wordCls}`}
+          className="font-black tracking-[0.18em] text-foreground inline-block"
+          style={{ fontSize: "var(--korex-word-size)" }}
         >
           KOREX
         </span>
         {showTagline && (
           <span
-            className={`text-primary tracking-[0.5em] mt-[0.36em] inline-block ${taglineCls}`}
+            className="text-primary tracking-[0.5em] mt-[0.36em] inline-block"
+            style={{ fontSize: "var(--korex-tagline-size)" }}
           >
             INTELLIGENCE SYSTEMS
           </span>
