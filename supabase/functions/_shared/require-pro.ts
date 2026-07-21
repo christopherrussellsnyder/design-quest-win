@@ -1,6 +1,6 @@
 // Shared server-side gate: require an active Pro or Agency subscription.
 // Returns null when authorized, or a Response (402/401) that the caller should return.
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.4";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
