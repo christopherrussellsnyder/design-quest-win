@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { serviceClient } from "../_shared/supabase.ts";
+import { checkRateLimit, clientKey } from "../_shared/rate-limit.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -557,6 +558,19 @@ serve(async (req) => {
     if (!messages || !Array.isArray(messages)) {
       return new Response(JSON.stringify({ error: 'messages array is required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
+    // Bound payload + apply generous per-user/IP rate limit to deter abuse
+    // without affecting real usage. Response shape unchanged.
+    if (messages.length > 200) {
+      return new Response(JSON.stringify({ error: 'messages array too large' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+    const rlKey = userId ? `ai-chat:user:${userId}` : clientKey(req, 'ai-chat');
+    const rl = checkRateLimit(rlKey, { limit: 60, windowMs: 60_000 });
+    if (!rl.ok) {
+      return new Response(JSON.stringify({ error: 'Too many requests. Please slow down.' }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
     console.log('Cognitive AI Chat V2:', { messagesCount: messages.length, hasUserId: !!userId });
