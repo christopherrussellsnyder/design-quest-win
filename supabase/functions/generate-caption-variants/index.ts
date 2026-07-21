@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { requirePro } from "../_shared/require-pro.ts";
+import { checkRateLimit, clientKey } from "../_shared/rate-limit.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -14,10 +15,20 @@ serve(async (req) => {
   const gate = await requirePro(req);
   if (gate instanceof Response) return gate;
 
-  try {
-    const { caption, hook, platform, postType, theme, contentCategory } = await req.json();
+  // Abuse guard: generous ceiling that won't affect real usage.
+  const rl = checkRateLimit(clientKey(req, "caption-variants"), { limit: 30, windowMs: 60_000 });
+  if (!rl.ok) {
+    return new Response(
+      JSON.stringify({ error: 'Too many requests. Please slow down.' }),
+      { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
 
-    if (!caption || typeof caption !== 'string') {
+  try {
+    const body = await req.json().catch(() => ({}));
+    const { caption, hook, platform, postType, theme, contentCategory } = body ?? {};
+
+    if (!caption || typeof caption !== 'string' || caption.length > 8000) {
       return new Response(
         JSON.stringify({ error: 'caption is required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

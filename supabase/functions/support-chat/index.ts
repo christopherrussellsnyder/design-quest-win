@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { serviceClient } from "../_shared/supabase.ts";
+import { checkRateLimit, clientKey } from "../_shared/rate-limit.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -62,11 +63,31 @@ serve(async (req) => {
       });
     }
 
-    const { messages, conversationId } = await req.json();
-    if (!Array.isArray(messages) || messages.length === 0) {
+    // Per-user + per-IP rate limit: 30 requests/minute. Well above normal usage;
+    // trips only on scripted abuse. Response shape stays a plain JSON error.
+    const rlUser = checkRateLimit(`support-chat:user:${user.id}`, { limit: 30, windowMs: 60_000 });
+    const rlIp = checkRateLimit(clientKey(req, "support-chat"), { limit: 60, windowMs: 60_000 });
+    if (!rlUser.ok || !rlIp.ok) {
+      return new Response(JSON.stringify({ error: "Too many requests. Please slow down." }), {
+        status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const body = await req.json().catch(() => null);
+    const messages = body?.messages;
+    const conversationId = body?.conversationId;
+    if (!Array.isArray(messages) || messages.length === 0 || messages.length > 100) {
       return new Response(JSON.stringify({ error: "messages required" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+    // Bound individual message size to prevent prompt-flooding abuse.
+    for (const m of messages) {
+      if (!m || typeof m.role !== "string" || typeof m.content !== "string" || m.content.length > 8000) {
+        return new Response(JSON.stringify({ error: "invalid message payload" }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
 
     // Fetch user plan for context
