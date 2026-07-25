@@ -447,7 +447,7 @@ const Index = () => {
             <h2 className="text-3xl sm:text-[40px] font-black mb-4" style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '2px' }}>
               The Technology Behind Korex
             </h2>
-            <p className="text-[#A0A0A8]">Powered by advanced AI + Proprietary Analysis Framework</p>
+            <p className="text-[#A0A0A8]">Powered by advanced AI + a live Research Analysis engine that tracks what's actually working — organic and paid — across every major platform.</p>
           </AnimatedSection>
 
           <div className="space-y-4">

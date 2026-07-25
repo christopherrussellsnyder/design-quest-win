@@ -4080,6 +4080,39 @@ export type Database = {
           },
         ]
       }
+      research_insights: {
+        Row: {
+          content_mode: string
+          created_at: string
+          data: Json
+          expires_at: string
+          generated_at: string
+          id: string
+          industry: string | null
+          platform: string
+        }
+        Insert: {
+          content_mode?: string
+          created_at?: string
+          data?: Json
+          expires_at?: string
+          generated_at?: string
+          id?: string
+          industry?: string | null
+          platform: string
+        }
+        Update: {
+          content_mode?: string
+          created_at?: string
+          data?: Json
+          expires_at?: string
+          generated_at?: string
+          id?: string
+          industry?: string | null
+          platform?: string
+        }
+        Relationships: []
+      }
       scheduled_posts: {
         Row: {
           approval_status: string | null

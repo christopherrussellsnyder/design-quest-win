@@ -70,7 +70,7 @@ export function ChatArea({
   const [currentConversationId, setCurrentConversationId] = useState<string | undefined>(conversationId);
   const [hasStrategies, setHasStrategies] = useState(false);
   const [settingsComplete, setSettingsComplete] = useState(true);
-  const [pendingStrategy, setPendingStrategy] = useState<{ platform: string; duration: number } | null>(null);
+  const [pendingStrategy, setPendingStrategy] = useState<{ platform: string; duration: number; contentMode: 'organic' | 'paid' | 'hybrid' } | null>(null);
   const [preferences, setPreferences] = useState<ContextPreferences>({
     response_style: 'balanced',
     tone_preference: 'balanced',
@@ -202,41 +202,42 @@ export function ChatArea({
     return cancelKeywords.test(text.trim());
   };
 
-  const triggerStrategyGeneration = async (platform: string, duration: number) => {
+  const triggerStrategyGeneration = async (platform: string, duration: number, contentMode: 'organic' | 'paid' | 'hybrid' = 'hybrid') => {
     setPendingStrategy(null);
-    
+
+    const modeLabel = contentMode === 'organic' ? 'organic-only' : contentMode === 'paid' ? 'paid-ads' : 'hybrid';
     const progressMsgId = `strategy-progress-${Date.now()}`;
     setMessages(prev => [...prev, {
       id: progressMsgId,
       role: 'assistant',
-      content: `🚀 **Generating your ${duration}-day ${platform} strategy...**\n\nThis will take 60-90 seconds for a comprehensive multi-platform plan.\n\n⏳ Analyzing business context...`,
+      content: `🚀 **Generating your ${duration}-day ${modeLabel} ${platform} strategy...**\n\nThis will take 60-90 seconds for a comprehensive multi-platform plan.\n\n⏳ Analyzing business context...`,
       createdAt: new Date(),
     }]);
 
     try {
-      const result = await generateStrategy(platform, duration, undefined, undefined, currentConversationId);
+      const result = await generateStrategy(platform, duration, undefined, undefined, currentConversationId, contentMode);
       if (result) {
         setHasStrategies(true);
-        const successContent = `✨ **Strategy Generated Successfully!**\n\nI've created your ${duration}-day ${platform} content strategy with **${result.postsCount} posts**.\n\n**Predicted Results:**\n- 📈 Total Reach: ${result.strategy.predicted_metrics?.total_reach?.toLocaleString() || 'N/A'}\n- 💬 Avg Engagement: ${result.strategy.predicted_metrics?.avg_engagement_rate || 'N/A'}%\n- 👥 Follower Growth: +${result.strategy.predicted_metrics?.expected_follower_growth || 'N/A'}\n\n[View Full Strategy](/strategies/${result.strategyId})`;
-        
-        setMessages(prev => prev.map(m => 
+        const successContent = `✨ **Strategy Generated Successfully!**\n\nI've created your ${duration}-day ${modeLabel} ${platform} content strategy with **${result.postsCount} posts**.\n\n**Predicted Results:**\n- 📈 Total Reach: ${result.strategy.predicted_metrics?.total_reach?.toLocaleString() || 'N/A'}\n- 💬 Avg Engagement: ${result.strategy.predicted_metrics?.avg_engagement_rate || 'N/A'}%\n- 👥 Follower Growth: +${result.strategy.predicted_metrics?.expected_follower_growth || 'N/A'}\n\n[View Full Strategy](/strategies/${result.strategyId})`;
+
+        setMessages(prev => prev.map(m =>
           m.id === progressMsgId ? { ...m, content: successContent } : m
         ));
-        
+
         if (currentConversationId) {
           await saveMessage(currentConversationId, 'assistant', successContent);
         }
       } else {
-        setMessages(prev => prev.map(m => 
-          m.id === progressMsgId 
+        setMessages(prev => prev.map(m =>
+          m.id === progressMsgId
             ? { ...m, content: '❌ **Strategy generation failed.** Please try again or use a shorter duration (14 days) for better reliability.' }
             : m
         ));
       }
     } catch (error) {
       console.error('Strategy generation error:', error);
-      setMessages(prev => prev.map(m => 
-        m.id === progressMsgId 
+      setMessages(prev => prev.map(m =>
+        m.id === progressMsgId
           ? { ...m, content: `❌ **Strategy generation failed:** ${error instanceof Error ? error.message : 'Unknown error'}\n\nTry generating via chat by typing "Generate a ${duration}-day ${platform} strategy".` }
           : m
       ));
@@ -262,7 +263,7 @@ export function ChatArea({
         await saveMessage(currentConversationId, 'user', content);
       }
       
-      await triggerStrategyGeneration(pendingStrategy.platform, pendingStrategy.duration);
+      await triggerStrategyGeneration(pendingStrategy.platform, pendingStrategy.duration, pendingStrategy.contentMode);
       return;
     }
 
@@ -612,12 +613,13 @@ I'll use this context to provide personalized marketing recommendations. You can
     await saveMessage(convId, 'assistant', summaryMessage);
   };
 
-  const handleStrategyRequest = async (platform: string, duration: number) => {
+  const handleStrategyRequest = async (platform: string, duration: number, contentMode: 'organic' | 'paid' | 'hybrid' = 'hybrid') => {
     setShowStrategyDialog(false);
-    
+
     // Phase 1: Only send chat message for AI confirmation — do NOT generate yet
-    setPendingStrategy({ platform, duration });
-    const userMessage = `Generate a ${duration}-day content strategy for ${platform}. Please review my business context and show me a confirmation before generating.`;
+    setPendingStrategy({ platform, duration, contentMode });
+    const modeLabel = contentMode === 'organic' ? 'organic-only' : contentMode === 'paid' ? 'paid-ads' : 'hybrid organic + paid';
+    const userMessage = `Generate a ${duration}-day ${modeLabel} content strategy for ${platform}. Please review my business context and show me a confirmation before generating.`;
     await sendMessage(userMessage);
   };
 
@@ -645,7 +647,7 @@ I'll use this context to provide personalized marketing recommendations. You can
         break;
       case 'confirm_strategy':
         if (pendingStrategy) {
-          triggerStrategyGeneration(pendingStrategy.platform, pendingStrategy.duration);
+          triggerStrategyGeneration(pendingStrategy.platform, pendingStrategy.duration, pendingStrategy.contentMode);
         }
         break;
       case 'cancel_strategy':

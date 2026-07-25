@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Settings, User, HelpCircle, LogOut, CreditCard, ChevronUp, BarChart3, FileText, Image } from 'lucide-react';
+import { Settings, User, HelpCircle, LogOut, CreditCard, ChevronUp, BarChart3, FileText, Image, Sparkles } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -151,6 +151,14 @@ export function UserProfileMenu() {
           >
             <FileText className="w-4 h-4 text-muted-foreground" />
             <span className="text-sm">Strategies</span>
+          </DropdownMenuItem>
+
+          <DropdownMenuItem
+            className="flex items-center gap-3 px-3 py-2.5 cursor-pointer rounded-md hover:bg-surface-tertiary focus:bg-surface-tertiary transition-colors"
+            onClick={() => navigate('/research')}
+          >
+            <Sparkles className="w-4 h-4 text-muted-foreground" />
+            <span className="text-sm">Research</span>
           </DropdownMenuItem>
 
           <DropdownMenuItem

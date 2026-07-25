@@ -13,6 +13,7 @@ interface StrategyRequest {
   customInstructions?: string;
   conversationId?: string;
   workspace_id?: string | null;
+  contentMode?: 'organic' | 'paid' | 'hybrid';
 }
 
 interface BusinessCtx {
@@ -108,7 +109,7 @@ function getBusinessContext(businessContext: any, userSettings: any, businessInf
   };
 }
 
-function buildOverviewPrompt(ctx: BusinessCtx, platform: string, durationDays: number, goals: string[], analyticsSection: string, intelligenceSection: string, performanceFeedbackSection: string, promotionsSection: string, customInstructions?: string): string {
+function buildOverviewPrompt(ctx: BusinessCtx, platform: string, durationDays: number, goals: string[], analyticsSection: string, intelligenceSection: string, performanceFeedbackSection: string, promotionsSection: string, customInstructions?: string, contentMode: 'organic' | 'paid' | 'hybrid' = 'hybrid'): string {
   const startDate = new Date();
   const endDate = new Date(startDate);
   endDate.setDate(endDate.getDate() + durationDays);
@@ -157,7 +158,10 @@ Differentiation must never come at the cost of proven engagement mechanics. If a
 Use 4-week arc: Week1=Awareness, Week2=Engagement, Week3=Consideration, Week4=Conversion.
 Content mix: 30% educational, 25% promotional, 20% engagement, 15% social proof, 10% behind-scenes.
 
-You MUST also produce a "recommended_campaign_structure" section advising the user on which paid ad campaign optimization type to run on ${platform} (CBO, ABO, Advantage+, manual, etc.), grounded in (1) their business profile + goals AND (2) the live platform intelligence above about what's currently driving the best ROAS / profit margins in their niche. The audience_approach field MUST reflect the exact demographics above (age ${ctx.ageRange || 'n/a'}, ${ctx.genderSplit || 'n/a'}, ${ctx.incomeLevel || 'n/a'}, ${ctx.geoFocus || 'n/a'}), not a generic niche audience.
+=== STRATEGY TYPE: ${contentMode.toUpperCase()} ===
+${contentMode === 'organic' ? `This is an ORGANIC-ONLY strategy. NO paid ad spend is assumed. Every post is a native feed/profile post. Focus on: platform-native formats (Reels, carousels, Stories, native video), organic reach mechanics (SEO captions, saveable content, share-triggering hooks, comment-driving questions), community building, and hashtag strategy. DO NOT include a "recommended_campaign_structure" for paid ads — instead include organic-growth guidance (posting cadence, community engagement protocol, hashtag mix, collaboration/duet/repost opportunities). Set "recommended_campaign_structure" to { "mode": "organic", "growth_levers": [...], "posting_cadence": "...", "engagement_protocol": "...", "hashtag_strategy": "..." }.` : ''}
+${contentMode === 'paid' ? `This is a PAID-ADS-ONLY strategy. Every post is a paid ad creative. Focus on: direct-response hooks, scroll-stoppers optimized for cold audiences, clear offer/CTA, creative variants for testing, and campaign structure. You MUST produce a "recommended_campaign_structure" advising which paid ad campaign optimization type to run on ${platform} (CBO, ABO, Advantage+, manual, Performance Max, etc.), grounded in (1) their business profile + goals AND (2) the live platform intelligence above about what's currently driving the best ROAS / profit margins in their niche. The audience_approach field MUST reflect the exact demographics above (age ${ctx.ageRange || 'n/a'}, ${ctx.genderSplit || 'n/a'}, ${ctx.incomeLevel || 'n/a'}, ${ctx.geoFocus || 'n/a'}), not a generic niche audience.` : ''}
+${contentMode === 'hybrid' ? `This is a HYBRID strategy blending ORGANIC and PAID. Roughly 60% organic feed posts (community, education, social proof) and 40% paid-ad creatives designed to amplify winning organic angles. Each post should have a "distribution" field set to "organic" or "paid" — organic posts optimize for shares/saves/comments, paid posts optimize for CTR/CPA. You MUST produce a "recommended_campaign_structure" for the paid portion (CBO/ABO/Advantage+/manual, etc.), grounded in the live platform intelligence above. The audience_approach field MUST reflect the exact demographics above (age ${ctx.ageRange || 'n/a'}, ${ctx.genderSplit || 'n/a'}, ${ctx.incomeLevel || 'n/a'}, ${ctx.geoFocus || 'n/a'}), not a generic niche audience.` : ''}
 
 Return ONLY valid JSON (no markdown):
 {
@@ -531,7 +535,7 @@ serve(async (req) => {
       );
     }
 
-    const { platform, durationDays = 30, goals, customInstructions, conversationId, workspace_id: bodyWorkspaceId } = await req.json() as StrategyRequest;
+    const { platform, durationDays = 30, goals, customInstructions, conversationId, workspace_id: bodyWorkspaceId, contentMode = 'hybrid' } = await req.json() as StrategyRequest;
     const effectiveGoals = goals?.length ? goals : ['Increase engagement', 'Grow followers', 'Drive conversions'];
 
     // Server-side enforcement of Starter plan lifetime cap (2 strategies).
@@ -721,7 +725,7 @@ serve(async (req) => {
 
     // ========== STEP 1: Generate strategy overview ==========
     console.log('Step 1: Generating strategy overview...');
-    const overviewPrompt = buildOverviewPrompt(ctx, platform, durationDays, effectiveGoals, analyticsSection, intelligenceSection, performanceFeedbackSection, promotionsSection, customInstructions);
+    const overviewPrompt = buildOverviewPrompt(ctx, platform, durationDays, effectiveGoals, analyticsSection, intelligenceSection, performanceFeedbackSection, promotionsSection, customInstructions, contentMode);
     const overviewText = await callAI(LOVABLE_API_KEY, overviewPrompt, systemPrompt, 8000);
     
     let overviewData: any;
