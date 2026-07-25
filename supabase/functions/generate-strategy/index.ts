@@ -535,7 +535,7 @@ serve(async (req) => {
       );
     }
 
-    const { platform, durationDays = 30, goals, customInstructions, conversationId, workspace_id: bodyWorkspaceId } = await req.json() as StrategyRequest;
+    const { platform, durationDays = 30, goals, customInstructions, conversationId, workspace_id: bodyWorkspaceId, contentMode = 'hybrid' } = await req.json() as StrategyRequest;
     const effectiveGoals = goals?.length ? goals : ['Increase engagement', 'Grow followers', 'Drive conversions'];
 
     // Server-side enforcement of Starter plan lifetime cap (2 strategies).
