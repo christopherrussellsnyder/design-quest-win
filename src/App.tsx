@@ -225,6 +225,14 @@ const App = () => (
                     }
                   />
                   <Route
+                    path="/research"
+                    element={
+                      <ProtectedRoute>
+                        <Research />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
                     path="/settings"
                     element={
                       <ProtectedRoute>
