@@ -171,7 +171,8 @@ export function useStrategyGeneration() {
     durationDays: number = 30,
     goals?: string[],
     customInstructions?: string,
-    conversationId?: string
+    conversationId?: string,
+    contentMode: 'organic' | 'paid' | 'hybrid' = 'hybrid'
   ): Promise<GeneratedStrategy | null> => {
     setIsGenerating(true);
     setProgress(0);
@@ -218,6 +219,7 @@ export function useStrategyGeneration() {
             goals,
             customInstructions,
             conversationId,
+            contentMode,
             workspace_id: activeWorkspaceId,
           }),
         }
