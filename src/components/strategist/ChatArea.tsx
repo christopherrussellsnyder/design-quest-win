@@ -263,7 +263,7 @@ export function ChatArea({
         await saveMessage(currentConversationId, 'user', content);
       }
       
-      await triggerStrategyGeneration(pendingStrategy.platform, pendingStrategy.duration);
+      await triggerStrategyGeneration(pendingStrategy.platform, pendingStrategy.duration, pendingStrategy.contentMode);
       return;
     }
 
