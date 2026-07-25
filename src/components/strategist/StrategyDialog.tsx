@@ -18,10 +18,12 @@ import {
 } from '@/components/ui/select';
 import { Lightbulb } from 'lucide-react';
 
+export type ContentMode = 'organic' | 'paid' | 'hybrid';
+
 interface StrategyDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (platform: string, duration: number) => void;
+  onSubmit: (platform: string, duration: number, contentMode: ContentMode) => void;
 }
 
 const platforms = [
@@ -38,13 +40,22 @@ const durations = [
   { value: 14, label: '14 days' },
 ];
 
+const modes: { value: ContentMode; label: string; hint: string }[] = [
+  { value: 'organic', label: 'Organic only', hint: 'Feed & profile posts — no ad spend required.' },
+  { value: 'paid', label: 'Paid ads only', hint: 'Campaign structure, angles, and creatives for ad spend.' },
+  { value: 'hybrid', label: 'Hybrid (organic + paid)', hint: 'Blended plan — organic content backed by paid amplification.' },
+];
+
 export function StrategyDialog({ open, onOpenChange, onSubmit }: StrategyDialogProps) {
   const [platform, setPlatform] = useState('instagram');
   const [duration, setDuration] = useState(14);
+  const [contentMode, setContentMode] = useState<ContentMode>('hybrid');
 
   const handleSubmit = () => {
-    onSubmit(platform, duration);
+    onSubmit(platform, duration, contentMode);
   };
+
+  const activeMode = modes.find((m) => m.value === contentMode);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -58,7 +69,7 @@ export function StrategyDialog({ open, onOpenChange, onSubmit }: StrategyDialogP
             AI will create a personalized content plan based on your business context.
           </DialogDescription>
         </DialogHeader>
-        
+
         <div className="space-y-4 py-4">
           <div className="space-y-2">
             <Label htmlFor="platform">Platform</Label>
@@ -75,11 +86,11 @@ export function StrategyDialog({ open, onOpenChange, onSubmit }: StrategyDialogP
               </SelectContent>
             </Select>
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="duration">Duration</Label>
-            <Select 
-              value={duration.toString()} 
+            <Select
+              value={duration.toString()}
               onValueChange={(v) => setDuration(parseInt(v))}
             >
               <SelectTrigger id="duration">
@@ -94,8 +105,27 @@ export function StrategyDialog({ open, onOpenChange, onSubmit }: StrategyDialogP
               </SelectContent>
             </Select>
           </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="content-mode">Strategy type</Label>
+            <Select value={contentMode} onValueChange={(v) => setContentMode(v as ContentMode)}>
+              <SelectTrigger id="content-mode">
+                <SelectValue placeholder="Select strategy type" />
+              </SelectTrigger>
+              <SelectContent>
+                {modes.map((m) => (
+                  <SelectItem key={m.value} value={m.value}>
+                    {m.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {activeMode && (
+              <p className="text-xs text-muted-foreground">{activeMode.hint}</p>
+            )}
+          </div>
         </div>
-        
+
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
