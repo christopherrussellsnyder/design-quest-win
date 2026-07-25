@@ -13,6 +13,7 @@ interface StrategyRequest {
   customInstructions?: string;
   conversationId?: string;
   workspace_id?: string | null;
+  contentMode?: 'organic' | 'paid' | 'hybrid';
 }
 
 interface BusinessCtx {
