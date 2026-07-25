@@ -725,7 +725,7 @@ serve(async (req) => {
 
     // ========== STEP 1: Generate strategy overview ==========
     console.log('Step 1: Generating strategy overview...');
-    const overviewPrompt = buildOverviewPrompt(ctx, platform, durationDays, effectiveGoals, analyticsSection, intelligenceSection, performanceFeedbackSection, promotionsSection, customInstructions);
+    const overviewPrompt = buildOverviewPrompt(ctx, platform, durationDays, effectiveGoals, analyticsSection, intelligenceSection, performanceFeedbackSection, promotionsSection, customInstructions, contentMode);
     const overviewText = await callAI(LOVABLE_API_KEY, overviewPrompt, systemPrompt, 8000);
     
     let overviewData: any;
