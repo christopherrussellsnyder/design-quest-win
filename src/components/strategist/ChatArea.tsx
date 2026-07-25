@@ -647,7 +647,7 @@ I'll use this context to provide personalized marketing recommendations. You can
         break;
       case 'confirm_strategy':
         if (pendingStrategy) {
-          triggerStrategyGeneration(pendingStrategy.platform, pendingStrategy.duration);
+          triggerStrategyGeneration(pendingStrategy.platform, pendingStrategy.duration, pendingStrategy.contentMode);
         }
         break;
       case 'cancel_strategy':
