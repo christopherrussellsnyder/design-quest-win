@@ -26,6 +26,7 @@ const ContentStrategies = lazy(() => import("./pages/ContentStrategies"));
 const Insights = lazy(() => import("./pages/Insights"));
 const MediaLibrary = lazy(() => import("./pages/MediaLibrary"));
 const Settings = lazy(() => import("./pages/Settings"));
+const Research = lazy(() => import("./pages/Research"));
 
 const HealthCheck = lazy(() => import("./pages/HealthCheck"));
 const Terms = lazy(() => import("./pages/Terms"));
