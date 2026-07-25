@@ -39,14 +39,19 @@ const pipelineSteps = [
 
 const otherFeatures = [
   {
+    icon: Sparkles,
+    title: 'Research Analysis (standalone)',
+    body: 'A dedicated research dashboard that continuously surfaces what is actually working right now on every major platform — trending hooks, top-performing formats, content patterns, hashtag strategy, CTA templates, and paid campaign intelligence. Refreshed every 24 hours and reused inside every strategy generation so your plans are always calibrated to current-market signals, not last year\'s playbook.',
+  },
+  {
     icon: LineChart,
     title: 'Insights (Analytics Analysis)',
     body: 'Upload a screenshot, PDF, or CSV from Meta, TikTok, or Google. Gemini Vision extracts the metrics, runs a 10-step analysis framework, and produces a 1-10 health score, benchmark comparison, trend detection, and specific recommendations that feed directly back into future strategy generations.',
   },
   {
     icon: Zap,
-    title: 'AI Strategist Chat',
-    body: 'A four-level business context hierarchy plus your communication preferences are injected into every prompt. Intent detection classifies each message and routes it — strategy request, analytics question, general marketing help — so answers stay grounded in your business.',
+    title: 'AI Strategist Chat (Organic + Paid)',
+    body: 'Every strategy can be generated as organic-only, paid-only, or a hybrid — you pick per plan. A four-level business context hierarchy plus your communication preferences are injected into every prompt so answers stay grounded in your business.',
   },
   {
     icon: Database,
