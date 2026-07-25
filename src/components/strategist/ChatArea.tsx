@@ -202,41 +202,42 @@ export function ChatArea({
     return cancelKeywords.test(text.trim());
   };
 
-  const triggerStrategyGeneration = async (platform: string, duration: number) => {
+  const triggerStrategyGeneration = async (platform: string, duration: number, contentMode: 'organic' | 'paid' | 'hybrid' = 'hybrid') => {
     setPendingStrategy(null);
-    
+
+    const modeLabel = contentMode === 'organic' ? 'organic-only' : contentMode === 'paid' ? 'paid-ads' : 'hybrid';
     const progressMsgId = `strategy-progress-${Date.now()}`;
     setMessages(prev => [...prev, {
       id: progressMsgId,
       role: 'assistant',
-      content: `🚀 **Generating your ${duration}-day ${platform} strategy...**\n\nThis will take 60-90 seconds for a comprehensive multi-platform plan.\n\n⏳ Analyzing business context...`,
+      content: `🚀 **Generating your ${duration}-day ${modeLabel} ${platform} strategy...**\n\nThis will take 60-90 seconds for a comprehensive multi-platform plan.\n\n⏳ Analyzing business context...`,
       createdAt: new Date(),
     }]);
 
     try {
-      const result = await generateStrategy(platform, duration, undefined, undefined, currentConversationId);
+      const result = await generateStrategy(platform, duration, undefined, undefined, currentConversationId, contentMode);
       if (result) {
         setHasStrategies(true);
-        const successContent = `✨ **Strategy Generated Successfully!**\n\nI've created your ${duration}-day ${platform} content strategy with **${result.postsCount} posts**.\n\n**Predicted Results:**\n- 📈 Total Reach: ${result.strategy.predicted_metrics?.total_reach?.toLocaleString() || 'N/A'}\n- 💬 Avg Engagement: ${result.strategy.predicted_metrics?.avg_engagement_rate || 'N/A'}%\n- 👥 Follower Growth: +${result.strategy.predicted_metrics?.expected_follower_growth || 'N/A'}\n\n[View Full Strategy](/strategies/${result.strategyId})`;
-        
-        setMessages(prev => prev.map(m => 
+        const successContent = `✨ **Strategy Generated Successfully!**\n\nI've created your ${duration}-day ${modeLabel} ${platform} content strategy with **${result.postsCount} posts**.\n\n**Predicted Results:**\n- 📈 Total Reach: ${result.strategy.predicted_metrics?.total_reach?.toLocaleString() || 'N/A'}\n- 💬 Avg Engagement: ${result.strategy.predicted_metrics?.avg_engagement_rate || 'N/A'}%\n- 👥 Follower Growth: +${result.strategy.predicted_metrics?.expected_follower_growth || 'N/A'}\n\n[View Full Strategy](/strategies/${result.strategyId})`;
+
+        setMessages(prev => prev.map(m =>
           m.id === progressMsgId ? { ...m, content: successContent } : m
         ));
-        
+
         if (currentConversationId) {
           await saveMessage(currentConversationId, 'assistant', successContent);
         }
       } else {
-        setMessages(prev => prev.map(m => 
-          m.id === progressMsgId 
+        setMessages(prev => prev.map(m =>
+          m.id === progressMsgId
             ? { ...m, content: '❌ **Strategy generation failed.** Please try again or use a shorter duration (14 days) for better reliability.' }
             : m
         ));
       }
     } catch (error) {
       console.error('Strategy generation error:', error);
-      setMessages(prev => prev.map(m => 
-        m.id === progressMsgId 
+      setMessages(prev => prev.map(m =>
+        m.id === progressMsgId
           ? { ...m, content: `❌ **Strategy generation failed:** ${error instanceof Error ? error.message : 'Unknown error'}\n\nTry generating via chat by typing "Generate a ${duration}-day ${platform} strategy".` }
           : m
       ));
