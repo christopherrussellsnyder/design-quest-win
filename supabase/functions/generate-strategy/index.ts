@@ -109,7 +109,7 @@ function getBusinessContext(businessContext: any, userSettings: any, businessInf
   };
 }
 
-function buildOverviewPrompt(ctx: BusinessCtx, platform: string, durationDays: number, goals: string[], analyticsSection: string, intelligenceSection: string, performanceFeedbackSection: string, promotionsSection: string, customInstructions?: string): string {
+function buildOverviewPrompt(ctx: BusinessCtx, platform: string, durationDays: number, goals: string[], analyticsSection: string, intelligenceSection: string, performanceFeedbackSection: string, promotionsSection: string, customInstructions?: string, contentMode: 'organic' | 'paid' | 'hybrid' = 'hybrid'): string {
   const startDate = new Date();
   const endDate = new Date(startDate);
   endDate.setDate(endDate.getDate() + durationDays);
