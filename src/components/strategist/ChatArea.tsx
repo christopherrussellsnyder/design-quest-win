@@ -613,12 +613,13 @@ I'll use this context to provide personalized marketing recommendations. You can
     await saveMessage(convId, 'assistant', summaryMessage);
   };
 
-  const handleStrategyRequest = async (platform: string, duration: number) => {
+  const handleStrategyRequest = async (platform: string, duration: number, contentMode: 'organic' | 'paid' | 'hybrid' = 'hybrid') => {
     setShowStrategyDialog(false);
-    
+
     // Phase 1: Only send chat message for AI confirmation — do NOT generate yet
-    setPendingStrategy({ platform, duration });
-    const userMessage = `Generate a ${duration}-day content strategy for ${platform}. Please review my business context and show me a confirmation before generating.`;
+    setPendingStrategy({ platform, duration, contentMode });
+    const modeLabel = contentMode === 'organic' ? 'organic-only' : contentMode === 'paid' ? 'paid-ads' : 'hybrid organic + paid';
+    const userMessage = `Generate a ${duration}-day ${modeLabel} content strategy for ${platform}. Please review my business context and show me a confirmation before generating.`;
     await sendMessage(userMessage);
   };
 
