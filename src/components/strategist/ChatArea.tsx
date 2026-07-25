@@ -70,7 +70,7 @@ export function ChatArea({
   const [currentConversationId, setCurrentConversationId] = useState<string | undefined>(conversationId);
   const [hasStrategies, setHasStrategies] = useState(false);
   const [settingsComplete, setSettingsComplete] = useState(true);
-  const [pendingStrategy, setPendingStrategy] = useState<{ platform: string; duration: number } | null>(null);
+  const [pendingStrategy, setPendingStrategy] = useState<{ platform: string; duration: number; contentMode: 'organic' | 'paid' | 'hybrid' } | null>(null);
   const [preferences, setPreferences] = useState<ContextPreferences>({
     response_style: 'balanced',
     tone_preference: 'balanced',
