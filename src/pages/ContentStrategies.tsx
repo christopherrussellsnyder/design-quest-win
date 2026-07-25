@@ -101,9 +101,9 @@ export default function ContentStrategies() {
     setLoading(false);
   };
 
-  const handleGenerateStrategy = async (platform: string, duration: number) => {
+  const handleGenerateStrategy = async (platform: string, duration: number, contentMode: 'organic' | 'paid' | 'hybrid' = 'hybrid') => {
     setShowGenerateDialog(false);
-    const result = await generateStrategy(platform, duration);
+    const result = await generateStrategy(platform, duration, undefined, undefined, undefined, contentMode);
     if (result) {
       await loadStrategies();
       navigate(`/strategies/${result.strategyId}`);
