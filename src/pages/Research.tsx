@@ -181,6 +181,11 @@ export default function Research() {
       setReport(j.report);
       setFromCache(!!j.from_cache);
       setTier(j.tier || 'starter');
+      setPersonalization(null);
+      if (j.tier === 'pro' && j.report) {
+        // Fire and forget — personalization is additive, not blocking.
+        loadPersonalization(j.report, force);
+      }
     } catch (e) {
       toast({
         title: 'Research is taking a breather',
