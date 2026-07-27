@@ -15,7 +15,9 @@ const corsHeaders = {
 };
 
 const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY") ?? "";
-const CACHE_TTL_HOURS = 24;
+const CACHE_TTL_HOURS = 24 * 7; // 7 days — trends move weekly, not hourly
+const FORCE_REFRESH_COOLDOWN_HOURS = 12; // per platform+mode+industry, non-founder
+const FOUNDER_EMAILS = new Set(["chrissnyder3456@gmail.com"]);
 
 type ContentMode = "organic" | "paid" | "hybrid";
 
@@ -83,7 +85,7 @@ Return ONLY valid JSON (no markdown, no prose outside JSON):
   "pitfalls_to_avoid": [ "string" ]
 }
 
-Provide 5-7 trending_hooks, 4-6 top_formats, 4-6 content_patterns, 3-5 emerging_trends, 3-5 pitfalls_to_avoid, 3-5 cta_patterns.`;
+Provide 4-5 trending_hooks, 3-4 top_formats, 3-4 content_patterns, 3 emerging_trends, 3 pitfalls_to_avoid, 3 cta_patterns. Keep every string tight — no fluff.`;
 }
 
 async function generateReport(
@@ -101,12 +103,12 @@ async function generateReport(
       Authorization: `Bearer ${LOVABLE_API_KEY}`,
     },
     body: JSON.stringify({
-      model: "google/gemini-2.5-flash",
+      model: "google/gemini-2.5-flash-lite", // cheapest capable model for structured JSON research
       messages: [
         { role: "system", content: "You return only valid JSON. No markdown fences." },
         { role: "user", content: prompt },
       ],
-      temperature: 0.6,
+      temperature: 0.5,
     }),
   });
 
@@ -188,25 +190,37 @@ serve(async (req) => {
       .select("status, plan_type")
       .eq("user_id", user.id)
       .maybeSingle();
-    const FOUNDER = new Set(["chrissnyder3456@gmail.com"]);
+    const isFounder = FOUNDER_EMAILS.has(user.email || "");
     const isPaid =
-      FOUNDER.has(user.email || "") ||
+      isFounder ||
       (sub?.status === "active" && (sub.plan_type === "pro" || sub.plan_type === "agency"));
 
-    // Cache lookup (24h)
+    // Cost guard: only the founder can bypass the cache on demand. For everyone
+    // else a "force refresh" is honored only if the most recent cached report
+    // is older than FORCE_REFRESH_COOLDOWN_HOURS. Otherwise we quietly serve
+    // the cached copy — trend data doesn't change minute-to-minute and every
+    // regenerate is a paid AI call.
+    let allowForce = force && isFounder;
     let cached: Record<string, unknown> | null = null;
-    if (!force) {
-      const { data } = await supabase
-        .from("research_insights")
-        .select("data, generated_at, expires_at")
-        .eq("platform", platform)
-        .eq("content_mode", mode)
-        .eq("industry", industry || "general")
-        .gt("expires_at", new Date().toISOString())
-        .order("generated_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      if (data) cached = data.data as Record<string, unknown>;
+
+    const { data: latest } = await supabase
+      .from("research_insights")
+      .select("data, generated_at, expires_at")
+      .eq("platform", platform)
+      .eq("content_mode", mode)
+      .eq("industry", industry || "general")
+      .order("generated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (force && !isFounder && latest?.generated_at) {
+      const ageHours =
+        (Date.now() - new Date(latest.generated_at).getTime()) / (3600 * 1000);
+      allowForce = ageHours >= FORCE_REFRESH_COOLDOWN_HOURS;
+    }
+
+    if (!allowForce && latest?.expires_at && new Date(latest.expires_at).getTime() > Date.now()) {
+      cached = latest.data as Record<string, unknown>;
     }
 
     let report = cached;
