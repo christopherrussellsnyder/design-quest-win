@@ -26,7 +26,19 @@ import {
   RefreshCw,
   Lock,
   ArrowLeft,
+  User,
+  Rocket,
+  Layers,
 } from 'lucide-react';
+
+interface Personalization {
+  positioning_summary?: string;
+  hook_adaptations?: { trend_hook: string; your_version: string; why: string }[];
+  format_recommendations?: { format: string; custom_angle: string; example_concept: string }[];
+  content_pillars?: { pillar: string; reason: string; example_topics: string[] }[];
+  competitive_edge?: string;
+  quick_wins?: string[];
+}
 
 type ContentMode = 'organic' | 'paid' | 'hybrid';
 
@@ -81,6 +93,46 @@ export default function Research() {
   const [loading, setLoading] = useState(false);
   const [fromCache, setFromCache] = useState(false);
   const [tier, setTier] = useState<'starter' | 'pro'>('starter');
+  const [personalization, setPersonalization] = useState<Personalization | null>(null);
+  const [personalizing, setPersonalizing] = useState(false);
+  const [personalizationCached, setPersonalizationCached] = useState(false);
+
+  const loadPersonalization = async (r: ResearchReport, force = false) => {
+    setPersonalizing(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      const resp = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/research-personalize`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({
+            platform,
+            contentMode: mode,
+            industry,
+            report: r,
+            force,
+          }),
+        },
+      );
+      if (!resp.ok) {
+        // Silent — the shared report is still shown. 403 = starter tier.
+        setPersonalization(null);
+        return;
+      }
+      const j = await resp.json();
+      setPersonalization(j.personalization ?? null);
+      setPersonalizationCached(!!j.from_cache);
+    } catch {
+      setPersonalization(null);
+    } finally {
+      setPersonalizing(false);
+    }
+  };
 
   const load = async (force = false) => {
     setLoading(true);
@@ -129,6 +181,11 @@ export default function Research() {
       setReport(j.report);
       setFromCache(!!j.from_cache);
       setTier(j.tier || 'starter');
+      setPersonalization(null);
+      if (j.tier === 'pro' && j.report) {
+        // Fire and forget — personalization is additive, not blocking.
+        loadPersonalization(j.report, force);
+      }
     } catch (e) {
       toast({
         title: 'Research is taking a breather',
@@ -285,7 +342,161 @@ export default function Research() {
 
           {report && (
             <div className="space-y-5">
+              {tier === 'pro' && (
+                <div className="rounded-xl border border-primary/30 bg-gradient-to-br from-primary/10 via-[#0C0D10] to-[#0C0D10] p-5">
+                  <div className="flex items-center gap-2 mb-3">
+                    <User className="w-4 h-4 text-primary" />
+                    <h2 className="text-sm font-semibold tracking-tight">
+                      How this applies to your business
+                    </h2>
+                    {personalizationCached && (
+                      <span className="text-[10px] text-muted-foreground ml-auto">
+                        Cached • refreshes weekly
+                      </span>
+                    )}
+                  </div>
+
+                  {personalizing && !personalization && (
+                    <div className="flex items-center text-sm text-muted-foreground py-6">
+                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                      Tailoring these trends to your business profile…
+                    </div>
+                  )}
+
+                  {!personalizing && !personalization && (
+                    <p className="text-xs text-muted-foreground">
+                      Add your business info in{' '}
+                      <button
+                        onClick={() => navigate('/settings')}
+                        className="text-primary underline underline-offset-2"
+                      >
+                        Settings
+                      </button>{' '}
+                      to unlock a version of this report written specifically for your product,
+                      audience, and positioning.
+                    </p>
+                  )}
+
+                  {personalization && (
+                    <div className="space-y-4">
+                      {personalization.positioning_summary && (
+                        <p className="text-sm text-foreground/90 leading-relaxed">
+                          {personalization.positioning_summary}
+                        </p>
+                      )}
+
+                      {personalization.hook_adaptations &&
+                        personalization.hook_adaptations.length > 0 && (
+                          <div>
+                            <p className="text-xs uppercase tracking-wider text-primary mb-2">
+                              Your custom hooks
+                            </p>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                              {personalization.hook_adaptations.map((h, i) => (
+                                <div
+                                  key={i}
+                                  className="rounded-lg border border-[#16171A] bg-[#060606] p-3"
+                                >
+                                  <p className="text-xs text-muted-foreground italic mb-1">
+                                    Trend: "{h.trend_hook}"
+                                  </p>
+                                  <p className="text-sm font-medium mb-1">"{h.your_version}"</p>
+                                  <p className="text-xs text-muted-foreground">{h.why}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                      {personalization.format_recommendations &&
+                        personalization.format_recommendations.length > 0 && (
+                          <div>
+                            <p className="text-xs uppercase tracking-wider text-primary mb-2">
+                              Format plays for you
+                            </p>
+                            <div className="space-y-2">
+                              {personalization.format_recommendations.map((f, i) => (
+                                <div
+                                  key={i}
+                                  className="rounded-lg border border-[#16171A] bg-[#060606] p-3"
+                                >
+                                  <p className="text-sm font-medium mb-1">{f.format}</p>
+                                  <p className="text-xs text-muted-foreground mb-1">
+                                    {f.custom_angle}
+                                  </p>
+                                  <p className="text-xs text-primary">
+                                    Try: {f.example_concept}
+                                  </p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                      {personalization.content_pillars &&
+                        personalization.content_pillars.length > 0 && (
+                          <div>
+                            <p className="text-xs uppercase tracking-wider text-primary mb-2">
+                              <Layers className="w-3 h-3 inline mr-1" />
+                              Content pillars to own
+                            </p>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                              {personalization.content_pillars.map((p, i) => (
+                                <div
+                                  key={i}
+                                  className="rounded-lg border border-[#16171A] bg-[#060606] p-3"
+                                >
+                                  <p className="text-sm font-medium mb-1">{p.pillar}</p>
+                                  <p className="text-xs text-muted-foreground mb-2">{p.reason}</p>
+                                  {p.example_topics && (
+                                    <ul className="text-xs text-muted-foreground list-disc pl-4 space-y-0.5">
+                                      {p.example_topics.map((t, j) => (
+                                        <li key={j}>{t}</li>
+                                      ))}
+                                    </ul>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                      {personalization.competitive_edge && (
+                        <div className="rounded-lg border border-primary/40 bg-primary/5 p-3">
+                          <p className="text-xs uppercase tracking-wider text-primary mb-1">
+                            Your edge
+                          </p>
+                          <p className="text-sm">{personalization.competitive_edge}</p>
+                        </div>
+                      )}
+
+                      {personalization.quick_wins &&
+                        personalization.quick_wins.length > 0 && (
+                          <div>
+                            <p className="text-xs uppercase tracking-wider text-primary mb-2">
+                              <Rocket className="w-3 h-3 inline mr-1" />
+                              Do this week
+                            </p>
+                            <ul className="space-y-1.5">
+                              {personalization.quick_wins.map((q, i) => (
+                                <li
+                                  key={i}
+                                  className="text-sm rounded-lg border border-[#16171A] bg-[#060606] p-3 flex gap-2"
+                                >
+                                  <span className="text-primary font-semibold">{i + 1}.</span>
+                                  <span>{q}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                    </div>
+                  )}
+                </div>
+              )}
+
               <Section title="Trending Hooks" icon={<TrendingUp className="w-4 h-4" />}>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {report.trending_hooks?.map((h, i) => (
                     <div
