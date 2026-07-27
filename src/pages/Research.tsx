@@ -183,7 +183,7 @@ export default function Research() {
           <div className="ml-auto flex items-center gap-2">
             {fromCache && (
               <span className="text-xs text-muted-foreground hidden sm:inline">
-                Cached • refreshes every 24h
+                Cached • refreshes weekly
               </span>
             )}
             <Button
