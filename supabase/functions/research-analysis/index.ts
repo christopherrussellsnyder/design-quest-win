@@ -190,25 +190,37 @@ serve(async (req) => {
       .select("status, plan_type")
       .eq("user_id", user.id)
       .maybeSingle();
-    const FOUNDER = new Set(["chrissnyder3456@gmail.com"]);
+    const isFounder = FOUNDER_EMAILS.has(user.email || "");
     const isPaid =
-      FOUNDER.has(user.email || "") ||
+      isFounder ||
       (sub?.status === "active" && (sub.plan_type === "pro" || sub.plan_type === "agency"));
 
-    // Cache lookup (24h)
+    // Cost guard: only the founder can bypass the cache on demand. For everyone
+    // else a "force refresh" is honored only if the most recent cached report
+    // is older than FORCE_REFRESH_COOLDOWN_HOURS. Otherwise we quietly serve
+    // the cached copy — trend data doesn't change minute-to-minute and every
+    // regenerate is a paid AI call.
+    let allowForce = force && isFounder;
     let cached: Record<string, unknown> | null = null;
-    if (!force) {
-      const { data } = await supabase
-        .from("research_insights")
-        .select("data, generated_at, expires_at")
-        .eq("platform", platform)
-        .eq("content_mode", mode)
-        .eq("industry", industry || "general")
-        .gt("expires_at", new Date().toISOString())
-        .order("generated_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      if (data) cached = data.data as Record<string, unknown>;
+
+    const { data: latest } = await supabase
+      .from("research_insights")
+      .select("data, generated_at, expires_at")
+      .eq("platform", platform)
+      .eq("content_mode", mode)
+      .eq("industry", industry || "general")
+      .order("generated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (force && !isFounder && latest?.generated_at) {
+      const ageHours =
+        (Date.now() - new Date(latest.generated_at).getTime()) / (3600 * 1000);
+      allowForce = ageHours >= FORCE_REFRESH_COOLDOWN_HOURS;
+    }
+
+    if (!allowForce && latest?.expires_at && new Date(latest.expires_at).getTime() > Date.now()) {
+      cached = latest.data as Record<string, unknown>;
     }
 
     let report = cached;
