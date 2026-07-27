@@ -107,7 +107,23 @@ export default function Research() {
 
       if (!resp.ok) {
         const j = await resp.json().catch(() => ({}));
-        throw new Error(j.error || `HTTP ${resp.status}`);
+        const raw = (j.error || `HTTP ${resp.status}`).toString();
+        const lower = raw.toLowerCase();
+        let title = 'Research is taking a breather';
+        let description = 'Something went sideways on our end — give it another try in a moment.';
+        if (resp.status === 402 || lower.includes('credit')) {
+          title = 'AI credits are running low';
+          description =
+            'Korex has temporarily paused fresh research to keep costs sane. Cached reports still work — full research resumes once credits refresh.';
+        } else if (resp.status === 429 || lower.includes('rate')) {
+          title = 'Slow down just a sec';
+          description = 'Too many research requests in a short window. Try again in about a minute.';
+        } else if (resp.status === 401) {
+          title = 'Session expired';
+          description = 'Please sign back in to keep exploring research.';
+        }
+        toast({ title, description, variant: 'destructive' });
+        return;
       }
       const j = await resp.json();
       setReport(j.report);
@@ -115,8 +131,11 @@ export default function Research() {
       setTier(j.tier || 'starter');
     } catch (e) {
       toast({
-        title: 'Failed to load research',
-        description: e instanceof Error ? e.message : 'Unknown error',
+        title: 'Research is taking a breather',
+        description:
+          e instanceof Error && e.message
+            ? e.message
+            : 'Network hiccup — please try again in a moment.',
         variant: 'destructive',
       });
     } finally {
