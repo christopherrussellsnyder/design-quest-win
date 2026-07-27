@@ -93,6 +93,46 @@ export default function Research() {
   const [loading, setLoading] = useState(false);
   const [fromCache, setFromCache] = useState(false);
   const [tier, setTier] = useState<'starter' | 'pro'>('starter');
+  const [personalization, setPersonalization] = useState<Personalization | null>(null);
+  const [personalizing, setPersonalizing] = useState(false);
+  const [personalizationCached, setPersonalizationCached] = useState(false);
+
+  const loadPersonalization = async (r: ResearchReport, force = false) => {
+    setPersonalizing(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      const resp = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/research-personalize`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({
+            platform,
+            contentMode: mode,
+            industry,
+            report: r,
+            force,
+          }),
+        },
+      );
+      if (!resp.ok) {
+        // Silent — the shared report is still shown. 403 = starter tier.
+        setPersonalization(null);
+        return;
+      }
+      const j = await resp.json();
+      setPersonalization(j.personalization ?? null);
+      setPersonalizationCached(!!j.from_cache);
+    } catch {
+      setPersonalization(null);
+    } finally {
+      setPersonalizing(false);
+    }
+  };
 
   const load = async (force = false) => {
     setLoading(true);
