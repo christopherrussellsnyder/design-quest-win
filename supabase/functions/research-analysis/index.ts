@@ -103,12 +103,12 @@ async function generateReport(
       Authorization: `Bearer ${LOVABLE_API_KEY}`,
     },
     body: JSON.stringify({
-      model: "google/gemini-2.5-flash",
+      model: "google/gemini-2.5-flash-lite", // cheapest capable model for structured JSON research
       messages: [
         { role: "system", content: "You return only valid JSON. No markdown fences." },
         { role: "user", content: prompt },
       ],
-      temperature: 0.6,
+      temperature: 0.5,
     }),
   });
 
