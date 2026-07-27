@@ -26,7 +26,19 @@ import {
   RefreshCw,
   Lock,
   ArrowLeft,
+  User,
+  Rocket,
+  Layers,
 } from 'lucide-react';
+
+interface Personalization {
+  positioning_summary?: string;
+  hook_adaptations?: { trend_hook: string; your_version: string; why: string }[];
+  format_recommendations?: { format: string; custom_angle: string; example_concept: string }[];
+  content_pillars?: { pillar: string; reason: string; example_topics: string[] }[];
+  competitive_edge?: string;
+  quick_wins?: string[];
+}
 
 type ContentMode = 'organic' | 'paid' | 'hybrid';
 
