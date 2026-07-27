@@ -85,7 +85,7 @@ Return ONLY valid JSON (no markdown, no prose outside JSON):
   "pitfalls_to_avoid": [ "string" ]
 }
 
-Provide 5-7 trending_hooks, 4-6 top_formats, 4-6 content_patterns, 3-5 emerging_trends, 3-5 pitfalls_to_avoid, 3-5 cta_patterns.`;
+Provide 4-5 trending_hooks, 3-4 top_formats, 3-4 content_patterns, 3 emerging_trends, 3 pitfalls_to_avoid, 3 cta_patterns. Keep every string tight — no fluff.`;
 }
 
 async function generateReport(
