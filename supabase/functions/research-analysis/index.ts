@@ -15,7 +15,9 @@ const corsHeaders = {
 };
 
 const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY") ?? "";
-const CACHE_TTL_HOURS = 24;
+const CACHE_TTL_HOURS = 24 * 7; // 7 days — trends move weekly, not hourly
+const FORCE_REFRESH_COOLDOWN_HOURS = 12; // per platform+mode+industry, non-founder
+const FOUNDER_EMAILS = new Set(["chrissnyder3456@gmail.com"]);
 
 type ContentMode = "organic" | "paid" | "hybrid";
 
