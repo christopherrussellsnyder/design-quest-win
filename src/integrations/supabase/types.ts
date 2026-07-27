@@ -4113,6 +4113,42 @@ export type Database = {
         }
         Relationships: []
       }
+      research_personalizations: {
+        Row: {
+          content_mode: string
+          created_at: string
+          data: Json
+          expires_at: string
+          generated_at: string
+          id: string
+          industry: string
+          platform: string
+          user_id: string
+        }
+        Insert: {
+          content_mode: string
+          created_at?: string
+          data: Json
+          expires_at: string
+          generated_at?: string
+          id?: string
+          industry?: string
+          platform: string
+          user_id: string
+        }
+        Update: {
+          content_mode?: string
+          created_at?: string
+          data?: Json
+          expires_at?: string
+          generated_at?: string
+          id?: string
+          industry?: string
+          platform?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       scheduled_posts: {
         Row: {
           approval_status: string | null
