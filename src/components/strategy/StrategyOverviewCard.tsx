@@ -124,7 +124,7 @@ export function StrategyOverviewCard({
       <CardContent className="p-6 space-y-6">
         {/* Strategic Approach */}
         {strategicApproach.core_strategy && (
-          <div className="p-4 bg-primary/10 rounded-xl border border-primary/20">
+          <div className="p-4 bg-muted/30 rounded-md border border-border">
             <h4 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
               <Zap className="w-4 h-4 text-primary" /> Strategic Approach
             </h4>
@@ -139,28 +139,28 @@ export function StrategyOverviewCard({
 
         {/* Predicted Metrics - Enhanced Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div className="text-center p-3 bg-muted/50 rounded-xl">
+          <div className="text-center p-3 bg-muted/30 rounded-md border border-border/60">
             <Eye className="w-4 h-4 mx-auto mb-1 text-primary" />
             <p className="text-lg font-bold text-foreground">
               {(predictedMetrics.total_reach || 0).toLocaleString()}
             </p>
             <p className="text-[10px] text-muted-foreground">Reach</p>
           </div>
-          <div className="text-center p-3 bg-muted/50 rounded-xl">
+          <div className="text-center p-3 bg-muted/30 rounded-md border border-border/60">
             <Heart className="w-4 h-4 mx-auto mb-1 text-primary" />
             <p className="text-lg font-bold text-foreground">
               {predictedMetrics.avg_engagement_rate || 0}%
             </p>
             <p className="text-[10px] text-muted-foreground">Engagement</p>
           </div>
-          <div className="text-center p-3 bg-muted/50 rounded-xl">
+          <div className="text-center p-3 bg-muted/30 rounded-md border border-border/60">
             <Users className="w-4 h-4 mx-auto mb-1 text-primary" />
             <p className="text-lg font-bold text-foreground">
               +{(predictedMetrics.expected_follower_growth || 0).toLocaleString()}
             </p>
             <p className="text-[10px] text-muted-foreground">Followers</p>
           </div>
-          <div className="text-center p-3 bg-muted/50 rounded-xl">
+          <div className="text-center p-3 bg-muted/30 rounded-md border border-border/60">
             <MousePointer className="w-4 h-4 mx-auto mb-1 text-primary" />
             <p className="text-lg font-bold text-foreground">
               {(predictedMetrics.expected_website_clicks || 0).toLocaleString()}
@@ -237,7 +237,7 @@ export function StrategyOverviewCard({
             <CollapsibleTrigger asChild>
               <Button variant="ghost" className="w-full justify-between p-0 h-auto">
                 <span className="text-sm font-semibold flex items-center gap-2">
-                  <Lightbulb className="w-4 h-4 text-amber-500" /> Key Tactics ({keyTactics.length})
+                  <Lightbulb className="w-4 h-4 text-muted-foreground" /> Key Tactics ({keyTactics.length})
                 </span>
                 {showTactics ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
               </Button>
@@ -246,7 +246,7 @@ export function StrategyOverviewCard({
               <ul className="space-y-1">
                 {keyTactics.map((tactic, i) => (
                   <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
-                    <CheckCircle className="w-3 h-3 mt-1 text-green-500 flex-shrink-0" />
+                    <CheckCircle className="w-3 h-3 mt-1 text-muted-foreground flex-shrink-0" />
                     {tactic}
                   </li>
                 ))}
@@ -261,7 +261,7 @@ export function StrategyOverviewCard({
             <CollapsibleTrigger asChild>
               <Button variant="ghost" className="w-full justify-between p-0 h-auto">
                 <span className="text-sm font-semibold flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-blue-500" /> Weekly Milestones
+                  <Clock className="w-4 h-4 text-muted-foreground" /> Weekly Milestones
                 </span>
                 {showMilestones ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
               </Button>
@@ -287,7 +287,7 @@ export function StrategyOverviewCard({
             <CollapsibleTrigger asChild>
               <Button variant="ghost" className="w-full justify-between p-0 h-auto">
                 <span className="text-sm font-semibold flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4 text-orange-500" /> Risk Assessment
+                  <AlertTriangle className="w-4 h-4 text-muted-foreground" /> Risk Assessment
                 </span>
                 {showRisks ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
               </Button>
@@ -298,7 +298,7 @@ export function StrategyOverviewCard({
                   <p className="text-xs font-medium text-muted-foreground mb-1">Challenges:</p>
                   <div className="flex flex-wrap gap-1">
                     {riskAssessment.potential_challenges.map((challenge, i) => (
-                      <Badge key={i} variant="outline" className="text-xs bg-orange-500/10 text-orange-400 border-orange-500/30">
+                      <Badge key={i} variant="outline" className="text-xs">
                         {challenge}
                       </Badge>
                     ))}
