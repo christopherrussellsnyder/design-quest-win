@@ -1,5 +1,5 @@
 import React from 'react';
-import { User, Loader2, Copy, Check, Volume2, RotateCcw } from 'lucide-react';
+import { Copy, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Message } from '@/pages/AIStrategist';
 import ReactMarkdown from 'react-markdown';
@@ -83,10 +83,9 @@ export const ChatMessageList = React.memo(function ChatMessageList({
               
               {/* Message content with markdown */}
               <div className={cn(
-                'prose prose-sm max-w-none',
-                message.role === 'user' 
-                  ? 'prose-invert [&_p]:text-primary-foreground' 
-                  : 'dark:prose-invert',
+                'prose prose-sm max-w-none dark:prose-invert',
+                '[&_p]:text-foreground',
+
                 '[&_ul]:my-2 [&_ol]:my-2 [&_li]:my-0.5',
                 '[&_p]:my-1.5 first:[&_p]:mt-0 last:[&_p]:mb-0',
                 '[&_h1]:text-lg [&_h2]:text-base [&_h3]:text-sm',
