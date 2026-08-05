@@ -54,17 +54,17 @@ const postTypeIcons: Record<string, React.ReactNode> = {
 };
 
 const themeColors: Record<string, string> = {
-  educational: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-  promotional: 'bg-green-500/20 text-green-400 border-green-500/30',
-  engagement: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
-  social_proof: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
-  behind_scenes: 'bg-pink-500/20 text-pink-400 border-pink-500/30',
+  educational: '',
+  promotional: '',
+  engagement: '',
+  social_proof: '',
+  behind_scenes: '',
 };
 
 const confidenceColors: Record<string, string> = {
-  High: 'text-green-400',
-  Medium: 'text-amber-400',
-  Low: 'text-red-400',
+  High: 'text-foreground',
+  Medium: 'text-muted-foreground',
+  Low: 'text-muted-foreground',
 };
 
 export function StrategyPostCard({ post, onEdit, onAskAI }: StrategyPostCardProps) {
@@ -204,7 +204,7 @@ export function StrategyPostCard({ post, onEdit, onAskAI }: StrategyPostCardProp
           {/* Header - Always visible */}
           <div className="flex items-start gap-4">
             <div className="flex flex-col items-center">
-              <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center text-primary font-bold">
+              <div className="w-11 h-11 rounded-md bg-muted/40 border border-border flex items-center justify-center text-foreground font-semibold">
                 {post.day_number}
               </div>
               <span className="text-xs text-muted-foreground mt-1">Day</span>
@@ -225,7 +225,7 @@ export function StrategyPostCard({ post, onEdit, onAskAI }: StrategyPostCardProp
                   </span>
                 )}
                 {post.is_edited && (
-                  <Badge variant="outline" className="text-[10px] text-amber-400 border-amber-400/30">
+                  <Badge variant="outline" className="text-[10px]">
                     Edited
                   </Badge>
                 )}
@@ -247,7 +247,7 @@ export function StrategyPostCard({ post, onEdit, onAskAI }: StrategyPostCardProp
                   </Badge>
                 )}
                 {post.primary_emotion && (
-                  <Badge variant="outline" className="text-xs text-purple-400 border-purple-400/30">
+                  <Badge variant="outline" className="text-xs">
                     {post.primary_emotion}
                   </Badge>
                 )}
@@ -445,7 +445,7 @@ export function StrategyPostCard({ post, onEdit, onAskAI }: StrategyPostCardProp
                               <p className="text-xs text-muted-foreground mb-1">High Volume (100K+):</p>
                               <div className="flex flex-wrap gap-1">
                                 {hashtagMix.high_volume.map((tag: string, i: number) => (
-                                  <Badge key={i} variant="secondary" className="text-xs bg-green-500/10 text-green-400">
+                                  <Badge key={i} variant="secondary" className="text-xs">
                                     {tag.startsWith('#') ? tag : `#${tag}`}
                                   </Badge>
                                 ))}
@@ -457,7 +457,7 @@ export function StrategyPostCard({ post, onEdit, onAskAI }: StrategyPostCardProp
                               <p className="text-xs text-muted-foreground mb-1">Medium Volume (10K-100K):</p>
                               <div className="flex flex-wrap gap-1">
                                 {hashtagMix.medium_volume.map((tag: string, i: number) => (
-                                  <Badge key={i} variant="secondary" className="text-xs bg-blue-500/10 text-blue-400">
+                                  <Badge key={i} variant="secondary" className="text-xs">
                                     {tag.startsWith('#') ? tag : `#${tag}`}
                                   </Badge>
                                 ))}
@@ -469,7 +469,7 @@ export function StrategyPostCard({ post, onEdit, onAskAI }: StrategyPostCardProp
                               <p className="text-xs text-muted-foreground mb-1">Niche (1K-10K):</p>
                               <div className="flex flex-wrap gap-1">
                                 {hashtagMix.niche.map((tag: string, i: number) => (
-                                  <Badge key={i} variant="secondary" className="text-xs bg-purple-500/10 text-purple-400">
+                                  <Badge key={i} variant="secondary" className="text-xs">
                                     {tag.startsWith('#') ? tag : `#${tag}`}
                                   </Badge>
                                 ))}
@@ -481,7 +481,7 @@ export function StrategyPostCard({ post, onEdit, onAskAI }: StrategyPostCardProp
                               <p className="text-xs text-muted-foreground mb-1">Branded:</p>
                               <div className="flex flex-wrap gap-1">
                                 {hashtagMix.branded.map((tag: string, i: number) => (
-                                  <Badge key={i} variant="secondary" className="text-xs bg-amber-500/10 text-amber-400">
+                                  <Badge key={i} variant="secondary" className="text-xs">
                                     {tag.startsWith('#') ? tag : `#${tag}`}
                                   </Badge>
                                 ))}
@@ -513,7 +513,7 @@ export function StrategyPostCard({ post, onEdit, onAskAI }: StrategyPostCardProp
                           <Badge variant="outline" className="text-xs">{post.cta_strength}</Badge>
                         )}
                       </h4>
-                      <p className="text-sm text-primary bg-primary/10 px-3 py-2 rounded-lg inline-block">
+                      <p className="text-sm text-foreground bg-muted/30 border border-border px-3 py-2 rounded-md inline-block">
                         {post.cta}
                       </p>
                     </div>
@@ -664,21 +664,21 @@ export function StrategyPostCard({ post, onEdit, onAskAI }: StrategyPostCardProp
                 {/* Metrics Tab */}
                 <TabsContent value="metrics" className="space-y-4">
                   <div className="grid grid-cols-3 gap-3">
-                    <div className="text-center p-3 bg-muted/50 rounded-lg">
+                    <div className="text-center p-3 bg-muted/30 border border-border/60 rounded-md">
                       <Eye className="w-4 h-4 mx-auto mb-1 text-primary" />
                       <p className="text-lg font-bold text-foreground">
                         {(post.predicted_reach || 0).toLocaleString()}
                       </p>
                       <p className="text-[10px] text-muted-foreground">Reach</p>
                     </div>
-                    <div className="text-center p-3 bg-muted/50 rounded-lg">
+                    <div className="text-center p-3 bg-muted/30 border border-border/60 rounded-md">
                       <Heart className="w-4 h-4 mx-auto mb-1 text-primary" />
                       <p className="text-lg font-bold text-foreground">
                         {post.predicted_engagement || 0}%
                       </p>
                       <p className="text-[10px] text-muted-foreground">Engagement</p>
                     </div>
-                    <div className="text-center p-3 bg-muted/50 rounded-lg">
+                    <div className="text-center p-3 bg-muted/30 border border-border/60 rounded-md">
                       <ThumbsUp className="w-4 h-4 mx-auto mb-1 text-primary" />
                       <p className="text-lg font-bold text-foreground">
                         {(post.predicted_likes || 0).toLocaleString()}
@@ -688,19 +688,19 @@ export function StrategyPostCard({ post, onEdit, onAskAI }: StrategyPostCardProp
                   </div>
 
                   <div className="grid grid-cols-4 gap-2">
-                    <div className="text-center p-2 bg-muted/30 rounded-lg">
+                    <div className="text-center p-2 bg-muted/20 border border-border/60 rounded-md">
                       <p className="text-sm font-semibold text-foreground">{post.predicted_comments || 0}</p>
                       <p className="text-[10px] text-muted-foreground">Comments</p>
                     </div>
-                    <div className="text-center p-2 bg-muted/30 rounded-lg">
+                    <div className="text-center p-2 bg-muted/20 border border-border/60 rounded-md">
                       <p className="text-sm font-semibold text-foreground">{post.predicted_shares || 0}</p>
                       <p className="text-[10px] text-muted-foreground">Shares</p>
                     </div>
-                    <div className="text-center p-2 bg-muted/30 rounded-lg">
+                    <div className="text-center p-2 bg-muted/20 border border-border/60 rounded-md">
                       <p className="text-sm font-semibold text-foreground">{post.predicted_saves || 0}</p>
                       <p className="text-[10px] text-muted-foreground">Saves</p>
                     </div>
-                    <div className="text-center p-2 bg-muted/30 rounded-lg">
+                    <div className="text-center p-2 bg-muted/20 border border-border/60 rounded-md">
                       <p className="text-sm font-semibold text-foreground">
                         {(post.predicted_impressions || 0).toLocaleString()}
                       </p>
@@ -750,7 +750,7 @@ export function StrategyPostCard({ post, onEdit, onAskAI }: StrategyPostCardProp
                   {optimizationTips && Object.keys(optimizationTips).length > 0 && (
                     <div className="space-y-3">
                       <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                        <Lightbulb className="w-4 h-4 text-amber-500" /> Optimization Tips
+                        <Lightbulb className="w-4 h-4 text-muted-foreground" /> Optimization Tips
                       </h4>
                       {optimizationTips.engagement_boosters && optimizationTips.engagement_boosters.length > 0 && (
                         <div>
@@ -758,7 +758,7 @@ export function StrategyPostCard({ post, onEdit, onAskAI }: StrategyPostCardProp
                           <ul className="text-sm text-foreground space-y-1">
                             {optimizationTips.engagement_boosters.map((tip: string, i: number) => (
                               <li key={i} className="flex items-start gap-2">
-                                <Zap className="w-3 h-3 mt-1 text-green-500 flex-shrink-0" />
+                                <Zap className="w-3 h-3 mt-1 text-muted-foreground flex-shrink-0" />
                                 {tip}
                               </li>
                             ))}
@@ -771,7 +771,7 @@ export function StrategyPostCard({ post, onEdit, onAskAI }: StrategyPostCardProp
                           <ul className="text-sm text-foreground space-y-1">
                             {optimizationTips.a_b_test_ideas.map((idea: string, i: number) => (
                               <li key={i} className="flex items-start gap-2">
-                                <Sparkles className="w-3 h-3 mt-1 text-purple-500 flex-shrink-0" />
+                                <Sparkles className="w-3 h-3 mt-1 text-muted-foreground flex-shrink-0" />
                                 {idea}
                               </li>
                             ))}
@@ -784,7 +784,7 @@ export function StrategyPostCard({ post, onEdit, onAskAI }: StrategyPostCardProp
                           <ul className="text-sm text-foreground space-y-1">
                             {optimizationTips.potential_issues.map((issue: string, i: number) => (
                               <li key={i} className="flex items-start gap-2">
-                                <AlertCircle className="w-3 h-3 mt-1 text-orange-500 flex-shrink-0" />
+                                <AlertCircle className="w-3 h-3 mt-1 text-muted-foreground flex-shrink-0" />
                                 {issue}
                               </li>
                             ))}

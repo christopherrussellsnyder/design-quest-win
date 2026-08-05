@@ -27,14 +27,14 @@ export function CampaignStructureCard({ data, platform }: Props) {
   const splitEntries = Object.entries(split);
 
   return (
-    <Card className="border-primary/30 bg-gradient-to-br from-card to-card/50">
+    <Card className="bg-card border-border">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between gap-2">
           <CardTitle className="text-base flex items-center gap-2">
             <Target className="w-4 h-4 text-primary" />
             Recommended Campaign Structure
           </CardTitle>
-          <Badge variant="outline" className="border-primary/50 text-primary text-xs">
+          <Badge variant="outline" className="text-xs">
             {data.structure_type}
           </Badge>
         </div>
@@ -52,10 +52,10 @@ export function CampaignStructureCard({ data, platform }: Props) {
         )}
 
         {data.roas_trend_signal && (
-          <div className="flex gap-2 items-start p-3 rounded-md bg-primary/5 border border-primary/20">
+          <div className="flex gap-2 items-start p-3 rounded-md bg-muted/30 border border-border">
             <TrendingUp className="w-4 h-4 text-primary mt-0.5 shrink-0" />
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-primary mb-1">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
                 Current performance signal
               </p>
               <p className="text-foreground text-xs leading-relaxed">{data.roas_trend_signal}</p>
