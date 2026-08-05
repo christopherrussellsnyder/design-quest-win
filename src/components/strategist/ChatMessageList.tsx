@@ -55,12 +55,6 @@ export const ChatMessageList = React.memo(function ChatMessageList({
             message.role === 'user' ? 'justify-end' : 'justify-start'
           )}
         >
-          {/* Assistant avatar */}
-          {message.role === 'assistant' && (
-            <div className="flex-shrink-0 w-8 h-8 rounded-xl bg-gradient-to-br from-primary/30 via-primary/20 to-transparent border border-primary/20 flex items-center justify-center mt-1 shadow-sm overflow-hidden">
-              <img src="/korex-icon.png" alt="Korex" className="w-5 h-5 object-contain" />
-            </div>
-          )}
 
           {/* Message bubble */}
           <div className={cn(
