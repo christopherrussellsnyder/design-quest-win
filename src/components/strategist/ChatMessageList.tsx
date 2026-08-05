@@ -58,15 +58,16 @@ export const ChatMessageList = React.memo(function ChatMessageList({
 
           {/* Message bubble */}
           <div className={cn(
-            'relative max-w-[75%] group/msg',
-            message.role === 'user' ? 'order-first' : ''
+            'relative group/msg',
+            message.role === 'user' ? 'order-first max-w-[80%]' : 'w-full'
           )}>
             <div className={cn(
-              'px-4 py-3 relative',
+              'relative',
               message.role === 'user'
-                ? 'bg-gradient-to-br from-primary to-arasaka-red-dark text-primary-foreground rounded-2xl rounded-br-md shadow-md shadow-primary/20'
-                : 'bg-secondary/80 border border-subtle rounded-2xl rounded-bl-md backdrop-blur-sm'
+                ? 'px-4 py-2.5 bg-secondary/70 border border-subtle text-foreground rounded-2xl rounded-br-md'
+                : ''
             )}>
+
               {/* Attachments */}
               {message.attachments?.map((att, i) => (
                 <div key={i} className="mb-3">
@@ -143,37 +144,23 @@ export const ChatMessageList = React.memo(function ChatMessageList({
             )}
           </div>
 
-          {/* User avatar */}
-          {message.role === 'user' && (
-            <div className="flex-shrink-0 w-8 h-8 rounded-xl bg-gradient-to-br from-primary to-arasaka-red-dark flex items-center justify-center mt-1 shadow-sm shadow-primary/20">
-              <User className="w-4 h-4 text-primary-foreground" />
-            </div>
-          )}
         </div>
       ))}
       
       {/* Loading indicator */}
       {isLoading && messages[messages.length - 1]?.role === 'user' && (
-        <div className="flex gap-3 animate-fade-in">
-          <div className="flex-shrink-0 w-8 h-8 rounded-xl bg-gradient-to-br from-primary/30 via-primary/20 to-transparent border border-primary/20 flex items-center justify-center overflow-hidden">
-            <img src="/korex-icon.png" alt="Korex" className="w-5 h-5 object-contain" />
-          </div>
-          <div className="bg-secondary/80 border border-subtle rounded-2xl rounded-bl-md px-4 py-3 backdrop-blur-sm">
-            <div className="flex items-center gap-3">
-              <div className="flex gap-1">
-                <span className="w-2 h-2 rounded-full bg-primary/60 animate-bounce [animation-delay:0ms]" />
-                <span className="w-2 h-2 rounded-full bg-primary/60 animate-bounce [animation-delay:150ms]" />
-                <span className="w-2 h-2 rounded-full bg-primary/60 animate-bounce [animation-delay:300ms]" />
-              </div>
-              <span className="text-sm text-muted-foreground">Thinking...</span>
-            </div>
+        <div className="animate-fade-in">
+          <div className="flex items-center gap-2.5 text-sm text-muted-foreground">
+            <span className="korex-thinking-bar" />
+            <span className="tracking-wide">Analyzing</span>
           </div>
         </div>
       )}
 
       {/* Quick suggestion chips after assistant response */}
       {showQuickSuggestions && onQuickSuggestion && (
-        <div className="pl-11">
+        <div>
+
           <QuickSuggestionChips onChipClick={onQuickSuggestion} />
         </div>
       )}
