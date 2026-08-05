@@ -102,18 +102,20 @@ export function StrategyOverviewCard({
 
   return (
     <Card className="bg-card border-border overflow-hidden">
-      <CardHeader className={`${platformColors[strategy.platform || ''] || 'bg-primary'} text-white`}>
+      <CardHeader className="bg-muted/30 border-b border-border">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
-            {platformIcons[strategy.platform || ''] || <Calendar className="w-6 h-6" />}
+            <span className="text-muted-foreground">
+              {platformIcons[strategy.platform || ''] || <Calendar className="w-6 h-6" />}
+            </span>
             <div>
-              <CardTitle className="text-xl">{strategy.title}</CardTitle>
-              <p className="text-white/80 text-sm mt-1">
+              <CardTitle className="text-xl text-foreground">{strategy.title}</CardTitle>
+              <p className="text-muted-foreground text-sm mt-1">
                 {formatDate(strategy.start_date)} - {formatDate(strategy.end_date)}
               </p>
             </div>
           </div>
-          <Badge className="bg-white/20 text-white border-0">
+          <Badge variant="outline" className="shrink-0">
             {postsCount} posts
           </Badge>
         </div>
