@@ -78,7 +78,7 @@ export function StrategyOverviewCard({
       <Card className="bg-card border-border">
         <CardContent className="p-4">
           <div className="flex items-start gap-4">
-            <div className={`p-3 rounded-xl ${platformColors[strategy.platform || ''] || 'bg-primary'} text-white`}>
+            <div className={`p-3 rounded-md ${PLATFORM_SURFACE} border border-border`}>
               {platformIcons[strategy.platform || ''] || <Calendar className="w-5 h-5" />}
             </div>
             <div className="flex-1 min-w-0">
