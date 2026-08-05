@@ -32,13 +32,8 @@ const platformIcons: Record<string, React.ReactNode> = {
   tiktok: <Video className="w-5 h-5" />,
 };
 
-const platformColors: Record<string, string> = {
-  instagram: 'bg-gradient-to-r from-purple-500 to-pink-500',
-  linkedin: 'bg-blue-600',
-  twitter: 'bg-sky-500',
-  facebook: 'bg-blue-500',
-  tiktok: 'bg-black',
-};
+// Neutral, brand-consistent surface for every platform — no per-platform color blocks.
+const PLATFORM_SURFACE = 'bg-muted/40 text-foreground';
 
 export function StrategyOverviewCard({
   strategy,
