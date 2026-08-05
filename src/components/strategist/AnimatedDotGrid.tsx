@@ -1,11 +1,18 @@
 import { cn } from '@/lib/utils';
 
+/**
+ * Static, refined backdrop for the AI Strategist hub.
+ * Fine architectural grid + soft ambient wash — no motion, no gimmicks.
+ */
 export function AnimatedDotGrid({ className }: { className?: string }) {
   return (
     <div className={cn('absolute inset-0 overflow-hidden pointer-events-none', className)}>
-      <div className="dot-grid-animated absolute inset-0" />
-      {/* Subtle red glow in center */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[120px]" />
+      {/* Fine line grid */}
+      <div className="strategist-grid absolute inset-0" />
+      {/* Soft ambient light from the top */}
+      <div className="absolute inset-x-0 top-0 h-[420px] bg-[radial-gradient(ellipse_at_top,hsl(var(--primary)/0.07),transparent_70%)]" />
+      {/* Edge vignette to keep focus centered */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_45%,hsl(var(--background))_100%)]" />
     </div>
   );
 }
