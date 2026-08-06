@@ -24,11 +24,14 @@ import {
   Film,
   AlertTriangle,
   Check,
+  ImageIcon,
 } from 'lucide-react';
 import { useAdActors, useAdScripts, useVideoAds } from '@/hooks/useVideoAds';
 import { VIDEO_ASPECT_RATIOS, VIDEO_HOOK_ANGLES } from '@/config/video.config';
 import type { AdScriptVariant } from '@/config/video.config';
 import { VideoAdCard } from '@/components/video-ads/VideoAdCard';
+import { ImageStudio } from '@/components/content-generation/ImageStudio';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function VideoAds() {
   const navigate = useNavigate();
@@ -101,10 +104,10 @@ export default function VideoAds() {
   return (
     <>
       <Helmet>
-        <title>AI Video Ads | Korex Intelligence</title>
+        <title>Content Generation | Korex Intelligence</title>
         <meta
           name="description"
-          content="Generate production-quality UGC video ads with AI actors — hook-tested scripts written from your business context, rendered in minutes."
+          content="Generate production-quality UGC video ads with AI actors and on-brand campaign images — written and rendered from your business context."
         />
       </Helmet>
 
@@ -121,7 +124,7 @@ export default function VideoAds() {
           </Button>
           <div className="flex items-center gap-2">
             <Clapperboard className="w-4 h-4 text-primary" />
-            <h1 className="text-sm font-semibold tracking-tight">AI Video Ads</h1>
+            <h1 className="text-sm font-semibold tracking-tight">Content Generation</h1>
           </div>
           {quotaLabel && (
             <Badge variant="outline" className="ml-2 border-[#2A2B2E] text-[#A0A0A8] text-[11px]">
@@ -131,6 +134,19 @@ export default function VideoAds() {
         </header>
 
         <div className="max-w-6xl mx-auto px-4 py-6 space-y-6">
+          <Tabs defaultValue="video" className="space-y-6">
+            <TabsList className="bg-[#0C0D0F] border border-[#1E1F23]">
+              <TabsTrigger value="video" className="text-xs gap-1.5">
+                <Clapperboard className="w-3.5 h-3.5" />
+                Video ads
+              </TabsTrigger>
+              <TabsTrigger value="image" className="text-xs gap-1.5">
+                <ImageIcon className="w-3.5 h-3.5" />
+                Images
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="video" className="space-y-6 mt-0">
           {providerDown && (
             <Card className="bg-[#0C0D0F] border-amber-500/30">
               <CardContent className="p-4 flex items-start gap-3">
@@ -469,6 +485,12 @@ export default function VideoAds() {
               </div>
             )}
           </section>
+            </TabsContent>
+
+            <TabsContent value="image" className="mt-0">
+              <ImageStudio />
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </>
