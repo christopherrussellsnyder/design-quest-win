@@ -11,8 +11,8 @@ const plans = [
   {
     key: 'pro' as const,
     name: 'Pro',
-    monthlyPrice: 49,
-    yearlyPrice: 490,
+    monthlyPrice: 99,
+    yearlyPrice: 990,
     popular: true,
     features: [
       'Unlimited AI strategies',
@@ -26,8 +26,8 @@ const plans = [
   {
     key: 'agency' as const,
     name: 'Agency',
-    monthlyPrice: 149,
-    yearlyPrice: 1490,
+    monthlyPrice: 299,
+    yearlyPrice: 2990,
     popular: false,
     features: [
       'Everything in Pro',

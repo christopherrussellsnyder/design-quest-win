@@ -69,7 +69,7 @@ const faqs = [
   { q: 'Is this just ChatGPT with a wrapper?', a: 'No. ChatGPT gives template responses. Korex analyzes YOUR actual performance data using proprietary algorithms trained on $10M+ in ad spend. It\'s like the difference between getting generic advice vs. hiring a strategist who studied your business.' },
   { q: 'Do I need to be tech-savvy?', a: 'Not at all. If you can take a screenshot and upload it, you can use Korex. The interface is simpler than Instagram.' },
   { q: 'What platforms do you support?', a: 'Any platform you can screenshot. Instagram, Facebook, TikTok, Google Ads, LinkedIn, Twitter, YouTube, Pinterest, Shopify — if you have analytics, we can analyze them.' },
-  { q: 'How is this different from a marketing agency?', a: 'Cost: $49/month vs $3,000-$10,000/month. Speed: 60 seconds vs 2-3 weeks. Revisions: Unlimited vs 2-3 max. Data: Real-time analysis vs monthly reports.' },
+  { q: 'How is this different from a marketing agency?', a: 'Cost: $99/month vs $3,000-$10,000/month. Speed: 60 seconds vs 2-3 weeks. Revisions: Unlimited vs 2-3 max. Data: Real-time analysis vs monthly reports.' },
   { q: 'What do I get with the free Starter plan?', a: 'You get 2 free strategy generations with no credit card required. After using them, you can upgrade to Pro for unlimited access or continue using basic features.' },
   { q: 'Can I cancel anytime?', a: 'Yes. Cancel in 2 clicks. No contracts, no commitments.' },
 ];
@@ -78,11 +78,11 @@ const platforms = ['Instagram', 'Facebook', 'LinkedIn', 'TikTok', 'Twitter', 'Yo
 
 const pricing = [
   {
-    name: 'Pro', monthlyPrice: 49, yearlyPrice: 490, popular: true,
+    name: 'Pro', monthlyPrice: 99, yearlyPrice: 990, popular: true,
     features: ['Unlimited AI strategies', 'Unlimited analytics uploads', 'All platforms supported', 'Export to PDF', 'Priority support', 'Cancel anytime'],
   },
   {
-    name: 'Agency', monthlyPrice: 149, yearlyPrice: 1490, popular: false,
+    name: 'Agency', monthlyPrice: 299, yearlyPrice: 2990, popular: false,
     features: ['Everything in Pro', 'Multi-client management', 'White-label reports', 'API access', 'Dedicated support'],
     badge: 'Popular for agencies',
   },
@@ -110,8 +110,8 @@ const Index = () => {
   const totalHours = calcResearch + calcPlanning + calcCalendar;
   const annualHours = totalHours * 12;
   const annualValue = annualHours * calcHourlyRate;
-  const netBenefit = annualValue - 588;
-  const roi = Math.round((netBenefit / 588) * 100);
+  const netBenefit = annualValue - 1188;
+  const roi = Math.round((netBenefit / 1188) * 100);
 
   useEffect(() => {
     const onScroll = () => setShowFloatingCta(window.scrollY > 800);
@@ -385,7 +385,7 @@ const Index = () => {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-[#6B6B73]">Korex annual cost</span>
-                  <span className="font-bold">$588</span>
+                  <span className="font-bold">$1,188</span>
                 </div>
                 <div className="border-t border-[#2A2B2E] pt-3 flex justify-between">
                   <span className="text-[#A0A0A8] font-semibold">ROI</span>

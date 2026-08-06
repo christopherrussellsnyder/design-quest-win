@@ -2,28 +2,28 @@ export const STRIPE_TIERS = {
   pro: {
     name: 'Pro',
     monthly: {
-      price_id: 'price_1Tub2eL7HyckspfcSDvFWQUV',
+      price_id: 'price_1U1Y9eL7HyckspfcrBl45Coy',
       product_id: 'prod_UuPs7XFGchuAOC',
-      price: 49,
+      price: 99,
     },
     yearly: {
-      price_id: 'price_1Tub2tL7Hyckspfc48whRVvm',
+      price_id: 'price_1U1Y9wL7HyckspfcZEnwNzPg',
       product_id: 'prod_UuPsofAJQj79gO',
-      price: 490,
+      price: 990,
     },
     strategies_limit: Infinity,
   },
   agency: {
     name: 'Agency',
     monthly: {
-      price_id: 'price_1Tub34L7HyckspfcEMih6qkz',
+      price_id: 'price_1U1YAIL7HyckspfcyT4yah1y',
       product_id: 'prod_UuPsM90xu8d47e',
-      price: 149,
+      price: 299,
     },
     yearly: {
-      price_id: 'price_1Tub3HL7Hyckspfchn3uIgnA',
+      price_id: 'price_1U1YAZL7Hyckspfc iO7p4YM1',
       product_id: 'prod_UuPtrGta7sU60Q',
-      price: 1490,
+      price: 2990,
     },
     strategies_limit: Infinity,
   },
