@@ -133,7 +133,7 @@ const Index = () => {
 
         <div className="relative z-10 text-center max-w-4xl mx-auto">
           <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-            <KorexLogoLockup height={72} mdHeight={112} lgHeight={144} className="mx-auto mb-6 md:mb-10" />
+            <KorexLogoLockup height={80} mdHeight={120} lgHeight={152} className="mx-auto mb-6 md:mb-10" />
           </motion.div>
 
           <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.2 }}
@@ -633,7 +633,7 @@ const Index = () => {
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
             <div className="col-span-2 md:col-span-1 flex flex-col items-center md:items-start text-center md:text-left min-w-0">
-              <KorexLogoLockup height={44} showTagline={false} className="mb-4 self-center" />
+              <KorexLogoLockup height={52} showTagline={false} className="mb-4 self-center" />
               <p className="text-sm text-[#6B6B73] leading-relaxed">Intelligence-driven marketing systems for modern teams.</p>
             </div>
 
