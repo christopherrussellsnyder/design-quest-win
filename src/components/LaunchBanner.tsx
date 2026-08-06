@@ -34,7 +34,7 @@ export function LaunchBanner() {
           <p className="truncate">
             <span className="font-semibold tracking-wide">LAUNCH OFFER</span>
             <span className="mx-2 opacity-70">·</span>
-            <span>Use code <span className="font-bold tracking-wider bg-background/15 px-1.5 py-0.5 rounded">KOREX</span> for <span className="font-semibold">15% off your first month</span></span>
+            <span>Use code <span className="font-bold tracking-wider bg-background/15 px-1.5 py-0.5 rounded">KOREX</span> for <span className="font-semibold">15% off your first month</span> <span className="opacity-70">(monthly plans)</span></span>
           </p>
         </div>
         <div className="flex items-center gap-1 shrink-0">
