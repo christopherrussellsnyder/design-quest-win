@@ -821,9 +821,53 @@ serve(async (req) => {
       performanceFeedbackSection = '=== PROVEN PERFORMANCE LEARNINGS ===\nNo historical performance data for this user yet. Use general best practices for now; future strategies will incorporate their actual results as posts are published and analytics uploaded.';
     }
 
+    // ========== STEP 0: External grounding (live, cached, fail-soft) ==========
+    // Every source below degrades gracefully and is cached in strategy_intel_cache
+    // so repeat generations in the same niche cost nothing extra.
+    const bi = businessInfoRes.data || {};
+    const latestBudgetReq = await supabase
+      .from('campaign_strategy_requests')
+      .select('budget_range')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    console.log('Step 0: Gathering external grounding...');
+    const [searchIntel, adIntel, siteIntel, vocIntel] = await Promise.all([
+      fetchSearchDemand(supabase, ctx.industry, ctx.products, ctx.geoFocus).catch(() => null),
+      fetchCompetitorAds(supabase, ctx.industry, ctx.competitors, normalizedReqPlatform, ctx.geoFocus).catch(() => null),
+      crawlBusinessSite(supabase, bi.website || '').catch(() => null),
+      fetchVoiceOfCustomer(supabase, ctx.industry, ctx.products).catch(() => null),
+    ]);
+
+    const seasonalitySection = buildSeasonalitySection(stratStartISO, durationDays, ctx.geoFocus);
+    const budgetSection = buildBudgetSection(
+      latestBudgetReq.data?.budget_range ?? null,
+      contentMode,
+      bi.customer_acquisition_cost ?? null,
+      durationDays,
+    );
+
+    const groundingSection = [
+      siteIntel?.section,
+      searchIntel?.section,
+      adIntel?.section,
+      vocIntel?.section,
+      seasonalitySection,
+      budgetSection,
+      DIVERSITY_PROMPT,
+      CONFIDENCE_PROMPT,
+    ].filter(Boolean).join('\n\n');
+
+    const groundingSources = [searchIntel, adIntel, siteIntel, vocIntel]
+      .filter((r) => r?.ok)
+      .map((r) => r!.source);
+    console.log('Grounding sources active:', groundingSources.join(', ') || 'none (profile only)');
+
     // ========== STEP 1: Generate strategy overview ==========
     console.log('Step 1: Generating strategy overview...');
-    const overviewPrompt = buildOverviewPrompt(ctx, platform, durationDays, effectiveGoals, analyticsSection, intelligenceSection, performanceFeedbackSection, promotionsSection, customInstructions, contentMode);
+    const overviewPrompt = buildOverviewPrompt(ctx, platform, durationDays, effectiveGoals, analyticsSection, `${intelligenceSection}\n\n${groundingSection}`, performanceFeedbackSection, promotionsSection, customInstructions, contentMode);
     const overviewText = await callAI(LOVABLE_API_KEY, overviewPrompt, systemPrompt, 8000);
     
     let overviewData: any;
