@@ -179,6 +179,34 @@ export function StrategyPostCard({ post, onEdit, onAskAI }: StrategyPostCardProp
   const strategicRationale = post.strategic_rationale || {};
   const optimizationTips = post.optimization_tips || {};
 
+  const vg: any = visualGuidance;
+  const line = (label: string, value?: string | null) => (value ? `${label}: ${value}\n` : '');
+
+  const imageBrief =
+    `Day ${post.day_number} — ${post.theme || 'post'} (${post.post_type || 'single image'})\n` +
+    line('Hook to visualise', post.hook) +
+    line('Scene', vg.description) +
+    line('Visual style', vg.visual_type) +
+    line('Colour palette', vg.color_palette) +
+    line('On-image text', vg.text_overlay) +
+    line('Attention device', vg.attention_hook) +
+    line('Emotion to convey', post.primary_emotion) +
+    line('Content pillar', post.content_pillar) +
+    line('CTA shown', post.cta) +
+    `Caption this image supports: ${activeCaption}`;
+
+  const videoBrief =
+    `Day ${post.day_number} — ${post.theme || 'post'} video ad (${post.post_type || 'reel'})\n` +
+    line('Opening line the presenter says', post.hook) +
+    line('Core message', post.opening_text || post.body_text) +
+    line('Emotion / tone', post.primary_emotion) +
+    line('Visual direction for b-roll', vg.description) +
+    line('Colour palette', vg.color_palette) +
+    line('On-screen text', vg.text_overlay) +
+    line('Close with this CTA', post.cta) +
+    `Suggested length: ${post.post_type === 'story' ? '15' : '30'} seconds\n` +
+    `Full script reference (caption): ${activeCaption}`;
+
   const CopyButton = ({ text, field, label }: { text: string; field: string; label: string }) => (
     <Button
       variant="outline"
