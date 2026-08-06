@@ -235,6 +235,8 @@ ${performanceFeedbackSection}
 
 ${promotionsSection}
 
+${groundingSection}
+
 CRITICAL: Every hook, body, and CTA must be traceable to either (a) one of this business's specific products, (b) its UVP/competitive advantage, (c) a stated audience pain point or demographic detail, or (d) an active promotion listed above when the post date falls within a promo window. Reject generic ${ctx.industry} content that could be reused by a competitor unchanged.
 
 QUALITY FLOOR (apply to every post — these are non-negotiable, differentiation does NOT override them):
