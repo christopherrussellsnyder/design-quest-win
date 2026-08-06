@@ -27,7 +27,7 @@ export const KorexLogoLockup = ({
   const md = Math.max(16, mdHeight ?? height);
   const lg = Math.max(16, lgHeight ?? md);
 
-  const icon = (h: number) => Math.round(h * 1.25);
+  const icon = (h: number) => Math.round(h * 1.55);
   const word = (h: number) => Math.round(icon(h) * 0.55);
   const tagline = (h: number) => Math.max(10, Math.round(icon(h) * 0.10));
 
