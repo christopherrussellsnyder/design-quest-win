@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Settings, User, HelpCircle, LogOut, CreditCard, ChevronUp, BarChart3, FileText, Image, Sparkles } from 'lucide-react';
+import { Settings, User, HelpCircle, LogOut, CreditCard, ChevronUp, BarChart3, FileText, Image, Sparkles, Clapperboard } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { Skeleton } from '@/components/ui/skeleton';
