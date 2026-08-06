@@ -308,6 +308,91 @@ async function callAI(apiKey: string, prompt: string, systemPrompt: string, maxT
   return text.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
 }
 
+// ============================================================================
+// CMO CRITIC PASS
+// A second model pass that grades the drafted batch like a skeptical CMO and
+// rewrites only the posts that fail. Cheap (one call per batch, small output)
+// but removes the weakest ~20% of a plan, which is where trust is usually lost.
+// ============================================================================
+async function criticPass(
+  apiKey: string,
+  posts: any[],
+  ctx: BusinessCtx,
+  platform: string,
+  groundingSummary: string,
+): Promise<any[]> {
+  if (!posts.length) return posts;
+
+  const digest = posts.map((p: any, i: number) => ({
+    index: i,
+    day: p.day_number,
+    hook: p?.copy_elements?.hook?.text,
+    technique: p?.copy_elements?.hook?.technique,
+    cta: p?.copy_elements?.cta?.text,
+    anchor: p?.strategic_rationale?.differentiation_anchor,
+    category: p?.content_details?.content_category,
+  }));
+
+  const criticPrompt = `You are a skeptical CMO reviewing a drafted ${platform} content plan for ${ctx.businessName} (${ctx.industry}).
+
+GROUNDING TRUTH AVAILABLE TO THE WRITER:
+${groundingSummary || 'None beyond the business profile.'}
+
+DRAFTED POSTS:
+${JSON.stringify(digest)}
+
+Grade each post 0-100 on: (a) scroll-stopping power of the hook, (b) specificity — could a competitor publish this unchanged? (c) anchoring to a real product/UVP/pain point, (d) CTA clarity, (e) originality versus saturated niche tropes.
+
+Return ONLY JSON:
+{"scores":[{"index":0,"score":0,"verdict":"keep|rewrite","problem":"one sentence"}],"rewrites":[{"index":0,"hook":"new 5-10 word hook","technique":"archetype","opening":"2-3 sentences","body":"100-150 words","cta":"new cta text","full_caption":"150-250 word caption","differentiation_anchor":"which real product/UVP/pain point"}]}
+
+Mark "rewrite" for any post scoring under 75. Provide a rewrite object for every post marked rewrite (max 6 rewrites). Rewrites must keep the same content_category and day, and must be anchored to a real input — never invent products, prices, or claims.`;
+
+  try {
+    const raw = await callAI(
+      apiKey,
+      criticPrompt,
+      'You are a ruthless but constructive CMO. Respond with valid JSON only.',
+      8000,
+    );
+    const parsed = parseJSONSafe(raw);
+    const rewrites = Array.isArray(parsed?.rewrites) ? parsed.rewrites : [];
+    const scores = Array.isArray(parsed?.scores) ? parsed.scores : [];
+
+    for (const s of scores) {
+      const p = posts[s.index];
+      if (!p) continue;
+      p.quality_review = { score: s.score, verdict: s.verdict, problem: s.problem };
+    }
+
+    let applied = 0;
+    for (const r of rewrites) {
+      const p = posts[r.index];
+      if (!p || !r.hook) continue;
+      p.copy_elements = p.copy_elements || {};
+      p.copy_elements.hook = {
+        ...(p.copy_elements.hook || {}),
+        text: r.hook,
+        technique: r.technique || p.copy_elements.hook?.technique,
+      };
+      if (r.opening) p.copy_elements.opening = r.opening;
+      if (r.body) p.copy_elements.body = r.body;
+      if (r.full_caption) p.copy_elements.full_caption = r.full_caption;
+      if (r.cta) p.copy_elements.cta = { ...(p.copy_elements.cta || {}), text: r.cta };
+      if (r.differentiation_anchor) {
+        p.strategic_rationale = { ...(p.strategic_rationale || {}), differentiation_anchor: r.differentiation_anchor };
+      }
+      p.quality_review = { ...(p.quality_review || {}), rewritten: true };
+      applied++;
+    }
+    console.log(`Critic pass: ${scores.length} scored, ${applied} rewritten`);
+  } catch (e) {
+    console.warn('Critic pass skipped:', (e as Error).message);
+  }
+
+  return posts;
+}
+
 function parseJSONSafe(text: string): any {
   // First try direct parse
   try { return JSON.parse(text); } catch {}
