@@ -308,7 +308,7 @@ export function StrategyPostCard({ post, onEdit, onAskAI }: StrategyPostCardProp
               <Tabs defaultValue="content" className="w-full">
                 <TabsList className="grid w-full grid-cols-4 mb-4">
                   <TabsTrigger value="content">Content</TabsTrigger>
-                  <TabsTrigger value="visual">Visual</TabsTrigger>
+                  <TabsTrigger value="brief">Brief</TabsTrigger>
                   <TabsTrigger value="metrics">Metrics</TabsTrigger>
                   <TabsTrigger value="strategy">Strategy</TabsTrigger>
                 </TabsList>
