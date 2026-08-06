@@ -73,44 +73,10 @@ export function StrategyPostCard({ post, onEdit, onAskAI }: StrategyPostCardProp
   const [variants, setVariants] = useState<CaptionVariant[]>([]);
   const [activeCaption, setActiveCaption] = useState<string>(post.caption);
   const [loadingVariants, setLoadingVariants] = useState(false);
-  const [generatedImage, setGeneratedImage] = useState<string | null>(null);
-  const [generatingImage, setGeneratingImage] = useState(false);
-  const [stylePrompt, setStylePrompt] = useState('');
-  const [showStyleInput, setShowStyleInput] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);
   const { isPro } = useSubscription();
 
 
-
-  const generateImage = async () => {
-    if (!isPro) { setShowUpgrade(true); return; }
-    setGeneratingImage(true);
-    try {
-      const vg: any = post.visual_guidance || {};
-      const { data, error } = await supabase.functions.invoke('generate-post-visual', {
-        body: {
-          caption: activeCaption,
-          hook: post.hook,
-          theme: post.theme,
-          postType: post.post_type,
-          platform: (post as any).platform,
-          visualDescription: vg.description,
-          colorPalette: vg.color_palette,
-          textOverlay: vg.text_overlay,
-          stylePrompt: stylePrompt || undefined,
-        },
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      if (!data?.url) throw new Error('No image URL returned');
-      setGeneratedImage(data.url);
-      toast({ title: 'Image generated', description: 'Saved to your Media Library.' });
-    } catch (e: any) {
-      toast({ title: 'Could not generate image', description: e?.message || 'Try again in a moment.', variant: 'destructive' });
-    } finally {
-      setGeneratingImage(false);
-    }
-  };
 
   const generateVariants = async () => {
     if (!isPro) { setShowUpgrade(true); return; }
