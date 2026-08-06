@@ -5099,6 +5099,111 @@ export type Database = {
         }
         Relationships: []
       }
+      video_ad_avatars_cache: {
+        Row: {
+          created_at: string
+          fetched_at: string
+          id: string
+          payload: Json
+          provider: string
+        }
+        Insert: {
+          created_at?: string
+          fetched_at?: string
+          id?: string
+          payload: Json
+          provider?: string
+        }
+        Update: {
+          created_at?: string
+          fetched_at?: string
+          id?: string
+          payload?: Json
+          provider?: string
+        }
+        Relationships: []
+      }
+      video_ads: {
+        Row: {
+          angle: string | null
+          aspect_ratio: string
+          avatar_id: string
+          avatar_name: string | null
+          avatar_preview_url: string | null
+          completed_at: string | null
+          counts_against_quota: boolean
+          created_at: string
+          duration_seconds: number | null
+          error_message: string | null
+          hook: string | null
+          id: string
+          provider: string
+          provider_video_id: string | null
+          script: string
+          status: string
+          storage_path: string | null
+          strategy_post_id: string | null
+          thumbnail_url: string | null
+          title: string | null
+          updated_at: string
+          user_id: string
+          voice_id: string | null
+          workspace_id: string | null
+        }
+        Insert: {
+          angle?: string | null
+          aspect_ratio?: string
+          avatar_id: string
+          avatar_name?: string | null
+          avatar_preview_url?: string | null
+          completed_at?: string | null
+          counts_against_quota?: boolean
+          created_at?: string
+          duration_seconds?: number | null
+          error_message?: string | null
+          hook?: string | null
+          id?: string
+          provider?: string
+          provider_video_id?: string | null
+          script: string
+          status?: string
+          storage_path?: string | null
+          strategy_post_id?: string | null
+          thumbnail_url?: string | null
+          title?: string | null
+          updated_at?: string
+          user_id: string
+          voice_id?: string | null
+          workspace_id?: string | null
+        }
+        Update: {
+          angle?: string | null
+          aspect_ratio?: string
+          avatar_id?: string
+          avatar_name?: string | null
+          avatar_preview_url?: string | null
+          completed_at?: string | null
+          counts_against_quota?: boolean
+          created_at?: string
+          duration_seconds?: number | null
+          error_message?: string | null
+          hook?: string | null
+          id?: string
+          provider?: string
+          provider_video_id?: string | null
+          script?: string
+          status?: string
+          storage_path?: string | null
+          strategy_post_id?: string | null
+          thumbnail_url?: string | null
+          title?: string | null
+          updated_at?: string
+          user_id?: string
+          voice_id?: string | null
+          workspace_id?: string | null
+        }
+        Relationships: []
+      }
       virality_predictions: {
         Row: {
           actual_performance: Json | null
