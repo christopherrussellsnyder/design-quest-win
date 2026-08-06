@@ -163,6 +163,15 @@ export function UserProfileMenu() {
 
           <DropdownMenuItem
             className="flex items-center gap-3 px-3 py-2.5 cursor-pointer rounded-md hover:bg-surface-tertiary focus:bg-surface-tertiary transition-colors"
+            onClick={() => navigate('/video-ads')}
+          >
+            <Clapperboard className="w-4 h-4 text-muted-foreground" />
+            <span className="text-sm">Video Ads</span>
+          </DropdownMenuItem>
+
+
+          <DropdownMenuItem
+            className="flex items-center gap-3 px-3 py-2.5 cursor-pointer rounded-md hover:bg-surface-tertiary focus:bg-surface-tertiary transition-colors"
             onClick={() => navigate('/media')}
           >
             <Image className="w-4 h-4 text-muted-foreground" />
