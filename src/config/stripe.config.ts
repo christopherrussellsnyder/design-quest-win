@@ -21,7 +21,7 @@ export const STRIPE_TIERS = {
       price: 299,
     },
     yearly: {
-      price_id: 'price_1U1YAZL7Hycksp fciO7p4YM1',
+      price_id: 'price_1U1YAZL7HyckspfciO7p4YM1',
       product_id: 'prod_UuPtrGta7sU60Q',
       price: 2990,
     },
