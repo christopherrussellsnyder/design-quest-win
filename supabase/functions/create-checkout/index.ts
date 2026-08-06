@@ -61,7 +61,10 @@ serve(async (req) => {
       customer_email: customerId ? undefined : user.email,
       line_items: [{ price: priceId, quantity: 1 }],
       mode: "subscription",
-      allow_promotion_codes: true,
+      // Launch promo code (KOREX, 15% off first month) applies to monthly plans only.
+      // Annual plans already carry a 30% discount, so promo entry is disabled there.
+      allow_promotion_codes: MONTHLY_PRICE_IDS.has(priceId),
+
       success_url: `${origin}/ai-strategist?checkout=success`,
       cancel_url: `${origin}/pricing?checkout=canceled`,
     });
