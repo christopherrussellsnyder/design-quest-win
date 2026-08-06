@@ -125,11 +125,17 @@ export function useScreenshotAnalysis() {
         throw new Error('Failed to upload file');
       }
 
-      const { data: { publicUrl } } = supabase.storage
+      // Bucket is private — a public URL would 403. Use a signed URL instead.
+      const { data: signed, error: signedError } = await supabase.storage
         .from('analytics-screenshots')
-        .getPublicUrl(data.path);
+        .createSignedUrl(data.path, 60 * 60 * 24 * 365);
 
-      return publicUrl;
+      if (signedError || !signed?.signedUrl) {
+        console.error('Signed URL error:', signedError);
+        throw new Error('Failed to prepare the uploaded file');
+      }
+
+      return signed.signedUrl;
     } finally {
       setIsUploading(false);
     }

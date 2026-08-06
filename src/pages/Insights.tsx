@@ -193,9 +193,11 @@ export default function Insights() {
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
+      // Bucket is private — a public URL would 403. Use a signed URL instead.
+      const { data: signedData } = await supabase.storage
         .from('analytics-screenshots')
-        .getPublicUrl(fileName);
+        .createSignedUrl(fileName, 60 * 60 * 24 * 365);
+      const publicUrl = signedData?.signedUrl ?? '';
 
       setUploadPercent(30);
       setUploadProgress('Processing file...');
