@@ -1,12 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
-  <!-- Transparent background — no rect fill -->
-
-  <!-- KOREX OFFICIAL MARK — Splintered K -->
-  <rect x="72" y="32" width="48" height="336" fill="#CC0000"/>
-  <polygon points="120,32 120,120 344,32 280,32" fill="#EEEEEE"/>
-  <polygon points="120,88 120,168 344,32 272,32" fill="#CC0000" opacity="0.7"/>
-  <polygon points="120,232 120,312 344,368 272,368" fill="#CC0000" opacity="0.7"/>
-  <polygon points="120,280 120,368 240,368 200,368" fill="#EEEEEE"/>
-  <line x1="120" y1="88" x2="240" y2="32" stroke="transparent" strokeWidth="8"/>
-  <line x1="120" y1="312" x2="240" y2="368" stroke="transparent" strokeWidth="8"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 480" width="400" height="480">
+  <!-- KOREX TOWER — full lockup, transparent background -->
+  <g transform="translate(0,10)">
+    <path d="M200,70 C228,125 236,162 200,208 C164,162 172,125 200,70 Z" fill="#F5F5F5"/>
+    <path d="M200,105 C214,138 218,160 200,185 C182,160 186,138 200,105 Z" fill="#B01818"/>
+    <polygon points="150,230 250,230 224,340 176,340" fill="#F5F5F5"/>
+    <rect x="168" y="340" width="64" height="14" fill="#F5F5F5"/>
+  </g>
+  <text x="200" y="420" text-anchor="middle" font-family="'Arial Narrow', Arial, sans-serif" font-weight="900" font-size="54" letter-spacing="3" fill="#F5F5F5">KOREX</text>
+  <rect x="128" y="434" width="144" height="6" fill="#B01818"/>
+  <text x="200" y="458" text-anchor="middle" font-family="'Helvetica Neue', Arial, sans-serif" font-weight="400" font-size="10" letter-spacing="6" fill="#8A8A8A">INTELLIGENCE SYSTEMS</text>
 </svg>
