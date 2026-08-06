@@ -33,7 +33,7 @@ import { VideoAdCard } from '@/components/video-ads/VideoAdCard';
 import { ImageStudio } from '@/components/content-generation/ImageStudio';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-export default function VideoAds() {
+export default function ContentGeneration() {
   const navigate = useNavigate();
 
   const { data: catalog, isLoading: loadingActors, error: actorsError } = useAdActors();

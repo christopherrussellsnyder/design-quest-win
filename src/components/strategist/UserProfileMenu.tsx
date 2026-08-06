@@ -163,10 +163,10 @@ export function UserProfileMenu() {
 
           <DropdownMenuItem
             className="flex items-center gap-3 px-3 py-2.5 cursor-pointer rounded-md hover:bg-surface-tertiary focus:bg-surface-tertiary transition-colors"
-            onClick={() => navigate('/video-ads')}
+            onClick={() => navigate('/content-generation')}
           >
             <Clapperboard className="w-4 h-4 text-muted-foreground" />
-            <span className="text-sm">Video Ads</span>
+            <span className="text-sm">Content Generation</span>
           </DropdownMenuItem>
 
 
