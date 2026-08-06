@@ -27,6 +27,8 @@ const Insights = lazy(() => import("./pages/Insights"));
 const MediaLibrary = lazy(() => import("./pages/MediaLibrary"));
 const Settings = lazy(() => import("./pages/Settings"));
 const Research = lazy(() => import("./pages/Research"));
+const VideoAds = lazy(() => import("./pages/VideoAds"));
+
 
 const HealthCheck = lazy(() => import("./pages/HealthCheck"));
 const Terms = lazy(() => import("./pages/Terms"));
@@ -232,6 +234,15 @@ const App = () => (
                       </ProtectedRoute>
                     }
                   />
+                  <Route
+                    path="/video-ads"
+                    element={
+                      <ProtectedRoute>
+                        <VideoAds />
+                      </ProtectedRoute>
+                    }
+                  />
+
                   <Route
                     path="/settings"
                     element={

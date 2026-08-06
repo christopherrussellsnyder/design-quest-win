@@ -1,0 +1,476 @@
+import { useMemo, useState } from 'react';
+import { Helmet } from 'react-helmet-async';
+import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
+import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  ArrowLeft,
+  Clapperboard,
+  Loader2,
+  Sparkles,
+  Wand2,
+  Users,
+  Film,
+  AlertTriangle,
+  Check,
+} from 'lucide-react';
+import { useAdActors, useAdScripts, useVideoAds } from '@/hooks/useVideoAds';
+import { VIDEO_ASPECT_RATIOS, VIDEO_HOOK_ANGLES } from '@/config/video.config';
+import type { AdScriptVariant } from '@/config/video.config';
+import { VideoAdCard } from '@/components/video-ads/VideoAdCard';
+
+export default function VideoAds() {
+  const navigate = useNavigate();
+
+  const { data: catalog, isLoading: loadingActors, error: actorsError } = useAdActors();
+  const { variants, generate, isGenerating } = useAdScripts();
+  const { videos, isLoading: loadingVideos, urls, getPlaybackUrl, createVideo, isCreating, deleteVideo } =
+    useVideoAds();
+
+  // Script step
+  const [angle, setAngle] = useState<string>('auto');
+  const [duration, setDuration] = useState<string>('30');
+  const [promoDetail, setPromoDetail] = useState('');
+  const [promoCode, setPromoCode] = useState('');
+  const [brief, setBrief] = useState('');
+
+  // Selection step
+  const [selectedScript, setSelectedScript] = useState<AdScriptVariant | null>(null);
+  const [editedScript, setEditedScript] = useState('');
+  const [avatarId, setAvatarId] = useState('');
+  const [voiceId, setVoiceId] = useState('');
+  const [aspectRatio, setAspectRatio] = useState('9:16');
+
+  const actors = catalog?.actors ?? [];
+  const voices = catalog?.voices ?? [];
+  const quota = catalog?.quota;
+
+  const selectedActor = useMemo(
+    () => actors.find((a) => a.avatar_id === avatarId),
+    [actors, avatarId],
+  );
+
+  const quotaLabel = useMemo(() => {
+    if (!quota) return null;
+    if (quota.limit === null) return 'Unlimited renders';
+    const remaining = quota.remaining ?? 0;
+    return quota.is_trial
+      ? `${remaining} of ${quota.limit} free trial videos left`
+      : `${remaining} of ${quota.limit} videos left this month`;
+  }, [quota]);
+
+  const outOfCredits = quota?.limit !== null && (quota?.remaining ?? 1) <= 0;
+
+  const handlePickScript = (variant: AdScriptVariant) => {
+    setSelectedScript(variant);
+    setEditedScript(variant.script);
+  };
+
+  const handleRender = () => {
+    if (!editedScript.trim() || !avatarId || !voiceId) return;
+    createVideo({
+      script: editedScript.trim(),
+      hook: selectedScript?.hook,
+      title: selectedScript?.title,
+      angle: selectedScript?.angle,
+      avatarId,
+      avatarName: selectedActor?.name,
+      avatarPreviewUrl: selectedActor?.preview_image_url,
+      voiceId,
+      aspectRatio,
+    });
+  };
+
+  const providerDown =
+    (actorsError as { code?: string })?.code === 'PROVIDER_NOT_CONFIGURED' ||
+    (catalog as { code?: string })?.code === 'PROVIDER_NOT_CONFIGURED';
+
+  const canRender = !!editedScript.trim() && !!avatarId && !!voiceId && !isCreating && !outOfCredits;
+
+  return (
+    <>
+      <Helmet>
+        <title>AI Video Ads | Korex Intelligence</title>
+        <meta
+          name="description"
+          content="Generate production-quality UGC video ads with AI actors — hook-tested scripts written from your business context, rendered in minutes."
+        />
+      </Helmet>
+
+      <div className="min-h-screen bg-[#060606] text-[#EEEEEE]">
+        {/* Header */}
+        <header className="border-b border-[#16171A] px-4 py-3 flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate('/ai-strategist')}
+            className="text-[#A0A0A8] hover:text-white hover:bg-[#16171A]"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </Button>
+          <div className="flex items-center gap-2">
+            <Clapperboard className="w-4 h-4 text-primary" />
+            <h1 className="text-sm font-semibold tracking-tight">AI Video Ads</h1>
+          </div>
+          {quotaLabel && (
+            <Badge variant="outline" className="ml-2 border-[#2A2B2E] text-[#A0A0A8] text-[11px]">
+              {quotaLabel}
+            </Badge>
+          )}
+        </header>
+
+        <div className="max-w-6xl mx-auto px-4 py-6 space-y-6">
+          {providerDown && (
+            <Card className="bg-[#0C0D0F] border-amber-500/30">
+              <CardContent className="p-4 flex items-start gap-3">
+                <AlertTriangle className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
+                <div className="text-sm">
+                  <p className="font-medium">Video rendering isn't switched on yet</p>
+                  <p className="text-[#A0A0A8] text-xs mt-1">
+                    You can still write and save ad scripts. Rendering will activate as soon as the
+                    video provider is connected.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* ---------------- Step 1: Script ---------------- */}
+          <section className="space-y-3">
+            <div className="flex items-center gap-2">
+              <span className="w-5 h-5 rounded border border-[#2A2B2E] text-[11px] flex items-center justify-center text-[#A0A0A8]">
+                1
+              </span>
+              <h2 className="text-sm font-semibold">Write the hooks</h2>
+            </div>
+
+            <Card className="bg-[#0C0D0F] border-[#1E1F23]">
+              <CardContent className="p-4 space-y-4">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-[#A0A0A8]">Hook angle</Label>
+                    <Select value={angle} onValueChange={setAngle}>
+                      <SelectTrigger className="bg-[#111214] border-[#2A2B2E]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {VIDEO_HOOK_ANGLES.map((a) => (
+                          <SelectItem key={a.value} value={a.value}>
+                            {a.label} — <span className="text-muted-foreground">{a.hint}</span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-[#A0A0A8]">Length</Label>
+                    <Select value={duration} onValueChange={setDuration}>
+                      <SelectTrigger className="bg-[#111214] border-[#2A2B2E]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="15">15 seconds</SelectItem>
+                        <SelectItem value="30">30 seconds</SelectItem>
+                        <SelectItem value="45">45 seconds</SelectItem>
+                        <SelectItem value="60">60 seconds</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-[#A0A0A8]">Offer (optional)</Label>
+                    <Input
+                      value={promoDetail}
+                      onChange={(e) => setPromoDetail(e.target.value)}
+                      placeholder="15% off your first month"
+                      className="bg-[#111214] border-[#2A2B2E]"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-[#A0A0A8]">Promo code (optional)</Label>
+                    <Input
+                      value={promoCode}
+                      onChange={(e) => setPromoCode(e.target.value)}
+                      placeholder="KOREX"
+                      className="bg-[#111214] border-[#2A2B2E]"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-[#A0A0A8]">Extra direction (optional)</Label>
+                  <Textarea
+                    value={brief}
+                    onChange={(e) => setBrief(e.target.value)}
+                    placeholder="Anything the script must mention — a specific objection to handle, a proof point, a launch date."
+                    rows={2}
+                    maxLength={4000}
+                    className="bg-[#111214] border-[#2A2B2E] resize-none"
+                  />
+                </div>
+
+                <Button
+                  onClick={() =>
+                    generate({
+                      angle,
+                      durationSeconds: Number(duration),
+                      count: 3,
+                      promoDetail: promoDetail || undefined,
+                      promoCode: promoCode || undefined,
+                      customBrief: brief || undefined,
+                    })
+                  }
+                  disabled={isGenerating}
+                  className="w-full sm:w-auto"
+                >
+                  {isGenerating ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Writing hooks...
+                    </>
+                  ) : (
+                    <>
+                      <Wand2 className="w-4 h-4 mr-2" />
+                      Generate scripts
+                    </>
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
+
+            {variants.length > 0 && (
+              <div className="grid gap-3 md:grid-cols-3">
+                {variants.map((v, i) => {
+                  const active = selectedScript?.script === v.script;
+                  return (
+                    <button
+                      key={`${v.angle}-${i}`}
+                      type="button"
+                      onClick={() => handlePickScript(v)}
+                      className={`text-left rounded-md border p-3 transition-colors ${
+                        active
+                          ? 'border-primary bg-primary/5'
+                          : 'border-[#1E1F23] bg-[#0C0D0F] hover:border-[#2A2B2E]'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-2 mb-2">
+                        <Badge
+                          variant="outline"
+                          className="border-[#2A2B2E] text-[10px] capitalize"
+                        >
+                          {v.angle}
+                        </Badge>
+                        {active && <Check className="w-3.5 h-3.5 text-primary" />}
+                      </div>
+                      <p className="text-sm font-medium leading-snug mb-1.5">{v.hook}</p>
+                      <p className="text-xs text-[#A0A0A8] line-clamp-4">{v.script}</p>
+                      {v.why_it_works && (
+                        <p className="text-[11px] text-[#6B6C72] mt-2 italic">{v.why_it_works}</p>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+
+          {/* ---------------- Step 2: Cast ---------------- */}
+          <section className="space-y-3">
+            <div className="flex items-center gap-2">
+              <span className="w-5 h-5 rounded border border-[#2A2B2E] text-[11px] flex items-center justify-center text-[#A0A0A8]">
+                2
+              </span>
+              <h2 className="text-sm font-semibold">Cast the actor</h2>
+            </div>
+
+            <Card className="bg-[#0C0D0F] border-[#1E1F23]">
+              <CardContent className="p-4 space-y-4">
+                {loadingActors ? (
+                  <div className="flex items-center gap-2 text-sm text-[#A0A0A8] py-6 justify-center">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Loading the actor library...
+                  </div>
+                ) : actors.length === 0 ? (
+                  <div className="text-sm text-[#A0A0A8] py-6 text-center flex flex-col items-center gap-2">
+                    <Users className="w-5 h-5" />
+                    No actors available yet.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-8 gap-2 max-h-[280px] overflow-y-auto pr-1">
+                    {actors.map((a) => (
+                      <button
+                        key={a.avatar_id}
+                        type="button"
+                        onClick={() => setAvatarId(a.avatar_id)}
+                        title={a.name}
+                        className={`rounded-md overflow-hidden border transition-colors ${
+                          avatarId === a.avatar_id
+                            ? 'border-primary'
+                            : 'border-[#1E1F23] hover:border-[#2A2B2E]'
+                        }`}
+                      >
+                        <div className="aspect-[3/4] bg-[#111214]">
+                          {a.preview_image_url ? (
+                            <img
+                              src={a.preview_image_url}
+                              alt={`AI actor ${a.name}`}
+                              loading="lazy"
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-[#6B6C72]">
+                              <Users className="w-4 h-4" />
+                            </div>
+                          )}
+                        </div>
+                        <p className="text-[10px] px-1 py-1 truncate text-[#A0A0A8]">{a.name}</p>
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-[#A0A0A8]">Voice</Label>
+                    <Select value={voiceId} onValueChange={setVoiceId}>
+                      <SelectTrigger className="bg-[#111214] border-[#2A2B2E]">
+                        <SelectValue placeholder="Choose a voice" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-[280px]">
+                        {voices.map((v) => (
+                          <SelectItem key={v.voice_id} value={v.voice_id}>
+                            {v.name}
+                            {v.gender ? ` · ${v.gender}` : ''}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-[#A0A0A8]">Format</Label>
+                    <Select value={aspectRatio} onValueChange={setAspectRatio}>
+                      <SelectTrigger className="bg-[#111214] border-[#2A2B2E]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {VIDEO_ASPECT_RATIOS.map((r) => (
+                          <SelectItem key={r.value} value={r.value}>
+                            {r.label} — <span className="text-muted-foreground">{r.hint}</span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </section>
+
+          {/* ---------------- Step 3: Render ---------------- */}
+          <section className="space-y-3">
+            <div className="flex items-center gap-2">
+              <span className="w-5 h-5 rounded border border-[#2A2B2E] text-[11px] flex items-center justify-center text-[#A0A0A8]">
+                3
+              </span>
+              <h2 className="text-sm font-semibold">Review and render</h2>
+            </div>
+
+            <Card className="bg-[#0C0D0F] border-[#1E1F23]">
+              <CardContent className="p-4 space-y-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-[#A0A0A8]">
+                    Spoken script — edit freely before rendering
+                  </Label>
+                  <Textarea
+                    value={editedScript}
+                    onChange={(e) => setEditedScript(e.target.value)}
+                    placeholder="Pick a script above, or write your own here."
+                    rows={6}
+                    maxLength={3000}
+                    className="bg-[#111214] border-[#2A2B2E] resize-none text-sm leading-relaxed"
+                  />
+                  <p className="text-[11px] text-[#6B6C72]">
+                    {editedScript.trim() ? editedScript.trim().split(/\s+/).length : 0} words · about{' '}
+                    {Math.round((editedScript.trim().split(/\s+/).filter(Boolean).length || 0) / 2.4)}s
+                    spoken
+                  </p>
+                </div>
+
+                {outOfCredits && (
+                  <p className="text-xs text-amber-500 flex items-center gap-1.5">
+                    <AlertTriangle className="w-3.5 h-3.5" />
+                    You've used your video allowance. Upgrade for more renders.
+                  </p>
+                )}
+
+                <Button onClick={handleRender} disabled={!canRender} className="w-full sm:w-auto">
+                  {isCreating ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Starting render...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      Render video ad
+                    </>
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
+          </section>
+
+          {/* ---------------- Library ---------------- */}
+          <section className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Film className="w-4 h-4 text-[#A0A0A8]" />
+              <h2 className="text-sm font-semibold">Your video ads</h2>
+              {videos.length > 0 && (
+                <span className="text-xs text-[#6B6C72]">{videos.length}</span>
+              )}
+            </div>
+
+            {loadingVideos ? (
+              <div className="flex items-center gap-2 text-sm text-[#A0A0A8] py-8 justify-center">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Loading your library...
+              </div>
+            ) : videos.length === 0 ? (
+              <Card className="bg-[#0C0D0F] border-[#1E1F23]">
+                <CardContent className="p-8 text-center text-sm text-[#A0A0A8]">
+                  No video ads yet. Generate a script, cast an actor, and render your first one.
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid gap-3 grid-cols-2 md:grid-cols-4">
+                {videos.map((v) => (
+                  <VideoAdCard
+                    key={v.id}
+                    video={v}
+                    url={urls[v.id]}
+                    onResolveUrl={getPlaybackUrl}
+                    onDelete={deleteVideo}
+                  />
+                ))}
+              </div>
+            )}
+          </section>
+        </div>
+      </div>
+    </>
+  );
+}
