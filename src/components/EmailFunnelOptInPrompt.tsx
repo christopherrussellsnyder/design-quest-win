@@ -9,17 +9,36 @@ import { toast } from "sonner";
 
 const STORAGE_KEY = "korex_funnel_optin_dismissed_v1";
 
+// Marketing/public pages only — never inside the signed-in product experience.
+const PUBLIC_PATHS = new Set([
+  "/",
+  "/pricing",
+  "/features",
+  "/how-it-works",
+  "/about",
+  "/contact",
+  "/demo",
+  "/help",
+]);
+
 /**
  * Post-signup email funnel opt-in.
- * Shows ONE branded prompt the first time a verified user lands in the app.
- * Skipped if user already subscribed, declined, or email isn't verified.
+ * Shows ONE branded prompt on public marketing pages for a verified user.
+ * Never shown on in-app routes. Skipped if already subscribed or declined.
  */
 export function EmailFunnelOptInPrompt() {
   const { user } = useAuth();
+  const location = useLocation();
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
+  const isPublicPage = PUBLIC_PATHS.has(location.pathname.replace(/\/+$/, "") || "/");
+
   useEffect(() => {
+    if (!isPublicPage) {
+      setOpen(false);
+      return;
+    }
     if (!user) return;
     if (!user.email_confirmed_at) return; // verified users only
     if (localStorage.getItem(STORAGE_KEY) === "1") return;
