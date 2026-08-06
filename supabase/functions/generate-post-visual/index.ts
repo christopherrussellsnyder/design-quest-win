@@ -17,6 +17,23 @@ function sizeForPlatform(platform?: string, postType?: string): string {
   return "1024x1024"; // IG feed, default
 }
 
+// Art-direction scaffolding: what separates a stock-looking render from
+// something that reads like a paid campaign asset.
+const CRAFT_DIRECTIVES = [
+  "Shot like a paid brand campaign asset, not stock photography.",
+  "Full-frame camera look: 35mm or 50mm prime, f/2 to f/4, natural depth of field with a believable focal plane.",
+  "Physically accurate lighting with a clear key, soft fill and gentle rim separation; realistic shadow falloff and colour bounce.",
+  "Deliberate composition — strong subject placement, clean negative space for copy, no cluttered or centred-by-default framing.",
+  "Rich micro-detail: true skin texture and pores, fabric weave, surface imperfection, material specularity.",
+  "Colour-graded like a commercial: controlled contrast, filmic highlight rolloff, no crushed blacks, no oversaturation.",
+  "Photorealistic and razor sharp where it matters, tack-focus on the subject.",
+];
+
+const NEGATIVE_DIRECTIVES =
+  "Avoid: watermarks, signatures, invented brand logos, warped or extra fingers, plastic waxy skin, uncanny faces, " +
+  "generic AI gloss, HDR halos, mushy background detail, gibberish lettering, cluttered collage layouts, " +
+  "cheap clip-art icons, heavy vignette, oversharpened edges.";
+
 function buildPrompt(input: {
   caption?: string;
   hook?: string;
@@ -30,19 +47,80 @@ function buildPrompt(input: {
   brandVoice?: string;
   stylePrompt?: string;
 }) {
+  const platform = input.platform || "Instagram";
   const parts: string[] = [];
-  parts.push("Professional social media post visual for " + (input.platform || "Instagram") + ".");
-  if (input.visualDescription) parts.push("Scene: " + input.visualDescription);
-  else if (input.hook) parts.push("Concept: " + input.hook);
-  else if (input.caption) parts.push("Concept: " + input.caption.slice(0, 240));
-  if (input.textOverlay) parts.push("Include subtle text overlay: \"" + input.textOverlay + "\".");
-  if (input.colorPalette) parts.push("Color palette: " + input.colorPalette + ".");
-  else if (input.brandColors) parts.push("Brand colors: " + input.brandColors + ".");
-  if (input.brandVoice) parts.push("Brand tone: " + input.brandVoice + ".");
-  if (input.theme) parts.push("Theme/mood: " + input.theme.replace(/_/g, " ") + ".");
-  if (input.stylePrompt) parts.push("Style override: " + input.stylePrompt + ".");
-  parts.push("High quality, on-brand, native-feeling, no watermarks, no fake logos, sharp focus.");
+
+  parts.push(
+    `High-end advertising visual for ${platform}, produced to agency standard for a scroll-stopping paid social placement.`,
+  );
+
+  if (input.visualDescription) parts.push("Subject and scene: " + input.visualDescription + ".");
+  else if (input.hook) parts.push("Subject and scene: " + input.hook + ".");
+  else if (input.caption) parts.push("Subject and scene: " + input.caption.slice(0, 300) + ".");
+
+  if (input.stylePrompt) parts.push("Art direction: " + input.stylePrompt + ".");
+  if (input.theme) parts.push("Mood: " + input.theme.replace(/_/g, " ") + ".");
+  if (input.brandVoice) parts.push("Brand tone the image must feel like: " + input.brandVoice + ".");
+
+  const palette = input.colorPalette || input.brandColors;
+  if (palette) {
+    parts.push(
+      `Colour direction: ${palette}. Keep the palette disciplined — two dominant tones plus one accent, harmonised across the whole frame.`,
+    );
+  }
+
+  if (input.textOverlay) {
+    parts.push(
+      `Render this exact headline as clean, correctly spelled typography, spelled letter for letter: "${input.textOverlay}". ` +
+        "Use a single modern sans-serif, tight tracking, high contrast against its backdrop, placed in intentional negative space. " +
+        "No other text anywhere in the image.",
+    );
+  } else {
+    parts.push("No text, letters or numbers anywhere in the image.");
+  }
+
+  parts.push(CRAFT_DIRECTIVES.join(" "));
+  parts.push(NEGATIVE_DIRECTIVES);
+
   return parts.join(" ");
+}
+
+/**
+ * Expands a short user brief into a full art-direction brief before it ever
+ * reaches the image model. This is the single biggest quality lever — image
+ * models reward specificity about lens, light, styling and composition.
+ */
+async function enhanceBrief(prompt: string, apiKey: string): Promise<string> {
+  try {
+    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "google/gemini-3-flash-preview",
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are a senior art director writing prompts for a state-of-the-art image model. " +
+              "Rewrite the brief into ONE dense paragraph (max 220 words) of concrete visual direction: " +
+              "subject and styling, wardrobe, environment and set dressing, camera body/lens/aperture/angle/distance, " +
+              "lighting setup and direction, time of day, colour grade, composition and where negative space sits, " +
+              "and surface/material detail. Keep every explicit instruction from the brief exactly as given — " +
+              "especially any headline text to render verbatim, colour palette, and prohibitions. " +
+              "Never add text to the image that the brief did not request. Output the prompt only, no preamble.",
+          },
+          { role: "user", content: prompt },
+        ],
+        max_tokens: 700,
+      }),
+    });
+    if (!res.ok) return prompt;
+    const json = await res.json();
+    const enhanced = json?.choices?.[0]?.message?.content;
+    return typeof enhanced === "string" && enhanced.trim().length > 80 ? enhanced.trim() : prompt;
+  } catch (_err) {
+    return prompt;
+  }
 }
 
 Deno.serve(async (req) => {
@@ -79,14 +157,35 @@ Deno.serve(async (req) => {
       visualDescription, colorPalette, textOverlay,
       brandColors, brandVoice, stylePrompt,
       model = "openai/gpt-image-2",
+      quality = "high",
+      enhance = true,
     } = body || {};
 
-    const prompt = buildPrompt({
+    const basePrompt = buildPrompt({
       caption, hook, theme, postType, platform,
       visualDescription, colorPalette, textOverlay,
       brandColors, brandVoice, stylePrompt,
     });
     const size = sizeForPlatform(platform, postType);
+    const prompt = enhance ? await enhanceBrief(basePrompt, LOVABLE_API_KEY) : basePrompt;
+
+    // Body shape depends on the vendor: OpenAI image models take `prompt`,
+    // Gemini image models take chat-style `messages` + `modalities`.
+    const isGemini = String(model).startsWith("google/");
+    const requestBody = isGemini
+      ? {
+          model,
+          messages: [{ role: "user", content: prompt }],
+          modalities: ["image", "text"],
+        }
+      : {
+          model,
+          prompt,
+          size,
+          quality,
+          output_format: "png",
+          n: 1,
+        };
 
     // Call Lovable AI Gateway image endpoint (non-streaming for simplicity)
     const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/images/generations", {
@@ -95,13 +194,7 @@ Deno.serve(async (req) => {
         Authorization: `Bearer ${LOVABLE_API_KEY}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        model,
-        prompt,
-        size,
-        quality: "low",
-        n: 1,
-      }),
+      body: JSON.stringify(requestBody),
     });
 
     if (!aiRes.ok) {

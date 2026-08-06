@@ -31,6 +31,12 @@ const STYLES = [
   { value: 'Dark cinematic tech aesthetic, moody rim lighting, subtle grain', label: 'Dark cinematic' },
 ];
 
+const ENGINES = [
+  { value: 'openai/gpt-image-2', label: 'Flagship — maximum fidelity', hint: 'Best detail and typography' },
+  { value: 'google/gemini-3-pro-image', label: 'Pro alternative', hint: 'Different look, strong realism' },
+  { value: 'openai/gpt-image-1-mini', label: 'Draft — fast concepts', hint: 'Quick exploration' },
+];
+
 interface GeneratedImage {
   url: string;
   prompt: string;
@@ -43,6 +49,7 @@ export function ImageStudio() {
   const [platform, setPlatform] = useState('instagram');
   const [style, setStyle] = useState('');
   const [palette, setPalette] = useState('');
+  const [engine, setEngine] = useState('openai/gpt-image-2');
   const [isGenerating, setIsGenerating] = useState(false);
   const [images, setImages] = useState<GeneratedImage[]>([]);
 
@@ -57,6 +64,9 @@ export function ImageStudio() {
           colorPalette: palette.trim() || undefined,
           stylePrompt: style || undefined,
           platform,
+          model: engine,
+          quality: engine === 'openai/gpt-image-1-mini' ? 'medium' : 'high',
+          enhance: true,
         },
       });
 
@@ -146,6 +156,22 @@ export function ImageStudio() {
             </div>
 
             <div className="space-y-1.5">
+              <Label className="text-xs text-[#A0A0A8]">Engine</Label>
+              <Select value={engine} onValueChange={setEngine}>
+                <SelectTrigger className="bg-[#111214] border-[#2A2B2E]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {ENGINES.map((e) => (
+                    <SelectItem key={e.value} value={e.value}>
+                      {e.label} — <span className="text-muted-foreground">{e.hint}</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1.5">
               <Label className="text-xs text-[#A0A0A8]">Text overlay (optional)</Label>
               <Input
                 value={textOverlay}
@@ -176,7 +202,7 @@ export function ImageStudio() {
             {isGenerating ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Rendering image...
+                Rendering at full quality...
               </>
             ) : (
               <>
@@ -198,7 +224,8 @@ export function ImageStudio() {
         {images.length === 0 ? (
           <Card className="bg-[#0C0D0F] border-[#1E1F23]">
             <CardContent className="p-8 text-center text-sm text-[#A0A0A8]">
-              No images yet. Describe the shot above — everything you generate is also saved to your
+              No images yet. Every render is art-directed automatically before it hits the image
+              engine, then produced at maximum quality — expect 30-60 seconds. Describe the shot above — everything you generate is also saved to your
               media library.
             </CardContent>
           </Card>
