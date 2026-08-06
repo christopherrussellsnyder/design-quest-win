@@ -4320,6 +4320,33 @@ export type Database = {
         }
         Relationships: []
       }
+      strategy_intel_cache: {
+        Row: {
+          cache_key: string
+          created_at: string
+          expires_at: string
+          id: string
+          payload: Json
+          source: string
+        }
+        Insert: {
+          cache_key: string
+          created_at?: string
+          expires_at: string
+          id?: string
+          payload: Json
+          source: string
+        }
+        Update: {
+          cache_key?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          payload?: Json
+          source?: string
+        }
+        Relationships: []
+      }
       strategy_posts: {
         Row: {
           body_text: string | null
