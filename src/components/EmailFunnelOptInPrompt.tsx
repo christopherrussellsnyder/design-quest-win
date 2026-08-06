@@ -59,7 +59,7 @@ export function EmailFunnelOptInPrompt() {
       }
     })();
     return () => { cancelled = true; };
-  }, [user]);
+  }, [user, isPublicPage]);
 
   const handleOptIn = async () => {
     if (!user?.email) return;
