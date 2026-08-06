@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <!-- KOREX TOWER MARK — icon only, transparent -->
+  <g transform="translate(0,23)">
+    <path d="M200,70 C228,125 236,162 200,208 C164,162 172,125 200,70 Z" fill="#F5F5F5"/>
+    <path d="M200,105 C214,138 218,160 200,185 C182,160 186,138 200,105 Z" fill="#B01818"/>
+    <polygon points="150,230 250,230 224,340 176,340" fill="#F5F5F5"/>
+    <rect x="168" y="340" width="64" height="14" fill="#F5F5F5"/>
+  </g>
+</svg>
