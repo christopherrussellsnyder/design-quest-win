@@ -35,9 +35,9 @@ serve(async (req) => {
 
     const allowedPriceIds = new Set([
       "price_1U1Y9eL7HyckspfcrBl45Coy",
-      "price_1U1Y9wL7HyckspfcZEnwNzPg",
+      "price_1U1YHXL7HyckspfcTI9T3cWH",
       "price_1U1YAIL7HyckspfcyT4yah1y",
-      "price_1U1YAZL7HyckspfciO7p4YM1",
+      "price_1U1YHqL7HyckspfcXu9IV3Bk",
     ]);
     if (!allowedPriceIds.has(priceId)) throw new Error("Invalid price ID");
 

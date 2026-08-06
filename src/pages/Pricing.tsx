@@ -12,7 +12,7 @@ const plans = [
     key: 'pro' as const,
     name: 'Pro',
     monthlyPrice: 99,
-    yearlyPrice: 990,
+    yearlyPrice: 831,
     popular: true,
     features: [
       'Unlimited AI strategies',
@@ -27,7 +27,7 @@ const plans = [
     key: 'agency' as const,
     name: 'Agency',
     monthlyPrice: 299,
-    yearlyPrice: 2990,
+    yearlyPrice: 2511,
     popular: false,
     features: [
       'Everything in Pro',
@@ -119,7 +119,7 @@ export default function Pricing() {
               <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-transform ${billingAnnual ? 'translate-x-6' : 'translate-x-0.5'}`} />
             </button>
             <span className={`text-sm ${billingAnnual ? 'text-white' : 'text-[#6B6B73]'}`}>Yearly</span>
-            <span className={`text-xs px-2 py-0.5 rounded-full font-semibold transition-opacity ${billingAnnual ? 'bg-[#CC0000]/20 text-[#CC0000] opacity-100' : 'bg-[#CC0000]/10 text-[#CC0000]/70 opacity-100'}`}>2 months free</span>
+            <span className={`text-xs px-2 py-0.5 rounded-full font-semibold transition-opacity ${billingAnnual ? 'bg-[#CC0000]/20 text-[#CC0000] opacity-100' : 'bg-[#CC0000]/10 text-[#CC0000]/70 opacity-100'}`}>Save 30%</span>
           </div>
         </div>
 
