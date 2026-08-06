@@ -233,6 +233,15 @@ const App = () => (
                     }
                   />
                   <Route
+                    path="/video-ads"
+                    element={
+                      <ProtectedRoute>
+                        <VideoAds />
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  <Route
                     path="/settings"
                     element={
                       <ProtectedRoute>
