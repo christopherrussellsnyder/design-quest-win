@@ -942,6 +942,17 @@ serve(async (req) => {
         }
       }
 
+      // ===== CMO critic pass: grade this batch and rewrite anything weak =====
+      if (batchPosts.length > 0) {
+        batchPosts = await criticPass(
+          LOVABLE_API_KEY,
+          batchPosts,
+          ctx,
+          platform,
+          groundingSources.length ? `Grounded on: ${groundingSources.join(', ')}` : '',
+        );
+      }
+
       allPosts.push(...batchPosts);
     }
 
@@ -955,6 +966,10 @@ serve(async (req) => {
       const filler = buildFallbackPosts(ctx, platform, durationDays, startDateStr).filter((p: any) => !covered.has(p.day_number));
       allPosts.push(...filler);
     }
+
+    // Deterministic diversity guard across the whole plan (no extra AI cost)
+    const diversity = enforceHookDiversity(allPosts);
+    if (diversity.reassigned) console.log(`Diversity guard reassigned ${diversity.reassigned} hook archetypes`);
 
     console.log(`Total posts generated: ${allPosts.length}`);
 
