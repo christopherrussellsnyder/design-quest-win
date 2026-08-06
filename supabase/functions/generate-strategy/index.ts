@@ -900,7 +900,7 @@ serve(async (req) => {
       const [startDay, endDay] = batches[batchIdx];
       console.log(`Batch ${batchIdx + 1}/${batches.length}: posts ${startDay}-${endDay}`);
 
-      const batchPrompt = buildBatchPostsPrompt(ctx, platform, startDay, endDay, weeklyBreakdown, startDateStr, performanceFeedbackSection, promotionsSection);
+      const batchPrompt = buildBatchPostsPrompt(ctx, platform, startDay, endDay, weeklyBreakdown, startDateStr, performanceFeedbackSection, promotionsSection, groundingSection);
       
       let batchPosts: any[] = [];
       let retries = 0;
