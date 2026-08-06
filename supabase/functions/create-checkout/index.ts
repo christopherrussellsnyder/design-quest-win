@@ -34,10 +34,10 @@ serve(async (req) => {
     if (!priceId) throw new Error("Price ID is required");
 
     const allowedPriceIds = new Set([
-      "price_1TKjFMB3lJMypeTCDX5ocIGJ",
-      "price_1TKjFeB3lJMypeTCAXRa1u1e",
-      "price_1TKjGBB3lJMypeTCYvd6pNta",
-      "price_1TKjGeB3lJMypeTCVkybzQnM",
+      "price_1U1Y9eL7HyckspfcrBl45Coy",
+      "price_1U1Y9wL7HyckspfcZEnwNzPg",
+      "price_1U1YAIL7HyckspfcyT4yah1y",
+      "price_1U1YAZL7Hyckspfc iO7p4YM1",
     ]);
     if (!allowedPriceIds.has(priceId)) throw new Error("Invalid price ID");
 
