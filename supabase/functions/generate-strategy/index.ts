@@ -1,5 +1,16 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { serviceClient } from "../_shared/supabase.ts";
+import {
+  fetchSearchDemand,
+  fetchCompetitorAds,
+  crawlBusinessSite,
+  fetchVoiceOfCustomer,
+  buildSeasonalitySection,
+  buildBudgetSection,
+  enforceHookDiversity,
+  DIVERSITY_PROMPT,
+  CONFIDENCE_PROMPT,
+} from "../_shared/strategy-intel.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
