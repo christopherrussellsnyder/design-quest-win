@@ -520,146 +520,47 @@ export function StrategyPostCard({ post, onEdit, onAskAI }: StrategyPostCardProp
                   )}
                 </TabsContent>
 
-                {/* Visual Tab */}
-                <TabsContent value="visual" className="space-y-4">
-                  {/* AI Image Generation */}
-                  <div className="p-3 rounded-lg border border-border bg-muted/30 space-y-3">
-                    <div className="flex items-center justify-between flex-wrap gap-2">
-                      <div className="flex items-center gap-2">
-                        <Sparkles className="w-4 h-4 text-primary" />
-                        <h4 className="text-sm font-semibold text-foreground">AI-Generated Image</h4>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setShowStyleInput((v) => !v)}
-                          className="h-7 text-xs"
-                        >
-                          {showStyleInput ? 'Hide style' : 'Custom style'}
-                        </Button>
-                        <Button
-                          size="sm"
-                          onClick={generateImage}
-                          disabled={generatingImage}
-                          className="gap-1 h-8"
-                        >
-                          {generatingImage ? (
-                            <><Loader2 className="w-3 h-3 animate-spin" /> Generating...</>
-                          ) : generatedImage ? (
-                            <><Sparkles className="w-3 h-3" /> Regenerate</>
-                          ) : (
-                            <><Image className="w-3 h-3" /> Generate image</>
-                          )}
-                        </Button>
-                      </div>
+                {/* Content Brief Tab — handoff to Content Generation */}
+                <TabsContent value="brief" className="space-y-4">
+                  <div className="p-3 rounded-lg border border-border bg-muted/30 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-primary" />
+                      <h4 className="text-sm font-semibold text-foreground">Use this in Content Generation</h4>
                     </div>
-
-                    {showStyleInput && (
-                      <input
-                        type="text"
-                        value={stylePrompt}
-                        onChange={(e) => setStylePrompt(e.target.value)}
-                        placeholder="e.g. cinematic film grain, vaporwave neon, minimalist line art..."
-                        className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary"
-                      />
-                    )}
-
-                    {generatedImage ? (
-                      <div className="space-y-2">
-                        <img
-                          src={generatedImage}
-                          alt="AI-generated visual for this post"
-                          className="w-full rounded-lg border border-border"
-                        />
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <Button size="sm" variant="outline" className="h-7 text-xs gap-1" asChild>
-                            <a href={generatedImage} target="_blank" rel="noopener noreferrer" download>
-                              Download
-                            </a>
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="h-7 text-xs gap-1"
-                            onClick={() => copyToClipboard(generatedImage, 'image-url')}
-                          >
-                            {copiedField === 'image-url' ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3" />}
-                            Copy URL
-                          </Button>
-                          <span className="text-[10px] text-muted-foreground ml-auto">Saved to Media Library</span>
-                        </div>
-                      </div>
-                    ) : generatingImage ? (
-                      <div className="aspect-square w-full max-w-sm mx-auto rounded-lg border border-border bg-muted/50 flex items-center justify-center">
-                        <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                          <Loader2 className="w-6 h-6 animate-spin text-primary" />
-                          <p className="text-xs">Rendering visual...</p>
-                        </div>
-                      </div>
-                    ) : (
-                      <p className="text-xs text-muted-foreground">
-                        Generate an on-brand image tailored to this post's hook, theme, and platform.
-                      </p>
-                    )}
+                    <p className="text-xs text-muted-foreground">
+                      Copy the brief that matches the asset you want, paste it into the Content Generation
+                      feature, and you'll get a visual that matches this exact day of the strategy.
+                    </p>
+                    <Button size="sm" variant="outline" className="h-8 text-xs gap-1" asChild>
+                      <a href="/content-generation">Open Content Generation</a>
+                    </Button>
                   </div>
 
-
-
-
-
-                  {visualGuidance && Object.keys(visualGuidance).length > 0 ? (
-                    <>
-                      {visualGuidance.description && (
-                        <div>
-                          <h4 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
-                            <Image className="w-4 h-4" /> Visual Description
-                          </h4>
-                          <p className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-lg">
-                            {visualGuidance.description}
-                          </p>
-                        </div>
-                      )}
-                      
-                      <div className="grid grid-cols-2 gap-4">
-                        {visualGuidance.visual_type && (
-                          <div>
-                            <p className="text-xs text-muted-foreground mb-1">Type</p>
-                            <Badge variant="secondary">{visualGuidance.visual_type}</Badge>
-                          </div>
-                        )}
-                        {visualGuidance.color_palette && (
-                          <div>
-                            <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
-                              <Palette className="w-3 h-3" /> Colors
-                            </p>
-                            <p className="text-sm text-foreground">{visualGuidance.color_palette}</p>
-                          </div>
-                        )}
-                      </div>
-
-                      {visualGuidance.text_overlay && (
-                        <div>
-                          <p className="text-xs text-muted-foreground mb-1">Text Overlay</p>
-                          <p className="text-sm text-foreground">{visualGuidance.text_overlay}</p>
-                        </div>
-                      )}
-
-                      {visualGuidance.attention_hook && (
-                        <div>
-                          <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
-                            <Zap className="w-3 h-3" /> Attention Hook
-                          </p>
-                          <p className="text-sm text-foreground">{visualGuidance.attention_hook}</p>
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    <p className="text-sm text-muted-foreground text-center py-4">
-                      No visual guidance available for this post.
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                        <Image className="w-4 h-4" /> Image prompt
+                      </h4>
+                      <CopyButton text={imageBrief} field="image-brief" label="Copy" />
+                    </div>
+                    <p className="text-sm text-muted-foreground whitespace-pre-line bg-muted/50 p-3 rounded-lg max-h-64 overflow-y-auto">
+                      {imageBrief}
                     </p>
-                  )}
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                        <Video className="w-4 h-4" /> Video ad brief
+                      </h4>
+                      <CopyButton text={videoBrief} field="video-brief" label="Copy" />
+                    </div>
+                    <p className="text-sm text-muted-foreground whitespace-pre-line bg-muted/50 p-3 rounded-lg max-h-64 overflow-y-auto">
+                      {videoBrief}
+                    </p>
+                  </div>
                 </TabsContent>
+
 
                 {/* Metrics Tab */}
                 <TabsContent value="metrics" className="space-y-4">
