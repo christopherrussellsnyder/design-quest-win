@@ -632,10 +632,11 @@ const Index = () => {
       <footer className="bg-[#060606] border-t border-[#CC0000]/30 pt-16 pb-8 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
-            <div className="col-span-2 md:col-span-1">
-              <KorexLogoLockup height={40} showTagline={false} className="mb-4" />
+            <div className="col-span-2 md:col-span-1 flex flex-col items-center md:items-start text-center md:text-left min-w-0">
+              <KorexLogoLockup height={44} showTagline={false} className="mb-4 self-center" />
               <p className="text-sm text-[#6B6B73] leading-relaxed">Intelligence-driven marketing systems for modern teams.</p>
             </div>
+
             <div>
               <h4 className="font-bold text-sm mb-4 tracking-wider uppercase text-[#A0A0A8]">Product</h4>
               <ul className="space-y-2 text-sm text-[#6B6B73]">

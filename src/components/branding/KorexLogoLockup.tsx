@@ -13,8 +13,8 @@ interface KorexLogoLockupProps {
 }
 
 /**
- * Official Korex wordmark lockup: 3D K icon + "KOREX" wordmark.
- * Uses the same K icon shown in the favicon / Google search.
+ * Official Korex lockup: tower icon stacked vertically above the
+ * "KOREX" wordmark, a red rule, and the "INTELLIGENCE SYSTEMS" tagline.
  */
 export const KorexLogoLockup = ({
   className = "",
@@ -27,9 +27,11 @@ export const KorexLogoLockup = ({
   const md = Math.max(16, mdHeight ?? height);
   const lg = Math.max(16, lgHeight ?? md);
 
-  const icon = (h: number) => Math.round(h * 1.55);
-  const word = (h: number) => Math.round(icon(h) * 0.55);
-  const tagline = (h: number) => Math.max(10, Math.round(icon(h) * 0.10));
+  // Vertical stack: icon sits above the wordmark, so the icon takes
+  // most of the given height and the type scales off it.
+  const icon = (h: number) => Math.round(h * 1.0);
+  const word = (h: number) => Math.round(icon(h) * 0.46);
+  const tagline = (h: number) => Math.max(7, Math.round(icon(h) * 0.115));
 
   const vars = {
     "--korex-icon-base": `${icon(base)}px`,
@@ -45,34 +47,37 @@ export const KorexLogoLockup = ({
 
   return (
     <div
-      className={`korex-logo-lockup inline-flex items-center gap-4 md:gap-6 ${className}`}
+      className={`korex-logo-lockup inline-flex flex-col items-center justify-center max-w-full ${className}`}
       style={vars}
     >
       <img
         src={korexIcon}
         alt=""
         aria-hidden="true"
-        className="object-contain w-auto"
+        className="object-contain w-auto max-w-full"
         style={{ height: "var(--korex-icon-size)" }}
       />
-      <div
-        className="self-stretch border-l border-primary/40"
-        aria-hidden="true"
-      />
-      <div className="flex flex-col justify-center items-start leading-none">
+      <div className="flex flex-col items-center leading-none mt-[0.18em]">
         <span
           className="font-black tracking-[0.18em] text-foreground inline-block"
-          style={{ fontSize: "var(--korex-word-size)" }}
+          style={{ fontSize: "var(--korex-word-size)", paddingLeft: "0.18em" }}
         >
           KOREX
         </span>
         {showTagline && (
-          <span
-            className="text-primary tracking-[0.5em] mt-[0.36em] inline-block"
-            style={{ fontSize: "var(--korex-tagline-size)" }}
-          >
-            INTELLIGENCE SYSTEMS
-          </span>
+          <>
+            <div
+              aria-hidden="true"
+              className="bg-primary w-full"
+              style={{ height: 1, marginTop: "0.42em", marginBottom: "0.42em" }}
+            />
+            <span
+              className="text-muted-foreground tracking-[0.42em] inline-block whitespace-nowrap"
+              style={{ fontSize: "var(--korex-tagline-size)", paddingLeft: "0.42em" }}
+            >
+              INTELLIGENCE SYSTEMS
+            </span>
+          </>
         )}
       </div>
     </div>
