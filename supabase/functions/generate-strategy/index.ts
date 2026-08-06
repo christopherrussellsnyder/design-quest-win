@@ -1,5 +1,16 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { serviceClient } from "../_shared/supabase.ts";
+import {
+  fetchSearchDemand,
+  fetchCompetitorAds,
+  crawlBusinessSite,
+  fetchVoiceOfCustomer,
+  buildSeasonalitySection,
+  buildBudgetSection,
+  enforceHookDiversity,
+  DIVERSITY_PROMPT,
+  CONFIDENCE_PROMPT,
+} from "../_shared/strategy-intel.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -206,7 +217,7 @@ Return ONLY valid JSON (no markdown):
 Fill all values with specific, actionable content personalized for ${ctx.businessName} in ${ctx.industry}. Use realistic metric predictions.`;
 }
 
-function buildBatchPostsPrompt(ctx: BusinessCtx, platform: string, startDay: number, endDay: number, weeklyThemes: any[], startDate: string, performanceFeedbackSection: string, promotionsSection: string): string {
+function buildBatchPostsPrompt(ctx: BusinessCtx, platform: string, startDay: number, endDay: number, weeklyThemes: any[], startDate: string, performanceFeedbackSection: string, promotionsSection: string, groundingSection: string = ''): string {
   const postDates: string[] = [];
   const base = new Date(startDate);
   for (let d = startDay; d <= endDay; d++) {
@@ -235,6 +246,8 @@ ${performanceFeedbackSection}
 
 ${promotionsSection}
 
+${groundingSection}
+
 CRITICAL: Every hook, body, and CTA must be traceable to either (a) one of this business's specific products, (b) its UVP/competitive advantage, (c) a stated audience pain point or demographic detail, or (d) an active promotion listed above when the post date falls within a promo window. Reject generic ${ctx.industry} content that could be reused by a competitor unchanged.
 
 QUALITY FLOOR (apply to every post — these are non-negotiable, differentiation does NOT override them):
@@ -251,10 +264,10 @@ Return ONLY a valid JSON array (no markdown, no wrapping object). Each element:
   "week_number": 1,
   "week_theme": "string",
   "content_details": {"post_type":"carousel|reel|single_image|video|story","content_category":"educational|promotional|engagement|social_proof|behind_scenes","specific_theme":"string","primary_emotion":"string","content_pillar":"string"},
-  "copy_elements": {"hook":{"text":"5-10 word scroll-stopper","technique":"curiosity_gap|pattern_interrupt|bold_statement|question","psychological_principle":"string"},"opening":"2-3 sentences","body":"100-150 words main content","cta":{"text":"string","type":"engage|visit|buy|share|save|comment","strength":"soft|medium|hard"},"full_caption":"complete 150-250 word caption"},
+  "copy_elements": {"hook":{"text":"5-10 word scroll-stopper","technique":"curiosity_gap|pattern_interrupt|bold_statement|question|contrarian|stakes_first|social_proof|how_to|story_open|listicle","psychological_principle":"string"},"opening":"2-3 sentences","body":"100-150 words main content","cta":{"text":"string","type":"engage|visit|buy|share|save|comment","strength":"soft|medium|hard"},"full_caption":"complete 150-250 word caption"},
   "hashtag_strategy": {"hashtags":["#tag1","#tag2"],"mix_breakdown":{"high_volume":["3 tags 100K+"],"medium_volume":["5 tags 10K-100K"],"niche":["4 tags 1K-10K"],"branded":["2 brand tags"]}},
   "visual_guidance": {"visual_type":"string","description":"string","color_palette":"string","text_overlay":"string","attention_hook":"string"},
-  "performance_prediction": {"predicted_reach":0,"predicted_impressions":0,"predicted_engagement_rate":0.0,"predicted_likes":0,"predicted_comments":0,"predicted_shares":0,"predicted_saves":0,"confidence_level":"High|Medium|Low","prediction_basis":"string"},
+  "performance_prediction": {"predicted_reach":0,"predicted_impressions":0,"predicted_engagement_rate":0.0,"predicted_likes":0,"predicted_comments":0,"predicted_shares":0,"predicted_saves":0,"confidence_level":"High|Medium|Low","confidence_score":0,"prediction_basis":"name the SPECIFIC data source behind this forecast"},
   "strategic_rationale": {"why_this_day":"string","arc_positioning":"string","builds_toward":"string","success_metrics":"string","differentiation_anchor":"string naming WHICH product/UVP/pain-point this post is anchored to"},
   "optimization_tips": {"engagement_boosters":["string"],"a_b_test_ideas":["string"],"potential_issues":["string"],"risk_mitigation":["string"]}
 }
@@ -293,6 +306,91 @@ async function callAI(apiKey: string, prompt: string, systemPrompt: string, maxT
   const aiResponse = await response.json();
   let text = aiResponse.choices?.[0]?.message?.content || '';
   return text.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
+}
+
+// ============================================================================
+// CMO CRITIC PASS
+// A second model pass that grades the drafted batch like a skeptical CMO and
+// rewrites only the posts that fail. Cheap (one call per batch, small output)
+// but removes the weakest ~20% of a plan, which is where trust is usually lost.
+// ============================================================================
+async function criticPass(
+  apiKey: string,
+  posts: any[],
+  ctx: BusinessCtx,
+  platform: string,
+  groundingSummary: string,
+): Promise<any[]> {
+  if (!posts.length) return posts;
+
+  const digest = posts.map((p: any, i: number) => ({
+    index: i,
+    day: p.day_number,
+    hook: p?.copy_elements?.hook?.text,
+    technique: p?.copy_elements?.hook?.technique,
+    cta: p?.copy_elements?.cta?.text,
+    anchor: p?.strategic_rationale?.differentiation_anchor,
+    category: p?.content_details?.content_category,
+  }));
+
+  const criticPrompt = `You are a skeptical CMO reviewing a drafted ${platform} content plan for ${ctx.businessName} (${ctx.industry}).
+
+GROUNDING TRUTH AVAILABLE TO THE WRITER:
+${groundingSummary || 'None beyond the business profile.'}
+
+DRAFTED POSTS:
+${JSON.stringify(digest)}
+
+Grade each post 0-100 on: (a) scroll-stopping power of the hook, (b) specificity — could a competitor publish this unchanged? (c) anchoring to a real product/UVP/pain point, (d) CTA clarity, (e) originality versus saturated niche tropes.
+
+Return ONLY JSON:
+{"scores":[{"index":0,"score":0,"verdict":"keep|rewrite","problem":"one sentence"}],"rewrites":[{"index":0,"hook":"new 5-10 word hook","technique":"archetype","opening":"2-3 sentences","body":"100-150 words","cta":"new cta text","full_caption":"150-250 word caption","differentiation_anchor":"which real product/UVP/pain point"}]}
+
+Mark "rewrite" for any post scoring under 75. Provide a rewrite object for every post marked rewrite (max 6 rewrites). Rewrites must keep the same content_category and day, and must be anchored to a real input — never invent products, prices, or claims.`;
+
+  try {
+    const raw = await callAI(
+      apiKey,
+      criticPrompt,
+      'You are a ruthless but constructive CMO. Respond with valid JSON only.',
+      8000,
+    );
+    const parsed = parseJSONSafe(raw);
+    const rewrites = Array.isArray(parsed?.rewrites) ? parsed.rewrites : [];
+    const scores = Array.isArray(parsed?.scores) ? parsed.scores : [];
+
+    for (const s of scores) {
+      const p = posts[s.index];
+      if (!p) continue;
+      p.quality_review = { score: s.score, verdict: s.verdict, problem: s.problem };
+    }
+
+    let applied = 0;
+    for (const r of rewrites) {
+      const p = posts[r.index];
+      if (!p || !r.hook) continue;
+      p.copy_elements = p.copy_elements || {};
+      p.copy_elements.hook = {
+        ...(p.copy_elements.hook || {}),
+        text: r.hook,
+        technique: r.technique || p.copy_elements.hook?.technique,
+      };
+      if (r.opening) p.copy_elements.opening = r.opening;
+      if (r.body) p.copy_elements.body = r.body;
+      if (r.full_caption) p.copy_elements.full_caption = r.full_caption;
+      if (r.cta) p.copy_elements.cta = { ...(p.copy_elements.cta || {}), text: r.cta };
+      if (r.differentiation_anchor) {
+        p.strategic_rationale = { ...(p.strategic_rationale || {}), differentiation_anchor: r.differentiation_anchor };
+      }
+      p.quality_review = { ...(p.quality_review || {}), rewritten: true };
+      applied++;
+    }
+    console.log(`Critic pass: ${scores.length} scored, ${applied} rewritten`);
+  } catch (e) {
+    console.warn('Critic pass skipped:', (e as Error).message);
+  }
+
+  return posts;
 }
 
 function parseJSONSafe(text: string): any {
@@ -723,9 +821,53 @@ serve(async (req) => {
       performanceFeedbackSection = '=== PROVEN PERFORMANCE LEARNINGS ===\nNo historical performance data for this user yet. Use general best practices for now; future strategies will incorporate their actual results as posts are published and analytics uploaded.';
     }
 
+    // ========== STEP 0: External grounding (live, cached, fail-soft) ==========
+    // Every source below degrades gracefully and is cached in strategy_intel_cache
+    // so repeat generations in the same niche cost nothing extra.
+    const bi = businessInfoRes.data || {};
+    const latestBudgetReq = await supabase
+      .from('campaign_strategy_requests')
+      .select('budget_range')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    console.log('Step 0: Gathering external grounding...');
+    const [searchIntel, adIntel, siteIntel, vocIntel] = await Promise.all([
+      fetchSearchDemand(supabase, ctx.industry, ctx.products, ctx.geoFocus).catch(() => null),
+      fetchCompetitorAds(supabase, ctx.industry, ctx.competitors, normalizedReqPlatform, ctx.geoFocus).catch(() => null),
+      crawlBusinessSite(supabase, bi.website || '').catch(() => null),
+      fetchVoiceOfCustomer(supabase, ctx.industry, ctx.products).catch(() => null),
+    ]);
+
+    const seasonalitySection = buildSeasonalitySection(stratStartISO, durationDays, ctx.geoFocus);
+    const budgetSection = buildBudgetSection(
+      latestBudgetReq.data?.budget_range ?? null,
+      contentMode,
+      bi.customer_acquisition_cost ?? null,
+      durationDays,
+    );
+
+    const groundingSection = [
+      siteIntel?.section,
+      searchIntel?.section,
+      adIntel?.section,
+      vocIntel?.section,
+      seasonalitySection,
+      budgetSection,
+      DIVERSITY_PROMPT,
+      CONFIDENCE_PROMPT,
+    ].filter(Boolean).join('\n\n');
+
+    const groundingSources = [searchIntel, adIntel, siteIntel, vocIntel]
+      .filter((r) => r?.ok)
+      .map((r) => r!.source);
+    console.log('Grounding sources active:', groundingSources.join(', ') || 'none (profile only)');
+
     // ========== STEP 1: Generate strategy overview ==========
     console.log('Step 1: Generating strategy overview...');
-    const overviewPrompt = buildOverviewPrompt(ctx, platform, durationDays, effectiveGoals, analyticsSection, intelligenceSection, performanceFeedbackSection, promotionsSection, customInstructions, contentMode);
+    const overviewPrompt = buildOverviewPrompt(ctx, platform, durationDays, effectiveGoals, analyticsSection, `${intelligenceSection}\n\n${groundingSection}`, performanceFeedbackSection, promotionsSection, customInstructions, contentMode);
     const overviewText = await callAI(LOVABLE_API_KEY, overviewPrompt, systemPrompt, 8000);
     
     let overviewData: any;
@@ -758,7 +900,7 @@ serve(async (req) => {
       const [startDay, endDay] = batches[batchIdx];
       console.log(`Batch ${batchIdx + 1}/${batches.length}: posts ${startDay}-${endDay}`);
 
-      const batchPrompt = buildBatchPostsPrompt(ctx, platform, startDay, endDay, weeklyBreakdown, startDateStr, performanceFeedbackSection, promotionsSection);
+      const batchPrompt = buildBatchPostsPrompt(ctx, platform, startDay, endDay, weeklyBreakdown, startDateStr, performanceFeedbackSection, promotionsSection, groundingSection);
       
       let batchPosts: any[] = [];
       let retries = 0;
@@ -800,6 +942,17 @@ serve(async (req) => {
         }
       }
 
+      // ===== CMO critic pass: grade this batch and rewrite anything weak =====
+      if (batchPosts.length > 0) {
+        batchPosts = await criticPass(
+          LOVABLE_API_KEY,
+          batchPosts,
+          ctx,
+          platform,
+          groundingSources.length ? `Grounded on: ${groundingSources.join(', ')}` : '',
+        );
+      }
+
       allPosts.push(...batchPosts);
     }
 
@@ -813,6 +966,10 @@ serve(async (req) => {
       const filler = buildFallbackPosts(ctx, platform, durationDays, startDateStr).filter((p: any) => !covered.has(p.day_number));
       allPosts.push(...filler);
     }
+
+    // Deterministic diversity guard across the whole plan (no extra AI cost)
+    const diversity = enforceHookDiversity(allPosts);
+    if (diversity.reassigned) console.log(`Diversity guard reassigned ${diversity.reassigned} hook archetypes`);
 
     console.log(`Total posts generated: ${allPosts.length}`);
 
