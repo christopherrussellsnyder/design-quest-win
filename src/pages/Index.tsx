@@ -78,11 +78,11 @@ const platforms = ['Instagram', 'Facebook', 'LinkedIn', 'TikTok', 'Twitter', 'Yo
 
 const pricing = [
   {
-    name: 'Pro', monthlyPrice: 99, yearlyPrice: 990, popular: true,
+    name: 'Pro', monthlyPrice: 99, yearlyPrice: 831, popular: true,
     features: ['Unlimited AI strategies', 'Unlimited analytics uploads', 'All platforms supported', 'Export to PDF', 'Priority support', 'Cancel anytime'],
   },
   {
-    name: 'Agency', monthlyPrice: 299, yearlyPrice: 2990, popular: false,
+    name: 'Agency', monthlyPrice: 299, yearlyPrice: 2511, popular: false,
     features: ['Everything in Pro', 'Multi-client management', 'White-label reports', 'API access', 'Dedicated support'],
     badge: 'Popular for agencies',
   },
@@ -110,8 +110,8 @@ const Index = () => {
   const totalHours = calcResearch + calcPlanning + calcCalendar;
   const annualHours = totalHours * 12;
   const annualValue = annualHours * calcHourlyRate;
-  const netBenefit = annualValue - 990;
-  const roi = Math.round((netBenefit / 990) * 100);
+  const netBenefit = annualValue - 831;
+  const roi = Math.round((netBenefit / 831) * 100);
 
   useEffect(() => {
     const onScroll = () => setShowFloatingCta(window.scrollY > 800);
@@ -385,7 +385,7 @@ const Index = () => {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-[#6B6B73]">Korex annual cost</span>
-                  <span className="font-bold">$990</span>
+                  <span className="font-bold">$831</span>
                 </div>
                 <div className="border-t border-[#2A2B2E] pt-3 flex justify-between">
                   <span className="text-[#A0A0A8] font-semibold">ROI</span>
@@ -515,7 +515,7 @@ const Index = () => {
                 <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-transform ${billingAnnual ? 'translate-x-6' : 'translate-x-0.5'}`} />
               </button>
               <span className={`text-sm ${billingAnnual ? 'text-white' : 'text-[#6B6B73]'}`}>Yearly</span>
-              <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${billingAnnual ? 'bg-[#CC0000]/20 text-[#CC0000]' : 'bg-[#CC0000]/10 text-[#CC0000]/70'}`}>2 months free</span>
+              <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${billingAnnual ? 'bg-[#CC0000]/20 text-[#CC0000]' : 'bg-[#CC0000]/10 text-[#CC0000]/70'}`}>Save 30%</span>
             </div>
           </AnimatedSection>
 

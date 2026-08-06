@@ -7,9 +7,9 @@ export const STRIPE_TIERS = {
       price: 99,
     },
     yearly: {
-      price_id: 'price_1U1Y9wL7HyckspfcZEnwNzPg',
+      price_id: 'price_1U1YHXL7HyckspfcTI9T3cWH',
       product_id: 'prod_UuPsofAJQj79gO',
-      price: 990,
+      price: 831,
     },
     strategies_limit: Infinity,
   },
@@ -21,9 +21,9 @@ export const STRIPE_TIERS = {
       price: 299,
     },
     yearly: {
-      price_id: 'price_1U1YAZL7HyckspfciO7p4YM1',
+      price_id: 'price_1U1YHqL7HyckspfcXu9IV3Bk',
       product_id: 'prod_UuPtrGta7sU60Q',
-      price: 2990,
+      price: 2511,
     },
     strategies_limit: Infinity,
   },
