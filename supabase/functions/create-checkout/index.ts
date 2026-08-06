@@ -33,13 +33,18 @@ serve(async (req) => {
     const priceId = formData?.get("priceId")?.toString() || payload?.priceId;
     if (!priceId) throw new Error("Price ID is required");
 
-    const allowedPriceIds = new Set([
-      "price_1U1Y9eL7HyckspfcrBl45Coy",
-      "price_1U1YHXL7HyckspfcTI9T3cWH",
-      "price_1U1YAIL7HyckspfcyT4yah1y",
-      "price_1U1YHqL7HyckspfcXu9IV3Bk",
+    const MONTHLY_PRICE_IDS = new Set([
+      "price_1U1Y9eL7HyckspfcrBl45Coy", // Pro monthly
+      "price_1U1YAIL7HyckspfcyT4yah1y", // Agency monthly
     ]);
-    if (!allowedPriceIds.has(priceId)) throw new Error("Invalid price ID");
+    const YEARLY_PRICE_IDS = new Set([
+      "price_1U1YHXL7HyckspfcTI9T3cWH", // Pro yearly
+      "price_1U1YHqL7HyckspfcXu9IV3Bk", // Agency yearly
+    ]);
+    if (!MONTHLY_PRICE_IDS.has(priceId) && !YEARLY_PRICE_IDS.has(priceId)) {
+      throw new Error("Invalid price ID");
+    }
+
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { apiVersion: "2025-08-27.basil" });
     
@@ -56,7 +61,10 @@ serve(async (req) => {
       customer_email: customerId ? undefined : user.email,
       line_items: [{ price: priceId, quantity: 1 }],
       mode: "subscription",
-      allow_promotion_codes: true,
+      // Launch promo code (KOREX, 15% off first month) applies to monthly plans only.
+      // Annual plans already carry a 30% discount, so promo entry is disabled there.
+      allow_promotion_codes: MONTHLY_PRICE_IDS.has(priceId),
+
       success_url: `${origin}/ai-strategist?checkout=success`,
       cancel_url: `${origin}/pricing?checkout=canceled`,
     });
