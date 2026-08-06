@@ -110,8 +110,8 @@ const Index = () => {
   const totalHours = calcResearch + calcPlanning + calcCalendar;
   const annualHours = totalHours * 12;
   const annualValue = annualHours * calcHourlyRate;
-  const netBenefit = annualValue - 1188;
-  const roi = Math.round((netBenefit / 1188) * 100);
+  const netBenefit = annualValue - 990;
+  const roi = Math.round((netBenefit / 990) * 100);
 
   useEffect(() => {
     const onScroll = () => setShowFloatingCta(window.scrollY > 800);
@@ -385,7 +385,7 @@ const Index = () => {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-[#6B6B73]">Korex annual cost</span>
-                  <span className="font-bold">$1,188</span>
+                  <span className="font-bold">$990</span>
                 </div>
                 <div className="border-t border-[#2A2B2E] pt-3 flex justify-between">
                   <span className="text-[#A0A0A8] font-semibold">ROI</span>

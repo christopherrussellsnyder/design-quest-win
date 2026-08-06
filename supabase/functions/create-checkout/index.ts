@@ -37,7 +37,7 @@ serve(async (req) => {
       "price_1U1Y9eL7HyckspfcrBl45Coy",
       "price_1U1Y9wL7HyckspfcZEnwNzPg",
       "price_1U1YAIL7HyckspfcyT4yah1y",
-      "price_1U1YAZL7Hycksp fciO7p4YM1",
+      "price_1U1YAZL7Hyckspfc iO7p4YM1",
     ]);
     if (!allowedPriceIds.has(priceId)) throw new Error("Invalid price ID");
 
