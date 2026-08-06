@@ -169,6 +169,24 @@ Deno.serve(async (req) => {
     const size = sizeForPlatform(platform, postType);
     const prompt = enhance ? await enhanceBrief(basePrompt, LOVABLE_API_KEY) : basePrompt;
 
+    // Body shape depends on the vendor: OpenAI image models take `prompt`,
+    // Gemini image models take chat-style `messages` + `modalities`.
+    const isGemini = String(model).startsWith("google/");
+    const requestBody = isGemini
+      ? {
+          model,
+          messages: [{ role: "user", content: prompt }],
+          modalities: ["image", "text"],
+        }
+      : {
+          model,
+          prompt,
+          size,
+          quality,
+          output_format: "png",
+          n: 1,
+        };
+
     // Call Lovable AI Gateway image endpoint (non-streaming for simplicity)
     const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/images/generations", {
       method: "POST",
@@ -176,14 +194,7 @@ Deno.serve(async (req) => {
         Authorization: `Bearer ${LOVABLE_API_KEY}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        model,
-        prompt,
-        size,
-        quality,
-        output_format: "png",
-        n: 1,
-      }),
+      body: JSON.stringify(requestBody),
     });
 
     if (!aiRes.ok) {
