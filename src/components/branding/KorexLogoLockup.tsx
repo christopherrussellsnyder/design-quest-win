@@ -1,4 +1,4 @@
-import korexIcon from "/korex-icon.png";
+import { KorexMark } from "@/components/branding/KorexMark";
 
 interface KorexLogoLockupProps {
   className?: string;
@@ -50,24 +50,21 @@ export const KorexLogoLockup = ({
       className={`korex-logo-lockup inline-flex flex-col items-center justify-center max-w-full ${className}`}
       style={vars}
     >
-      {/* Masked mark: renders as a solid brand-green silhouette so the
-          lockup stays legible in both light and dark themes. */}
+      {/* Three-tone mark: green candle, foreground tower, cut-out rules. */}
       <div
-        aria-hidden="true"
-        className="bg-primary w-full max-w-full"
+        className="max-w-full"
         style={{
           height: "var(--korex-icon-size)",
           width: "var(--korex-icon-size)",
-          WebkitMaskImage: `url(${korexIcon})`,
-          maskImage: `url(${korexIcon})`,
-          WebkitMaskRepeat: "no-repeat",
-          maskRepeat: "no-repeat",
-          WebkitMaskPosition: "center",
-          maskPosition: "center",
-          WebkitMaskSize: "contain",
-          maskSize: "contain",
         }}
-      />
+      >
+        <KorexMark
+          title="Korex"
+          className="w-full h-full"
+          colorClassName="text-foreground"
+        />
+      </div>
+
 
       <div className="flex flex-col items-center leading-none mt-[0.18em]">
         <span
