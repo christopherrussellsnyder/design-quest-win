@@ -113,7 +113,7 @@ export default function ContentGeneration() {
 
       <div className="min-h-screen bg-background text-foreground">
         {/* Header */}
-        <header className="border-b border-card px-4 py-3 flex items-center gap-3">
+        <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-40 px-4 sm:px-6 lg:px-8 py-4 flex items-center gap-3">
           <Button aria-label="Go back"
             variant="ghost"
             size="icon"
@@ -124,7 +124,7 @@ export default function ContentGeneration() {
           </Button>
           <div className="flex items-center gap-2">
             <Clapperboard className="w-4 h-4 text-primary" />
-            <h1 className="text-sm font-semibold tracking-tight">Content Generation</h1>
+            <h1 className="text-xl font-semibold tracking-tight">Content Generation</h1>
           </div>
           {quotaLabel && (
             <Badge variant="outline" className="ml-2 border-border text-muted-foreground text-[11px]">
@@ -133,7 +133,7 @@ export default function ContentGeneration() {
           )}
         </header>
 
-        <div className="max-w-6xl mx-auto px-4 py-6 space-y-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
           <Tabs defaultValue="video" className="space-y-6">
             <TabsList className="bg-background border border-card">
               <TabsTrigger value="video" className="text-xs gap-1.5">

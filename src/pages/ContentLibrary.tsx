@@ -327,7 +327,7 @@ export default function ContentLibrary() {
                 <ArrowLeft className="h-5 w-5" />
               </Button>
               <div>
-                <h1 className="text-2xl font-bold text-foreground">Content Library</h1>
+                <h1 className="text-xl font-semibold tracking-tight text-foreground">Content Library</h1>
                 <p className="text-sm text-muted-foreground">{content.length} items</p>
               </div>
             </div>

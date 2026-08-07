@@ -622,7 +622,7 @@ const MediaLibrary: React.FC = () => {
     <div className="min-h-screen bg-background text-white">
       {/* Header */}
       <div className="border-b border-border bg-card/50 sticky top-0 z-40">
-        <div className="max-w-[1800px] mx-auto px-6 py-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-4">
               <Button 
@@ -635,7 +635,7 @@ const MediaLibrary: React.FC = () => {
                 Back
               </Button>
               <div>
-                <h1 className="text-2xl font-bold">Media Library</h1>
+                <h1 className="text-xl font-semibold tracking-tight">Media Library</h1>
                 <p className="text-muted-foreground text-sm">Manage your images, videos, and media assets</p>
               </div>
             </div>
@@ -681,7 +681,7 @@ const MediaLibrary: React.FC = () => {
         </div>
       </div>
 
-      <div className="max-w-[1800px] mx-auto flex">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex">
         {/* Sidebar */}
         <div className="w-64 border-r border-border p-4 sticky top-[120px] h-[calc(100vh-120px)] overflow-y-auto">
           {/* Quick Actions */}
@@ -1548,7 +1548,7 @@ const MediaLibrary: React.FC = () => {
               />
               <Button 
                 size="sm"
-                className="absolute right-1 top-1/2 -translate-y-1/2 bg-violet-600 hover:bg-violet-700"
+                className="absolute right-1 top-1/2 -translate-y-1/2"
                 onClick={() => searchStockImages(stockSearchQuery)}
                 disabled={loadingStock}
               >

@@ -121,7 +121,7 @@ export default function ReportsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b border-border px-6 py-4 flex items-center justify-between">
+      <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-40 px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Button aria-label="Go back" variant="ghost" size="icon" onClick={() => navigate('/ai-strategist')}><ArrowLeft className="h-4 w-4" /></Button>
           <div>
@@ -132,7 +132,7 @@ export default function ReportsPage() {
         <Button onClick={() => setDialogOpen(true)} className="bg-primary hover:bg-[hsl(var(--primary-dark))]"><Plus className="h-4 w-4 mr-2" /> New report</Button>
       </header>
 
-      <main className="max-w-5xl mx-auto p-6 space-y-4">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-4">
         {loading ? (
           <div className="text-center py-12 text-muted-foreground"><Loader2 className="h-6 w-6 animate-spin mx-auto" /></div>
         ) : reports.length === 0 ? (
