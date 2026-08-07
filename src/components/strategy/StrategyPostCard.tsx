@@ -604,7 +604,7 @@ export function StrategyPostCard({ post, onEdit, onAskAI }: StrategyPostCardProp
                   </div>
 
                   {post.prediction_basis && (
-                    <div className="p-3 bg-muted/30 rounded-lg">
+                    <div className="p-3 bg-muted/30 rounded-md">
                       <p className="text-xs text-muted-foreground">
                         <strong>Prediction basis:</strong> {post.prediction_basis}
                       </p>

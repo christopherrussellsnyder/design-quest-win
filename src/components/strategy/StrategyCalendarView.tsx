@@ -90,7 +90,7 @@ export function StrategyCalendarView({ posts, startDate, onPostClick }: Strategy
             return (
               <div
                 key={day.toISOString()}
-                className={`min-h-[120px] p-2 rounded-lg border ${
+                className={`min-h-[120px] p-2 rounded-md border ${
                   isToday 
                     ? 'border-primary bg-primary/10' 
                     : 'border-border bg-muted/30'
