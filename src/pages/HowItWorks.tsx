@@ -78,23 +78,23 @@ export default function HowItWorks() {
         <link rel="canonical" href="https://korexintelligencesystems.com/how-it-works" />
       </Helmet>
 
-      <div className="min-h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
+      <div className="min-h-screen bg-background text-foreground">
         {/* Navbar */}
-        <nav className="border-b border-[hsl(var(--border))] px-4 py-4">
+        <nav className="border-b border-border px-4 py-4">
           <div className="max-w-6xl mx-auto flex items-center justify-between">
             <Link to="/">
               <KorexLogoLockup height={32} showTagline={false} />
             </Link>
-            <div className="hidden md:flex items-center gap-6 text-sm text-[hsl(var(--muted-foreground))]">
+            <div className="hidden md:flex items-center gap-6 text-sm text-muted-foreground">
               <Link to="/features" className="hover:text-white transition-colors">Features</Link>
-              <Link to="/how-it-works" className="text-[hsl(var(--primary))]">How It Works</Link>
+              <Link to="/how-it-works" className="text-primary">How It Works</Link>
               <Link to="/about" className="hover:text-white transition-colors">About</Link>
               <Link to="/pricing" className="hover:text-white transition-colors">Pricing</Link>
               <Link to="/contact" className="hover:text-white transition-colors">Contact</Link>
             </div>
             <div className="flex items-center gap-3">
-              <Link to="/login" className="text-sm text-[hsl(var(--muted-foreground))] hover:text-white transition-colors">Sign In</Link>
-              <Link to="/signup" className="text-sm px-4 py-2 bg-[hsl(var(--primary))] text-white rounded-lg hover:bg-[hsl(var(--primary-dark))] transition-colors">Get Started</Link>
+              <Link to="/login" className="text-sm text-muted-foreground hover:text-white transition-colors">Sign In</Link>
+              <Link to="/signup" className="text-sm px-4 py-2 bg-primary text-white rounded-lg hover:bg-[hsl(var(--primary-dark))] transition-colors">Get Started</Link>
             </div>
           </div>
         </nav>
@@ -103,14 +103,14 @@ export default function HowItWorks() {
         <section className="py-24 px-4 text-center">
           <div className="max-w-4xl mx-auto">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-              <span className="inline-block px-3 py-1 text-xs uppercase tracking-widest text-[hsl(var(--primary))] border border-[hsl(var(--primary))]/30 rounded-full mb-6">
+              <span className="inline-block px-3 py-1 text-xs uppercase tracking-widest text-primary border border-[hsl(var(--primary)/0.3)] rounded-full mb-6">
                 Under the Hood
               </span>
               <h1 className="text-4xl sm:text-5xl lg:text-[56px] font-black mb-6" style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '2px' }}>
                 How Korex{' '}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[hsl(var(--primary))] to-[hsl(var(--primary-light))]">Actually Works</span>
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-[hsl(var(--primary-light))]">Actually Works</span>
               </h1>
-              <p className="text-lg text-[hsl(var(--muted-foreground))] max-w-2xl mx-auto">
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
                 No black box. Here's exactly how we turn your business data into marketing strategies that beat generic AI output.
               </p>
             </motion.div>
@@ -118,13 +118,13 @@ export default function HowItWorks() {
         </section>
 
         {/* Pipeline */}
-        <section className="py-16 px-4 bg-[hsl(var(--muted))]">
+        <section className="py-16 px-4 bg-muted">
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-12">
               <h2 className="text-3xl sm:text-4xl font-black mb-3" style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '1px' }}>
                 The Strategy Generation Pipeline
               </h2>
-              <p className="text-[hsl(var(--muted-foreground))] max-w-2xl mx-auto">Six stages, running every time you click "Generate Strategy."</p>
+              <p className="text-muted-foreground max-w-2xl mx-auto">Six stages, running every time you click "Generate Strategy."</p>
             </div>
             <div className="space-y-4">
               {pipelineSteps.map((step, i) => (
@@ -134,14 +134,14 @@ export default function HowItWorks() {
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.4, delay: i * 0.05 }}
-                  className="flex gap-5 bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-2xl p-6 hover:border-[hsl(var(--primary))]/40 transition-all"
+                  className="flex gap-5 bg-card border border-border rounded-2xl p-6 hover:border-[hsl(var(--primary)/0.4)] transition-all"
                 >
-                  <div className="shrink-0 w-12 h-12 rounded-xl bg-[hsl(var(--primary))]/10 flex items-center justify-center">
-                    <step.icon className="w-6 h-6 text-[hsl(var(--primary))]" />
+                  <div className="shrink-0 w-12 h-12 rounded-xl bg-[hsl(var(--primary)/0.1)] flex items-center justify-center">
+                    <step.icon className="w-6 h-6 text-primary" />
                   </div>
                   <div>
                     <h3 className="text-lg font-bold mb-1.5">{step.title}</h3>
-                    <p className="text-[hsl(var(--muted-foreground))] text-sm leading-relaxed">{step.body}</p>
+                    <p className="text-muted-foreground text-sm leading-relaxed">{step.body}</p>
                   </div>
                 </motion.div>
               ))}
@@ -156,7 +156,7 @@ export default function HowItWorks() {
               <h2 className="text-3xl sm:text-4xl font-black mb-3" style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '1px' }}>
                 Beyond Strategy Generation
               </h2>
-              <p className="text-[hsl(var(--muted-foreground))] max-w-2xl mx-auto">Every feature is built on the same principle: real data in, personalized output out.</p>
+              <p className="text-muted-foreground max-w-2xl mx-auto">Every feature is built on the same principle: real data in, personalized output out.</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {otherFeatures.map((f, i) => (
@@ -166,13 +166,13 @@ export default function HowItWorks() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.4, delay: i * 0.1 }}
-                  className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-2xl p-6"
+                  className="bg-card border border-border rounded-2xl p-6"
                 >
-                  <div className="w-12 h-12 rounded-xl bg-[hsl(var(--primary))]/10 flex items-center justify-center mb-4">
-                    <f.icon className="w-6 h-6 text-[hsl(var(--primary))]" />
+                  <div className="w-12 h-12 rounded-xl bg-[hsl(var(--primary)/0.1)] flex items-center justify-center mb-4">
+                    <f.icon className="w-6 h-6 text-primary" />
                   </div>
                   <h3 className="text-lg font-bold mb-2">{f.title}</h3>
-                  <p className="text-[hsl(var(--muted-foreground))] text-sm leading-relaxed">{f.body}</p>
+                  <p className="text-muted-foreground text-sm leading-relaxed">{f.body}</p>
                 </motion.div>
               ))}
             </div>
@@ -180,13 +180,13 @@ export default function HowItWorks() {
         </section>
 
         {/* Competitive Edge */}
-        <section className="py-20 px-4 bg-[hsl(var(--muted))]">
+        <section className="py-20 px-4 bg-muted">
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-12">
               <h2 className="text-3xl sm:text-4xl font-black mb-3" style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '1px' }}>
                 Why Korex Beats Generic AI Tools
               </h2>
-              <p className="text-[hsl(var(--muted-foreground))] max-w-2xl mx-auto">What we do differently — and why it produces measurably better strategies.</p>
+              <p className="text-muted-foreground max-w-2xl mx-auto">What we do differently — and why it produces measurably better strategies.</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {edges.map((e, i) => (
@@ -196,13 +196,13 @@ export default function HowItWorks() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.4, delay: i * 0.05 }}
-                  className="bg-[hsl(var(--card))] border border-[hsl(var(--border))] rounded-xl p-5"
+                  className="bg-card border border-border rounded-xl p-5"
                 >
                   <div className="flex items-start gap-3">
-                    <div className="shrink-0 w-2 h-2 mt-2 rounded-full bg-[hsl(var(--primary))]" />
+                    <div className="shrink-0 w-2 h-2 mt-2 rounded-full bg-primary" />
                     <div>
-                      <h4 className="font-bold text-[hsl(var(--foreground))] mb-1">{e.edge}</h4>
-                      <p className="text-sm text-[hsl(var(--muted-foreground))] leading-relaxed">{e.competitor}</p>
+                      <h4 className="font-bold text-foreground mb-1">{e.edge}</h4>
+                      <p className="text-sm text-muted-foreground leading-relaxed">{e.competitor}</p>
                     </div>
                   </div>
                 </motion.div>
@@ -213,31 +213,31 @@ export default function HowItWorks() {
 
         {/* CTA */}
         <section className="py-24 px-4 text-center relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--primary))]/5 to-transparent pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--primary)/0.05)] to-transparent pointer-events-none" />
           <div className="relative z-10 max-w-3xl mx-auto">
             <h2 className="text-3xl sm:text-5xl font-black mb-6" style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '2px' }}>
               See It Run on Your Business
             </h2>
-            <p className="text-[hsl(var(--muted-foreground))] mb-8 max-w-xl mx-auto">
+            <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
               Generate your first strategy in under two minutes. Free to start — no credit card required.
             </p>
-            <Link to="/signup" className="inline-flex items-center gap-2 px-10 py-4 bg-gradient-to-r from-[hsl(var(--primary))] to-[hsl(var(--primary-dark))] text-white text-lg font-bold rounded-lg hover:scale-105 transition-all shadow-[0_0_30px_hsl(var(--primary) / 0.3)]">
+            <Link to="/signup" className="inline-flex items-center gap-2 px-10 py-4 bg-gradient-to-r from-primary to-[hsl(var(--primary-dark))] text-white text-lg font-bold rounded-lg hover:scale-105 transition-all shadow-[0_0_30px_hsl(var(--primary) / 0.3)]">
               Start Free Today <ArrowRight className="w-5 h-5" />
             </Link>
           </div>
         </section>
 
         {/* Footer */}
-        <footer className="bg-[hsl(var(--background))] border-t border-[hsl(var(--border))] py-8 px-4">
+        <footer className="bg-background border-t border-border py-8 px-4">
           <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
             <p className="text-xs text-[hsl(var(--text-tertiary))]">© 2026 Korex Intelligence Systems. All rights reserved.</p>
             <div className="flex items-center gap-4 text-xs text-[hsl(var(--text-tertiary))]">
-              <Link to="/features" className="hover:text-[hsl(var(--primary))] transition-colors">Features</Link>
-              <Link to="/how-it-works" className="hover:text-[hsl(var(--primary))] transition-colors">How It Works</Link>
-              <Link to="/about" className="hover:text-[hsl(var(--primary))] transition-colors">About</Link>
-              <Link to="/contact" className="hover:text-[hsl(var(--primary))] transition-colors">Contact</Link>
-              <Link to="/privacy" className="hover:text-[hsl(var(--primary))] transition-colors">Privacy</Link>
-              <Link to="/terms" className="hover:text-[hsl(var(--primary))] transition-colors">Terms</Link>
+              <Link to="/features" className="hover:text-primary transition-colors">Features</Link>
+              <Link to="/how-it-works" className="hover:text-primary transition-colors">How It Works</Link>
+              <Link to="/about" className="hover:text-primary transition-colors">About</Link>
+              <Link to="/contact" className="hover:text-primary transition-colors">Contact</Link>
+              <Link to="/privacy" className="hover:text-primary transition-colors">Privacy</Link>
+              <Link to="/terms" className="hover:text-primary transition-colors">Terms</Link>
             </div>
           </div>
         </footer>

@@ -37,7 +37,7 @@ export function VideoAdCard({ video, url, onResolveUrl, onDelete }: Props) {
         : 'aspect-[9/16]';
 
   return (
-    <Card className="bg-[hsl(var(--background))] border-[hsl(var(--card))] overflow-hidden">
+    <Card className="bg-background border-card overflow-hidden">
       <div className={`relative ${aspectClass} bg-[#000] flex items-center justify-center`}>
         {video.status === 'completed' && resolved ? (
           <video
@@ -51,7 +51,7 @@ export function VideoAdCard({ video, url, onResolveUrl, onDelete }: Props) {
           <button
             type="button"
             onClick={handlePlay}
-            className="w-full h-full flex flex-col items-center justify-center gap-2 text-[hsl(var(--muted-foreground))] hover:text-white transition-colors"
+            className="w-full h-full flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-white transition-colors"
             style={
               video.thumbnail_url
                 ? {
@@ -62,7 +62,7 @@ export function VideoAdCard({ video, url, onResolveUrl, onDelete }: Props) {
                 : undefined
             }
           >
-            <span className="w-12 h-12 rounded-full border border-[hsl(var(--border))] bg-black/60 flex items-center justify-center">
+            <span className="w-12 h-12 rounded-full border border-border bg-black/60 flex items-center justify-center">
               {loadingUrl ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
@@ -72,13 +72,13 @@ export function VideoAdCard({ video, url, onResolveUrl, onDelete }: Props) {
             <span className="text-xs">Load video</span>
           </button>
         ) : isPending ? (
-          <div className="flex flex-col items-center gap-2 text-[hsl(var(--muted-foreground))] px-4 text-center">
+          <div className="flex flex-col items-center gap-2 text-muted-foreground px-4 text-center">
             <Loader2 className="w-6 h-6 animate-spin text-primary" />
             <span className="text-xs">Rendering your actor</span>
             <span className="text-[11px] text-[hsl(var(--text-tertiary))]">Usually 1–3 minutes</span>
           </div>
         ) : (
-          <div className="flex flex-col items-center gap-2 text-[hsl(var(--muted-foreground))] px-4 text-center">
+          <div className="flex flex-col items-center gap-2 text-muted-foreground px-4 text-center">
             <AlertTriangle className="w-6 h-6 text-destructive" />
             <span className="text-xs">Render failed</span>
             {video.error_message && (
@@ -95,14 +95,14 @@ export function VideoAdCard({ video, url, onResolveUrl, onDelete }: Props) {
             {video.title || video.hook || 'Untitled ad'}
           </p>
           {video.angle && (
-            <Badge variant="outline" className="border-[hsl(var(--border))] text-[10px] shrink-0 capitalize">
+            <Badge variant="outline" className="border-border text-[10px] shrink-0 capitalize">
               {video.angle}
             </Badge>
           )}
         </div>
 
         {video.hook && video.title && (
-          <p className="text-xs text-[hsl(var(--muted-foreground))] line-clamp-2">{video.hook}</p>
+          <p className="text-xs text-muted-foreground line-clamp-2">{video.hook}</p>
         )}
 
         <div className="flex items-center gap-2 text-[11px] text-[hsl(var(--text-tertiary))]">
@@ -125,7 +125,7 @@ export function VideoAdCard({ video, url, onResolveUrl, onDelete }: Props) {
             <Button
               size="sm"
               variant="outline"
-              className="border-[hsl(var(--border))] h-7 text-xs flex-1"
+              className="border-border h-7 text-xs flex-1"
               asChild
             >
               <a href={resolved} download={`korex-ad-${video.id}.mp4`}>

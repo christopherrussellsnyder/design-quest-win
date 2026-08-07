@@ -57,7 +57,7 @@ export function UserProfileMenu() {
 
   const badgeColor = subscribed
     ? 'bg-green-500/20 text-green-400'
-    : 'bg-[hsl(var(--border))] text-[hsl(var(--text-tertiary))]';
+    : 'bg-border text-[hsl(var(--text-tertiary))]';
 
   const handleLogout = async () => {
     setIsLoggingOut(true);

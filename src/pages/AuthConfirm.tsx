@@ -37,15 +37,15 @@ export default function AuthConfirm() {
   };
 
   return (
-    <div className="min-h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-4">
       <div className="w-full max-w-md text-center">
         <KorexLogoLockup height={56} className="mx-auto mb-10" />
 
         {status === 'loading' && (
           <div>
-            <Loader2 className="w-12 h-12 text-[hsl(var(--primary))] animate-spin mx-auto mb-6" />
+            <Loader2 className="w-12 h-12 text-primary animate-spin mx-auto mb-6" />
             <h1 className="text-2xl font-bold mb-2">Verifying your account...</h1>
-            <p className="text-[hsl(var(--muted-foreground))]">Please wait while we confirm your email.</p>
+            <p className="text-muted-foreground">Please wait while we confirm your email.</p>
           </div>
         )}
 
@@ -53,9 +53,9 @@ export default function AuthConfirm() {
           <div>
             <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-6" />
             <h1 className="text-2xl font-bold mb-2">Email Verified!</h1>
-            <p className="text-[hsl(var(--muted-foreground))] mb-8">Your Korex account is now active. Welcome to the platform.</p>
+            <p className="text-muted-foreground mb-8">Your Korex account is now active. Welcome to the platform.</p>
             <Link to="/ai-strategist"
-              className="inline-flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-[hsl(var(--primary))] to-[hsl(var(--primary-dark))] text-white font-bold rounded-lg hover:scale-105 transition-all shadow-[0_0_20px_hsl(var(--primary) / 0.3)]">
+              className="inline-flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-primary to-[hsl(var(--primary-dark))] text-white font-bold rounded-lg hover:scale-105 transition-all shadow-[0_0_20px_hsl(var(--primary) / 0.3)]">
               Enter Korex →
             </Link>
           </div>
@@ -63,18 +63,18 @@ export default function AuthConfirm() {
 
         {status === 'error' && (
           <div>
-            <AlertCircle className="w-16 h-16 text-[hsl(var(--primary))] mx-auto mb-6" />
+            <AlertCircle className="w-16 h-16 text-primary mx-auto mb-6" />
             <h1 className="text-2xl font-bold mb-2">Verification Link Expired</h1>
-            <p className="text-[hsl(var(--muted-foreground))] mb-8">This verification link has expired or is invalid. Request a new one below.</p>
+            <p className="text-muted-foreground mb-8">This verification link has expired or is invalid. Request a new one below.</p>
             <button onClick={handleResend} disabled={resending}
-              className="px-8 py-3 bg-gradient-to-r from-[hsl(var(--primary))] to-[hsl(var(--primary-dark))] text-white font-bold rounded-lg hover:scale-105 transition-all shadow-[0_0_20px_hsl(var(--primary) / 0.3)] disabled:opacity-50">
+              className="px-8 py-3 bg-gradient-to-r from-primary to-[hsl(var(--primary-dark))] text-white font-bold rounded-lg hover:scale-105 transition-all shadow-[0_0_20px_hsl(var(--primary) / 0.3)] disabled:opacity-50">
               {resending ? 'Redirecting...' : 'Resend Verification Email'}
             </button>
           </div>
         )}
 
         <div className="mt-8">
-          <Link to="/login" className="text-[hsl(var(--text-tertiary))] hover:text-[hsl(var(--primary))] transition-colors text-sm">
+          <Link to="/login" className="text-[hsl(var(--text-tertiary))] hover:text-primary transition-colors text-sm">
             ← Back to Login
           </Link>
         </div>

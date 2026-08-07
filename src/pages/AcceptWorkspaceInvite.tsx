@@ -49,7 +49,7 @@ export default function AcceptWorkspaceInvite() {
         <CardContent className="p-8 text-center space-y-4">
           {(state === 'idle' || state === 'accepting') && (
             <>
-              <Loader2 className="h-8 w-8 animate-spin text-[hsl(var(--primary))] mx-auto" />
+              <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
               <h1 className="text-lg font-semibold">Accepting invitation…</h1>
             </>
           )}
@@ -65,7 +65,7 @@ export default function AcceptWorkspaceInvite() {
               <XCircle className="h-10 w-10 text-destructive mx-auto" />
               <h1 className="text-lg font-semibold">Invitation problem</h1>
               <p className="text-sm text-muted-foreground">{message}</p>
-              <Button onClick={() => navigate('/ai-strategist')} className="bg-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/90">
+              <Button onClick={() => navigate('/ai-strategist')} className="bg-primary hover:bg-[hsl(var(--primary)/0.9)]">
                 Go to app
               </Button>
             </>

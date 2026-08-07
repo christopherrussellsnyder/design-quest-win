@@ -111,14 +111,14 @@ export default function ContentGeneration() {
         />
       </Helmet>
 
-      <div className="min-h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
+      <div className="min-h-screen bg-background text-foreground">
         {/* Header */}
-        <header className="border-b border-[hsl(var(--card))] px-4 py-3 flex items-center gap-3">
+        <header className="border-b border-card px-4 py-3 flex items-center gap-3">
           <Button aria-label="Go back"
             variant="ghost"
             size="icon"
             onClick={() => navigate('/ai-strategist')}
-            className="text-[hsl(var(--muted-foreground))] hover:text-white hover:bg-[hsl(var(--card))]"
+            className="text-muted-foreground hover:text-white hover:bg-card"
           >
             <ArrowLeft className="w-4 h-4" />
           </Button>
@@ -127,7 +127,7 @@ export default function ContentGeneration() {
             <h1 className="text-sm font-semibold tracking-tight">Content Generation</h1>
           </div>
           {quotaLabel && (
-            <Badge variant="outline" className="ml-2 border-[hsl(var(--border))] text-[hsl(var(--muted-foreground))] text-[11px]">
+            <Badge variant="outline" className="ml-2 border-border text-muted-foreground text-[11px]">
               {quotaLabel}
             </Badge>
           )}
@@ -135,7 +135,7 @@ export default function ContentGeneration() {
 
         <div className="max-w-6xl mx-auto px-4 py-6 space-y-6">
           <Tabs defaultValue="video" className="space-y-6">
-            <TabsList className="bg-[hsl(var(--background))] border border-[hsl(var(--card))]">
+            <TabsList className="bg-background border border-card">
               <TabsTrigger value="video" className="text-xs gap-1.5">
                 <Clapperboard className="w-3.5 h-3.5" />
                 Video ads
@@ -148,12 +148,12 @@ export default function ContentGeneration() {
 
             <TabsContent value="video" className="space-y-6 mt-0">
           {providerDown && (
-            <Card className="bg-[hsl(var(--background))] border-amber-500/30">
+            <Card className="bg-background border-amber-500/30">
               <CardContent className="p-4 flex items-start gap-3">
                 <AlertTriangle className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
                 <div className="text-sm">
                   <p className="font-medium">Video rendering isn't switched on yet</p>
-                  <p className="text-[hsl(var(--muted-foreground))] text-xs mt-1">
+                  <p className="text-muted-foreground text-xs mt-1">
                     You can still write and save ad scripts. Rendering will activate as soon as the
                     video provider is connected.
                   </p>
@@ -165,19 +165,19 @@ export default function ContentGeneration() {
           {/* ---------------- Step 1: Script ---------------- */}
           <section className="space-y-3">
             <div className="flex items-center gap-2">
-              <span className="w-5 h-5 rounded border border-[hsl(var(--border))] text-[11px] flex items-center justify-center text-[hsl(var(--muted-foreground))]">
+              <span className="w-5 h-5 rounded border border-border text-[11px] flex items-center justify-center text-muted-foreground">
                 1
               </span>
               <h2 className="text-sm font-semibold">Write the hooks</h2>
             </div>
 
-            <Card className="bg-[hsl(var(--background))] border-[hsl(var(--card))]">
+            <Card className="bg-background border-card">
               <CardContent className="p-4 space-y-4">
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-1.5">
-                    <Label className="text-xs text-[hsl(var(--muted-foreground))]">Hook angle</Label>
+                    <Label className="text-xs text-muted-foreground">Hook angle</Label>
                     <Select value={angle} onValueChange={setAngle}>
-                      <SelectTrigger className="bg-[hsl(var(--muted))] border-[hsl(var(--border))]">
+                      <SelectTrigger className="bg-muted border-border">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -191,9 +191,9 @@ export default function ContentGeneration() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label className="text-xs text-[hsl(var(--muted-foreground))]">Length</Label>
+                    <Label className="text-xs text-muted-foreground">Length</Label>
                     <Select value={duration} onValueChange={setDuration}>
-                      <SelectTrigger className="bg-[hsl(var(--muted))] border-[hsl(var(--border))]">
+                      <SelectTrigger className="bg-muted border-border">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -206,35 +206,35 @@ export default function ContentGeneration() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label className="text-xs text-[hsl(var(--muted-foreground))]">Offer (optional)</Label>
+                    <Label className="text-xs text-muted-foreground">Offer (optional)</Label>
                     <Input
                       value={promoDetail}
                       onChange={(e) => setPromoDetail(e.target.value)}
                       placeholder="15% off your first month"
-                      className="bg-[hsl(var(--muted))] border-[hsl(var(--border))]"
+                      className="bg-muted border-border"
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label className="text-xs text-[hsl(var(--muted-foreground))]">Promo code (optional)</Label>
+                    <Label className="text-xs text-muted-foreground">Promo code (optional)</Label>
                     <Input
                       value={promoCode}
                       onChange={(e) => setPromoCode(e.target.value)}
                       placeholder="KOREX"
-                      className="bg-[hsl(var(--muted))] border-[hsl(var(--border))]"
+                      className="bg-muted border-border"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label className="text-xs text-[hsl(var(--muted-foreground))]">Extra direction (optional)</Label>
+                  <Label className="text-xs text-muted-foreground">Extra direction (optional)</Label>
                   <Textarea
                     value={brief}
                     onChange={(e) => setBrief(e.target.value)}
                     placeholder="Anything the script must mention — a specific objection to handle, a proof point, a launch date."
                     rows={2}
                     maxLength={4000}
-                    className="bg-[hsl(var(--muted))] border-[hsl(var(--border))] resize-none"
+                    className="bg-muted border-border resize-none"
                   />
                 </div>
 
@@ -279,20 +279,20 @@ export default function ContentGeneration() {
                       className={`text-left rounded-md border p-3 transition-colors ${
                         active
                           ? 'border-primary bg-primary/5'
-                          : 'border-[hsl(var(--card))] bg-[hsl(var(--background))] hover:border-[hsl(var(--border))]'
+                          : 'border-card bg-background hover:border-border'
                       }`}
                     >
                       <div className="flex items-center justify-between gap-2 mb-2">
                         <Badge
                           variant="outline"
-                          className="border-[hsl(var(--border))] text-[10px] capitalize"
+                          className="border-border text-[10px] capitalize"
                         >
                           {v.angle}
                         </Badge>
                         {active && <Check className="w-3.5 h-3.5 text-primary" />}
                       </div>
                       <p className="text-sm font-medium leading-snug mb-1.5">{v.hook}</p>
-                      <p className="text-xs text-[hsl(var(--muted-foreground))] line-clamp-4">{v.script}</p>
+                      <p className="text-xs text-muted-foreground line-clamp-4">{v.script}</p>
                       {v.why_it_works && (
                         <p className="text-[11px] text-[hsl(var(--text-tertiary))] mt-2 italic">{v.why_it_works}</p>
                       )}
@@ -306,21 +306,21 @@ export default function ContentGeneration() {
           {/* ---------------- Step 2: Cast ---------------- */}
           <section className="space-y-3">
             <div className="flex items-center gap-2">
-              <span className="w-5 h-5 rounded border border-[hsl(var(--border))] text-[11px] flex items-center justify-center text-[hsl(var(--muted-foreground))]">
+              <span className="w-5 h-5 rounded border border-border text-[11px] flex items-center justify-center text-muted-foreground">
                 2
               </span>
               <h2 className="text-sm font-semibold">Cast the actor</h2>
             </div>
 
-            <Card className="bg-[hsl(var(--background))] border-[hsl(var(--card))]">
+            <Card className="bg-background border-card">
               <CardContent className="p-4 space-y-4">
                 {loadingActors ? (
-                  <div className="flex items-center gap-2 text-sm text-[hsl(var(--muted-foreground))] py-6 justify-center">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground py-6 justify-center">
                     <Loader2 className="w-4 h-4 animate-spin" />
                     Loading the actor library...
                   </div>
                 ) : actors.length === 0 ? (
-                  <div className="text-sm text-[hsl(var(--muted-foreground))] py-6 text-center flex flex-col items-center gap-2">
+                  <div className="text-sm text-muted-foreground py-6 text-center flex flex-col items-center gap-2">
                     <Users className="w-5 h-5" />
                     No actors available yet.
                   </div>
@@ -335,10 +335,10 @@ export default function ContentGeneration() {
                         className={`rounded-md overflow-hidden border transition-colors ${
                           avatarId === a.avatar_id
                             ? 'border-primary'
-                            : 'border-[hsl(var(--card))] hover:border-[hsl(var(--border))]'
+                            : 'border-card hover:border-border'
                         }`}
                       >
-                        <div className="aspect-[3/4] bg-[hsl(var(--muted))]">
+                        <div className="aspect-[3/4] bg-muted">
                           {a.preview_image_url ? (
                             <img
                               src={a.preview_image_url}
@@ -352,7 +352,7 @@ export default function ContentGeneration() {
                             </div>
                           )}
                         </div>
-                        <p className="text-[10px] px-1 py-1 truncate text-[hsl(var(--muted-foreground))]">{a.name}</p>
+                        <p className="text-[10px] px-1 py-1 truncate text-muted-foreground">{a.name}</p>
                       </button>
                     ))}
                   </div>
@@ -360,9 +360,9 @@ export default function ContentGeneration() {
 
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-1.5">
-                    <Label className="text-xs text-[hsl(var(--muted-foreground))]">Voice</Label>
+                    <Label className="text-xs text-muted-foreground">Voice</Label>
                     <Select value={voiceId} onValueChange={setVoiceId}>
-                      <SelectTrigger className="bg-[hsl(var(--muted))] border-[hsl(var(--border))]">
+                      <SelectTrigger className="bg-muted border-border">
                         <SelectValue placeholder="Choose a voice" />
                       </SelectTrigger>
                       <SelectContent className="max-h-[280px]">
@@ -377,9 +377,9 @@ export default function ContentGeneration() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <Label className="text-xs text-[hsl(var(--muted-foreground))]">Format</Label>
+                    <Label className="text-xs text-muted-foreground">Format</Label>
                     <Select value={aspectRatio} onValueChange={setAspectRatio}>
-                      <SelectTrigger className="bg-[hsl(var(--muted))] border-[hsl(var(--border))]">
+                      <SelectTrigger className="bg-muted border-border">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -399,16 +399,16 @@ export default function ContentGeneration() {
           {/* ---------------- Step 3: Render ---------------- */}
           <section className="space-y-3">
             <div className="flex items-center gap-2">
-              <span className="w-5 h-5 rounded border border-[hsl(var(--border))] text-[11px] flex items-center justify-center text-[hsl(var(--muted-foreground))]">
+              <span className="w-5 h-5 rounded border border-border text-[11px] flex items-center justify-center text-muted-foreground">
                 3
               </span>
               <h2 className="text-sm font-semibold">Review and render</h2>
             </div>
 
-            <Card className="bg-[hsl(var(--background))] border-[hsl(var(--card))]">
+            <Card className="bg-background border-card">
               <CardContent className="p-4 space-y-3">
                 <div className="space-y-1.5">
-                  <Label className="text-xs text-[hsl(var(--muted-foreground))]">
+                  <Label className="text-xs text-muted-foreground">
                     Spoken script — edit freely before rendering
                   </Label>
                   <Textarea
@@ -417,7 +417,7 @@ export default function ContentGeneration() {
                     placeholder="Pick a script above, or write your own here."
                     rows={6}
                     maxLength={3000}
-                    className="bg-[hsl(var(--muted))] border-[hsl(var(--border))] resize-none text-sm leading-relaxed"
+                    className="bg-muted border-border resize-none text-sm leading-relaxed"
                   />
                   <p className="text-[11px] text-[hsl(var(--text-tertiary))]">
                     {editedScript.trim() ? editedScript.trim().split(/\s+/).length : 0} words · about{' '}
@@ -453,7 +453,7 @@ export default function ContentGeneration() {
           {/* ---------------- Library ---------------- */}
           <section className="space-y-3">
             <div className="flex items-center gap-2">
-              <Film className="w-4 h-4 text-[hsl(var(--muted-foreground))]" />
+              <Film className="w-4 h-4 text-muted-foreground" />
               <h2 className="text-sm font-semibold">Your video ads</h2>
               {videos.length > 0 && (
                 <span className="text-xs text-[hsl(var(--text-tertiary))]">{videos.length}</span>
@@ -461,13 +461,13 @@ export default function ContentGeneration() {
             </div>
 
             {loadingVideos ? (
-              <div className="flex items-center gap-2 text-sm text-[hsl(var(--muted-foreground))] py-8 justify-center">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground py-8 justify-center">
                 <Loader2 className="w-4 h-4 animate-spin" />
                 Loading your library...
               </div>
             ) : videos.length === 0 ? (
-              <Card className="bg-[hsl(var(--background))] border-[hsl(var(--card))]">
-                <CardContent className="p-8 text-center text-sm text-[hsl(var(--muted-foreground))]">
+              <Card className="bg-background border-card">
+                <CardContent className="p-8 text-center text-sm text-muted-foreground">
                   No video ads yet. Generate a script, cast an actor, and render your first one.
                 </CardContent>
               </Card>

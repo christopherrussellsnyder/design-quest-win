@@ -99,7 +99,7 @@ export default function Pricing() {
   };
 
   return (
-    <div className="min-h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))] py-20 px-4">
+    <div className="min-h-screen bg-background text-foreground py-20 px-4">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
           <Link to="/" className="inline-block mb-8">
@@ -108,18 +108,18 @@ export default function Pricing() {
           <h1 className="text-3xl sm:text-[48px] font-black mb-4" style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '3px' }}>
             Simple, Transparent Pricing
           </h1>
-          <p className="text-[hsl(var(--muted-foreground))] mb-6">Free Starter plan includes 2 strategy generations. Upgrade anytime for unlimited access.</p>
+          <p className="text-muted-foreground mb-6">Free Starter plan includes 2 strategy generations. Upgrade anytime for unlimited access.</p>
           
           <div className="flex items-center justify-center gap-3">
             <span className={`text-sm ${!billingAnnual ? 'text-white' : 'text-[hsl(var(--text-tertiary))]'}`}>Monthly</span>
             <button
               onClick={() => setBillingAnnual(!billingAnnual)}
-              className={`relative w-12 h-6 rounded-full transition-colors ${billingAnnual ? 'bg-[hsl(var(--primary))]' : 'bg-[hsl(var(--border))]'}`}
+              className={`relative w-12 h-6 rounded-full transition-colors ${billingAnnual ? 'bg-primary' : 'bg-border'}`}
             >
               <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-transform ${billingAnnual ? 'translate-x-6' : 'translate-x-0.5'}`} />
             </button>
             <span className={`text-sm ${billingAnnual ? 'text-white' : 'text-[hsl(var(--text-tertiary))]'}`}>Yearly</span>
-            <span className={`text-xs px-2 py-0.5 rounded-full font-semibold transition-opacity ${billingAnnual ? 'bg-[hsl(var(--primary))]/20 text-[hsl(var(--primary))] opacity-100' : 'bg-[hsl(var(--primary))]/10 text-[hsl(var(--primary))]/70 opacity-100'}`}>Save 30%</span>
+            <span className={`text-xs px-2 py-0.5 rounded-full font-semibold transition-opacity ${billingAnnual ? 'bg-[hsl(var(--primary)/0.2)] text-primary opacity-100' : 'bg-[hsl(var(--primary)/0.1)] text-[hsl(var(--primary)/0.7)] opacity-100'}`}>Save 30%</span>
           </div>
         </div>
 
@@ -133,12 +133,12 @@ export default function Pricing() {
             return (
               <div
                 key={plan.key}
-                className={`relative bg-[hsl(var(--card))] rounded-2xl p-8 h-full flex flex-col border transition-all duration-300 hover:-translate-y-1 ${
-                  plan.popular ? 'border-[hsl(var(--primary))] shadow-[0_0_30px_hsl(var(--primary) / 0.15)]' : 'border-[hsl(var(--border))] hover:border-[hsl(var(--border))]'
+                className={`relative bg-card rounded-2xl p-8 h-full flex flex-col border transition-all duration-300 hover:-translate-y-1 ${
+                  plan.popular ? 'border-primary shadow-[0_0_30px_hsl(var(--primary) / 0.15)]' : 'border-border hover:border-border'
                 } ${isCurrentPlan ? 'ring-2 ring-green-500' : ''}`}
               >
                 {plan.popular && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[hsl(var(--primary))] to-[hsl(var(--primary-dark))] text-white text-xs font-bold px-4 py-1 rounded-full">
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-primary to-[hsl(var(--primary-dark))] text-white text-xs font-bold px-4 py-1 rounded-full">
                     Most Popular
                   </div>
                 )}
@@ -162,8 +162,8 @@ export default function Pricing() {
                 {!billingAnnual && <div className="mb-4" />}
                 <ul className="space-y-3 mb-8 flex-1">
                   {plan.features.map((f, fi) => (
-                    <li key={fi} className="flex items-start gap-2 text-sm text-[hsl(var(--muted-foreground))]">
-                      <Check className="w-4 h-4 text-[hsl(var(--primary))] shrink-0 mt-0.5" />
+                    <li key={fi} className="flex items-start gap-2 text-sm text-muted-foreground">
+                      <Check className="w-4 h-4 text-primary shrink-0 mt-0.5" />
                       {f}
                     </li>
                   ))}
@@ -181,22 +181,22 @@ export default function Pricing() {
                     disabled={loadingPlan === plan.key}
                     className={`block text-center py-3 rounded-lg font-bold text-sm transition-all w-full ${
                       plan.popular
-                        ? 'bg-gradient-to-r from-[hsl(var(--primary))] to-[hsl(var(--primary-dark))] text-white hover:shadow-[0_0_20px_hsl(var(--primary) / 0.3)]'
-                        : 'border border-[hsl(var(--border))] text-[hsl(var(--foreground))] hover:border-[hsl(var(--primary))] hover:text-[hsl(var(--primary))]'
+                        ? 'bg-gradient-to-r from-primary to-[hsl(var(--primary-dark))] text-white hover:shadow-[0_0_20px_hsl(var(--primary) / 0.3)]'
+                        : 'border border-border text-foreground hover:border-primary hover:text-primary'
                     }`}
                   >
                     {loadingPlan === plan.key ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : 'Upgrade Now'}
                   </button>
                 )}
                 <p className="text-xs text-[hsl(var(--text-tertiary))] text-center mt-3">Cancel anytime</p>
-                {plan.badge && <p className="text-xs text-[hsl(var(--muted-foreground))] text-center mt-1">{plan.badge}</p>}
+                {plan.badge && <p className="text-xs text-muted-foreground text-center mt-1">{plan.badge}</p>}
               </div>
             );
           })}
         </div>
 
         <div className="text-center mt-10">
-          <Link to="/" className="text-[hsl(var(--text-tertiary))] hover:text-[hsl(var(--primary))] transition-colors text-sm">
+          <Link to="/" className="text-[hsl(var(--text-tertiary))] hover:text-primary transition-colors text-sm">
             ← Back to home
           </Link>
         </div>

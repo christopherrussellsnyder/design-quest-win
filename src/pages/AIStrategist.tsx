@@ -223,7 +223,7 @@ export default function AIStrategist() {
           <WorkspaceSwitcher />
         </div>
         <div className="absolute top-3 right-3 z-50">
-          <Button aria-label="Business settings" variant="ghost" size="icon" onClick={() => navigate('/settings')} className="text-[hsl(var(--muted-foreground))] hover:text-white hover:bg-[hsl(var(--card))]" title="Business Settings">
+          <Button aria-label="Business settings" variant="ghost" size="icon" onClick={() => navigate('/settings')} className="text-muted-foreground hover:text-white hover:bg-card" title="Business Settings">
             <Settings className="w-4 h-4" />
           </Button>
         </div>
