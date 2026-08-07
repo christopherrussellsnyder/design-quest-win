@@ -98,13 +98,33 @@ export default function About() {
 
         {/* Platform */}
         <section className="py-24 px-4 bg-[#0A0A0A]">
-          <div className="max-w-3xl mx-auto">
+          <div className="max-w-5xl mx-auto">
             <h2 className="text-3xl font-black mb-6" style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '2px' }}>The Korex Platform</h2>
-            <p className="text-[#A0A0A8] text-lg leading-relaxed">
-              Korex Intelligence Systems is a full-stack marketing intelligence platform combining AI strategy generation, analytics interpretation, audience modeling, and content automation into one seamlessly integrated workspace.
+            <p className="text-[#A0A0A8] text-lg leading-relaxed max-w-3xl">
+              Korex Intelligence Systems is a full-stack marketing intelligence platform. It researches your market with live data, builds the strategy, writes the copy, produces the creative, and reports on the results — in one workspace.
             </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-12">
+              {capabilities.map((c, i) => (
+                <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.4, delay: i * 0.08 }}
+                  className="bg-[#16171A] border border-[#2A2B2E] rounded-2xl p-6 hover:border-[#CC0000]/50 transition-all">
+                  <div className="flex items-center gap-3 mb-3">
+                    <c.icon className="w-5 h-5 text-[#CC0000]" />
+                    <h3 className="font-bold">{c.title}</h3>
+                  </div>
+                  <p className="text-[#A0A0A8] text-sm leading-relaxed">{c.description}</p>
+                </motion.div>
+              ))}
+            </div>
+
+            <div className="mt-10">
+              <Link to="/features" className="inline-flex items-center gap-2 text-[#CC0000] font-semibold hover:gap-3 transition-all">
+                See every feature <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
           </div>
         </section>
+
 
         {/* Bottom CTA */}
         <section className="py-24 px-4 text-center relative overflow-hidden">
