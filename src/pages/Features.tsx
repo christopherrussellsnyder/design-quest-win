@@ -77,7 +77,7 @@ export default function Features() {
     <>
       <Helmet>
         <title>Features | Korex Intelligence Systems</title>
-        <meta name="description" content="Explore Korex features: AI strategy generation, analytics intelligence, content AI, audience insights, and campaign management." />
+        <meta name="description" content="Korex features: live-data AI strategy, research analysis, AI video ads, image studio, caption A/B testing, multi-brand workspaces and white-label client reports." />
       </Helmet>
 
       <div className="min-h-screen bg-[#060606] text-[#EEEEEE]">
