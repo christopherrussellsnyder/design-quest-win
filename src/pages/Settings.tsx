@@ -284,7 +284,10 @@ const Settings: React.FC = () => {
         </CardContent>
       </Card>
 
+      <TwoFactorSection />
+
       <Card className="bg-card border-border border-destructive/50">
+
         <CardHeader>
           <CardTitle className="text-destructive">Danger Zone</CardTitle>
           <CardDescription>Irreversible actions</CardDescription>
