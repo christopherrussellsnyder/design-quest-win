@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Settings, User, HelpCircle, LogOut, CreditCard, ChevronUp, BarChart3, FileText, Image, Sparkles, Clapperboard } from 'lucide-react';
+import { Settings, User, HelpCircle, LogOut, CreditCard, ChevronUp, BarChart3, FileText, Image, Sparkles, Clapperboard, Sun, Moon } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
@@ -26,6 +27,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 export function UserProfileMenu() {
   const { user, loading, signOut } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const { planLabel, subscribed, tier } = useSubscription();
   const navigate = useNavigate();
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
