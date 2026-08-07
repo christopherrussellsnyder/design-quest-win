@@ -22,6 +22,7 @@ import { BusinessInformationSection } from '@/components/settings/BusinessInform
 import { WorkspacesSection } from '@/components/settings/WorkspacesSection';
 import { TeamMembersSection } from '@/components/settings/TeamMembersSection';
 import { BrandKitSection } from '@/components/settings/BrandKitSection';
+import { TwoFactorSection } from '@/components/settings/TwoFactorSection';
 import { Users } from 'lucide-react';
 
 type SettingsTab = 'profile' | 'workspaces' | 'team' | 'brandkit' | 'business' | 'ai' | 'notifications' | 'billing' | 'about';
@@ -284,7 +285,10 @@ const Settings: React.FC = () => {
         </CardContent>
       </Card>
 
+      <TwoFactorSection />
+
       <Card className="bg-card border-border border-destructive/50">
+
         <CardHeader>
           <CardTitle className="text-destructive">Danger Zone</CardTitle>
           <CardDescription>Irreversible actions</CardDescription>

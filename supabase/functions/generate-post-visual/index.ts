@@ -1,6 +1,7 @@
 // Generate an AI image for a strategy post and upload it to the user's media bucket.
 import { serviceClient } from "../_shared/supabase.ts";
 import { requirePro } from "../_shared/require-pro.ts";
+import { checkRateLimit, clientKey } from "../_shared/rate-limit.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -125,6 +126,15 @@ async function enhanceBrief(prompt: string, apiKey: string): Promise<string> {
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+
+  const rl = checkRateLimit(clientKey(req, "generate-post-visual"), { limit: 15, windowMs: 60000 });
+  if (!rl.ok) {
+    return new Response(JSON.stringify({ error: "Too many requests. Please slow down." }), {
+      status: 429,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
 
   try {
     const gate = await requirePro(req);

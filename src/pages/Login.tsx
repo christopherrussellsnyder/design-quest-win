@@ -10,8 +10,15 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [failedAttempts, setFailedAttempts] = useState(0);
   const [lockoutUntil, setLockoutUntil] = useState<number | null>(null);
+  const [mfaFactorId, setMfaFactorId] = useState<string | null>(null);
+  const [mfaCode, setMfaCode] = useState('');
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+
+  const finishLogin = () => {
+    const redirect = searchParams.get('redirect') || '/ai-strategist';
+    navigate(redirect);
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,8 +42,20 @@ export default function Login() {
       if (data.session) {
         setFailedAttempts(0);
         await new Promise(resolve => setTimeout(resolve, 500));
-        const redirect = searchParams.get('redirect') || '/ai-strategist';
-        navigate(redirect);
+
+        // If the account has TOTP 2FA enabled, require the second factor.
+        const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+        if (aal?.nextLevel === 'aal2' && aal.nextLevel !== aal.currentLevel) {
+          const { data: factors } = await supabase.auth.mfa.listFactors();
+          const totp = factors?.totp?.[0];
+          if (totp) {
+            setMfaFactorId(totp.id);
+            setLoading(false);
+            return;
+          }
+        }
+
+        finishLogin();
       }
     } catch (error: any) {
       const newAttempts = failedAttempts + 1;
@@ -52,6 +71,27 @@ export default function Login() {
     }
   };
 
+  const handleVerifyMfa = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!mfaFactorId) return;
+    setLoading(true);
+    try {
+      const { data: ch, error: chErr } = await supabase.auth.mfa.challenge({ factorId: mfaFactorId });
+      if (chErr) throw chErr;
+      const { error } = await supabase.auth.mfa.verify({
+        factorId: mfaFactorId,
+        challengeId: ch.id,
+        code: mfaCode.trim(),
+      });
+      if (error) throw error;
+      finishLogin();
+    } catch (error: any) {
+      toast({ title: 'Verification failed', description: 'That code is not valid. Try again.', variant: 'destructive' });
+      setLoading(false);
+    }
+  };
+
+
   return (
     <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-4">
       <div className="w-full max-w-md">
@@ -60,6 +100,26 @@ export default function Login() {
         </div>
 
         <div className="card-glass rounded-2xl p-8">
+          {mfaFactorId ? (
+            <>
+              <h1 className="text-2xl font-bold mb-2 text-foreground">Two-factor verification</h1>
+              <p className="text-muted-foreground mb-6">Enter the 6-digit code from your authenticator app.</p>
+              <form onSubmit={handleVerifyMfa} className="space-y-4">
+                <div>
+                  <label htmlFor="mfa" className="block text-sm font-medium text-muted-foreground mb-2">Authentication code</label>
+                  <input id="mfa" inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={mfaCode}
+                    onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, ''))} required
+                    className="w-full bg-secondary border border-border rounded-lg px-4 py-3 text-foreground tracking-[0.4em] text-center placeholder-muted-foreground focus:outline-none focus:border-primary focus:shadow-glow transition-all"
+                    placeholder="123456" />
+                </div>
+                <button type="submit" disabled={loading || mfaCode.length < 6}
+                  className="w-full bg-primary text-primary-foreground font-semibold py-3 rounded-lg hover:bg-korex-red-light transition-colors disabled:opacity-50 shadow-glow">
+                  {loading ? 'Verifying...' : 'Verify'}
+                </button>
+              </form>
+            </>
+          ) : (
+          <>
           <h1 className="text-2xl font-bold mb-2 text-foreground">Welcome back</h1>
           <p className="text-muted-foreground mb-6">Sign in to your account to continue</p>
 
@@ -86,6 +146,9 @@ export default function Login() {
               {loading ? 'Signing in...' : 'Sign In'}
             </button>
           </form>
+          </>
+          )}
+
 
           <p className="text-center text-muted-foreground text-sm mt-6">
             Don't have an account?{' '}

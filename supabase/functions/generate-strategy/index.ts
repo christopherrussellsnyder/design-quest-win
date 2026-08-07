@@ -11,6 +11,7 @@ import {
   DIVERSITY_PROMPT,
   CONFIDENCE_PROMPT,
 } from "../_shared/strategy-intel.ts";
+import { checkRateLimit, clientKey } from "../_shared/rate-limit.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -600,6 +601,14 @@ function buildFallbackPosts(ctx: BusinessCtx, platform: string, durationDays: nu
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
+  }
+
+  const rl = checkRateLimit(clientKey(req, "generate-strategy"), { limit: 10, windowMs: 60000 });
+  if (!rl.ok) {
+    return new Response(JSON.stringify({ error: "Too many requests. Please slow down." }), {
+      status: 429,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 
   try {
