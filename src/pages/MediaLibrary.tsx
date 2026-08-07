@@ -590,7 +590,7 @@ const MediaLibrary: React.FC = () => {
       document: 'bg-orange-500/20 text-orange-400',
       gif: 'bg-green-500/20 text-green-400'
     };
-    return colors[type] || 'bg-slate-500/20 text-slate-400';
+    return colors[type] || 'bg-muted text-muted-foreground';
   };
 
   const getEditorFilterStyle = () => {
@@ -619,9 +619,9 @@ const MediaLibrary: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
+    <div className="min-h-screen bg-background text-white">
       {/* Header */}
-      <div className="border-b border-slate-800 bg-slate-900/50 sticky top-0 z-40">
+      <div className="border-b border-border bg-card/50 sticky top-0 z-40">
         <div className="max-w-[1800px] mx-auto px-6 py-4">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-4">
@@ -629,14 +629,14 @@ const MediaLibrary: React.FC = () => {
                 variant="ghost" 
                 size="sm"
                 onClick={() => navigate('/ai-strategist')}
-                className="text-slate-400 hover:text-foreground"
+                className="text-muted-foreground hover:text-foreground"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back
               </Button>
               <div>
                 <h1 className="text-2xl font-bold">Media Library</h1>
-                <p className="text-slate-400 text-sm">Manage your images, videos, and media assets</p>
+                <p className="text-muted-foreground text-sm">Manage your images, videos, and media assets</p>
               </div>
             </div>
             
@@ -654,16 +654,16 @@ const MediaLibrary: React.FC = () => {
           {/* Quick Stats */}
           <div className="flex items-center gap-6 text-sm">
             <div className="flex items-center gap-2">
-              <span className="text-slate-400">Total:</span>
+              <span className="text-muted-foreground">Total:</span>
               <span className="font-medium">{media.length} items</span>
             </div>
             <div className="flex items-center gap-2">
-              <HardDrive className="w-4 h-4 text-slate-400" />
-              <span className="text-slate-400">Storage:</span>
+              <HardDrive className="w-4 h-4 text-muted-foreground" />
+              <span className="text-muted-foreground">Storage:</span>
               <span className="font-medium">{formatFileSize(totalStorage)} / 25 GB</span>
               <Progress value={storagePercentage} className="w-24 h-2" />
             </div>
-            <div className="flex items-center gap-4 text-slate-400">
+            <div className="flex items-center gap-4 text-muted-foreground">
               <span className="flex items-center gap-1">
                 <Image className="w-4 h-4" /> {mediaStats.images}
               </span>
@@ -683,7 +683,7 @@ const MediaLibrary: React.FC = () => {
 
       <div className="max-w-[1800px] mx-auto flex">
         {/* Sidebar */}
-        <div className="w-64 border-r border-slate-800 p-4 sticky top-[120px] h-[calc(100vh-120px)] overflow-y-auto">
+        <div className="w-64 border-r border-border p-4 sticky top-[120px] h-[calc(100vh-120px)] overflow-y-auto">
           {/* Quick Actions */}
           <div className="mb-6">
             <Button 
@@ -695,7 +695,7 @@ const MediaLibrary: React.FC = () => {
             </Button>
             <Button 
               variant="outline"
-              className="w-full border-slate-700 hover:bg-slate-800"
+              className="w-full border-border hover:bg-muted"
               onClick={() => setStockModalOpen(true)}
             >
               <Camera className="w-4 h-4 mr-2" />
@@ -705,20 +705,20 @@ const MediaLibrary: React.FC = () => {
 
           {/* Quick Filters */}
           <div className="mb-6">
-            <h3 className="text-sm font-medium text-slate-400 mb-3">Quick Filters</h3>
+            <h3 className="text-sm font-medium text-muted-foreground mb-3">Quick Filters</h3>
             <div className="space-y-1">
               <Button
                 variant="ghost"
-                className={`w-full justify-start ${selectedFolder === 'all' || !selectedFolder ? 'bg-slate-800' : ''}`}
+                className={`w-full justify-start ${selectedFolder === 'all' || !selectedFolder ? 'bg-muted' : ''}`}
                 onClick={() => setSelectedFolder('all')}
               >
                 <Grid3X3 className="w-4 h-4 mr-2" />
                 All Media
-                <span className="ml-auto text-slate-400">{media.length}</span>
+                <span className="ml-auto text-muted-foreground">{media.length}</span>
               </Button>
               <Button
                 variant="ghost"
-                className={`w-full justify-start ${selectedFolder === 'recent' ? 'bg-slate-800' : ''}`}
+                className={`w-full justify-start ${selectedFolder === 'recent' ? 'bg-muted' : ''}`}
                 onClick={() => setSelectedFolder('recent')}
               >
                 <Clock className="w-4 h-4 mr-2" />
@@ -726,21 +726,21 @@ const MediaLibrary: React.FC = () => {
               </Button>
               <Button
                 variant="ghost"
-                className={`w-full justify-start ${selectedFolder === 'favorites' ? 'bg-slate-800' : ''}`}
+                className={`w-full justify-start ${selectedFolder === 'favorites' ? 'bg-muted' : ''}`}
                 onClick={() => setSelectedFolder('favorites')}
               >
                 <Star className="w-4 h-4 mr-2" />
                 Favorites
-                <span className="ml-auto text-slate-400">{media.filter(m => m.is_favorite).length}</span>
+                <span className="ml-auto text-muted-foreground">{media.filter(m => m.is_favorite).length}</span>
               </Button>
               <Button
                 variant="ghost"
-                className={`w-full justify-start ${selectedFolder === 'unused' ? 'bg-slate-800' : ''}`}
+                className={`w-full justify-start ${selectedFolder === 'unused' ? 'bg-muted' : ''}`}
                 onClick={() => setSelectedFolder('unused')}
               >
                 <AlertCircle className="w-4 h-4 mr-2" />
                 Unused
-                <span className="ml-auto text-slate-400">{media.filter(m => m.times_used === 0).length}</span>
+                <span className="ml-auto text-muted-foreground">{media.filter(m => m.times_used === 0).length}</span>
               </Button>
             </div>
           </div>
@@ -748,7 +748,7 @@ const MediaLibrary: React.FC = () => {
           {/* Folders */}
           <div className="mb-6">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-medium text-slate-400">Folders</h3>
+              <h3 className="text-sm font-medium text-muted-foreground">Folders</h3>
               <Button 
                 variant="ghost" 
                 size="sm"
@@ -763,12 +763,12 @@ const MediaLibrary: React.FC = () => {
                 <Button
                   key={folder.id}
                   variant="ghost"
-                  className={`w-full justify-start ${selectedFolder === folder.id ? 'bg-slate-800' : ''}`}
+                  className={`w-full justify-start ${selectedFolder === folder.id ? 'bg-muted' : ''}`}
                   onClick={() => setSelectedFolder(folder.id)}
                 >
                   <Folder className="w-4 h-4 mr-2" style={{ color: folder.color }} />
                   <span className="truncate">{folder.name}</span>
-                  <span className="ml-auto text-slate-400 text-xs">{folder.item_count}</span>
+                  <span className="ml-auto text-muted-foreground text-xs">{folder.item_count}</span>
                 </Button>
               ))}
             </div>
@@ -776,7 +776,7 @@ const MediaLibrary: React.FC = () => {
 
           {/* File Types */}
           <div>
-            <h3 className="text-sm font-medium text-slate-400 mb-3">File Types</h3>
+            <h3 className="text-sm font-medium text-muted-foreground mb-3">File Types</h3>
             <div className="space-y-1">
               {[
                 { type: 'all', label: 'All Types', count: media.length },
@@ -788,13 +788,13 @@ const MediaLibrary: React.FC = () => {
                 <Button
                   key={item.type}
                   variant="ghost"
-                  className={`w-full justify-start ${selectedType === item.type ? 'bg-slate-800' : ''}`}
+                  className={`w-full justify-start ${selectedType === item.type ? 'bg-muted' : ''}`}
                   onClick={() => setSelectedType(item.type)}
                 >
                   {item.type !== 'all' && getFileTypeIcon(item.type)}
                   {item.type === 'all' && <Grid3X3 className="w-4 h-4" />}
                   <span className="ml-2">{item.label}</span>
-                  <span className="ml-auto text-slate-400">{item.count}</span>
+                  <span className="ml-auto text-muted-foreground">{item.count}</span>
                 </Button>
               ))}
             </div>
@@ -806,17 +806,17 @@ const MediaLibrary: React.FC = () => {
           {/* Toolbar */}
           <div className="flex items-center gap-4 mb-6">
             <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 placeholder="Search media..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-slate-900 border-slate-700"
+                className="pl-10 bg-card border-border"
               />
             </div>
             
             <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-40 bg-slate-900 border-slate-700">
+              <SelectTrigger className="w-40 bg-card border-border">
                 <SelectValue placeholder="Sort by" />
               </SelectTrigger>
               <SelectContent>
@@ -828,11 +828,11 @@ const MediaLibrary: React.FC = () => {
               </SelectContent>
             </Select>
 
-            <div className="flex border border-slate-700 rounded-lg overflow-hidden">
+            <div className="flex border border-border rounded-lg overflow-hidden">
               <Button
                 variant="ghost"
                 size="sm"
-                className={`rounded-none ${viewMode === 'grid' ? 'bg-slate-800' : ''}`}
+                className={`rounded-none ${viewMode === 'grid' ? 'bg-muted' : ''}`}
                 onClick={() => setViewMode('grid')}
               >
                 <Grid3X3 className="w-4 h-4" />
@@ -840,7 +840,7 @@ const MediaLibrary: React.FC = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                className={`rounded-none ${viewMode === 'list' ? 'bg-slate-800' : ''}`}
+                className={`rounded-none ${viewMode === 'list' ? 'bg-muted' : ''}`}
                 onClick={() => setViewMode('list')}
               >
                 <List className="w-4 h-4" />
@@ -868,9 +868,9 @@ const MediaLibrary: React.FC = () => {
           {/* Empty State */}
           {!loading && filteredMedia.length === 0 && (
             <div className="flex flex-col items-center justify-center py-20 text-center">
-              <Image className="w-16 h-16 text-slate-600 mb-4" />
+              <Image className="w-16 h-16 text-muted-foreground mb-4" />
               <h3 className="text-xl font-semibold mb-2">No media found</h3>
-              <p className="text-slate-400 mb-6">
+              <p className="text-muted-foreground mb-6">
                 {searchQuery ? 'Try a different search term' : 'Upload your first file to get started'}
               </p>
               <Button 
@@ -889,9 +889,9 @@ const MediaLibrary: React.FC = () => {
               {filteredMedia.map(item => (
                 <div
                   key={item.id}
-                  className={`group relative bg-slate-900 rounded-lg overflow-hidden border ${
-                    selectedItems.includes(item.id) ? 'border-violet-500' : 'border-slate-800'
-                  } hover:border-slate-700 transition-all`}
+                  className={`group relative bg-card rounded-lg overflow-hidden border ${
+                    selectedItems.includes(item.id) ? 'border-violet-500' : 'border-border'
+                  } hover:border-border transition-all`}
                 >
                   {/* Thumbnail */}
                   <div 
@@ -905,7 +905,7 @@ const MediaLibrary: React.FC = () => {
                         className="w-full h-full object-cover"
                       />
                     ) : item.file_type === 'video' ? (
-                      <div className="w-full h-full bg-slate-800 flex items-center justify-center relative">
+                      <div className="w-full h-full bg-muted flex items-center justify-center relative">
                         {item.thumbnail_url ? (
                           <img
                             src={item.thumbnail_url}
@@ -913,15 +913,15 @@ const MediaLibrary: React.FC = () => {
                             className="w-full h-full object-cover"
                           />
                         ) : (
-                          <Video className="w-12 h-12 text-slate-600" />
+                          <Video className="w-12 h-12 text-muted-foreground" />
                         )}
                         <div className="absolute inset-0 flex items-center justify-center bg-black/30">
                           <Play className="w-12 h-12 text-white" />
                         </div>
                       </div>
                     ) : (
-                      <div className="w-full h-full bg-slate-800 flex items-center justify-center">
-                        <FileText className="w-12 h-12 text-slate-600" />
+                      <div className="w-full h-full bg-muted flex items-center justify-center">
+                        <FileText className="w-12 h-12 text-muted-foreground" />
                       </div>
                     )}
                     
@@ -938,7 +938,7 @@ const MediaLibrary: React.FC = () => {
                       <Checkbox
                         checked={selectedItems.includes(item.id)}
                         onCheckedChange={(checked) => handleSelectItem(item.id, !!checked)}
-                        className="bg-slate-900/80 border-slate-600"
+                        className="bg-card/80 border-border"
                       />
                     </div>
                     
@@ -998,7 +998,7 @@ const MediaLibrary: React.FC = () => {
                   {/* Info */}
                   <div className="p-3">
                     <p className="text-sm font-medium truncate">{item.title || item.filename}</p>
-                    <div className="flex items-center justify-between mt-1 text-xs text-slate-400">
+                    <div className="flex items-center justify-between mt-1 text-xs text-muted-foreground">
                       <span>{formatFileSize(item.file_size)}</span>
                       <span>Used {item.times_used}x</span>
                     </div>
@@ -1010,9 +1010,9 @@ const MediaLibrary: React.FC = () => {
 
           {/* Media List View */}
           {!loading && filteredMedia.length > 0 && viewMode === 'list' && (
-            <div className="bg-slate-900 rounded-lg border border-slate-800 overflow-hidden">
+            <div className="bg-card rounded-lg border border-border overflow-hidden">
               <table className="w-full">
-                <thead className="bg-slate-800/50">
+                <thead className="bg-muted/50">
                   <tr>
                     <th className="w-10 p-3">
                       <Checkbox
@@ -1021,11 +1021,11 @@ const MediaLibrary: React.FC = () => {
                       />
                     </th>
                     <th className="w-16 p-3"></th>
-                    <th className="text-left p-3 text-sm font-medium text-slate-400">Name</th>
-                    <th className="text-left p-3 text-sm font-medium text-slate-400">Type</th>
-                    <th className="text-left p-3 text-sm font-medium text-slate-400">Size</th>
-                    <th className="text-left p-3 text-sm font-medium text-slate-400">Used</th>
-                    <th className="text-left p-3 text-sm font-medium text-slate-400">Uploaded</th>
+                    <th className="text-left p-3 text-sm font-medium text-muted-foreground">Name</th>
+                    <th className="text-left p-3 text-sm font-medium text-muted-foreground">Type</th>
+                    <th className="text-left p-3 text-sm font-medium text-muted-foreground">Size</th>
+                    <th className="text-left p-3 text-sm font-medium text-muted-foreground">Used</th>
+                    <th className="text-left p-3 text-sm font-medium text-muted-foreground">Uploaded</th>
                     <th className="w-10 p-3"></th>
                   </tr>
                 </thead>
@@ -1033,7 +1033,7 @@ const MediaLibrary: React.FC = () => {
                   {filteredMedia.map(item => (
                     <tr 
                       key={item.id} 
-                      className="border-t border-slate-800 hover:bg-slate-800/50 cursor-pointer"
+                      className="border-t border-border hover:bg-muted/50 cursor-pointer"
                       onClick={() => openMediaDetail(item)}
                     >
                       <td className="p-3" onClick={(e) => e.stopPropagation()}>
@@ -1043,7 +1043,7 @@ const MediaLibrary: React.FC = () => {
                         />
                       </td>
                       <td className="p-3">
-                        <div className="w-10 h-10 rounded bg-slate-800 overflow-hidden">
+                        <div className="w-10 h-10 rounded bg-muted overflow-hidden">
                           {item.thumbnail_url ? (
                             <img src={item.thumbnail_url} alt="" className="w-full h-full object-cover" />
                           ) : (
@@ -1064,9 +1064,9 @@ const MediaLibrary: React.FC = () => {
                           {item.file_type}
                         </Badge>
                       </td>
-                      <td className="p-3 text-slate-400">{formatFileSize(item.file_size)}</td>
-                      <td className="p-3 text-slate-400">{item.times_used}x</td>
-                      <td className="p-3 text-slate-400">{formatDate(item.uploaded_at)}</td>
+                      <td className="p-3 text-muted-foreground">{formatFileSize(item.file_size)}</td>
+                      <td className="p-3 text-muted-foreground">{item.times_used}x</td>
+                      <td className="p-3 text-muted-foreground">{formatDate(item.uploaded_at)}</td>
                       <td className="p-3" onClick={(e) => e.stopPropagation()}>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -1108,9 +1108,9 @@ const MediaLibrary: React.FC = () => {
 
           {filteredMedia.length === 0 && (
             <div className="text-center py-16">
-              <Image className="w-16 h-16 text-slate-600 mx-auto mb-4" />
+              <Image className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-medium mb-2">No media found</h3>
-              <p className="text-slate-400 mb-4">
+              <p className="text-muted-foreground mb-4">
                 {searchQuery ? 'Try adjusting your search or filters' : 'Upload your first media to get started'}
               </p>
               <Button onClick={() => setUploadModalOpen(true)} className="bg-violet-600 hover:bg-violet-700">
@@ -1124,7 +1124,7 @@ const MediaLibrary: React.FC = () => {
 
       {/* Bulk Actions Bar */}
       {selectedItems.length > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 flex items-center gap-4 shadow-xl z-50">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-muted border border-border rounded-lg px-4 py-3 flex items-center gap-4 shadow-xl z-50">
           <span className="text-sm">{selectedItems.length} items selected</span>
           <div className="flex items-center gap-2">
             <Button size="sm" variant="ghost">
@@ -1148,7 +1148,7 @@ const MediaLibrary: React.FC = () => {
 
       {/* Upload Modal */}
       <Dialog open={uploadModalOpen} onOpenChange={setUploadModalOpen}>
-        <DialogContent className="max-w-2xl bg-slate-900 border-slate-800">
+        <DialogContent className="max-w-2xl bg-card border-border">
           <DialogHeader>
             <DialogTitle>Upload Media</DialogTitle>
           </DialogHeader>
@@ -1175,11 +1175,11 @@ const MediaLibrary: React.FC = () => {
 
       {/* Media Detail Modal */}
       <Dialog open={detailModalOpen} onOpenChange={setDetailModalOpen}>
-        <DialogContent className="max-w-4xl bg-slate-900 border-slate-800 max-h-[90vh] overflow-hidden">
+        <DialogContent className="max-w-4xl bg-card border-border max-h-[90vh] overflow-hidden">
           {selectedMedia && (
             <div className="flex gap-6">
               {/* Preview */}
-              <div className="flex-1 bg-slate-800 rounded-lg overflow-hidden flex items-center justify-center min-h-[400px]">
+              <div className="flex-1 bg-muted rounded-lg overflow-hidden flex items-center justify-center min-h-[400px]">
                 {selectedMedia.file_type === 'image' || selectedMedia.file_type === 'gif' ? (
                   <img
                     src={selectedMedia.storage_url}
@@ -1194,8 +1194,8 @@ const MediaLibrary: React.FC = () => {
                   />
                 ) : (
                   <div className="text-center">
-                    <FileText className="w-20 h-20 text-slate-600 mx-auto mb-4" />
-                    <p className="text-slate-400">{selectedMedia.filename}</p>
+                    <FileText className="w-20 h-20 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-muted-foreground">{selectedMedia.filename}</p>
                   </div>
                 )}
               </div>
@@ -1206,50 +1206,50 @@ const MediaLibrary: React.FC = () => {
                 
                 <div className="space-y-4">
                   {/* File Info */}
-                  <div className="bg-slate-800 rounded-lg p-4 space-y-2">
+                  <div className="bg-muted rounded-lg p-4 space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span className="text-slate-400">Type</span>
+                      <span className="text-muted-foreground">Type</span>
                       <Badge className={getFileTypeBadge(selectedMedia.file_type)}>
                         {selectedMedia.file_type}
                       </Badge>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-slate-400">Size</span>
+                      <span className="text-muted-foreground">Size</span>
                       <span>{formatFileSize(selectedMedia.file_size)}</span>
                     </div>
                     {selectedMedia.width && selectedMedia.height && (
                       <div className="flex justify-between text-sm">
-                        <span className="text-slate-400">Dimensions</span>
+                        <span className="text-muted-foreground">Dimensions</span>
                         <span>{selectedMedia.width} × {selectedMedia.height}</span>
                       </div>
                     )}
                     {selectedMedia.duration && (
                       <div className="flex justify-between text-sm">
-                        <span className="text-slate-400">Duration</span>
+                        <span className="text-muted-foreground">Duration</span>
                         <span>{selectedMedia.duration}s</span>
                       </div>
                     )}
                     <div className="flex justify-between text-sm">
-                      <span className="text-slate-400">Uploaded</span>
+                      <span className="text-muted-foreground">Uploaded</span>
                       <span>{formatDate(selectedMedia.uploaded_at)}</span>
                     </div>
                   </div>
                   
                   {/* Usage Stats */}
-                  <div className="bg-slate-800 rounded-lg p-4 space-y-2">
+                  <div className="bg-muted rounded-lg p-4 space-y-2">
                     <h4 className="font-medium mb-2">Usage & Performance</h4>
                     <div className="flex justify-between text-sm">
-                      <span className="text-slate-400">Times Used</span>
+                      <span className="text-muted-foreground">Times Used</span>
                       <span>{selectedMedia.times_used}</span>
                     </div>
                     {selectedMedia.times_used > 0 && (
                       <>
                         <div className="flex justify-between text-sm">
-                          <span className="text-slate-400">Avg. Engagement</span>
+                          <span className="text-muted-foreground">Avg. Engagement</span>
                           <span>{selectedMedia.avg_engagement_rate}%</span>
                         </div>
                         <div className="flex justify-between text-sm">
-                          <span className="text-slate-400">Total Impressions</span>
+                          <span className="text-muted-foreground">Total Impressions</span>
                           <span>{selectedMedia.total_impressions.toLocaleString()}</span>
                         </div>
                       </>
@@ -1259,10 +1259,10 @@ const MediaLibrary: React.FC = () => {
                   {/* Tags */}
                   {selectedMedia.tags.length > 0 && (
                     <div>
-                      <h4 className="text-sm font-medium text-slate-400 mb-2">Tags</h4>
+                      <h4 className="text-sm font-medium text-muted-foreground mb-2">Tags</h4>
                       <div className="flex flex-wrap gap-1">
                         {selectedMedia.tags.map(tag => (
-                          <Badge key={tag} variant="secondary" className="bg-slate-800">
+                          <Badge key={tag} variant="secondary" className="bg-muted">
                             {tag}
                           </Badge>
                         ))}
@@ -1317,7 +1317,7 @@ const MediaLibrary: React.FC = () => {
 
       {/* Image Editor Modal */}
       <Dialog open={editorModalOpen} onOpenChange={setEditorModalOpen}>
-        <DialogContent className="max-w-5xl bg-slate-900 border-slate-800 max-h-[90vh]">
+        <DialogContent className="max-w-5xl bg-card border-border max-h-[90vh]">
           <DialogHeader>
             <DialogTitle>Edit Image</DialogTitle>
           </DialogHeader>
@@ -1325,7 +1325,7 @@ const MediaLibrary: React.FC = () => {
           {selectedMedia && (
             <div className="flex gap-6">
               {/* Preview */}
-              <div className="flex-1 bg-slate-800 rounded-lg overflow-hidden flex items-center justify-center min-h-[400px]">
+              <div className="flex-1 bg-muted rounded-lg overflow-hidden flex items-center justify-center min-h-[400px]">
                 <img
                   src={selectedMedia.storage_url}
                   alt={selectedMedia.title || selectedMedia.filename}
@@ -1379,7 +1379,7 @@ const MediaLibrary: React.FC = () => {
                   <div className="space-y-4">
                     <div>
                       <div className="flex justify-between text-sm mb-2">
-                        <span className="text-slate-400">Brightness</span>
+                        <span className="text-muted-foreground">Brightness</span>
                         <span>{editorBrightness}</span>
                       </div>
                       <Slider
@@ -1392,7 +1392,7 @@ const MediaLibrary: React.FC = () => {
                     </div>
                     <div>
                       <div className="flex justify-between text-sm mb-2">
-                        <span className="text-slate-400">Contrast</span>
+                        <span className="text-muted-foreground">Contrast</span>
                         <span>{editorContrast}</span>
                       </div>
                       <Slider
@@ -1405,7 +1405,7 @@ const MediaLibrary: React.FC = () => {
                     </div>
                     <div>
                       <div className="flex justify-between text-sm mb-2">
-                        <span className="text-slate-400">Saturation</span>
+                        <span className="text-muted-foreground">Saturation</span>
                         <span>{editorSaturation}</span>
                       </div>
                       <Slider
@@ -1429,7 +1429,7 @@ const MediaLibrary: React.FC = () => {
                         className={`p-2 rounded border text-xs capitalize ${
                           selectedFilter === filter 
                             ? 'border-violet-500 bg-violet-500/20' 
-                            : 'border-slate-700 hover:border-slate-600'
+                            : 'border-border hover:border-border'
                         }`}
                         onClick={() => setSelectedFilter(filter)}
                       >
@@ -1480,7 +1480,7 @@ const MediaLibrary: React.FC = () => {
 
       {/* Create Folder Modal */}
       <Dialog open={folderModalOpen} onOpenChange={setFolderModalOpen}>
-        <DialogContent className="max-w-md bg-slate-900 border-slate-800">
+        <DialogContent className="max-w-md bg-card border-border">
           <DialogHeader>
             <DialogTitle>Create Folder</DialogTitle>
           </DialogHeader>
@@ -1492,7 +1492,7 @@ const MediaLibrary: React.FC = () => {
                 value={folderName}
                 onChange={(e) => setFolderName(e.target.value)}
                 placeholder="e.g., Product Photos"
-                className="mt-1.5 bg-slate-800 border-slate-700"
+                className="mt-1.5 bg-muted border-border"
               />
             </div>
             
@@ -1530,7 +1530,7 @@ const MediaLibrary: React.FC = () => {
 
       {/* Stock Images Modal */}
       <Dialog open={stockModalOpen} onOpenChange={setStockModalOpen}>
-        <DialogContent className="max-w-4xl bg-slate-900 border-slate-800 max-h-[90vh]">
+        <DialogContent className="max-w-4xl bg-card border-border max-h-[90vh]">
           <DialogHeader>
             <DialogTitle>Browse Stock Images</DialogTitle>
           </DialogHeader>
@@ -1538,13 +1538,13 @@ const MediaLibrary: React.FC = () => {
           <div className="space-y-4">
             {/* Search */}
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 placeholder="Search for images (e.g., nature, business, technology)..."
                 value={stockSearchQuery}
                 onChange={(e) => setStockSearchQuery(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && searchStockImages(stockSearchQuery)}
-                className="pl-10 bg-slate-800 border-slate-700"
+                className="pl-10 bg-muted border-border"
               />
               <Button 
                 size="sm"
@@ -1563,7 +1563,7 @@ const MediaLibrary: React.FC = () => {
                   key={cat}
                   size="sm"
                   variant="outline"
-                  className="border-slate-700 hover:bg-slate-800"
+                  className="border-border hover:bg-muted"
                   onClick={() => {
                     setStockSearchQuery(cat);
                     searchStockImages(cat);
@@ -1585,7 +1585,7 @@ const MediaLibrary: React.FC = () => {
                   {stockImages.map(img => (
                     <div
                       key={img.id}
-                      className="relative aspect-[4/3] rounded-lg overflow-hidden border border-slate-700 hover:border-violet-500 transition-colors cursor-pointer group"
+                      className="relative aspect-[4/3] rounded-lg overflow-hidden border border-border hover:border-violet-500 transition-colors cursor-pointer group"
                       onClick={() => handleImportStockImage(img)}
                     >
                       <img
@@ -1603,14 +1603,14 @@ const MediaLibrary: React.FC = () => {
                 </div>
               ) : stockSearchQuery ? (
                 <div className="text-center py-12">
-                  <Image className="w-12 h-12 text-slate-600 mx-auto mb-3" />
-                  <p className="text-slate-400">No images found. Try a different search term.</p>
+                  <Image className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+                  <p className="text-muted-foreground">No images found. Try a different search term.</p>
                 </div>
               ) : (
                 <div className="text-center py-12">
-                  <Camera className="w-12 h-12 text-slate-600 mx-auto mb-3" />
-                  <p className="text-slate-400">Search for stock images to import into your library</p>
-                  <p className="text-slate-500 text-sm mt-1">Try: "nature", "office", "technology"</p>
+                  <Camera className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+                  <p className="text-muted-foreground">Search for stock images to import into your library</p>
+                  <p className="text-muted-foreground text-sm mt-1">Try: "nature", "office", "technology"</p>
                 </div>
               )}
             </div>
