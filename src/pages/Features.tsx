@@ -107,13 +107,14 @@ export default function Features() {
           <div className="max-w-4xl mx-auto">
             <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
               className="text-4xl sm:text-5xl lg:text-[56px] font-black mb-6" style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '2px' }}>
-              Everything You Need to{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#CC0000] to-[#FF1A1A]">Dominate Your Market</span>
+              One Platform From Strategy to{' '}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#CC0000] to-[#FF1A1A]">Finished Ad Creative</span>
             </motion.h1>
             <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }}
               className="text-lg text-[#A0A0A8] max-w-2xl mx-auto mb-10">
-              Korex combines AI strategy, analytics intelligence, and content automation into one powerful platform.
+              Korex researches your market with live data, builds the strategy, writes the copy, and produces the images and video ads — then reports on what worked.
             </motion.p>
+
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.4 }}>
               <Link to="/signup" className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-[#CC0000] to-[#990000] text-white text-lg font-bold rounded-lg hover:scale-105 transition-all shadow-[0_0_30px_rgba(204,0,0,0.3)]">
                 Get Started Free <ArrowRight className="w-5 h-5" />
