@@ -10,8 +10,15 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [failedAttempts, setFailedAttempts] = useState(0);
   const [lockoutUntil, setLockoutUntil] = useState<number | null>(null);
+  const [mfaFactorId, setMfaFactorId] = useState<string | null>(null);
+  const [mfaCode, setMfaCode] = useState('');
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+
+  const finishLogin = () => {
+    const redirect = searchParams.get('redirect') || '/ai-strategist';
+    navigate(redirect);
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,8 +42,20 @@ export default function Login() {
       if (data.session) {
         setFailedAttempts(0);
         await new Promise(resolve => setTimeout(resolve, 500));
-        const redirect = searchParams.get('redirect') || '/ai-strategist';
-        navigate(redirect);
+
+        // If the account has TOTP 2FA enabled, require the second factor.
+        const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+        if (aal?.nextLevel === 'aal2' && aal.nextLevel !== aal.currentLevel) {
+          const { data: factors } = await supabase.auth.mfa.listFactors();
+          const totp = factors?.totp?.[0];
+          if (totp) {
+            setMfaFactorId(totp.id);
+            setLoading(false);
+            return;
+          }
+        }
+
+        finishLogin();
       }
     } catch (error: any) {
       const newAttempts = failedAttempts + 1;
@@ -51,6 +70,27 @@ export default function Login() {
       setLoading(false);
     }
   };
+
+  const handleVerifyMfa = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!mfaFactorId) return;
+    setLoading(true);
+    try {
+      const { data: ch, error: chErr } = await supabase.auth.mfa.challenge({ factorId: mfaFactorId });
+      if (chErr) throw chErr;
+      const { error } = await supabase.auth.mfa.verify({
+        factorId: mfaFactorId,
+        challengeId: ch.id,
+        code: mfaCode.trim(),
+      });
+      if (error) throw error;
+      finishLogin();
+    } catch (error: any) {
+      toast({ title: 'Verification failed', description: 'That code is not valid. Try again.', variant: 'destructive' });
+      setLoading(false);
+    }
+  };
+
 
   return (
     <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-4">
