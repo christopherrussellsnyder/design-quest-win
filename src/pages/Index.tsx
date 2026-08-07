@@ -23,19 +23,6 @@ const AnimatedSection = ({ children, className = '', delay = 0 }: { children: Re
   );
 };
 
-// --- Particle Background ---
-const ParticleField = () => (
-  <div className="absolute inset-0 overflow-hidden pointer-events-none">
-    {Array.from({ length: 30 }).map((_, i) => (
-      <motion.div key={i} className="absolute w-1 h-1 rounded-full bg-[hsl(var(--primary)/0.3)]"
-        style={{ left: `${Math.random() * 100}%`, top: `${Math.random() * 100}%` }}
-        animate={{ y: [0, -200 - Math.random() * 300], opacity: [0, 0.6, 0] }}
-        transition={{ duration: 6 + Math.random() * 6, repeat: Infinity, delay: Math.random() * 5, ease: 'linear' }}
-      />
-    ))}
-  </div>
-);
-
 // --- Data ---
 const painPoints = [
   'Spending 8-12 hours every month planning content',
