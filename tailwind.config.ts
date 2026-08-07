@@ -58,17 +58,23 @@ export default {
           "5": "hsl(var(--chart-5))",
         },
         // Korex extended colors
+        "korex-green": {
+          DEFAULT: "hsl(var(--korex-green))",
+          dark: "hsl(var(--korex-green-dark))",
+          light: "hsl(var(--korex-green-light))",
+        },
+        // Legacy compat aliases
         "korex-red": {
-          DEFAULT: "hsl(var(--korex-red))",
-          dark: "hsl(var(--korex-red-dark))",
-          light: "hsl(var(--korex-red-light))",
+          DEFAULT: "hsl(var(--korex-green))",
+          dark: "hsl(var(--korex-green-dark))",
+          light: "hsl(var(--korex-green-light))",
         },
-        // Legacy compat alias
         "arasaka-red": {
-          DEFAULT: "hsl(var(--korex-red))",
-          dark: "hsl(var(--korex-red-dark))",
-          light: "hsl(var(--korex-red-light))",
+          DEFAULT: "hsl(var(--korex-green))",
+          dark: "hsl(var(--korex-green-dark))",
+          light: "hsl(var(--korex-green-light))",
         },
+
         "surface": {
           primary: "hsl(var(--bg-primary))",
           secondary: "hsl(var(--bg-secondary))",

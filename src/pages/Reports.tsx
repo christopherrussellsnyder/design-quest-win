@@ -107,12 +107,12 @@ export default function ReportsPage() {
     return (
       <div className="min-h-screen bg-background p-8">
         <div className="max-w-2xl mx-auto text-center space-y-4 pt-20">
-          <Lock className="h-12 w-12 mx-auto text-[#CC0000]" />
+          <Lock className="h-12 w-12 mx-auto text-primary" />
           <h1 className="text-3xl font-bold">Reports are an Agency feature</h1>
           <p className="text-muted-foreground">Generate white-labeled client reports with your logo, colors, and a shareable public link.</p>
           <div className="flex gap-3 justify-center">
             <Button variant="outline" onClick={() => navigate('/ai-strategist')}>Back</Button>
-            <Button className="bg-[#CC0000] hover:bg-[#A30000]" onClick={() => navigate('/pricing')}>Upgrade to Agency</Button>
+            <Button className="bg-primary hover:bg-[hsl(var(--primary-dark))]" onClick={() => navigate('/pricing')}>Upgrade to Agency</Button>
           </div>
         </div>
       </div>
@@ -129,7 +129,7 @@ export default function ReportsPage() {
             <p className="text-xs text-muted-foreground">Workspace: {activeWorkspace?.name ?? '—'}</p>
           </div>
         </div>
-        <Button onClick={() => setDialogOpen(true)} className="bg-[#CC0000] hover:bg-[#A30000]"><Plus className="h-4 w-4 mr-2" /> New report</Button>
+        <Button onClick={() => setDialogOpen(true)} className="bg-primary hover:bg-[hsl(var(--primary-dark))]"><Plus className="h-4 w-4 mr-2" /> New report</Button>
       </header>
 
       <main className="max-w-5xl mx-auto p-6 space-y-4">
@@ -141,7 +141,7 @@ export default function ReportsPage() {
               <FileText className="h-10 w-10 mx-auto text-muted-foreground" />
               <h3 className="text-lg font-semibold">No reports yet</h3>
               <p className="text-sm text-muted-foreground">Generate your first branded client report to share performance highlights.</p>
-              <Button onClick={() => setDialogOpen(true)} className="bg-[#CC0000] hover:bg-[#A30000]"><Plus className="h-4 w-4 mr-2" /> New report</Button>
+              <Button onClick={() => setDialogOpen(true)} className="bg-primary hover:bg-[hsl(var(--primary-dark))]"><Plus className="h-4 w-4 mr-2" /> New report</Button>
             </CardContent>
           </Card>
         ) : (
@@ -154,7 +154,7 @@ export default function ReportsPage() {
                     <CardDescription>{r.period_start} → {r.period_end} · {r.view_count} views</CardDescription>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge variant={r.is_public ? 'default' : 'outline'} className={r.is_public ? 'bg-[#CC0000]' : ''}>
+                    <Badge variant={r.is_public ? 'default' : 'outline'} className={r.is_public ? 'bg-primary' : ''}>
                       {r.is_public ? 'Public' : 'Private'}
                     </Badge>
                     <Switch checked={r.is_public} onCheckedChange={() => togglePublic(r)} />
@@ -201,7 +201,7 @@ export default function ReportsPage() {
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setDialogOpen(false)}>Cancel</Button>
-            <Button onClick={generate} disabled={generating} className="bg-[#CC0000] hover:bg-[#A30000]">
+            <Button onClick={generate} disabled={generating} className="bg-primary hover:bg-[hsl(var(--primary-dark))]">
               {generating ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Generating…</> : 'Generate report'}
             </Button>
           </DialogFooter>

@@ -12,83 +12,159 @@
     --font-mono: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', 'Dank Mono', 'Source Code Pro', monospace;
   }
 
-  :root,
-  .dark {
-    /* Korex Intelligence Systems Theme */
-    --background: 240 6% 4%;
-    --foreground: 0 0% 100%;
+  /* ===== LIGHT MODE (default) — white surfaces, deep green accent ===== */
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 165 25% 11%;
 
-    --card: 228 7% 10%;
-    --card-foreground: 0 0% 100%;
+    --card: 0 0% 100%;
+    --card-foreground: 165 25% 11%;
 
-    --popover: 225 6% 15%;
-    --popover-foreground: 0 0% 100%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 165 25% 11%;
 
-    --primary: 0 100% 40%;
+    --primary: 160 84% 27%;
     --primary-foreground: 0 0% 100%;
+    --primary-dark: 162 88% 20%;
+    --primary-light: 158 64% 42%;
 
-    --secondary: 228 7% 10%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 152 30% 96%;
+    --secondary-foreground: 165 25% 11%;
 
-    --muted: 225 5% 13%;
-    --muted-foreground: 240 3% 65%;
+    --muted: 150 24% 97%;
+    --muted-foreground: 170 8% 42%;
 
-    --accent: 225 6% 15%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 152 40% 94%;
+    --accent-foreground: 162 88% 20%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 72% 45%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 225 4% 18%;
-    --input: 225 5% 22%;
-    --ring: 0 100% 40%;
+    --border: 155 14% 89%;
+    --input: 155 14% 86%;
+    --ring: 160 84% 27%;
 
     /* Extended Korex palette */
-    --korex-red: 0 100% 40%;
-    --korex-red-dark: 0 100% 30%;
-    --korex-red-light: 0 100% 55%;
-    --bg-primary: 240 6% 4%;
-    --bg-secondary: 228 7% 10%;
-    --bg-tertiary: 225 5% 13%;
-    --bg-elevated: 225 6% 15%;
-    --border-subtle: 225 4% 18%;
-    --border-medium: 225 3% 24%;
-    --border-focus: 0 100% 40%;
-    --text-primary: 0 0% 100%;
-    --text-secondary: 240 3% 65%;
-    --text-tertiary: 240 2% 44%;
-    --accent-gold: 43 72% 52%;
-    --accent-success: 160 84% 39%;
-    --accent-warning: 38 92% 50%;
-    --accent-error: 0 84% 60%;
+    --korex-green: 160 84% 27%;
+    --korex-green-dark: 162 88% 20%;
+    --korex-green-light: 158 64% 42%;
+    --bg-primary: 0 0% 100%;
+    --bg-secondary: 150 24% 97%;
+    --bg-tertiary: 152 30% 95%;
+    --bg-elevated: 0 0% 100%;
+    --border-subtle: 155 14% 90%;
+    --border-medium: 155 12% 82%;
+    --border-focus: 160 84% 27%;
+    --text-primary: 165 25% 11%;
+    --text-secondary: 170 8% 42%;
+    --text-tertiary: 170 7% 55%;
+    --accent-gold: 38 70% 45%;
+    --accent-success: 160 84% 30%;
+    --accent-warning: 32 90% 44%;
+    --accent-error: 0 72% 45%;
 
     /* Chart colors */
-    --chart-1: 0 100% 40%;
-    --chart-2: 160 84% 39%;
-    --chart-3: 43 72% 52%;
-    --chart-4: 38 92% 50%;
-    --chart-5: 0 100% 55%;
+    --chart-1: 160 84% 27%;
+    --chart-2: 175 60% 35%;
+    --chart-3: 38 70% 45%;
+    --chart-4: 200 55% 40%;
+    --chart-5: 158 64% 42%;
 
     /* Legacy compat */
-    --violet: 0 100% 40%;
-    --fuchsia: 0 100% 55%;
-    --cyan: 160 84% 39%;
-    --emerald: 160 84% 39%;
-    --amber: 43 72% 52%;
-    --rose: 0 100% 40%;
+    --violet: 160 84% 27%;
+    --fuchsia: 158 64% 42%;
+    --cyan: 175 60% 35%;
+    --emerald: 160 84% 27%;
+    --amber: 38 70% 45%;
+    --rose: 0 72% 45%;
 
     /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(0 100% 40%), hsl(0 100% 30%));
-    --gradient-surface: linear-gradient(135deg, hsl(228 7% 10%), hsl(225 5% 13%));
-    --gradient-card: linear-gradient(135deg, hsl(228 7% 10% / 0.5), hsl(225 5% 13% / 0.5));
+    --gradient-primary: linear-gradient(135deg, hsl(160 84% 27%), hsl(162 88% 20%));
+    --gradient-surface: linear-gradient(135deg, hsl(0 0% 100%), hsl(150 24% 97%));
+    --gradient-card: linear-gradient(135deg, hsl(0 0% 100% / 0.9), hsl(150 24% 97% / 0.9));
 
     /* Shadows */
+    --shadow-sm: 0 1px 2px 0 hsl(165 25% 11% / 0.06);
+    --shadow-md: 0 4px 6px -1px hsl(165 25% 11% / 0.08), 0 2px 4px -1px hsl(165 25% 11% / 0.05);
+    --shadow-lg: 0 10px 15px -3px hsl(165 25% 11% / 0.09), 0 4px 6px -2px hsl(165 25% 11% / 0.05);
+    --shadow-xl: 0 20px 25px -5px hsl(165 25% 11% / 0.1), 0 10px 10px -5px hsl(165 25% 11% / 0.05);
+    --shadow-glow: 0 0 24px hsl(160 84% 27% / 0.18);
+  }
+
+  /* ===== DARK MODE ===== */
+  .dark {
+    --background: 168 14% 6%;
+    --foreground: 150 12% 95%;
+
+    --card: 168 12% 10%;
+    --card-foreground: 150 12% 95%;
+
+    --popover: 168 12% 12%;
+    --popover-foreground: 150 12% 95%;
+
+    --primary: 158 64% 42%;
+    --primary-foreground: 168 30% 6%;
+    --primary-dark: 160 70% 30%;
+    --primary-light: 156 60% 56%;
+
+    --secondary: 168 12% 13%;
+    --secondary-foreground: 150 12% 95%;
+
+    --muted: 168 12% 9%;
+    --muted-foreground: 155 8% 64%;
+
+    --accent: 168 14% 15%;
+    --accent-foreground: 150 12% 95%;
+
+    --destructive: 0 72% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 168 10% 18%;
+    --input: 168 10% 22%;
+    --ring: 158 64% 42%;
+
+    --korex-green: 158 64% 42%;
+    --korex-green-dark: 160 70% 30%;
+    --korex-green-light: 156 60% 56%;
+    --bg-primary: 168 14% 6%;
+    --bg-secondary: 168 12% 9%;
+    --bg-tertiary: 168 12% 13%;
+    --bg-elevated: 168 12% 15%;
+    --border-subtle: 168 10% 18%;
+    --border-medium: 168 8% 26%;
+    --border-focus: 158 64% 42%;
+    --text-primary: 150 12% 95%;
+    --text-secondary: 155 8% 64%;
+    --text-tertiary: 155 6% 48%;
+    --accent-gold: 43 72% 52%;
+    --accent-success: 158 64% 42%;
+    --accent-warning: 38 92% 50%;
+    --accent-error: 0 72% 55%;
+
+    --chart-1: 158 64% 42%;
+    --chart-2: 175 55% 45%;
+    --chart-3: 43 72% 52%;
+    --chart-4: 200 60% 50%;
+    --chart-5: 156 60% 56%;
+
+    --violet: 158 64% 42%;
+    --fuchsia: 156 60% 56%;
+    --cyan: 175 55% 45%;
+    --emerald: 158 64% 42%;
+    --amber: 43 72% 52%;
+    --rose: 0 72% 55%;
+
+    --gradient-primary: linear-gradient(135deg, hsl(158 64% 42%), hsl(160 70% 30%));
+    --gradient-surface: linear-gradient(135deg, hsl(168 12% 10%), hsl(168 12% 13%));
+    --gradient-card: linear-gradient(135deg, hsl(168 12% 10% / 0.5), hsl(168 12% 13% / 0.5));
+
     --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
     --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
     --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.4);
     --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.4);
-    --shadow-glow: 0 0 20px rgba(204, 0, 0, 0.3);
+    --shadow-glow: 0 0 24px hsl(158 64% 42% / 0.25);
   }
+
 
   * {
     @apply border-border;
@@ -142,6 +218,13 @@
     line-height: 1.4;
   }
 
+  h1 span, h2 span, h3 span, h4 span {
+    font-size: inherit;
+    font-weight: inherit;
+    line-height: inherit;
+    letter-spacing: inherit;
+  }
+
   p, span, div {
     font-size: 14px;
     font-weight: 400;
@@ -179,7 +262,7 @@
     border-radius: 4px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--korex-red));
+    background: hsl(var(--primary));
   }
 }
 
@@ -206,9 +289,9 @@
 
   /* Card glass effect */
   .card-glass {
-    background: rgba(22, 23, 26, 0.6);
+    background: hsl(var(--card) / 0.75);
     backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid hsl(var(--border));
     box-shadow: var(--shadow-xl);
   }
 
@@ -233,7 +316,7 @@
 
   /* Animated gradient background */
   .animated-gradient {
-    background: linear-gradient(-45deg, hsl(0 100% 30%), hsl(0 100% 40%), hsl(0 100% 55%), hsl(0 100% 40%));
+    background: linear-gradient(-45deg, hsl(var(--primary-dark)), hsl(var(--primary)), hsl(var(--primary-light)), hsl(var(--primary)));
     background-size: 400% 400%;
     animation: gradientShift 15s ease infinite;
   }
@@ -248,7 +331,7 @@
   /* Spinner */
   .korex-spinner {
     border: 3px solid hsl(var(--bg-tertiary));
-    border-top: 3px solid hsl(var(--korex-red));
+    border-top: 3px solid hsl(var(--primary));
     border-radius: 50%;
     width: 24px;
     height: 24px;
@@ -258,7 +341,7 @@
   /* Legacy compat */
   .arasaka-spinner {
     border: 3px solid hsl(var(--bg-tertiary));
-    border-top: 3px solid hsl(var(--korex-red));
+    border-top: 3px solid hsl(var(--primary));
     border-radius: 50%;
     width: 24px;
     height: 24px;

@@ -68,7 +68,7 @@ export function WorkspacesSection() {
                 {workspaces.length} of {limitLabel} used
               </CardDescription>
             </div>
-            <Badge variant="outline" className="border-[#CC0000] text-[#CC0000]">
+            <Badge variant="outline" className="border-primary text-primary">
               {isAgency ? 'Agency plan' : subscribed ? 'Pro plan' : 'Starter plan'}
             </Badge>
           </div>
@@ -81,10 +81,10 @@ export function WorkspacesSection() {
               <div
                 key={w.id}
                 className={`flex items-center gap-3 p-3 rounded-lg border transition-colors ${
-                  isActive ? 'border-[#CC0000] bg-[#CC0000]/5' : 'border-border bg-background/50'
+                  isActive ? 'border-primary bg-[hsl(var(--primary)/0.05)]' : 'border-border bg-background/50'
                 }`}
               >
-                <Building2 className={`h-5 w-5 ${isActive ? 'text-[#CC0000]' : 'text-muted-foreground'}`} />
+                <Building2 className={`h-5 w-5 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
                 {isEditing ? (
                   <Input
                     value={editName}
@@ -104,7 +104,7 @@ export function WorkspacesSection() {
                         <Star className="h-3 w-3" /> Default
                       </Badge>
                     )}
-                    {isActive && <Badge className="text-xs bg-[#CC0000]">Active</Badge>}
+                    {isActive && <Badge className="text-xs bg-primary">Active</Badge>}
                   </div>
                 )}
 
@@ -153,7 +153,7 @@ export function WorkspacesSection() {
       <Card className="bg-card border-border">
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
-            <Plus className="h-4 w-4 text-[#CC0000]" /> Add a workspace
+            <Plus className="h-4 w-4 text-primary" /> Add a workspace
           </CardTitle>
           <CardDescription>
             {canCreateMore
@@ -175,13 +175,13 @@ export function WorkspacesSection() {
               <Button
                 onClick={handleCreate}
                 disabled={creating || !newName.trim()}
-                className="bg-[#CC0000] hover:bg-[#A30000]"
+                className="bg-primary hover:bg-[hsl(var(--primary-dark))]"
               >
                 {creating ? 'Creating…' : 'Create'}
               </Button>
             </div>
           ) : (
-            <Button onClick={() => navigate('/pricing')} className="bg-[#CC0000] hover:bg-[#A30000]">
+            <Button onClick={() => navigate('/pricing')} className="bg-primary hover:bg-[hsl(var(--primary-dark))]">
               <Lock className="h-4 w-4 mr-2" /> Upgrade to Agency
             </Button>
           )}

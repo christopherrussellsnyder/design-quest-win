@@ -87,8 +87,8 @@ export default function AdminMessages() {
 
   if (authLoading || checking) {
     return (
-      <div className="min-h-screen bg-[#060606] flex items-center justify-center">
-        <Loader2 className="w-6 h-6 animate-spin text-[#CC0000]" />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-6 h-6 animate-spin text-primary" />
       </div>
     );
   }
@@ -100,10 +100,10 @@ export default function AdminMessages() {
   return (
     <>
       <Helmet><title>Admin — Contact Messages | Korex</title></Helmet>
-      <div className="min-h-screen bg-[#060606] text-[#EEEEEE]">
-        <div className="border-b border-[#2A2B2E] px-6 py-4 flex items-center justify-between">
+      <div className="min-h-screen bg-background text-foreground">
+        <div className="border-b border-border px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link to="/ai-strategist" className="text-[#A0A0A8] hover:text-white flex items-center gap-2 text-sm">
+            <Link to="/ai-strategist" className="text-muted-foreground hover:text-foreground flex items-center gap-2 text-sm">
               <ArrowLeft className="w-4 h-4" /> Back
             </Link>
             <h1 className="text-lg font-bold">Contact Messages</h1>
@@ -112,7 +112,7 @@ export default function AdminMessages() {
             {(['all', 'new', 'replied'] as const).map((f) => (
               <button key={f} onClick={() => setFilter(f)}
                 className={`px-3 py-1.5 rounded-md border transition ${
-                  filter === f ? 'bg-[#CC0000] border-[#CC0000] text-white' : 'border-[#2A2B2E] text-[#A0A0A8] hover:text-white'
+                  filter === f ? 'bg-primary border-primary text-white' : 'border-border text-muted-foreground hover:text-foreground'
                 }`}>
                 {f[0].toUpperCase() + f.slice(1)}
               </button>
@@ -122,31 +122,31 @@ export default function AdminMessages() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 min-h-[calc(100vh-65px)]">
           {/* List */}
-          <div className="border-r border-[#2A2B2E] overflow-y-auto max-h-[calc(100vh-65px)]">
+          <div className="border-r border-border overflow-y-auto max-h-[calc(100vh-65px)]">
             {filtered.length === 0 && (
-              <div className="p-8 text-center text-[#6B6B73] text-sm">No messages.</div>
+              <div className="p-8 text-center text-[hsl(var(--text-tertiary))] text-sm">No messages.</div>
             )}
             {filtered.map((s) => (
               <button key={s.id} onClick={() => openReply(s)}
-                className={`w-full text-left p-5 border-b border-[#2A2B2E] hover:bg-[#16171A] transition ${
-                  selected?.id === s.id ? 'bg-[#16171A]' : ''
+                className={`w-full text-left p-5 border-b border-border hover:bg-card transition ${
+                  selected?.id === s.id ? 'bg-card' : ''
                 }`}>
                 <div className="flex items-start justify-between gap-3 mb-2">
                   <div className="min-w-0 flex-1">
                     <div className="font-semibold text-sm truncate">{s.name}</div>
-                    <div className="text-xs text-[#6B6B73] truncate">{s.email}</div>
+                    <div className="text-xs text-[hsl(var(--text-tertiary))] truncate">{s.email}</div>
                   </div>
                   {s.status === 'replied' ? (
                     <span className="text-[10px] flex items-center gap-1 px-2 py-1 rounded bg-green-500/10 text-green-500 shrink-0">
                       <CheckCircle2 className="w-3 h-3" /> Replied
                     </span>
                   ) : (
-                    <span className="text-[10px] px-2 py-1 rounded bg-[#CC0000]/10 text-[#CC0000] shrink-0">New</span>
+                    <span className="text-[10px] px-2 py-1 rounded bg-[hsl(var(--primary)/0.1)] text-primary shrink-0">New</span>
                   )}
                 </div>
-                <div className="text-xs font-medium text-[#A0A0A8] mb-1">{s.subject}</div>
-                <div className="text-xs text-[#6B6B73] line-clamp-2">{s.message}</div>
-                <div className="text-[10px] text-[#4A4A52] mt-2">{new Date(s.created_at).toLocaleString()}</div>
+                <div className="text-xs font-medium text-muted-foreground mb-1">{s.subject}</div>
+                <div className="text-xs text-[hsl(var(--text-tertiary))] line-clamp-2">{s.message}</div>
+                <div className="text-[10px] text-[hsl(var(--text-tertiary))] mt-2">{new Date(s.created_at).toLocaleString()}</div>
               </button>
             ))}
           </div>
@@ -154,22 +154,22 @@ export default function AdminMessages() {
           {/* Detail / Reply */}
           <div className="p-6 overflow-y-auto max-h-[calc(100vh-65px)]">
             {!selected ? (
-              <div className="h-full flex flex-col items-center justify-center text-[#6B6B73]">
+              <div className="h-full flex flex-col items-center justify-center text-[hsl(var(--text-tertiary))]">
                 <Mail className="w-10 h-10 mb-3" />
                 <p className="text-sm">Select a message to reply.</p>
               </div>
             ) : (
               <div className="space-y-5 max-w-2xl">
-                <div className="bg-[#16171A] border border-[#2A2B2E] rounded-xl p-5">
+                <div className="bg-card border border-border rounded-xl p-5">
                   <div className="flex items-center justify-between mb-3">
                     <div>
                       <div className="font-bold">{selected.name}</div>
-                      <a href={`mailto:${selected.email}`} className="text-xs text-[#CC0000]">{selected.email}</a>
+                      <a href={`mailto:${selected.email}`} className="text-xs text-primary">{selected.email}</a>
                     </div>
-                    <div className="text-xs text-[#6B6B73]">{new Date(selected.created_at).toLocaleString()}</div>
+                    <div className="text-xs text-[hsl(var(--text-tertiary))]">{new Date(selected.created_at).toLocaleString()}</div>
                   </div>
-                  <div className="text-sm font-medium text-[#A0A0A8] mb-2">{selected.subject}</div>
-                  <div className="text-sm text-[#EEEEEE] whitespace-pre-wrap">{selected.message}</div>
+                  <div className="text-sm font-medium text-muted-foreground mb-2">{selected.subject}</div>
+                  <div className="text-sm text-foreground whitespace-pre-wrap">{selected.message}</div>
                 </div>
 
                 {selected.status === 'replied' && selected.reply_body && (
@@ -177,27 +177,27 @@ export default function AdminMessages() {
                     <div className="text-xs text-green-500 font-semibold mb-2 flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4" /> Replied {selected.replied_at ? new Date(selected.replied_at).toLocaleString() : ''}
                     </div>
-                    <div className="text-sm text-[#EEEEEE] whitespace-pre-wrap">{selected.reply_body}</div>
+                    <div className="text-sm text-foreground whitespace-pre-wrap">{selected.reply_body}</div>
                   </div>
                 )}
 
                 <div>
-                  <label className="block text-xs font-medium text-[#A0A0A8] mb-2">Subject</label>
+                  <label className="block text-xs font-medium text-muted-foreground mb-2">Subject</label>
                   <input value={subjectOverride} onChange={(e) => setSubjectOverride(e.target.value)}
-                    className="w-full bg-[#0A0A0A] border border-[#2A2B2E] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#CC0000]" />
+                    className="w-full bg-muted border border-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-primary" />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-[#A0A0A8] mb-2">
+                  <label className="block text-xs font-medium text-muted-foreground mb-2">
                     {selected.status === 'replied' ? 'Send another reply' : 'Reply'}
                   </label>
                   <textarea value={reply} onChange={(e) => setReply(e.target.value)} rows={10} maxLength={10000}
-                    className="w-full bg-[#0A0A0A] border border-[#2A2B2E] rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-[#CC0000] resize-y font-mono" />
-                  <div className="text-[10px] text-[#4A4A52] mt-1">Sent from korexintelligencesystems@gmail.com</div>
+                    className="w-full bg-muted border border-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-primary resize-y font-mono" />
+                  <div className="text-[10px] text-[hsl(var(--text-tertiary))] mt-1">Sent from korexintelligencesystems@gmail.com</div>
                 </div>
 
                 <button onClick={sendReply} disabled={sending || !reply.trim()}
-                  className="w-full py-3 bg-gradient-to-r from-[#CC0000] to-[#990000] text-white font-bold rounded-lg hover:shadow-[0_0_20px_rgba(204,0,0,0.3)] transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+                  className="w-full py-3 bg-gradient-to-r from-primary to-[hsl(var(--primary-dark))] text-white font-bold rounded-lg hover:shadow-[0_0_20px_hsl(var(--primary) / 0.3)] transition-all disabled:opacity-50 flex items-center justify-center gap-2">
                   {sending ? <><Loader2 className="w-4 h-4 animate-spin" /> Sending…</> : <><Send className="w-4 h-4" /> Send Reply</>}
                 </button>
               </div>

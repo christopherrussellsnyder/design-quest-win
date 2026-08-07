@@ -12,6 +12,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Conversation } from '@/pages/AIStrategist';
 import { UserProfileMenu } from '@/components/strategist/UserProfileMenu';
+import { KorexMark } from '@/components/branding/KorexMark';
 
 interface ConversationSidebarProps {
   conversations: Conversation[];
@@ -66,7 +67,7 @@ export function ConversationSidebar({
               <div className="relative">
                 <div className="absolute inset-0 rounded-lg bg-primary/20 blur-md scale-125" />
                 <div className="relative p-1.5 rounded-lg bg-secondary/80 border border-primary/20">
-                  <img src="/korex-icon.png" alt="Korex" className="w-6 h-6" />
+                  <KorexMark className="w-6 h-6" />
                 </div>
               </div>
               <div>

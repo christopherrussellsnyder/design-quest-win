@@ -52,8 +52,8 @@ export function BrandKitSection() {
         (data as any) ?? {
           workspace_id: activeWorkspace.id,
           logo_url: null,
-          primary_color: '#CC0000',
-          accent_color: '#0F1013',
+          primary_color: 'hsl(var(--primary))',
+          accent_color: 'hsl(var(--muted))',
           company_name: activeWorkspace.name,
           tagline: null,
           contact_email: null,
@@ -103,12 +103,12 @@ export function BrandKitSection() {
         </div>
         <Card className="bg-card border-border">
           <CardContent className="p-8 text-center space-y-4">
-            <Lock className="h-10 w-10 mx-auto text-[#CC0000]" />
+            <Lock className="h-10 w-10 mx-auto text-primary" />
             <div>
               <h3 className="text-lg font-semibold">Agency-tier feature</h3>
               <p className="text-sm text-muted-foreground">Upgrade to Agency to brand your client reports.</p>
             </div>
-            <Button onClick={() => navigate('/pricing')} className="bg-[#CC0000] hover:bg-[#A30000]">Upgrade to Agency</Button>
+            <Button onClick={() => navigate('/pricing')} className="bg-primary hover:bg-[hsl(var(--primary-dark))]">Upgrade to Agency</Button>
           </CardContent>
         </Card>
       </div>
@@ -130,7 +130,7 @@ export function BrandKitSection() {
 
       <Card className="bg-card border-border">
         <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2"><Palette className="h-4 w-4 text-[#CC0000]" /> Identity</CardTitle>
+          <CardTitle className="text-base flex items-center gap-2"><Palette className="h-4 w-4 text-primary" /> Identity</CardTitle>
           <CardDescription>Logo, colors, and company info shown on reports.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -138,7 +138,7 @@ export function BrandKitSection() {
             {kit.logo_url ? (
               <img src={kit.logo_url} alt="Logo" className="h-16 w-auto object-contain bg-white rounded p-2" />
             ) : (
-              <div className="h-16 w-16 rounded bg-[#0F1013] border border-[#2A2B30] flex items-center justify-center text-xs text-muted-foreground">No logo</div>
+              <div className="h-16 w-16 rounded bg-muted border border-border flex items-center justify-center text-xs text-muted-foreground">No logo</div>
             )}
             <div>
               <input
@@ -196,7 +196,7 @@ export function BrandKitSection() {
             <Textarea id="footer" rows={2} value={kit.footer_note ?? ''} onChange={(e) => setKit({ ...kit, footer_note: e.target.value })} placeholder="Prepared by …" />
           </div>
 
-          <Button onClick={save} disabled={saving} className="bg-[#CC0000] hover:bg-[#A30000]">
+          <Button onClick={save} disabled={saving} className="bg-primary hover:bg-[hsl(var(--primary-dark))]">
             <Save className="h-4 w-4 mr-2" /> {saving ? 'Saving…' : 'Save brand kit'}
           </Button>
         </CardContent>

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Settings, User, HelpCircle, LogOut, CreditCard, ChevronUp, BarChart3, FileText, Image, Sparkles, Clapperboard } from 'lucide-react';
+import { Settings, User, HelpCircle, LogOut, CreditCard, ChevronUp, BarChart3, FileText, Image, Sparkles, Clapperboard, Sun, Moon } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
@@ -23,9 +24,11 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { supabase } from '@/integrations/supabase/client';
+import { KorexMark } from '@/components/branding/KorexMark';
 
 export function UserProfileMenu() {
   const { user, loading, signOut } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const { planLabel, subscribed, tier } = useSubscription();
   const navigate = useNavigate();
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
@@ -57,7 +60,7 @@ export function UserProfileMenu() {
 
   const badgeColor = subscribed
     ? 'bg-green-500/20 text-green-400'
-    : 'bg-[#3A3B3E] text-[#6B6B73]';
+    : 'bg-border text-[hsl(var(--text-tertiary))]';
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -99,10 +102,10 @@ export function UserProfileMenu() {
                 <img
                   src={avatarUrl}
                   alt={fullName}
-                  className="w-10 h-10 rounded-full object-cover border-2 border-transparent group-hover:border-primary/30 transition-all duration-200 group-hover:shadow-[0_0_12px_rgba(204,0,0,0.3)]"
+                  className="w-10 h-10 rounded-full object-cover border-2 border-transparent group-hover:border-primary/30 transition-all duration-200 group-hover:shadow-[0_0_12px_hsl(var(--primary) / 0.3)]"
                 />
               ) : (
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground text-sm font-bold tracking-wider border-2 border-transparent group-hover:border-primary/30 transition-all duration-200 group-hover:shadow-[0_0_12px_rgba(204,0,0,0.3)]">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground text-sm font-bold tracking-wider border-2 border-transparent group-hover:border-primary/30 transition-all duration-200 group-hover:shadow-[0_0_12px_hsl(var(--primary) / 0.3)]">
                   {initials}
                 </div>
               )}
@@ -130,7 +133,7 @@ export function UserProfileMenu() {
         >
           {/* Header */}
           <div className="flex items-center gap-3 px-3 py-3 border-b border-[hsl(var(--border-subtle))] mb-1">
-            <img src="/korex-icon.png" alt="Korex" className="w-6 h-6" />
+            <KorexMark className="w-6 h-6" />
             <div className="min-w-0">
               <p className="text-sm font-semibold text-foreground truncate">{fullName}</p>
               <p className="text-xs text-muted-foreground truncate">{email}</p>
@@ -179,6 +182,27 @@ export function UserProfileMenu() {
           </DropdownMenuItem>
 
           <DropdownMenuSeparator className="bg-[hsl(var(--border-subtle))]" />
+
+          <DropdownMenuItem
+            className="flex items-center gap-3 px-3 py-2.5 cursor-pointer rounded-md hover:bg-surface-tertiary focus:bg-surface-tertiary transition-colors"
+            onSelect={(e) => {
+              e.preventDefault();
+              toggleTheme();
+            }}
+          >
+            {theme === 'dark' ? (
+              <Sun className="w-4 h-4 text-muted-foreground" />
+            ) : (
+              <Moon className="w-4 h-4 text-muted-foreground" />
+            )}
+            <span className="text-sm">{theme === 'dark' ? 'Light mode' : 'Dark mode'}</span>
+            <span className="ml-auto text-[10px] uppercase tracking-wider text-muted-foreground">
+              {theme}
+            </span>
+          </DropdownMenuItem>
+
+          <DropdownMenuSeparator className="bg-[hsl(var(--border-subtle))]" />
+
 
           <DropdownMenuItem
             className="flex items-center gap-3 px-3 py-2.5 cursor-pointer rounded-md hover:bg-surface-tertiary focus:bg-surface-tertiary transition-colors"

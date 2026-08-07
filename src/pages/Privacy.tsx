@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
+import { KorexMark } from '@/components/branding/KorexMark';
 
 const Privacy: React.FC = () => {
   return (
@@ -19,7 +20,7 @@ const Privacy: React.FC = () => {
           <div className="max-w-[800px] mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16">
               <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-                <img src="/korex-icon.png" alt="Korex" className="w-8 h-8" />
+                <KorexMark className="w-8 h-8" />
                 <span className="text-xl font-bold text-foreground">Korex</span>
               </Link>
               <nav className="flex items-center gap-4">

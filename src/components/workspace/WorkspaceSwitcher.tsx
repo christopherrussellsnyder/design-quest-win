@@ -63,46 +63,46 @@ export function WorkspaceSwitcher({ compact = false, className = '' }: Props) {
         <DropdownMenuTrigger asChild>
           <Button
             variant="ghost"
-            className={`h-9 gap-2 px-3 border border-[#2A2B30] bg-[#0F1013] hover:bg-[#16171A] text-white ${className}`}
+            className={`h-9 gap-2 px-3 border border-border bg-muted hover:bg-card text-white ${className}`}
           >
-            <Building2 className="h-4 w-4 text-[#CC0000]" />
+            <Building2 className="h-4 w-4 text-primary" />
             {!compact && (
               <span className="text-sm font-medium truncate max-w-[160px]">
                 {activeWorkspace.name}
               </span>
             )}
-            <ChevronDown className="h-3.5 w-3.5 text-[#A0A0A8]" />
+            <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-64 bg-[#0F1013] border-[#2A2B30]">
-          <DropdownMenuLabel className="text-xs text-[#A0A0A8] uppercase tracking-wider">
+        <DropdownMenuContent align="start" className="w-64 bg-muted border-border">
+          <DropdownMenuLabel className="text-xs text-muted-foreground uppercase tracking-wider">
             Your Workspaces ({workspaces.length}/{workspaceLimit === 999 ? '∞' : workspaceLimit})
           </DropdownMenuLabel>
-          <DropdownMenuSeparator className="bg-[#2A2B30]" />
+          <DropdownMenuSeparator className="bg-border" />
           {workspaces.map((w) => (
             <DropdownMenuItem
               key={w.id}
               onClick={() => switchWorkspace(w.id)}
-              className="cursor-pointer text-white hover:bg-[#16171A] focus:bg-[#16171A]"
+              className="cursor-pointer text-white hover:bg-card focus:bg-card"
             >
-              <Building2 className="h-4 w-4 mr-2 text-[#A0A0A8]" />
+              <Building2 className="h-4 w-4 mr-2 text-muted-foreground" />
               <span className="flex-1 truncate">{w.name}</span>
-              {w.id === activeWorkspace.id && <Check className="h-4 w-4 text-[#CC0000]" />}
+              {w.id === activeWorkspace.id && <Check className="h-4 w-4 text-primary" />}
             </DropdownMenuItem>
           ))}
-          <DropdownMenuSeparator className="bg-[#2A2B30]" />
+          <DropdownMenuSeparator className="bg-border" />
           {canCreateMore ? (
             <DropdownMenuItem
               onClick={() => setDialogOpen(true)}
-              className="cursor-pointer text-white hover:bg-[#16171A] focus:bg-[#16171A]"
+              className="cursor-pointer text-white hover:bg-card focus:bg-card"
             >
-              <Plus className="h-4 w-4 mr-2 text-[#CC0000]" />
+              <Plus className="h-4 w-4 mr-2 text-primary" />
               New workspace
             </DropdownMenuItem>
           ) : (
             <DropdownMenuItem
               onClick={() => navigate('/pricing')}
-              className="cursor-pointer text-[#A0A0A8] hover:bg-[#16171A] focus:bg-[#16171A]"
+              className="cursor-pointer text-muted-foreground hover:bg-card focus:bg-card"
             >
               <Lock className="h-4 w-4 mr-2" />
               {isAgency ? 'Workspace limit reached' : 'Upgrade to Agency for multiple brands'}
@@ -110,7 +110,7 @@ export function WorkspaceSwitcher({ compact = false, className = '' }: Props) {
           )}
           <DropdownMenuItem
             onClick={() => navigate('/settings?tab=workspaces')}
-            className="cursor-pointer text-[#A0A0A8] hover:bg-[#16171A] focus:bg-[#16171A]"
+            className="cursor-pointer text-muted-foreground hover:bg-card focus:bg-card"
           >
             Manage workspaces
           </DropdownMenuItem>
@@ -118,10 +118,10 @@ export function WorkspaceSwitcher({ compact = false, className = '' }: Props) {
       </DropdownMenu>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="bg-[#0F1013] border-[#2A2B30] text-white">
+        <DialogContent className="bg-muted border-border text-white">
           <DialogHeader>
             <DialogTitle>New workspace</DialogTitle>
-            <DialogDescription className="text-[#A0A0A8]">
+            <DialogDescription className="text-muted-foreground">
               Each workspace has its own business context, strategies, and content library.
             </DialogDescription>
           </DialogHeader>
@@ -132,7 +132,7 @@ export function WorkspaceSwitcher({ compact = false, className = '' }: Props) {
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
               placeholder="e.g. Client Coffee Shop"
-              className="bg-[#0A0A0C] border-[#2A2B30]"
+              className="bg-background border-border"
               autoFocus
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && newName.trim()) handleCreate();
@@ -146,7 +146,7 @@ export function WorkspaceSwitcher({ compact = false, className = '' }: Props) {
             <Button
               onClick={handleCreate}
               disabled={creating || !newName.trim()}
-              className="bg-[#CC0000] hover:bg-[#A30000]"
+              className="bg-primary hover:bg-[hsl(var(--primary-dark))]"
             >
               {creating ? 'Creating…' : 'Create workspace'}
             </Button>

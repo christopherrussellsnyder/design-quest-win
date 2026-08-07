@@ -629,7 +629,7 @@ const MediaLibrary: React.FC = () => {
                 variant="ghost" 
                 size="sm"
                 onClick={() => navigate('/ai-strategist')}
-                className="text-slate-400 hover:text-white"
+                className="text-slate-400 hover:text-foreground"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back

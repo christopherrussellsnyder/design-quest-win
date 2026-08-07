@@ -6,6 +6,8 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { UpgradePromptModal } from "@/components/upgrade/UpgradePromptModal";
 import { HelmetProvider } from "react-helmet-async";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
+
 import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 import { WorkspaceProvider } from "@/contexts/WorkspaceContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
@@ -117,7 +119,9 @@ const AnalyticsTracker = ({ children }: { children: ReactNode }) => {
 
 const App = () => (
   <HelmetProvider>
+    <ThemeProvider>
     <QueryClientProvider client={queryClient}>
+
       <TooltipProvider>
         <Toaster />
         <Sonner />
@@ -272,7 +276,9 @@ const App = () => (
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
+    </ThemeProvider>
   </HelmetProvider>
+
 );
 
 export default App;

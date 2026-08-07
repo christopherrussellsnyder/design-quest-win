@@ -108,23 +108,23 @@ export default function Contact() {
         <meta name="description" content="Get in touch with Korex Intelligence Systems. Questions about features, pricing, or partnerships — our team is ready to help." />
       </Helmet>
 
-      <div className="min-h-screen bg-[#060606] text-[#EEEEEE]">
+      <div className="min-h-screen bg-background text-foreground">
         {/* Navbar */}
-        <nav className="border-b border-[#2A2B2E] px-4 py-4">
+        <nav className="border-b border-border px-4 py-4">
           <div className="max-w-6xl mx-auto flex items-center justify-between">
             <Link to="/">
               <KorexLogoLockup height={32} showTagline={false} />
             </Link>
-            <div className="hidden md:flex items-center gap-6 text-sm text-[#A0A0A8]">
-              <Link to="/features" className="hover:text-white transition-colors">Features</Link>
-              <Link to="/demo" className="hover:text-white transition-colors">Demo</Link>
-              <Link to="/about" className="hover:text-white transition-colors">About</Link>
-              <Link to="/pricing" className="hover:text-white transition-colors">Pricing</Link>
-              <Link to="/contact" className="text-[#CC0000]">Contact</Link>
+            <div className="hidden md:flex items-center gap-6 text-sm text-muted-foreground">
+              <Link to="/features" className="hover:text-foreground transition-colors">Features</Link>
+              <Link to="/demo" className="hover:text-foreground transition-colors">Demo</Link>
+              <Link to="/about" className="hover:text-foreground transition-colors">About</Link>
+              <Link to="/pricing" className="hover:text-foreground transition-colors">Pricing</Link>
+              <Link to="/contact" className="text-primary">Contact</Link>
             </div>
             <div className="flex items-center gap-3">
-              <Link to="/login" className="text-sm text-[#A0A0A8] hover:text-white transition-colors">Sign In</Link>
-              <Link to="/signup" className="text-sm px-4 py-2 bg-[#CC0000] text-white rounded-lg hover:bg-[#990000] transition-colors">Get Started</Link>
+              <Link to="/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Sign In</Link>
+              <Link to="/signup" className="text-sm px-4 py-2 bg-primary text-white rounded-lg hover:bg-[hsl(var(--primary-dark))] transition-colors">Get Started</Link>
             </div>
           </div>
         </nav>
@@ -136,30 +136,30 @@ export default function Contact() {
               <h1 className="text-4xl sm:text-5xl font-black mb-6" style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '2px' }}>
                 Get In Touch
               </h1>
-              <p className="text-[#A0A0A8] text-lg mb-8 leading-relaxed">
+              <p className="text-muted-foreground text-lg mb-8 leading-relaxed">
                 Whether you have a question about features, pricing, enterprise plans, or anything else — our team is ready to help.
               </p>
 
               <div className="flex items-center gap-3 mb-2">
-                <Mail className="w-5 h-5 text-[#CC0000]" />
-                <a href="mailto:support@korexintelligencesystems.com" className="text-[#A0A0A8] hover:text-white transition-colors">
+                <Mail className="w-5 h-5 text-primary" />
+                <a href="mailto:support@korexintelligencesystems.com" className="text-muted-foreground hover:text-foreground transition-colors">
                   support@korexintelligencesystems.com
                 </a>
               </div>
               <div className="flex items-center gap-3 mb-10">
-                <Clock className="w-5 h-5 text-[#CC0000]" />
-                <span className="text-[#6B6B73] text-sm">We typically respond within 24 hours.</span>
+                <Clock className="w-5 h-5 text-primary" />
+                <span className="text-[hsl(var(--text-tertiary))] text-sm">We typically respond within 24 hours.</span>
               </div>
 
               <div className="space-y-4">
                 {contactReasons.map((reason, i) => (
-                  <div key={i} className="bg-[#16171A] border border-[#2A2B2E] rounded-xl p-5 flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-[#CC0000]/10 flex items-center justify-center shrink-0">
-                      <reason.icon className="w-5 h-5 text-[#CC0000]" />
+                  <div key={i} className="bg-card border border-border rounded-xl p-5 flex items-start gap-4">
+                    <div className="w-10 h-10 rounded-lg bg-[hsl(var(--primary)/0.1)] flex items-center justify-center shrink-0">
+                      <reason.icon className="w-5 h-5 text-primary" />
                     </div>
                     <div>
                       <h3 className="font-bold text-sm mb-1">{reason.title}</h3>
-                      <p className="text-[#6B6B73] text-xs">{reason.description}</p>
+                      <p className="text-[hsl(var(--text-tertiary))] text-xs">{reason.description}</p>
                     </div>
                   </div>
                 ))}
@@ -167,47 +167,47 @@ export default function Contact() {
             </div>
 
             {/* Right - Form */}
-            <div className="bg-[#16171A] border border-[#2A2B2E] rounded-2xl p-8">
+            <div className="bg-card border border-border rounded-2xl p-8">
               {submitted ? (
                 <div className="flex flex-col items-center justify-center h-full text-center py-12">
                   <div className="w-16 h-16 rounded-full bg-green-500/10 flex items-center justify-center mb-6">
                     <Mail className="w-8 h-8 text-green-500" />
                   </div>
                   <h3 className="text-xl font-bold mb-3">Your message has been sent.</h3>
-                  <p className="text-[#A0A0A8] text-sm">We'll be in touch within 24 hours.</p>
+                  <p className="text-muted-foreground text-sm">We'll be in touch within 24 hours.</p>
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-5">
                   <div>
-                    <label className="block text-sm font-medium text-[#A0A0A8] mb-2">Full Name *</label>
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">Full Name *</label>
                     <input
                       type="text" value={name} onChange={(e) => setName(e.target.value)} required maxLength={100}
-                      className="w-full bg-[#0A0A0A] border border-[#2A2B2E] rounded-lg px-4 py-3 text-white placeholder-[#6B6B73] focus:outline-none focus:border-[#CC0000] transition-colors"
+                      className="w-full bg-muted border border-border rounded-lg px-4 py-3 text-white placeholder-[hsl(var(--text-tertiary))] focus:outline-none focus:border-primary transition-colors"
                       placeholder="Your name"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-[#A0A0A8] mb-2">Email Address *</label>
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">Email Address *</label>
                     <input
                       type="email" value={email} onChange={(e) => setEmail(e.target.value)} required maxLength={255}
-                      className="w-full bg-[#0A0A0A] border border-[#2A2B2E] rounded-lg px-4 py-3 text-white placeholder-[#6B6B73] focus:outline-none focus:border-[#CC0000] transition-colors"
+                      className="w-full bg-muted border border-border rounded-lg px-4 py-3 text-white placeholder-[hsl(var(--text-tertiary))] focus:outline-none focus:border-primary transition-colors"
                       placeholder="you@example.com"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-[#A0A0A8] mb-2">Subject</label>
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">Subject</label>
                     <select
                       value={subject} onChange={(e) => setSubject(e.target.value)}
-                      className="w-full bg-[#0A0A0A] border border-[#2A2B2E] rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#CC0000] transition-colors"
+                      className="w-full bg-muted border border-border rounded-lg px-4 py-3 text-white focus:outline-none focus:border-primary transition-colors"
                     >
                       {allowedSubjects.map(s => <option key={s} value={s}>{s}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-[#A0A0A8] mb-2">Message *</label>
+                    <label className="block text-sm font-medium text-muted-foreground mb-2">Message *</label>
                     <textarea
                       value={message} onChange={(e) => setMessage(e.target.value)} required rows={4} maxLength={5000}
-                      className="w-full bg-[#0A0A0A] border border-[#2A2B2E] rounded-lg px-4 py-3 text-white placeholder-[#6B6B73] focus:outline-none focus:border-[#CC0000] transition-colors resize-none"
+                      className="w-full bg-muted border border-border rounded-lg px-4 py-3 text-white placeholder-[hsl(var(--text-tertiary))] focus:outline-none focus:border-primary transition-colors resize-none"
                       placeholder="How can we help?"
                     />
                   </div>
@@ -215,7 +215,7 @@ export default function Contact() {
                   {error && <p className="text-red-500 text-sm">{error}</p>}
 
                   <button type="submit" disabled={loading}
-                    className="w-full py-3 bg-gradient-to-r from-[#CC0000] to-[#990000] text-white font-bold rounded-lg hover:shadow-[0_0_20px_rgba(204,0,0,0.3)] transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+                    className="w-full py-3 bg-gradient-to-r from-primary to-[hsl(var(--primary-dark))] text-white font-bold rounded-lg hover:shadow-[0_0_20px_hsl(var(--primary) / 0.3)] transition-all disabled:opacity-50 flex items-center justify-center gap-2">
                     {loading ? 'Sending...' : <>Send Message <ArrowRight className="w-4 h-4" /></>}
                   </button>
                 </form>
@@ -225,15 +225,15 @@ export default function Contact() {
         </section>
 
         {/* Footer */}
-        <footer className="bg-[#060606] border-t border-[#2A2B2E] py-8 px-4">
+        <footer className="bg-background border-t border-border py-8 px-4">
           <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-xs text-[#6B6B73]">© 2026 Korex Intelligence Systems. All rights reserved.</p>
-            <div className="flex items-center gap-4 text-xs text-[#6B6B73]">
-              <Link to="/features" className="hover:text-[#CC0000] transition-colors">Features</Link>
-              <Link to="/about" className="hover:text-[#CC0000] transition-colors">About</Link>
-              <Link to="/contact" className="hover:text-[#CC0000] transition-colors">Contact</Link>
-              <Link to="/privacy" className="hover:text-[#CC0000] transition-colors">Privacy</Link>
-              <Link to="/terms" className="hover:text-[#CC0000] transition-colors">Terms</Link>
+            <p className="text-xs text-[hsl(var(--text-tertiary))]">© 2026 Korex Intelligence Systems. All rights reserved.</p>
+            <div className="flex items-center gap-4 text-xs text-[hsl(var(--text-tertiary))]">
+              <Link to="/features" className="hover:text-primary transition-colors">Features</Link>
+              <Link to="/about" className="hover:text-primary transition-colors">About</Link>
+              <Link to="/contact" className="hover:text-primary transition-colors">Contact</Link>
+              <Link to="/privacy" className="hover:text-primary transition-colors">Privacy</Link>
+              <Link to="/terms" className="hover:text-primary transition-colors">Terms</Link>
             </div>
           </div>
         </footer>
