@@ -127,7 +127,7 @@ async function enhanceBrief(prompt: string, apiKey: string): Promise<string> {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
-  const rl = checkRateLimit(clientKey(req, "generate-post-visual"), { limit: 15, windowMs: 60000 });
+  const rl = await checkRateLimit(clientKey(req, "generate-post-visual"), { limit: 15, windowMs: 60000 });
   if (!rl.ok) {
     return new Response(JSON.stringify({ error: "Too many requests. Please slow down." }), {
       status: 429,

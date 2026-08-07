@@ -16,7 +16,7 @@ serve(async (req) => {
   if (gate instanceof Response) return gate;
 
   // Abuse guard: generous ceiling that won't affect real usage.
-  const rl = checkRateLimit(clientKey(req, "caption-variants"), { limit: 30, windowMs: 60_000 });
+  const rl = await checkRateLimit(clientKey(req, "caption-variants"), { limit: 30, windowMs: 60_000 });
   if (!rl.ok) {
     return new Response(
       JSON.stringify({ error: 'Too many requests. Please slow down.' }),

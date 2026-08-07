@@ -28,7 +28,7 @@ serve(async (req) => {
     return json({ error: "Authentication required", code: "UNAUTHENTICATED" }, 401);
   }
 
-  const rl = checkRateLimit(clientKey(req, "ad-script"), { limit: 20, windowMs: 60_000 });
+  const rl = await checkRateLimit(clientKey(req, "ad-script"), { limit: 20, windowMs: 60_000 });
   if (!rl.ok) {
     return json({ error: "Too many requests. Please slow down." }, 429);
   }

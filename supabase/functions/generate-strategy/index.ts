@@ -603,7 +603,7 @@ serve(async (req) => {
     return new Response('ok', { headers: corsHeaders });
   }
 
-  const rl = checkRateLimit(clientKey(req, "generate-strategy"), { limit: 10, windowMs: 60000 });
+  const rl = await checkRateLimit(clientKey(req, "generate-strategy"), { limit: 10, windowMs: 60000 });
   if (!rl.ok) {
     return new Response(JSON.stringify({ error: "Too many requests. Please slow down." }), {
       status: 429,

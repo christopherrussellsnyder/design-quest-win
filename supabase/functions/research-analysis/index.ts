@@ -149,7 +149,7 @@ function starterCap(report: Record<string, unknown>): Record<string, unknown> {
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
-  const rl = checkRateLimit(clientKey(req, "research-analysis"), {
+  const rl = await checkRateLimit(clientKey(req, "research-analysis"), {
     limit: 30,
     windowMs: 60_000,
   });

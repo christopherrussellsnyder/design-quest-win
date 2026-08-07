@@ -18,7 +18,7 @@ serve(async (req) => {
   }
 
   // Rendering is expensive — keep the ceiling tight and well below the plan quota.
-  const rl = checkRateLimit(clientKey(req, "video-ad-generate"), { limit: 6, windowMs: 60_000 });
+  const rl = await checkRateLimit(clientKey(req, "video-ad-generate"), { limit: 6, windowMs: 60_000 });
   if (!rl.ok) {
     return json({ error: "Too many render requests. Please wait a moment." }, 429);
   }
