@@ -65,8 +65,8 @@ serve(async (req) => {
 
     // Per-user + per-IP rate limit: 30 requests/minute. Well above normal usage;
     // trips only on scripted abuse. Response shape stays a plain JSON error.
-    const rlUser = checkRateLimit(`support-chat:user:${user.id}`, { limit: 30, windowMs: 60_000 });
-    const rlIp = checkRateLimit(clientKey(req, "support-chat"), { limit: 60, windowMs: 60_000 });
+    const rlUser = await checkRateLimit(`support-chat:user:${user.id}`, { limit: 30, windowMs: 60_000 });
+    const rlIp = await checkRateLimit(clientKey(req, "support-chat"), { limit: 60, windowMs: 60_000 });
     if (!rlUser.ok || !rlIp.ok) {
       return new Response(JSON.stringify({ error: "Too many requests. Please slow down." }), {
         status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },

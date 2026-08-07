@@ -567,7 +567,7 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
     const rlKey = userId ? `ai-chat:user:${userId}` : clientKey(req, 'ai-chat');
-    const rl = checkRateLimit(rlKey, { limit: 60, windowMs: 60_000 });
+    const rl = await checkRateLimit(rlKey, { limit: 60, windowMs: 60_000 });
     if (!rl.ok) {
       return new Response(JSON.stringify({ error: 'Too many requests. Please slow down.' }),
         { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });

@@ -13,7 +13,7 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  const rl = checkRateLimit(clientKey(req, "generate-content"), { limit: 20, windowMs: 60000 });
+  const rl = await checkRateLimit(clientKey(req, "generate-content"), { limit: 20, windowMs: 60000 });
   if (!rl.ok) {
     return new Response(JSON.stringify({ error: "Too many requests. Please slow down." }), {
       status: 429,

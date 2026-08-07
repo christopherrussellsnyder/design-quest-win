@@ -172,7 +172,7 @@ async function generatePersonalization(
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
-  const rl = checkRateLimit(clientKey(req, "research-personalize"), {
+  const rl = await checkRateLimit(clientKey(req, "research-personalize"), {
     limit: 20,
     windowMs: 60_000,
   });
