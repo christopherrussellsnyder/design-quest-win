@@ -250,7 +250,7 @@ export function StrategyPostCard({ post, onEdit, onAskAI }: StrategyPostCardProp
               {/* Hook - Always visible */}
               {post.hook && (
                 <div className="mb-2">
-                  <p className="font-semibold text-foreground text-lg leading-tight">
+                  <p className="font-semibold text-foreground text-base leading-snug">
                     "{post.hook}"
                   </p>
                   {post.hook_technique && (
@@ -319,7 +319,7 @@ export function StrategyPostCard({ post, onEdit, onAskAI }: StrategyPostCardProp
                   {post.opening_text && (
                     <div>
                       <h4 className="text-sm font-semibold text-foreground mb-2">Opening</h4>
-                      <p className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-lg">
+                      <p className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-md">
                         {post.opening_text}
                       </p>
                     </div>
@@ -352,7 +352,7 @@ export function StrategyPostCard({ post, onEdit, onAskAI }: StrategyPostCardProp
                         <CopyButton text={activeCaption} field="caption" label="Copy" />
                       </div>
                     </div>
-                    <p className="text-sm text-muted-foreground whitespace-pre-line bg-muted/50 p-3 rounded-lg max-h-48 overflow-y-auto">
+                    <p className="text-sm text-muted-foreground whitespace-pre-line bg-muted/50 p-3 rounded-md max-h-48 overflow-y-auto">
                       {activeCaption}
                     </p>
                     {activeCaption !== post.caption && (
@@ -373,7 +373,7 @@ export function StrategyPostCard({ post, onEdit, onAskAI }: StrategyPostCardProp
                             return (
                               <div
                                 key={i}
-                                className={`p-3 rounded-lg border ${isActive ? 'border-primary bg-primary/5' : 'border-border bg-muted/30'}`}
+                                className={`p-3 rounded-md border ${isActive ? 'border-primary bg-primary/5' : 'border-border bg-muted/30'}`}
                               >
                                 <div className="flex items-center justify-between mb-1">
                                   <Badge variant="outline" className="text-[10px]">{v.label}</Badge>
@@ -516,7 +516,7 @@ export function StrategyPostCard({ post, onEdit, onAskAI }: StrategyPostCardProp
 
                 {/* Content Brief Tab — handoff to Content Generation */}
                 <TabsContent value="brief" className="space-y-4">
-                  <div className="p-3 rounded-lg border border-border bg-muted/30 space-y-2">
+                  <div className="p-3 rounded-md border border-border bg-muted/30 space-y-2">
                     <div className="flex items-center gap-2">
                       <Sparkles className="w-4 h-4 text-primary" />
                       <h4 className="text-sm font-semibold text-foreground">Use this in Content Generation</h4>
@@ -537,7 +537,7 @@ export function StrategyPostCard({ post, onEdit, onAskAI }: StrategyPostCardProp
                       </h4>
                       <CopyButton text={imageBrief} field="image-brief" label="Copy" />
                     </div>
-                    <p className="text-sm text-muted-foreground whitespace-pre-line bg-muted/50 p-3 rounded-lg max-h-64 overflow-y-auto">
+                    <p className="text-sm text-muted-foreground whitespace-pre-line bg-muted/50 p-3 rounded-md max-h-64 overflow-y-auto">
                       {imageBrief}
                     </p>
                   </div>
@@ -549,7 +549,7 @@ export function StrategyPostCard({ post, onEdit, onAskAI }: StrategyPostCardProp
                       </h4>
                       <CopyButton text={videoBrief} field="video-brief" label="Copy" />
                     </div>
-                    <p className="text-sm text-muted-foreground whitespace-pre-line bg-muted/50 p-3 rounded-lg max-h-64 overflow-y-auto">
+                    <p className="text-sm text-muted-foreground whitespace-pre-line bg-muted/50 p-3 rounded-md max-h-64 overflow-y-auto">
                       {videoBrief}
                     </p>
                   </div>
@@ -604,7 +604,7 @@ export function StrategyPostCard({ post, onEdit, onAskAI }: StrategyPostCardProp
                   </div>
 
                   {post.prediction_basis && (
-                    <div className="p-3 bg-muted/30 rounded-lg">
+                    <div className="p-3 bg-muted/30 rounded-md">
                       <p className="text-xs text-muted-foreground">
                         <strong>Prediction basis:</strong> {post.prediction_basis}
                       </p>
