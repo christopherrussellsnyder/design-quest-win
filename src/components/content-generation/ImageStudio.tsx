@@ -108,25 +108,25 @@ export function ImageStudio() {
 
   return (
     <div className="space-y-6">
-      <Card className="bg-[#0C0D0F] border-[#1E1F23]">
+      <Card className="bg-[hsl(var(--background))] border-[hsl(var(--card))]">
         <CardContent className="p-4 space-y-4">
           <div className="space-y-1.5">
-            <Label className="text-xs text-[#A0A0A8]">What should the image show?</Label>
+            <Label className="text-xs text-[hsl(var(--muted-foreground))]">What should the image show?</Label>
             <Textarea
               value={concept}
               onChange={(e) => setConcept(e.target.value)}
               placeholder="A founder at a desk reviewing a campaign dashboard at night, warm desk lamp, city window behind."
               rows={3}
               maxLength={1200}
-              className="bg-[#111214] border-[#2A2B2E] resize-none"
+              className="bg-[hsl(var(--muted))] border-[hsl(var(--border))] resize-none"
             />
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
-              <Label className="text-xs text-[#A0A0A8]">Placement</Label>
+              <Label className="text-xs text-[hsl(var(--muted-foreground))]">Placement</Label>
               <Select value={platform} onValueChange={setPlatform}>
-                <SelectTrigger className="bg-[#111214] border-[#2A2B2E]">
+                <SelectTrigger className="bg-[hsl(var(--muted))] border-[hsl(var(--border))]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -140,9 +140,9 @@ export function ImageStudio() {
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs text-[#A0A0A8]">Look</Label>
+              <Label className="text-xs text-[hsl(var(--muted-foreground))]">Look</Label>
               <Select value={style || 'auto'} onValueChange={(v) => setStyle(v === 'auto' ? '' : v)}>
-                <SelectTrigger className="bg-[#111214] border-[#2A2B2E]">
+                <SelectTrigger className="bg-[hsl(var(--muted))] border-[hsl(var(--border))]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -156,9 +156,9 @@ export function ImageStudio() {
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs text-[#A0A0A8]">Engine</Label>
+              <Label className="text-xs text-[hsl(var(--muted-foreground))]">Engine</Label>
               <Select value={engine} onValueChange={setEngine}>
-                <SelectTrigger className="bg-[#111214] border-[#2A2B2E]">
+                <SelectTrigger className="bg-[hsl(var(--muted))] border-[hsl(var(--border))]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -172,24 +172,24 @@ export function ImageStudio() {
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs text-[#A0A0A8]">Text overlay (optional)</Label>
+              <Label className="text-xs text-[hsl(var(--muted-foreground))]">Text overlay (optional)</Label>
               <Input
                 value={textOverlay}
                 onChange={(e) => setTextOverlay(e.target.value)}
                 placeholder="Stop guessing. Start scaling."
                 maxLength={120}
-                className="bg-[#111214] border-[#2A2B2E]"
+                className="bg-[hsl(var(--muted))] border-[hsl(var(--border))]"
               />
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs text-[#A0A0A8]">Color palette (optional)</Label>
+              <Label className="text-xs text-[hsl(var(--muted-foreground))]">Color palette (optional)</Label>
               <Input
                 value={palette}
                 onChange={(e) => setPalette(e.target.value)}
                 placeholder="Deep black, crimson red accents"
                 maxLength={120}
-                className="bg-[#111214] border-[#2A2B2E]"
+                className="bg-[hsl(var(--muted))] border-[hsl(var(--border))]"
               />
             </div>
           </div>
@@ -216,14 +216,14 @@ export function ImageStudio() {
 
       <section className="space-y-3">
         <div className="flex items-center gap-2">
-          <ImageIcon className="w-4 h-4 text-[#A0A0A8]" />
+          <ImageIcon className="w-4 h-4 text-[hsl(var(--muted-foreground))]" />
           <h2 className="text-sm font-semibold">This session</h2>
-          {images.length > 0 && <span className="text-xs text-[#6B6C72]">{images.length}</span>}
+          {images.length > 0 && <span className="text-xs text-[hsl(var(--text-tertiary))]">{images.length}</span>}
         </div>
 
         {images.length === 0 ? (
-          <Card className="bg-[#0C0D0F] border-[#1E1F23]">
-            <CardContent className="p-8 text-center text-sm text-[#A0A0A8]">
+          <Card className="bg-[hsl(var(--background))] border-[hsl(var(--card))]">
+            <CardContent className="p-8 text-center text-sm text-[hsl(var(--muted-foreground))]">
               No images yet. Every render is art-directed automatically before it hits the image
               engine, then produced at maximum quality — expect 30-60 seconds. Describe the shot above — everything you generate is also saved to your
               media library.
@@ -232,7 +232,7 @@ export function ImageStudio() {
         ) : (
           <div className="grid gap-3 grid-cols-2 md:grid-cols-4">
             {images.map((img) => (
-              <Card key={img.url} className="bg-[#0C0D0F] border-[#1E1F23] overflow-hidden">
+              <Card key={img.url} className="bg-[hsl(var(--background))] border-[hsl(var(--card))] overflow-hidden">
                 <img
                   src={img.url}
                   alt={img.prompt.slice(0, 120)}
@@ -240,7 +240,7 @@ export function ImageStudio() {
                   className="w-full aspect-square object-cover"
                 />
                 <CardContent className="p-2 flex items-center justify-between gap-2">
-                  <span className="text-[10px] text-[#6B6C72]">{img.size}</span>
+                  <span className="text-[10px] text-[hsl(var(--text-tertiary))]">{img.size}</span>
                   <Button asChild variant="ghost" size="sm" className="h-7 px-2">
                     <a href={img.url} target="_blank" rel="noreferrer" download>
                       <Download className="w-3.5 h-3.5" />

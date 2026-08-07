@@ -27,8 +27,8 @@ interface Props {
 }
 
 export function ReportView({ report, brandKit, workspaceName }: Props) {
-  const primary = brandKit?.primary_color || '#CC0000';
-  const accent = brandKit?.accent_color || '#0F1013';
+  const primary = brandKit?.primary_color || 'hsl(var(--primary))';
+  const accent = brandKit?.accent_color || 'hsl(var(--muted))';
   const companyName = brandKit?.company_name || workspaceName || 'Performance Report';
   const m = report.metrics || {};
   const i = report.insights || {};

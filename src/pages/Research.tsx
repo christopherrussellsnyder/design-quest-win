@@ -217,14 +217,14 @@ export default function Research() {
         />
       </Helmet>
 
-      <div className="min-h-screen bg-[#060606] text-[#EEEEEE]">
+      <div className="min-h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))]">
         {/* Header */}
-        <header className="border-b border-[#16171A] px-4 py-3 flex items-center gap-3">
+        <header className="border-b border-[hsl(var(--card))] px-4 py-3 flex items-center gap-3">
           <Button aria-label="Go back"
             variant="ghost"
             size="icon"
             onClick={() => navigate('/ai-strategist')}
-            className="text-[#A0A0A8] hover:text-white hover:bg-[#16171A]"
+            className="text-[hsl(var(--muted-foreground))] hover:text-white hover:bg-[hsl(var(--card))]"
           >
             <ArrowLeft className="w-4 h-4" />
           </Button>
@@ -248,7 +248,7 @@ export default function Research() {
               variant="outline"
               onClick={() => load(true)}
               disabled={loading}
-              className="border-[#2A2B2E]"
+              className="border-[hsl(var(--border))]"
             >
               <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${loading ? 'animate-spin' : ''}`} />
               Refresh
@@ -258,12 +258,12 @@ export default function Research() {
 
         {/* Controls */}
         <div className="max-w-6xl mx-auto px-4 py-6">
-          <Card className="bg-[#0C0D10] border-[#16171A] mb-6">
+          <Card className="bg-[hsl(var(--background))] border-[hsl(var(--card))] mb-6">
             <CardContent className="p-4 grid grid-cols-1 sm:grid-cols-4 gap-3">
               <div className="space-y-1.5">
                 <label className="text-xs text-muted-foreground">Platform</label>
                 <Select value={platform} onValueChange={setPlatform}>
-                  <SelectTrigger className="bg-[#060606] border-[#2A2B2E]">
+                  <SelectTrigger className="bg-[hsl(var(--background))] border-[hsl(var(--border))]">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -278,7 +278,7 @@ export default function Research() {
               <div className="space-y-1.5">
                 <label className="text-xs text-muted-foreground">Strategy type</label>
                 <Select value={mode} onValueChange={(v) => setMode(v as ContentMode)}>
-                  <SelectTrigger className="bg-[#060606] border-[#2A2B2E]">
+                  <SelectTrigger className="bg-[hsl(var(--background))] border-[hsl(var(--border))]">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -297,7 +297,7 @@ export default function Research() {
                   value={industry}
                   onChange={(e) => setIndustry(e.target.value)}
                   placeholder="e.g. fitness coaching"
-                  className="w-full h-10 px-3 bg-[#060606] border border-[#2A2B2E] rounded-md text-sm"
+                  className="w-full h-10 px-3 bg-[hsl(var(--background))] border border-[hsl(var(--border))] rounded-md text-sm"
                 />
               </div>
               <div className="flex items-end">
@@ -343,7 +343,7 @@ export default function Research() {
           {report && (
             <div className="space-y-5">
               {tier === 'pro' && (
-                <div className="rounded-xl border border-primary/30 bg-gradient-to-br from-primary/10 via-[#0C0D10] to-[#0C0D10] p-5">
+                <div className="rounded-xl border border-primary/30 bg-gradient-to-br from-primary/10 via-[hsl(var(--background))] to-[hsl(var(--background))] p-5">
                   <div className="flex items-center gap-2 mb-3">
                     <User className="w-4 h-4 text-primary" />
                     <h2 className="text-sm font-semibold tracking-tight">
@@ -395,7 +395,7 @@ export default function Research() {
                               {personalization.hook_adaptations.map((h, i) => (
                                 <div
                                   key={i}
-                                  className="rounded-lg border border-[#16171A] bg-[#060606] p-3"
+                                  className="rounded-lg border border-[hsl(var(--card))] bg-[hsl(var(--background))] p-3"
                                 >
                                   <p className="text-xs text-muted-foreground italic mb-1">
                                     Trend: "{h.trend_hook}"
@@ -418,7 +418,7 @@ export default function Research() {
                               {personalization.format_recommendations.map((f, i) => (
                                 <div
                                   key={i}
-                                  className="rounded-lg border border-[#16171A] bg-[#060606] p-3"
+                                  className="rounded-lg border border-[hsl(var(--card))] bg-[hsl(var(--background))] p-3"
                                 >
                                   <p className="text-sm font-medium mb-1">{f.format}</p>
                                   <p className="text-xs text-muted-foreground mb-1">
@@ -444,7 +444,7 @@ export default function Research() {
                               {personalization.content_pillars.map((p, i) => (
                                 <div
                                   key={i}
-                                  className="rounded-lg border border-[#16171A] bg-[#060606] p-3"
+                                  className="rounded-lg border border-[hsl(var(--card))] bg-[hsl(var(--background))] p-3"
                                 >
                                   <p className="text-sm font-medium mb-1">{p.pillar}</p>
                                   <p className="text-xs text-muted-foreground mb-2">{p.reason}</p>
@@ -481,7 +481,7 @@ export default function Research() {
                               {personalization.quick_wins.map((q, i) => (
                                 <li
                                   key={i}
-                                  className="text-sm rounded-lg border border-[#16171A] bg-[#060606] p-3 flex gap-2"
+                                  className="text-sm rounded-lg border border-[hsl(var(--card))] bg-[hsl(var(--background))] p-3 flex gap-2"
                                 >
                                   <span className="text-primary font-semibold">{i + 1}.</span>
                                   <span>{q}</span>
@@ -501,7 +501,7 @@ export default function Research() {
                   {report.trending_hooks?.map((h, i) => (
                     <div
                       key={i}
-                      className="rounded-lg border border-[#16171A] bg-[#0C0D10] p-4"
+                      className="rounded-lg border border-[hsl(var(--card))] bg-[hsl(var(--background))] p-4"
                     >
                       <p className="text-sm font-medium text-foreground mb-2">"{h.hook}"</p>
                       <p className="text-xs text-muted-foreground mb-1">
@@ -523,7 +523,7 @@ export default function Research() {
                   {report.top_formats?.map((f, i) => (
                     <div
                       key={i}
-                      className="rounded-lg border border-[#16171A] bg-[#0C0D10] p-4"
+                      className="rounded-lg border border-[hsl(var(--card))] bg-[hsl(var(--background))] p-4"
                     >
                       <div className="flex items-start justify-between gap-3 mb-2">
                         <p className="text-sm font-medium text-foreground">{f.format}</p>
@@ -546,7 +546,7 @@ export default function Research() {
               <Section title="Content Patterns" icon={<Target className="w-4 h-4" />}>
                 <div className="space-y-2">
                   {report.content_patterns?.map((p, i) => (
-                    <div key={i} className="rounded-lg border border-[#16171A] bg-[#0C0D10] p-4">
+                    <div key={i} className="rounded-lg border border-[hsl(var(--card))] bg-[hsl(var(--background))] p-4">
                       <p className="text-sm font-medium text-foreground mb-1">{p.pattern}</p>
                       <p className="text-xs text-muted-foreground mb-1">{p.description}</p>
                       <p className="text-xs text-primary">When to use: {p.when_to_use}</p>
@@ -557,7 +557,7 @@ export default function Research() {
 
               {report.posting_cadence && (
                 <Section title="Posting Cadence" icon={<Clock className="w-4 h-4" />}>
-                  <div className="rounded-lg border border-[#16171A] bg-[#0C0D10] p-4 text-sm space-y-2">
+                  <div className="rounded-lg border border-[hsl(var(--card))] bg-[hsl(var(--background))] p-4 text-sm space-y-2">
                     <p>
                       <span className="text-muted-foreground">Frequency:</span>{' '}
                       {report.posting_cadence.posts_per_week}
@@ -573,7 +573,7 @@ export default function Research() {
 
               {report.hashtag_strategy && (
                 <Section title="Hashtag Strategy" icon={<Hash className="w-4 h-4" />}>
-                  <div className="rounded-lg border border-[#16171A] bg-[#0C0D10] p-4 text-sm space-y-2">
+                  <div className="rounded-lg border border-[hsl(var(--card))] bg-[hsl(var(--background))] p-4 text-sm space-y-2">
                     <p>
                       <span className="text-muted-foreground">Mix:</span>{' '}
                       {report.hashtag_strategy.mix}
@@ -589,7 +589,7 @@ export default function Research() {
                 <Section title="CTA Patterns" icon={<MousePointerClick className="w-4 h-4" />}>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                     {report.cta_patterns.map((c, i) => (
-                      <div key={i} className="rounded-lg border border-[#16171A] bg-[#0C0D10] p-3">
+                      <div key={i} className="rounded-lg border border-[hsl(var(--card))] bg-[hsl(var(--background))] p-3">
                         <p className="text-sm font-medium">"{c.cta}"</p>
                         <p className="text-xs text-muted-foreground">{c.context}</p>
                       </div>
@@ -628,7 +628,7 @@ export default function Research() {
                     {report.emerging_trends.map((t, i) => (
                       <div
                         key={i}
-                        className="rounded-lg border border-[#16171A] bg-[#0C0D10] p-3 flex items-start gap-3"
+                        className="rounded-lg border border-[hsl(var(--card))] bg-[hsl(var(--background))] p-3 flex items-start gap-3"
                       >
                         <Badge
                           variant="outline"
@@ -656,7 +656,7 @@ export default function Research() {
                     {report.pitfalls_to_avoid.map((p, i) => (
                       <li
                         key={i}
-                        className="rounded-lg border border-[#16171A] bg-[#0C0D10] p-3 text-muted-foreground"
+                        className="rounded-lg border border-[hsl(var(--card))] bg-[hsl(var(--background))] p-3 text-muted-foreground"
                       >
                         {p}
                       </li>

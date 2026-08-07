@@ -57,7 +57,7 @@ export function UserProfileMenu() {
 
   const badgeColor = subscribed
     ? 'bg-green-500/20 text-green-400'
-    : 'bg-[#3A3B3E] text-[#6B6B73]';
+    : 'bg-[hsl(var(--border))] text-[hsl(var(--text-tertiary))]';
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -99,10 +99,10 @@ export function UserProfileMenu() {
                 <img
                   src={avatarUrl}
                   alt={fullName}
-                  className="w-10 h-10 rounded-full object-cover border-2 border-transparent group-hover:border-primary/30 transition-all duration-200 group-hover:shadow-[0_0_12px_rgba(204,0,0,0.3)]"
+                  className="w-10 h-10 rounded-full object-cover border-2 border-transparent group-hover:border-primary/30 transition-all duration-200 group-hover:shadow-[0_0_12px_hsl(var(--primary) / 0.3)]"
                 />
               ) : (
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground text-sm font-bold tracking-wider border-2 border-transparent group-hover:border-primary/30 transition-all duration-200 group-hover:shadow-[0_0_12px_rgba(204,0,0,0.3)]">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center text-primary-foreground text-sm font-bold tracking-wider border-2 border-transparent group-hover:border-primary/30 transition-all duration-200 group-hover:shadow-[0_0_12px_hsl(var(--primary) / 0.3)]">
                   {initials}
                 </div>
               )}

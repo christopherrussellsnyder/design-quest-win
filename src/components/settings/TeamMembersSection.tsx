@@ -141,7 +141,7 @@ export function TeamMembersSection() {
           <p className="text-sm text-muted-foreground max-w-md mx-auto">
             Upgrade to Agency to invite up to 10 teammates per workspace with viewer or manager access.
           </p>
-          <Button asChild className="bg-[#CC0000] hover:bg-[#CC0000]/90">
+          <Button asChild className="bg-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/90">
             <a href="/pricing">Upgrade to Agency</a>
           </Button>
         </CardContent>
@@ -189,7 +189,7 @@ export function TeamMembersSection() {
             <Button
               onClick={handleInvite}
               disabled={inviting || !inviteEmail.trim() || seatsUsed >= SEAT_LIMIT}
-              className="bg-[#CC0000] hover:bg-[#CC0000]/90"
+              className="bg-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/90"
             >
               {inviting ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Send invite'}
             </Button>
@@ -215,7 +215,7 @@ export function TeamMembersSection() {
                 className="flex items-center justify-between p-3 rounded-lg border border-border bg-background/50"
               >
                 <div className="flex items-center gap-3">
-                  <div className="h-8 w-8 rounded-full bg-[#CC0000]/20 flex items-center justify-center text-xs text-[#CC0000] font-semibold">
+                  <div className="h-8 w-8 rounded-full bg-[hsl(var(--primary))]/20 flex items-center justify-center text-xs text-[hsl(var(--primary))] font-semibold">
                     {m.user_id.slice(0, 2).toUpperCase()}
                   </div>
                   <div>
