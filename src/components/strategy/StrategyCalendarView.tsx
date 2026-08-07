@@ -109,13 +109,13 @@ export function StrategyCalendarView({ posts, startDate, onPostClick }: Strategy
                       onClick={() => onPostClick?.(post)}
                       className={`w-full text-left p-1.5 rounded text-xs transition-colors hover:opacity-80 ${
                         themeColors[post.theme || ''] || 'bg-primary'
-                      } text-white`}
+                      } text-primary-foreground`}
                     >
                       <div className="font-medium truncate">
                         {post.hook || post.post_type}
                       </div>
                       {post.post_time && (
-                        <div className="text-white/70 text-[10px]">
+                        <div className="text-primary-foreground/70 text-[10px]">
                           {post.post_time}
                         </div>
                       )}
