@@ -48,7 +48,7 @@ export function WebsiteAnalyzer({ onAnalysisComplete, onCancel, disabled }: Webs
           </div>
         </div>
         {!isAnalyzing && (
-          <Button variant="ghost" size="icon" onClick={onCancel}>
+          <Button aria-label="Cancel analysis" variant="ghost" size="icon" onClick={onCancel}>
             <X className="w-4 h-4" />
           </Button>
         )}

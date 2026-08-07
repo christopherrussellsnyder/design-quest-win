@@ -111,10 +111,10 @@ export function WorkspacesSection() {
                 <div className="flex items-center gap-1">
                   {isEditing ? (
                     <>
-                      <Button size="icon" variant="ghost" onClick={saveEdit}>
+                      <Button aria-label="Save workspace name" size="icon" variant="ghost" onClick={saveEdit}>
                         <Check className="h-4 w-4 text-green-500" />
                       </Button>
-                      <Button size="icon" variant="ghost" onClick={() => setEditingId(null)}>
+                      <Button aria-label="Cancel editing" size="icon" variant="ghost" onClick={() => setEditingId(null)}>
                         <X className="h-4 w-4" />
                       </Button>
                     </>
@@ -125,11 +125,11 @@ export function WorkspacesSection() {
                           Switch
                         </Button>
                       )}
-                      <Button size="icon" variant="ghost" onClick={() => startEdit(w.id, w.name)}>
+                      <Button aria-label="Rename workspace" size="icon" variant="ghost" onClick={() => startEdit(w.id, w.name)}>
                         <Pencil className="h-4 w-4" />
                       </Button>
                       {!w.is_default && workspaces.length > 1 && (
-                        <Button
+                        <Button aria-label="Delete workspace"
                           size="icon"
                           variant="ghost"
                           onClick={() => {

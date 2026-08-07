@@ -123,7 +123,7 @@ export default function ReportsPage() {
     <div className="min-h-screen bg-background">
       <header className="border-b border-border px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate('/ai-strategist')}><ArrowLeft className="h-4 w-4" /></Button>
+          <Button aria-label="Go back" variant="ghost" size="icon" onClick={() => navigate('/ai-strategist')}><ArrowLeft className="h-4 w-4" /></Button>
           <div>
             <h1 className="text-xl font-semibold">Client Reports</h1>
             <p className="text-xs text-muted-foreground">Workspace: {activeWorkspace?.name ?? '—'}</p>

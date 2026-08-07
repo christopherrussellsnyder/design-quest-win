@@ -36,7 +36,7 @@ export function ContextSidebar({
       isOpen ? 'w-80' : 'w-0'
     )}>
       {/* Toggle button */}
-      <Button
+      <Button aria-label="Toggle context panel"
         variant="ghost"
         size="icon"
         className={cn(
@@ -72,7 +72,7 @@ export function ContextSidebar({
                         <Globe className="w-4 h-4 text-primary" />
                         {profile.businessName}
                       </CardTitle>
-                      <Button 
+                      <Button aria-label="Re-analyze business" 
                         variant="ghost" 
                         size="icon" 
                         className="h-7 w-7"

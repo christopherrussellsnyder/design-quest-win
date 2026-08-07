@@ -53,7 +53,7 @@ export function StrategyCalendarView({ posts, startDate, onPostClick }: Strategy
             Week {weekNumber}
           </CardTitle>
           <div className="flex items-center gap-2">
-            <Button
+            <Button aria-label="Previous month"
               variant="outline"
               size="icon"
               onClick={() => setCurrentWeekStart(subWeeks(currentWeekStart, 1))}
@@ -63,7 +63,7 @@ export function StrategyCalendarView({ posts, startDate, onPostClick }: Strategy
             <span className="text-sm text-muted-foreground px-2">
               {format(currentWeekStart, 'MMM d')} - {format(weekEnd, 'MMM d, yyyy')}
             </span>
-            <Button
+            <Button aria-label="Next month"
               variant="outline"
               size="icon"
               onClick={() => setCurrentWeekStart(addWeeks(currentWeekStart, 1))}

@@ -330,22 +330,22 @@ export function StrategyOverviewCard({
             </Button>
           )}
           {onExportPDF && (
-            <Button variant="outline" size="icon" onClick={onExportPDF} title="Export PDF">
+            <Button aria-label="Export PDF" variant="outline" size="icon" onClick={onExportPDF} title="Export PDF">
               <FileText className="w-4 h-4" />
             </Button>
           )}
           {onExportCSV && (
-            <Button variant="outline" size="icon" onClick={onExportCSV} title="Export CSV">
+            <Button aria-label="Export CSV" variant="outline" size="icon" onClick={onExportCSV} title="Export CSV">
               <Table className="w-4 h-4" />
             </Button>
           )}
           {onEdit && (
-            <Button variant="outline" size="icon" onClick={onEdit} title="Edit Strategy">
+            <Button aria-label="Edit strategy" variant="outline" size="icon" onClick={onEdit} title="Edit Strategy">
               <Edit className="w-4 h-4" />
             </Button>
           )}
           {onRegenerate && (
-            <Button variant="outline" size="icon" onClick={onRegenerate} title="Regenerate">
+            <Button aria-label="Regenerate strategy" variant="outline" size="icon" onClick={onRegenerate} title="Regenerate">
               <RefreshCw className="w-4 h-4" />
             </Button>
           )}

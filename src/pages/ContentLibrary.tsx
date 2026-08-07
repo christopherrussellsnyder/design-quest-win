@@ -323,7 +323,7 @@ export default function ContentLibrary() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" onClick={() => navigate('/ai-strategist')}>
+              <Button aria-label="Go back" variant="ghost" size="icon" onClick={() => navigate('/ai-strategist')}>
                 <ArrowLeft className="h-5 w-5" />
               </Button>
               <div>
@@ -568,16 +568,16 @@ export default function ContentLibrary() {
                         </td>
                         <td className="px-4 py-3 text-right">
                           <div className="flex items-center justify-end gap-1">
-                            <Button variant="ghost" size="icon" onClick={() => { setSelectedContent(item); setShowContentModal(true); }}>
+                            <Button aria-label="View content" variant="ghost" size="icon" onClick={() => { setSelectedContent(item); setShowContentModal(true); }}>
                               <Eye className="h-4 w-4" />
                             </Button>
-                            <Button variant="ghost" size="icon" onClick={() => { setEditingContent(item); setShowContentForm(true); }}>
+                            <Button aria-label="Edit content" variant="ghost" size="icon" onClick={() => { setEditingContent(item); setShowContentForm(true); }}>
                               <Edit className="h-4 w-4" />
                             </Button>
-                            <Button variant="ghost" size="icon" onClick={() => copyToClipboard(item.content_text || item.generated_content)}>
+                            <Button aria-label="Copy content" variant="ghost" size="icon" onClick={() => copyToClipboard(item.content_text || item.generated_content)}>
                               <Copy className="h-4 w-4" />
                             </Button>
-                            <Button variant="ghost" size="icon" onClick={() => deleteContent(item.id)}>
+                            <Button aria-label="Delete content" variant="ghost" size="icon" onClick={() => deleteContent(item.id)}>
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>

@@ -363,7 +363,7 @@ export function CampaignWizardModal({
                   Estimated time: 3-4 minutes
                 </p>
               </div>
-              <Button variant="ghost" size="icon" onClick={handleClose}>
+              <Button aria-label="Close" variant="ghost" size="icon" onClick={handleClose}>
                 <X className="w-5 h-5" />
               </Button>
             </div>

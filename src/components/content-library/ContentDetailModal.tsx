@@ -22,7 +22,7 @@ export default function ContentDetailModal({ content, onClose, onEdit, onCopy }:
             <h2 className="text-xl font-semibold text-foreground">{content.title || 'Untitled Content'}</h2>
             {content.is_favorite && <Star className="h-5 w-5 fill-amber-500 text-amber-500" />}
           </div>
-          <Button variant="ghost" size="icon" onClick={onClose}>
+          <Button aria-label="Close" variant="ghost" size="icon" onClick={onClose}>
             <X className="h-5 w-5" />
           </Button>
         </div>

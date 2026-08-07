@@ -895,7 +895,7 @@ I'll use this context to provide personalized marketing recommendations. You can
               {/* Preferences popover */}
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl text-muted-foreground hover:text-foreground">
+                  <Button aria-label="Chat options" variant="ghost" size="icon" className="h-9 w-9 rounded-xl text-muted-foreground hover:text-foreground">
                     <Settings2 className="w-4 h-4" />
                   </Button>
                 </PopoverTrigger>

@@ -94,7 +94,7 @@ export default function ContentFormModal({ content, folders, onClose, onSave }: 
           <h2 className="text-xl font-semibold text-foreground">
             {content ? 'Edit Content' : 'Add Content'}
           </h2>
-          <Button variant="ghost" size="icon" onClick={onClose}>
+          <Button aria-label="Close" variant="ghost" size="icon" onClick={onClose}>
             <X className="h-5 w-5" />
           </Button>
         </div>
