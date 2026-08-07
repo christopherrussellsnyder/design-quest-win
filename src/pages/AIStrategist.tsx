@@ -11,6 +11,8 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { BusinessProfile } from '@/hooks/useWebsiteAnalysis';
 import { cn } from '@/lib/utils';
 import { AnimatedDotGrid } from '@/components/strategist/AnimatedDotGrid';
+import { GettingStartedCard } from '@/components/onboarding/GettingStartedCard';
+
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import {
