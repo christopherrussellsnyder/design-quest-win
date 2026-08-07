@@ -1,6 +1,7 @@
 // Generate an AI image for a strategy post and upload it to the user's media bucket.
 import { serviceClient } from "../_shared/supabase.ts";
 import { requirePro } from "../_shared/require-pro.ts";
+import { checkRateLimit, clientKey } from "../_shared/rate-limit.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
