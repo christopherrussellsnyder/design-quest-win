@@ -23,19 +23,6 @@ const AnimatedSection = ({ children, className = '', delay = 0 }: { children: Re
   );
 };
 
-// --- Particle Background ---
-const ParticleField = () => (
-  <div className="absolute inset-0 overflow-hidden pointer-events-none">
-    {Array.from({ length: 30 }).map((_, i) => (
-      <motion.div key={i} className="absolute w-1 h-1 rounded-full bg-[hsl(var(--primary)/0.3)]"
-        style={{ left: `${Math.random() * 100}%`, top: `${Math.random() * 100}%` }}
-        animate={{ y: [0, -200 - Math.random() * 300], opacity: [0, 0.6, 0] }}
-        transition={{ duration: 6 + Math.random() * 6, repeat: Infinity, delay: Math.random() * 5, ease: 'linear' }}
-      />
-    ))}
-  </div>
-);
-
 // --- Data ---
 const painPoints = [
   'Spending 8-12 hours every month planning content',
@@ -137,60 +124,91 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
 
-      {/* =================== HERO =================== */}
-      <section className="relative min-h-screen flex flex-col items-center justify-center px-4 py-20">
-        <ParticleField />
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="w-[500px] h-[500px] opacity-[0.04] text-[400px] font-black select-none" style={{ fontFamily: 'Arial Black, sans-serif', color: 'hsl(var(--primary))' }}>K</div>
+      {/* =================== HERO — editorial masthead =================== */}
+      <section className="relative bg-muted border-b border-border px-6 sm:px-8 pt-16 pb-14 lg:pt-24 lg:pb-20">
+        <div className="max-w-6xl mx-auto">
+          <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
+            className="mb-12 lg:mb-16">
+            <KorexLogoLockup height={44} mdHeight={52} lgHeight={56} />
+          </motion.div>
+
+          <div className="grid lg:grid-cols-12 gap-10 lg:gap-12 items-start">
+            <div className="lg:col-span-8">
+              <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.15 }} className="eyebrow mb-5">
+                Marketing Intelligence Platform
+              </motion.p>
+
+              <motion.h1 initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }}
+                className="text-4xl sm:text-5xl lg:text-[64px] font-semibold tracking-tight leading-[1.05] mb-7">
+                Agency-grade marketing strategy,{' '}
+                <span className="text-primary">delivered in sixty seconds.</span>
+              </motion.h1>
+
+              <motion.p initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.35 }}
+                className="text-lg sm:text-xl text-muted-foreground max-w-xl leading-relaxed mb-9">
+                Korex turns live market data, competitor ad intelligence and your own performance history into a
+                complete, executable plan — researched, written and reviewed before it reaches you.
+              </motion.p>
+
+              <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.5 }}
+                className="flex flex-wrap gap-4">
+                <Link to="/signup"
+                  className="px-8 py-4 bg-primary text-primary-foreground font-semibold text-sm uppercase tracking-widest rounded-sm hover:bg-[hsl(var(--primary-dark))] transition-colors">
+                  Start Free
+                </Link>
+                <Link to="/features"
+                  className="px-8 py-4 border border-[hsl(var(--foreground)/0.2)] text-foreground font-semibold text-sm uppercase tracking-widest rounded-sm hover:bg-[hsl(var(--foreground)/0.05)] transition-colors">
+                  View Capabilities
+                </Link>
+              </motion.div>
+
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }}
+                className="flex items-center gap-6 text-sm text-[hsl(var(--text-tertiary))] flex-wrap mt-6">
+                <span>No credit card required</span>
+                <span className="hidden sm:inline w-px h-4 bg-border" />
+                <span>2 free strategy generations</span>
+                <span className="hidden sm:inline w-px h-4 bg-border" />
+                <span>Cancel anytime</span>
+              </motion.div>
+            </div>
+
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.55 }}
+              className="lg:col-span-4 lg:pt-14">
+              <div className="border-l border-[hsl(var(--accent-gold))] pl-6 py-2">
+                <p className="eyebrow mb-3">Built for operators</p>
+                <p className="text-foreground text-sm leading-relaxed">
+                  Used by founders, in-house marketers and agencies to replace $3,000–$10,000 monthly retainers with
+                  research-backed strategy they own outright.
+                </p>
+              </div>
+            </motion.div>
+          </div>
+
+          {/* Credibility strip */}
+          <div className="border-y border-[hsl(var(--foreground)/0.1)] mt-16 py-8">
+            <div className="flex flex-wrap justify-between items-center gap-8">
+              {[
+                { v: '60 sec', l: 'Full strategy turnaround' },
+                { v: '9', l: 'Platforms analysed' },
+                { v: '14-day', l: 'Executable content calendars' },
+                { v: 'CMO-grade', l: 'Critic review on every plan' },
+              ].map((s) => (
+                <div key={s.l} className="flex flex-col">
+                  <span className="text-foreground text-2xl font-semibold tracking-tight">{s.v}</span>
+                  <span className="text-[hsl(var(--text-tertiary))] text-xs uppercase tracking-widest mt-1">{s.l}</span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-        <div className="absolute inset-0 bg-gradient-to-br from-background via-muted to-background opacity-90" />
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-[hsl(var(--primary)/0.05)] blur-[120px] pointer-events-none" />
-
-        <div className="relative z-10 text-center max-w-4xl mx-auto">
-          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-            <KorexLogoLockup height={80} mdHeight={120} lgHeight={152} className="mx-auto mb-6 md:mb-10" />
-          </motion.div>
-
-          <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.2 }}
-            className="text-4xl sm:text-5xl lg:text-[56px] font-black leading-tight mb-6"
-            style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '2px' }}>
-            Replace 8 Hours of Strategy Planning{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-[hsl(var(--primary-light))]">with 60 Seconds of AI Intelligence</span>
-          </motion.h1>
-
-          <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.4 }}
-            className="text-lg sm:text-xl text-muted-foreground max-w-[640px] mx-auto mb-10">
-            Agency-level marketing strategies, built specifically for your business, delivered in less time than it takes to make coffee.
-          </motion.p>
-
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.6 }}
-            className="flex items-center justify-center gap-4 flex-wrap mb-4">
-            <Link to="/signup"
-              className="px-8 py-4 bg-gradient-to-r from-primary to-[hsl(var(--primary-dark))] text-white text-lg font-bold rounded-lg hover:scale-105 transition-all duration-300 shadow-[0_0_30px_hsl(var(--primary) / 0.3)] hover:shadow-[0_0_40px_hsl(var(--primary) / 0.5)]">
-              Start Free — No Credit Card Required
-            </Link>
-          </motion.div>
-
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }}
-            className="flex items-center justify-center gap-6 text-sm text-[hsl(var(--text-tertiary))] flex-wrap">
-            <span>✓ No credit card required</span>
-            <span>✓ 2 free strategy generations</span>
-            <span>✓ Cancel anytime</span>
-          </motion.div>
-        </div>
-
-        <motion.div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-[hsl(var(--text-tertiary))]"
-          animate={{ y: [0, 8, 0] }} transition={{ repeat: Infinity, duration: 2 }}>
-          <span className="text-xs tracking-widest uppercase">Scroll to see how it works</span>
-          <ChevronDown className="w-5 h-5" />
-        </motion.div>
       </section>
+
 
       {/* =================== THE PROBLEM =================== */}
       <section className="py-24 px-4 bg-muted">
         <div className="max-w-4xl mx-auto">
           <AnimatedSection className="text-center mb-12">
-            <h2 className="text-3xl sm:text-[40px] font-black mb-4" style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '2px' }}>
+            <h2 className="text-3xl sm:text-[40px] font-semibold mb-4">
               Creating Effective Marketing Strategies Shouldn't Take Days
             </h2>
             <p className="text-lg text-muted-foreground">If you're an e-commerce founder or marketing manager, you know the pain:</p>
@@ -199,7 +217,7 @@ const Index = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">
             {painPoints.map((point, i) => (
               <AnimatedSection key={i} delay={i * 0.1}>
-                <div className="flex items-start gap-3 bg-card border border-border rounded-xl p-5">
+                <div className="flex items-start gap-3 bg-card border border-border rounded-sm p-5">
                   <X className="w-5 h-5 text-primary shrink-0 mt-0.5" />
                   <span className="text-muted-foreground text-sm">{point}</span>
                 </div>
@@ -208,7 +226,7 @@ const Index = () => {
           </div>
 
           <AnimatedSection className="text-center" delay={0.4}>
-            <p className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary to-[hsl(var(--primary-light))]">There's a better way.</p>
+            <p className="text-2xl font-bold text-primary">There's a better way.</p>
           </AnimatedSection>
         </div>
       </section>
@@ -217,9 +235,9 @@ const Index = () => {
       <section className="py-24 px-4">
         <div className="max-w-5xl mx-auto">
           <AnimatedSection className="text-center mb-16">
-            <h2 className="text-3xl sm:text-[42px] font-black mb-4" style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '2px' }}>
+            <h2 className="text-3xl sm:text-[42px] font-semibold mb-4">
               Korex: Marketing Intelligence That{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-[hsl(var(--primary-light))]">Actually Knows Your Business</span>
+              <span className="text-primary">Actually Knows Your Business</span>
             </h2>
             <p className="text-muted-foreground text-lg mt-4">No templates. No guessing. Just strategies built for YOUR audience.</p>
           </AnimatedSection>
@@ -227,8 +245,8 @@ const Index = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {howItWorks.map((step, i) => (
               <AnimatedSection key={i} delay={i * 0.1}>
-                <div className="bg-card border border-border rounded-xl p-6 text-center hover:border-[hsl(var(--primary)/0.5)] transition-all h-full">
-                  <div className="w-14 h-14 rounded-full bg-primary flex items-center justify-center mx-auto mb-4 text-white font-black text-lg shadow-[0_0_20px_hsl(var(--primary) / 0.3)]">
+                <div className="bg-card border border-border rounded-sm p-6 text-center hover:border-[hsl(var(--primary)/0.5)] transition-all h-full">
+                  <div className="w-14 h-14 rounded-full bg-primary flex items-center justify-center mx-auto mb-4 text-white font-semibold text-lg shadow-[0_0_20px_hsl(var(--primary) / 0.3)]">
                     {i + 1}
                   </div>
                   <step.icon className="w-6 h-6 text-primary mx-auto mb-3" />
@@ -243,33 +261,36 @@ const Index = () => {
       </section>
 
       {/* =================== CAPABILITIES =================== */}
-      <section className="py-24 px-4 bg-muted border-y border-border">
+      <section className="py-24 px-6 sm:px-8 bg-muted border-y border-border">
         <div className="max-w-6xl mx-auto">
-          <AnimatedSection className="text-center mb-14">
-            <h2 className="text-3xl sm:text-[40px] font-black mb-4" style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '2px' }}>
-              From Market Research to{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-[hsl(var(--primary-light))]">Finished Ad Creative</span>
+          <AnimatedSection className="max-w-2xl mb-14">
+            <p className="eyebrow mb-4">Capabilities</p>
+            <h2 className="text-3xl sm:text-[40px] font-semibold tracking-tight leading-tight mb-4">
+              From market research to{' '}
+              <span className="text-primary">finished ad creative</span>
             </h2>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              Korex is no longer just a strategy generator. It researches, plans, writes, produces the creative, and reports on the results.
+            <p className="text-muted-foreground text-lg leading-relaxed">
+              Korex researches, plans, writes, produces the creative and reports on the results — one accountable system
+              rather than a folder of disconnected tools.
             </p>
           </AnimatedSection>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-0 border-t border-l border-[hsl(var(--foreground)/0.1)] bg-card">
             {capabilities.map((c, i) => (
               <AnimatedSection key={i} delay={(i % 4) * 0.08}>
-                <div className="bg-card border border-border rounded-xl p-6 h-full hover:border-[hsl(var(--primary)/0.5)] transition-all">
-                  <c.icon className="w-6 h-6 text-primary mb-4" />
-                  <h3 className="font-bold mb-2">{c.title}</h3>
+                <div className="p-8 h-full border-r border-b border-[hsl(var(--foreground)/0.1)] hover:bg-muted/60 transition-colors">
+                  <span className="eyebrow block mb-6">{String(i + 1).padStart(2, '0')}</span>
+                  <c.icon className="w-5 h-5 text-primary mb-4" />
+                  <h3 className="font-semibold text-lg tracking-tight mb-3">{c.title}</h3>
                   <p className="text-muted-foreground text-sm leading-relaxed">{c.desc}</p>
                 </div>
               </AnimatedSection>
             ))}
           </div>
 
-          <AnimatedSection className="text-center mt-12">
-            <Link to="/features" className="inline-flex items-center gap-2 text-primary font-semibold hover:gap-3 transition-all">
-              Explore all features <ArrowRight className="w-4 h-4" />
+          <AnimatedSection className="mt-12">
+            <Link to="/features" className="inline-flex items-center gap-2 text-primary font-semibold text-sm uppercase tracking-widest hover:gap-3 transition-all">
+              Explore all capabilities <ArrowRight className="w-4 h-4" />
             </Link>
           </AnimatedSection>
         </div>
@@ -277,11 +298,12 @@ const Index = () => {
 
 
 
+
       {/* =================== VALUE COMPARISON =================== */}
       <section className="py-24 px-4 bg-muted">
         <div className="max-w-5xl mx-auto">
           <AnimatedSection className="text-center mb-12">
-            <h2 className="text-3xl sm:text-[40px] font-black mb-4" style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '2px' }}>
+            <h2 className="text-3xl sm:text-[40px] font-semibold mb-4">
               Why Korex Outperforms Agencies, Freelancers, and Generic AI
             </h2>
           </AnimatedSection>
@@ -314,7 +336,7 @@ const Index = () => {
           </AnimatedSection>
 
           <AnimatedSection className="mt-8" delay={0.2}>
-            <div className="border border-[hsl(var(--primary)/0.3)] rounded-xl p-6 text-center bg-[hsl(var(--primary)/0.05)]">
+            <div className="border border-[hsl(var(--primary)/0.3)] rounded-sm p-6 text-center bg-[hsl(var(--primary)/0.05)]">
               <p className="text-lg font-bold">With Korex, you save <span className="text-primary">$5,412–$119,412</span> annually.</p>
               <p className="text-muted-foreground text-sm mt-1">Plus 156 hours of your time.</p>
             </div>
@@ -326,14 +348,14 @@ const Index = () => {
       <section className="py-24 px-4">
         <div className="max-w-5xl mx-auto">
           <AnimatedSection className="text-center mb-12">
-            <h2 className="text-3xl sm:text-[40px] font-black mb-4" style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '2px' }}>
+            <h2 className="text-3xl sm:text-[40px] font-semibold mb-4">
               Why It's Not 'Just Another AI Tool'
             </h2>
           </AnimatedSection>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
             <AnimatedSection>
-              <div className="bg-card border border-border rounded-xl p-6 h-full">
+              <div className="bg-card border border-border rounded-sm p-6 h-full">
                 <h3 className="text-lg font-bold mb-4 text-[hsl(var(--text-tertiary))]">Generic AI (ChatGPT, etc.)</h3>
                 <ul className="space-y-3">
                   {['Gives template responses', "Doesn't analyze your data", 'One-size-fits-all strategies', 'No platform optimization'].map((item, i) => (
@@ -345,7 +367,7 @@ const Index = () => {
               </div>
             </AnimatedSection>
             <AnimatedSection delay={0.1}>
-              <div className="bg-card border border-[hsl(var(--primary)/0.3)] rounded-xl p-6 h-full">
+              <div className="bg-card border border-[hsl(var(--primary)/0.3)] rounded-sm p-6 h-full">
                 <h3 className="text-lg font-bold mb-4 text-primary">Korex Algorithm</h3>
                 <ul className="space-y-3">
                   {['Analyzes 47 engagement signals from YOUR data', 'Cross-platform pattern recognition', 'Audience behavior prediction', 'Platform-specific ranking optimization', 'Trained on $10M+ in ad spend analysis'].map((item, i) => (
@@ -360,11 +382,11 @@ const Index = () => {
 
           <AnimatedSection delay={0.2}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-card border border-border rounded-xl p-6">
+              <div className="bg-card border border-border rounded-sm p-6">
                 <p className="text-xs uppercase tracking-wider text-[hsl(var(--text-tertiary))] mb-2">ChatGPT says:</p>
                 <p className="text-[hsl(var(--text-tertiary))] text-sm italic">"Here's a social media strategy template"</p>
               </div>
-              <div className="bg-card border border-[hsl(var(--primary)/0.3)] rounded-xl p-6">
+              <div className="bg-card border border-[hsl(var(--primary)/0.3)] rounded-sm p-6">
                 <p className="text-xs uppercase tracking-wider text-primary mb-2">Korex says:</p>
                 <p className="text-muted-foreground text-sm italic">"Based on your data, your audience engages 3.2x more with educational content on Tuesdays at 2pm. Here's your 14-day calendar optimized for this pattern."</p>
               </div>
@@ -377,13 +399,13 @@ const Index = () => {
       <section className="py-24 px-4 bg-muted">
         <div className="max-w-3xl mx-auto">
           <AnimatedSection className="text-center mb-12">
-            <h2 className="text-3xl sm:text-[40px] font-black mb-4" style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '2px' }}>
+            <h2 className="text-3xl sm:text-[40px] font-semibold mb-4">
               Calculate Your Time Savings
             </h2>
           </AnimatedSection>
 
           <AnimatedSection>
-            <div className="bg-card border border-border rounded-2xl p-8">
+            <div className="bg-card border border-border rounded-sm p-8">
               <div className="space-y-6 mb-8">
                 {[
                   { label: 'Market research', value: calcResearch, setter: setCalcResearch },
@@ -393,11 +415,11 @@ const Index = () => {
                   <div key={i} className="flex items-center justify-between gap-4">
                     <span className="text-sm text-muted-foreground flex-1">{item.label}</span>
                     <div className="flex items-center gap-2">
-                      <button onClick={() => item.setter(Math.max(0, item.value - 1))} className="w-8 h-8 rounded-lg bg-border flex items-center justify-center text-muted-foreground hover:bg-border transition-colors">
+                      <button onClick={() => item.setter(Math.max(0, item.value - 1))} className="w-8 h-8 rounded-sm bg-border flex items-center justify-center text-muted-foreground hover:bg-border transition-colors">
                         <Minus className="w-3 h-3" />
                       </button>
                       <span className="w-10 text-center font-bold">{item.value}</span>
-                      <button onClick={() => item.setter(item.value + 1)} className="w-8 h-8 rounded-lg bg-border flex items-center justify-center text-muted-foreground hover:bg-border transition-colors">
+                      <button onClick={() => item.setter(item.value + 1)} className="w-8 h-8 rounded-sm bg-border flex items-center justify-center text-muted-foreground hover:bg-border transition-colors">
                         <Plus className="w-3 h-3" />
                       </button>
                       <span className="text-xs text-[hsl(var(--text-tertiary))] w-16">hrs/mo</span>
@@ -412,7 +434,7 @@ const Index = () => {
                       <span className="text-sm text-[hsl(var(--text-tertiary))]">$</span>
                       <input
                         type="number" value={calcHourlyRate} onChange={(e) => setCalcHourlyRate(Math.max(0, parseInt(e.target.value) || 0))}
-                        className="w-20 bg-border border border-border rounded-lg px-3 py-2 text-center text-sm focus:border-primary outline-none"
+                        className="w-20 bg-border border border-border rounded-sm px-3 py-2 text-center text-sm focus:border-primary outline-none"
                       />
                       <span className="text-xs text-[hsl(var(--text-tertiary))]">/hour</span>
                     </div>
@@ -420,7 +442,7 @@ const Index = () => {
                 </div>
               </div>
 
-              <div className="bg-muted rounded-xl p-6 space-y-3">
+              <div className="bg-muted rounded-sm p-6 space-y-3">
                 <div className="flex justify-between text-sm">
                   <span className="text-[hsl(var(--text-tertiary))]">Monthly time saved</span>
                   <span className="font-bold">{totalHours} hours</span>
@@ -439,12 +461,12 @@ const Index = () => {
                 </div>
                 <div className="border-t border-border pt-3 flex justify-between">
                   <span className="text-muted-foreground font-semibold">ROI</span>
-                  <span className="text-2xl font-black text-primary">{roi > 0 ? `${roi}%` : '—'}</span>
+                  <span className="text-2xl font-semibold text-primary">{roi > 0 ? `${roi}%` : '—'}</span>
                 </div>
               </div>
 
               <div className="mt-6 text-center">
-                <Link to="/signup" className="inline-flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-primary to-[hsl(var(--primary-dark))] text-white font-bold rounded-lg hover:scale-105 transition-all shadow-[0_0_20px_hsl(var(--primary) / 0.3)]">
+                <Link to="/signup" className="inline-flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-primary to-[hsl(var(--primary-dark))] text-white font-bold rounded-sm hover:scale-105 transition-all shadow-[0_0_20px_hsl(var(--primary) / 0.3)]">
                   Start Free <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>
@@ -457,7 +479,7 @@ const Index = () => {
       <section className="py-24 px-4">
         <div className="max-w-4xl mx-auto">
           <AnimatedSection className="text-center mb-12">
-            <h2 className="text-3xl sm:text-[40px] font-black mb-4" style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '2px' }}>
+            <h2 className="text-3xl sm:text-[40px] font-semibold mb-4">
               Built by Marketers, for Marketers
             </h2>
           </AnimatedSection>
@@ -470,9 +492,9 @@ const Index = () => {
                 { icon: Globe, value: '8', label: 'Social platforms' },
                 { icon: Zap, value: '47', label: 'Engagement signals' },
               ].map((stat, i) => (
-                <div key={i} className="bg-card border border-border rounded-xl p-5 text-center">
+                <div key={i} className="bg-card border border-border rounded-sm p-5 text-center">
                   <stat.icon className="w-5 h-5 text-primary mx-auto mb-2" />
-                  <p className="text-2xl font-black" style={{ fontFamily: 'Arial Black, sans-serif' }}>{stat.value}</p>
+                  <p className="text-2xl font-semibold">{stat.value}</p>
                   <p className="text-xs text-[hsl(var(--text-tertiary))] mt-1">{stat.label}</p>
                 </div>
               ))}
@@ -480,7 +502,7 @@ const Index = () => {
           </AnimatedSection>
 
           <AnimatedSection delay={0.2}>
-            <div className="bg-card border border-[hsl(var(--primary)/0.2)] rounded-2xl p-8 text-center">
+            <div className="bg-card border border-[hsl(var(--primary)/0.2)] rounded-sm p-8 text-center">
               <p className="text-xl sm:text-2xl italic text-muted-foreground mb-6 leading-relaxed">
                 "I spent 6 months analyzing what actually works in marketing data. Then I built an AI that does it in 60 seconds."
               </p>
@@ -494,7 +516,7 @@ const Index = () => {
       <section className="py-24 px-4 bg-muted">
         <div className="max-w-4xl mx-auto">
           <AnimatedSection className="text-center mb-12">
-            <h2 className="text-3xl sm:text-[40px] font-black mb-4" style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '2px' }}>
+            <h2 className="text-3xl sm:text-[40px] font-semibold mb-4">
               The Technology Behind Korex
             </h2>
             <p className="text-muted-foreground">Powered by advanced AI + a live Research Analysis engine that tracks what's actually working — organic and paid — across every major platform.</p>
@@ -503,7 +525,7 @@ const Index = () => {
           <div className="space-y-4">
             {techSteps.map((step, i) => (
               <AnimatedSection key={i} delay={i * 0.1}>
-                <div className="bg-card border border-border rounded-xl p-5 flex items-start gap-4">
+                <div className="bg-card border border-border rounded-sm p-5 flex items-start gap-4">
                   <div className="w-10 h-10 rounded-full bg-[hsl(var(--primary)/0.1)] flex items-center justify-center text-primary font-bold text-sm shrink-0">
                     {i + 1}
                   </div>
@@ -526,7 +548,7 @@ const Index = () => {
           </div>
 
           <AnimatedSection className="mt-8 text-center" delay={0.5}>
-            <div className="inline-flex items-center gap-4 bg-card border border-[hsl(var(--primary)/0.2)] rounded-xl px-6 py-3">
+            <div className="inline-flex items-center gap-4 bg-card border border-[hsl(var(--primary)/0.2)] rounded-sm px-6 py-3">
               <Clock className="w-5 h-5 text-primary" />
               <span className="text-sm">Total time: <strong>60 seconds</strong></span>
               <span className="text-border">|</span>
@@ -555,7 +577,7 @@ const Index = () => {
       <section className="py-24 px-4 bg-muted">
         <div className="max-w-4xl mx-auto">
           <AnimatedSection className="text-center mb-12">
-            <h2 className="text-3xl sm:text-[48px] font-black mb-4" style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '3px' }}>
+            <h2 className="text-3xl sm:text-[48px] font-semibold mb-4">
               Simple, Transparent Pricing
             </h2>
             <div className="flex items-center justify-center gap-3 mt-6">
@@ -575,13 +597,13 @@ const Index = () => {
               const savings = plan.monthlyPrice * 12 - plan.yearlyPrice;
               return (
                 <AnimatedSection key={i} delay={i * 0.1}>
-                  <div className={`relative bg-card rounded-2xl p-8 h-full flex flex-col border transition-all duration-300 hover:-translate-y-1 ${plan.popular ? 'border-primary shadow-[0_0_30px_hsl(var(--primary) / 0.15)]' : 'border-border hover:border-border'}`}>
+                  <div className={`relative bg-card rounded-sm p-8 h-full flex flex-col border transition-all duration-300 hover:-translate-y-1 ${plan.popular ? 'border-primary shadow-[0_0_30px_hsl(var(--primary) / 0.15)]' : 'border-border hover:border-border'}`}>
                     {plan.popular && (
                       <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-primary to-[hsl(var(--primary-dark))] text-white text-xs font-bold px-4 py-1 rounded-full">Most Popular</div>
                     )}
                     <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
                     <div className="mb-2">
-                      <span className="text-4xl font-black" style={{ fontFamily: 'Arial Black, sans-serif' }}>${displayPrice}</span>
+                      <span className="text-4xl font-semibold">${displayPrice}</span>
                       <span className="text-[hsl(var(--text-tertiary))] text-sm">/month</span>
                     </div>
                     {billingAnnual && <p className="text-xs text-[hsl(var(--text-tertiary))] mb-4">${plan.yearlyPrice}/year · Save ${savings}</p>}
@@ -593,7 +615,7 @@ const Index = () => {
                         </li>
                       ))}
                     </ul>
-                    <Link to="/signup" className={`block text-center py-3 rounded-lg font-bold text-sm transition-all ${plan.popular ? 'bg-gradient-to-r from-primary to-[hsl(var(--primary-dark))] text-white hover:shadow-[0_0_20px_hsl(var(--primary) / 0.3)]' : 'border border-border text-foreground hover:border-primary hover:text-primary'}`}>
+                    <Link to="/signup" className={`block text-center py-3 rounded-sm font-bold text-sm transition-all ${plan.popular ? 'bg-gradient-to-r from-primary to-[hsl(var(--primary-dark))] text-white hover:shadow-[0_0_20px_hsl(var(--primary) / 0.3)]' : 'border border-border text-foreground hover:border-primary hover:text-primary'}`}>
                       Start Free
                     </Link>
                     <p className="text-xs text-[hsl(var(--text-tertiary))] text-center mt-3">No credit card required</p>
@@ -611,7 +633,7 @@ const Index = () => {
       <section className="py-24 px-4">
         <div className="max-w-3xl mx-auto">
           <AnimatedSection className="text-center mb-12">
-            <h2 className="text-3xl sm:text-[40px] font-black" style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '3px' }}>
+            <h2 className="text-3xl sm:text-[40px] font-semibold">
               Frequently Asked Questions
             </h2>
           </AnimatedSection>
@@ -620,7 +642,7 @@ const Index = () => {
             {faqs.map((faq, i) => (
               <AnimatedSection key={i} delay={i * 0.05}>
                 <button onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                  className="w-full text-left bg-card border border-border rounded-xl p-5 hover:border-border transition-all">
+                  className="w-full text-left bg-card border border-border rounded-sm p-5 hover:border-border transition-all">
                   <div className="flex items-center justify-between">
                     <span className="font-semibold text-sm">{faq.q}</span>
                     <ChevronDown className={`w-4 h-4 text-[hsl(var(--text-tertiary))] transition-transform shrink-0 ml-4 ${openFaq === i ? 'rotate-180' : ''}`} />
@@ -644,14 +666,14 @@ const Index = () => {
       <section className="py-24 px-4 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--primary)/0.05)] to-transparent pointer-events-none" />
         <AnimatedSection className="max-w-3xl mx-auto text-center relative z-10">
-          <h2 className="text-3xl sm:text-5xl font-black mb-6" style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '3px' }}>
+          <h2 className="text-3xl sm:text-5xl font-semibold mb-6">
             Ready to Save 8 Hours Every Month?
           </h2>
           <p className="text-muted-foreground text-lg mb-8 max-w-lg mx-auto">
             Join the marketing teams who've automated their strategy planning.
           </p>
           <Link to="/signup"
-            className="inline-flex items-center gap-2 px-10 py-4 bg-gradient-to-r from-primary to-[hsl(var(--primary-dark))] text-white text-lg font-bold rounded-lg hover:scale-105 transition-all duration-300 shadow-[0_0_30px_hsl(var(--primary) / 0.3)]">
+            className="inline-flex items-center gap-2 px-10 py-4 bg-gradient-to-r from-primary to-[hsl(var(--primary-dark))] text-white text-lg font-bold rounded-sm hover:scale-105 transition-all duration-300 shadow-[0_0_30px_hsl(var(--primary) / 0.3)]">
             Start Free — No Credit Card Required <ArrowRight className="w-5 h-5" />
           </Link>
           <div className="flex items-center justify-center gap-6 text-sm text-[hsl(var(--text-tertiary))] mt-6 flex-wrap">
@@ -734,7 +756,7 @@ const Index = () => {
           <motion.div initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 100, opacity: 0 }}
             className="fixed bottom-6 right-6 z-50 flex items-center gap-2">
             <Link to="/signup"
-              className="px-6 py-3 bg-gradient-to-r from-primary to-[hsl(var(--primary-dark))] text-white font-bold rounded-lg shadow-[0_0_20px_hsl(var(--primary) / 0.4)] hover:scale-105 transition-all text-sm">
+              className="px-6 py-3 bg-gradient-to-r from-primary to-[hsl(var(--primary-dark))] text-white font-bold rounded-sm shadow-[0_0_20px_hsl(var(--primary) / 0.4)] hover:scale-105 transition-all text-sm">
               Start Free
             </Link>
             <button onClick={() => setFloatingDismissed(true)}

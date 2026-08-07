@@ -94,7 +94,7 @@ export default function HowItWorks() {
             </div>
             <div className="flex items-center gap-3">
               <Link to="/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Sign In</Link>
-              <Link to="/signup" className="text-sm px-4 py-2 bg-primary text-white rounded-lg hover:bg-[hsl(var(--primary-dark))] transition-colors">Get Started</Link>
+              <Link to="/signup" className="text-sm px-4 py-2 bg-primary text-white rounded-sm hover:bg-[hsl(var(--primary-dark))] transition-colors">Get Started</Link>
             </div>
           </div>
         </nav>
@@ -106,9 +106,9 @@ export default function HowItWorks() {
               <span className="inline-block px-3 py-1 text-xs uppercase tracking-widest text-primary border border-[hsl(var(--primary)/0.3)] rounded-full mb-6">
                 Under the Hood
               </span>
-              <h1 className="text-4xl sm:text-5xl lg:text-[56px] font-black mb-6" style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '2px' }}>
+              <h1 className="text-4xl sm:text-5xl lg:text-[56px] font-semibold mb-6">
                 How Korex{' '}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-[hsl(var(--primary-light))]">Actually Works</span>
+                <span className="text-primary">Actually Works</span>
               </h1>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
                 No black box. Here's exactly how we turn your business data into marketing strategies that beat generic AI output.
@@ -121,7 +121,7 @@ export default function HowItWorks() {
         <section className="py-16 px-4 bg-muted">
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-12">
-              <h2 className="text-3xl sm:text-4xl font-black mb-3" style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '1px' }}>
+              <h2 className="text-3xl sm:text-4xl font-semibold mb-3">
                 The Strategy Generation Pipeline
               </h2>
               <p className="text-muted-foreground max-w-2xl mx-auto">Six stages, running every time you click "Generate Strategy."</p>
@@ -134,9 +134,9 @@ export default function HowItWorks() {
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.4, delay: i * 0.05 }}
-                  className="flex gap-5 bg-card border border-border rounded-2xl p-6 hover:border-[hsl(var(--primary)/0.4)] transition-all"
+                  className="flex gap-5 bg-card border border-border rounded-sm p-6 hover:border-[hsl(var(--primary)/0.4)] transition-all"
                 >
-                  <div className="shrink-0 w-12 h-12 rounded-xl bg-[hsl(var(--primary)/0.1)] flex items-center justify-center">
+                  <div className="shrink-0 w-12 h-12 rounded-sm bg-[hsl(var(--primary)/0.1)] flex items-center justify-center">
                     <step.icon className="w-6 h-6 text-primary" />
                   </div>
                   <div>
@@ -153,7 +153,7 @@ export default function HowItWorks() {
         <section className="py-20 px-4">
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-12">
-              <h2 className="text-3xl sm:text-4xl font-black mb-3" style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '1px' }}>
+              <h2 className="text-3xl sm:text-4xl font-semibold mb-3">
                 Beyond Strategy Generation
               </h2>
               <p className="text-muted-foreground max-w-2xl mx-auto">Every feature is built on the same principle: real data in, personalized output out.</p>
@@ -166,9 +166,9 @@ export default function HowItWorks() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.4, delay: i * 0.1 }}
-                  className="bg-card border border-border rounded-2xl p-6"
+                  className="bg-card border border-border rounded-sm p-6"
                 >
-                  <div className="w-12 h-12 rounded-xl bg-[hsl(var(--primary)/0.1)] flex items-center justify-center mb-4">
+                  <div className="w-12 h-12 rounded-sm bg-[hsl(var(--primary)/0.1)] flex items-center justify-center mb-4">
                     <f.icon className="w-6 h-6 text-primary" />
                   </div>
                   <h3 className="text-lg font-bold mb-2">{f.title}</h3>
@@ -183,7 +183,7 @@ export default function HowItWorks() {
         <section className="py-20 px-4 bg-muted">
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-12">
-              <h2 className="text-3xl sm:text-4xl font-black mb-3" style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '1px' }}>
+              <h2 className="text-3xl sm:text-4xl font-semibold mb-3">
                 Why Korex Beats Generic AI Tools
               </h2>
               <p className="text-muted-foreground max-w-2xl mx-auto">What we do differently — and why it produces measurably better strategies.</p>
@@ -196,7 +196,7 @@ export default function HowItWorks() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.4, delay: i * 0.05 }}
-                  className="bg-card border border-border rounded-xl p-5"
+                  className="bg-card border border-border rounded-sm p-5"
                 >
                   <div className="flex items-start gap-3">
                     <div className="shrink-0 w-2 h-2 mt-2 rounded-full bg-primary" />
@@ -215,13 +215,13 @@ export default function HowItWorks() {
         <section className="py-24 px-4 text-center relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--primary)/0.05)] to-transparent pointer-events-none" />
           <div className="relative z-10 max-w-3xl mx-auto">
-            <h2 className="text-3xl sm:text-5xl font-black mb-6" style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '2px' }}>
+            <h2 className="text-3xl sm:text-5xl font-semibold mb-6">
               See It Run on Your Business
             </h2>
             <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
               Generate your first strategy in under two minutes. Free to start — no credit card required.
             </p>
-            <Link to="/signup" className="inline-flex items-center gap-2 px-10 py-4 bg-gradient-to-r from-primary to-[hsl(var(--primary-dark))] text-white text-lg font-bold rounded-lg hover:scale-105 transition-all shadow-[0_0_30px_hsl(var(--primary) / 0.3)]">
+            <Link to="/signup" className="inline-flex items-center gap-2 px-10 py-4 bg-gradient-to-r from-primary to-[hsl(var(--primary-dark))] text-white text-lg font-bold rounded-sm hover:scale-105 transition-all shadow-[0_0_30px_hsl(var(--primary) / 0.3)]">
               Start Free Today <ArrowRight className="w-5 h-5" />
             </Link>
           </div>

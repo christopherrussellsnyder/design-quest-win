@@ -105,7 +105,7 @@ export default function Pricing() {
           <Link to="/" className="inline-block mb-8">
             <KorexLogoLockup height={48} className="mx-auto" />
           </Link>
-          <h1 className="text-3xl sm:text-[48px] font-black mb-4" style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '3px' }}>
+          <h1 className="text-3xl sm:text-[48px] font-semibold mb-4">
             Simple, Transparent Pricing
           </h1>
           <p className="text-muted-foreground mb-6">Free Starter plan includes 2 strategy generations. Upgrade anytime for unlimited access.</p>
@@ -133,7 +133,7 @@ export default function Pricing() {
             return (
               <div
                 key={plan.key}
-                className={`relative bg-card rounded-2xl p-8 h-full flex flex-col border transition-all duration-300 hover:-translate-y-1 ${
+                className={`relative bg-card rounded-sm p-8 h-full flex flex-col border transition-all duration-300 hover:-translate-y-1 ${
                   plan.popular ? 'border-primary shadow-[0_0_30px_hsl(var(--primary) / 0.15)]' : 'border-border hover:border-border'
                 } ${isCurrentPlan ? 'ring-2 ring-green-500' : ''}`}
               >
@@ -149,7 +149,7 @@ export default function Pricing() {
                 )}
                 <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
                 <div className="mb-2">
-                  <span className="text-4xl font-black" style={{ fontFamily: 'Arial Black, sans-serif' }}>
+                  <span className="text-4xl font-semibold">
                     ${displayPrice}
                   </span>
                   <span className="text-[hsl(var(--text-tertiary))] text-sm">/month</span>
@@ -171,7 +171,7 @@ export default function Pricing() {
                 {isCurrentPlan ? (
                   <button
                     onClick={handleManage}
-                    className="block text-center py-3 rounded-lg font-bold text-sm border border-green-500 text-green-400 hover:bg-green-500/10 transition-all w-full"
+                    className="block text-center py-3 rounded-sm font-bold text-sm border border-green-500 text-green-400 hover:bg-green-500/10 transition-all w-full"
                   >
                     Manage Subscription
                   </button>
@@ -179,7 +179,7 @@ export default function Pricing() {
                   <button
                     onClick={() => handleCheckout(plan.key)}
                     disabled={loadingPlan === plan.key}
-                    className={`block text-center py-3 rounded-lg font-bold text-sm transition-all w-full ${
+                    className={`block text-center py-3 rounded-sm font-bold text-sm transition-all w-full ${
                       plan.popular
                         ? 'bg-gradient-to-r from-primary to-[hsl(var(--primary-dark))] text-white hover:shadow-[0_0_20px_hsl(var(--primary) / 0.3)]'
                         : 'border border-border text-foreground hover:border-primary hover:text-primary'

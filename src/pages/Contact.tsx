@@ -124,7 +124,7 @@ export default function Contact() {
             </div>
             <div className="flex items-center gap-3">
               <Link to="/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Sign In</Link>
-              <Link to="/signup" className="text-sm px-4 py-2 bg-primary text-white rounded-lg hover:bg-[hsl(var(--primary-dark))] transition-colors">Get Started</Link>
+              <Link to="/signup" className="text-sm px-4 py-2 bg-primary text-white rounded-sm hover:bg-[hsl(var(--primary-dark))] transition-colors">Get Started</Link>
             </div>
           </div>
         </nav>
@@ -133,7 +133,7 @@ export default function Contact() {
           <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16">
             {/* Left */}
             <div>
-              <h1 className="text-4xl sm:text-5xl font-black mb-6" style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '2px' }}>
+              <h1 className="text-4xl sm:text-5xl font-semibold mb-6">
                 Get In Touch
               </h1>
               <p className="text-muted-foreground text-lg mb-8 leading-relaxed">
@@ -153,8 +153,8 @@ export default function Contact() {
 
               <div className="space-y-4">
                 {contactReasons.map((reason, i) => (
-                  <div key={i} className="bg-card border border-border rounded-xl p-5 flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-[hsl(var(--primary)/0.1)] flex items-center justify-center shrink-0">
+                  <div key={i} className="bg-card border border-border rounded-sm p-5 flex items-start gap-4">
+                    <div className="w-10 h-10 rounded-sm bg-[hsl(var(--primary)/0.1)] flex items-center justify-center shrink-0">
                       <reason.icon className="w-5 h-5 text-primary" />
                     </div>
                     <div>
@@ -167,7 +167,7 @@ export default function Contact() {
             </div>
 
             {/* Right - Form */}
-            <div className="bg-card border border-border rounded-2xl p-8">
+            <div className="bg-card border border-border rounded-sm p-8">
               {submitted ? (
                 <div className="flex flex-col items-center justify-center h-full text-center py-12">
                   <div className="w-16 h-16 rounded-full bg-green-500/10 flex items-center justify-center mb-6">
@@ -182,7 +182,7 @@ export default function Contact() {
                     <label className="block text-sm font-medium text-muted-foreground mb-2">Full Name *</label>
                     <input
                       type="text" value={name} onChange={(e) => setName(e.target.value)} required maxLength={100}
-                      className="w-full bg-muted border border-border rounded-lg px-4 py-3 text-white placeholder-[hsl(var(--text-tertiary))] focus:outline-none focus:border-primary transition-colors"
+                      className="w-full bg-muted border border-border rounded-sm px-4 py-3 text-white placeholder-[hsl(var(--text-tertiary))] focus:outline-none focus:border-primary transition-colors"
                       placeholder="Your name"
                     />
                   </div>
@@ -190,7 +190,7 @@ export default function Contact() {
                     <label className="block text-sm font-medium text-muted-foreground mb-2">Email Address *</label>
                     <input
                       type="email" value={email} onChange={(e) => setEmail(e.target.value)} required maxLength={255}
-                      className="w-full bg-muted border border-border rounded-lg px-4 py-3 text-white placeholder-[hsl(var(--text-tertiary))] focus:outline-none focus:border-primary transition-colors"
+                      className="w-full bg-muted border border-border rounded-sm px-4 py-3 text-white placeholder-[hsl(var(--text-tertiary))] focus:outline-none focus:border-primary transition-colors"
                       placeholder="you@example.com"
                     />
                   </div>
@@ -198,7 +198,7 @@ export default function Contact() {
                     <label className="block text-sm font-medium text-muted-foreground mb-2">Subject</label>
                     <select
                       value={subject} onChange={(e) => setSubject(e.target.value)}
-                      className="w-full bg-muted border border-border rounded-lg px-4 py-3 text-white focus:outline-none focus:border-primary transition-colors"
+                      className="w-full bg-muted border border-border rounded-sm px-4 py-3 text-white focus:outline-none focus:border-primary transition-colors"
                     >
                       {allowedSubjects.map(s => <option key={s} value={s}>{s}</option>)}
                     </select>
@@ -207,7 +207,7 @@ export default function Contact() {
                     <label className="block text-sm font-medium text-muted-foreground mb-2">Message *</label>
                     <textarea
                       value={message} onChange={(e) => setMessage(e.target.value)} required rows={4} maxLength={5000}
-                      className="w-full bg-muted border border-border rounded-lg px-4 py-3 text-white placeholder-[hsl(var(--text-tertiary))] focus:outline-none focus:border-primary transition-colors resize-none"
+                      className="w-full bg-muted border border-border rounded-sm px-4 py-3 text-white placeholder-[hsl(var(--text-tertiary))] focus:outline-none focus:border-primary transition-colors resize-none"
                       placeholder="How can we help?"
                     />
                   </div>
@@ -215,7 +215,7 @@ export default function Contact() {
                   {error && <p className="text-red-500 text-sm">{error}</p>}
 
                   <button type="submit" disabled={loading}
-                    className="w-full py-3 bg-gradient-to-r from-primary to-[hsl(var(--primary-dark))] text-white font-bold rounded-lg hover:shadow-[0_0_20px_hsl(var(--primary) / 0.3)] transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+                    className="w-full py-3 bg-gradient-to-r from-primary to-[hsl(var(--primary-dark))] text-white font-bold rounded-sm hover:shadow-[0_0_20px_hsl(var(--primary) / 0.3)] transition-all disabled:opacity-50 flex items-center justify-center gap-2">
                     {loading ? 'Sending...' : <>Send Message <ArrowRight className="w-4 h-4" /></>}
                   </button>
                 </form>
