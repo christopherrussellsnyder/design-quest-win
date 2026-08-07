@@ -224,7 +224,7 @@ export function ContentCalendarView({
                               {post.expected_engagement_score}% expected
                             </Badge>
                           )}
-                          <Button variant="ghost" size="icon">
+                          <Button aria-label="Toggle day details" variant="ghost" size="icon">
                             {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                           </Button>
                         </div>

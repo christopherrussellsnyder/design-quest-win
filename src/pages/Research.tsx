@@ -220,7 +220,7 @@ export default function Research() {
       <div className="min-h-screen bg-[#060606] text-[#EEEEEE]">
         {/* Header */}
         <header className="border-b border-[#16171A] px-4 py-3 flex items-center gap-3">
-          <Button
+          <Button aria-label="Go back"
             variant="ghost"
             size="icon"
             onClick={() => navigate('/ai-strategist')}

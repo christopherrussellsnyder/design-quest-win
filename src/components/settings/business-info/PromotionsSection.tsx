@@ -161,7 +161,7 @@ export const PromotionsSection: React.FC = () => {
                 </div>
                 <div className="flex items-center gap-2">
                   <Switch checked={promo.is_active} onCheckedChange={() => toggleActive(promo)} />
-                  <Button variant="ghost" size="icon" onClick={() => removePromo(promo.id)}>
+                  <Button aria-label="Delete promotion" variant="ghost" size="icon" onClick={() => removePromo(promo.id)}>
                     <Trash2 className="w-4 h-4 text-destructive" />
                   </Button>
                 </div>

@@ -14,7 +14,7 @@ export default function ContentDetailModal({ content, onClose, onEdit, onCopy }:
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={onClose} />
+      <button type="button" aria-label="Close details" className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={onClose} />
       <div className="relative bg-card rounded-2xl border border-border w-full max-w-2xl max-h-[90vh] overflow-hidden animate-scale-in">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-border">
@@ -22,7 +22,7 @@ export default function ContentDetailModal({ content, onClose, onEdit, onCopy }:
             <h2 className="text-xl font-semibold text-foreground">{content.title || 'Untitled Content'}</h2>
             {content.is_favorite && <Star className="h-5 w-5 fill-amber-500 text-amber-500" />}
           </div>
-          <Button variant="ghost" size="icon" onClick={onClose}>
+          <Button aria-label="Close" variant="ghost" size="icon" onClick={onClose}>
             <X className="h-5 w-5" />
           </Button>
         </div>

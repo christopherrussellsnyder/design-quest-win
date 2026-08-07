@@ -144,7 +144,7 @@ export default function ContentStrategies() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <Button variant="ghost" size="icon" onClick={() => navigate('/strategies')}>
+                  <Button aria-label="Go back" variant="ghost" size="icon" onClick={() => navigate('/strategies')}>
                     <ArrowLeft className="h-5 w-5" />
                   </Button>
                   <div>
@@ -215,7 +215,7 @@ export default function ContentStrategies() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <Button variant="ghost" size="icon" onClick={() => navigate('/ai-strategist')}>
+                <Button aria-label="Go back" variant="ghost" size="icon" onClick={() => navigate('/ai-strategist')}>
                   <ArrowLeft className="h-5 w-5" />
                 </Button>
                 <div>
@@ -311,7 +311,7 @@ export default function ContentStrategies() {
                       <Badge variant="secondary" className="capitalize">
                         {strategy.platform}
                       </Badge>
-                      <Button
+                      <Button aria-label="Delete strategy"
                         variant="ghost"
                         size="icon"
                         className="opacity-0 group-hover:opacity-100 transition-opacity"

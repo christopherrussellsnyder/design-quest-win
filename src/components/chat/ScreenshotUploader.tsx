@@ -255,7 +255,7 @@ export function ScreenshotUploader({
 
             {/* Remove button */}
             {uploadedFile.status !== 'uploading' && !isAnalyzing && (
-              <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" onClick={removeFile}>
+              <Button aria-label="Remove file" variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" onClick={removeFile}>
                 <X className="w-4 h-4" />
               </Button>
             )}

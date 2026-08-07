@@ -22,7 +22,7 @@ const Cookies: React.FC = () => {
         <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center h-16">
-              <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+              <Button aria-label="Go back" variant="ghost" size="icon" onClick={() => navigate(-1)}>
                 <ArrowLeft className="w-5 h-5" />
               </Button>
               <h1 className="text-xl font-bold ml-4">Cookie Policy</h1>

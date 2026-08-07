@@ -46,7 +46,7 @@ export function ConversationSidebar({
       isOpen ? 'w-80' : 'w-0'
     )}>
       {/* Toggle button */}
-      <Button
+      <Button aria-label="Toggle conversation panel"
         variant="ghost"
         size="icon"
         className={cn(

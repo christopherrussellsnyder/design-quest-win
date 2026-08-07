@@ -87,14 +87,14 @@ export default function ContentFormModal({ content, folders, onClose, onSave }: 
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={onClose} />
+      <button type="button" aria-label="Close form" className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={onClose} />
       <div className="relative bg-card rounded-2xl border border-border w-full max-w-2xl max-h-[90vh] overflow-hidden animate-scale-in">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-border">
           <h2 className="text-xl font-semibold text-foreground">
             {content ? 'Edit Content' : 'Add Content'}
           </h2>
-          <Button variant="ghost" size="icon" onClick={onClose}>
+          <Button aria-label="Close" variant="ghost" size="icon" onClick={onClose}>
             <X className="h-5 w-5" />
           </Button>
         </div>

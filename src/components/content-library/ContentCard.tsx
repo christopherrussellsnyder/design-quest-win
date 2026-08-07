@@ -29,7 +29,18 @@ export default function ContentCard({ item, onView, onEdit, onDuplicate, onDelet
   return (
     <div className="group bg-card rounded-xl border border-border hover:border-primary/50 transition-all duration-200 overflow-hidden">
       {/* Content preview */}
-      <div className="p-4 cursor-pointer" onClick={onView}>
+      <div
+        role="button"
+        tabIndex={0}
+        className="p-4 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-xl"
+        onClick={onView}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onView();
+          }
+        }}
+      >
         {/* Header */}
         <div className="flex items-start justify-between mb-3">
           <div className="flex-1 min-w-0">
@@ -94,21 +105,21 @@ export default function ContentCard({ item, onView, onEdit, onDuplicate, onDelet
       {/* Actions */}
       <div className="flex items-center justify-between px-4 py-2 border-t border-border bg-secondary/30 opacity-0 group-hover:opacity-100 transition-opacity">
         <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); onView(); }}>
+          <Button aria-label="View content" variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); onView(); }}>
             <Eye className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); onEdit(); }}>
+          <Button aria-label="Edit content" variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); onEdit(); }}>
             <Edit className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); onCopy(); }}>
+          <Button aria-label="Copy content" variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); onCopy(); }}>
             <Copy className="h-4 w-4" />
           </Button>
         </div>
         <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); onDuplicate(); }}>
+          <Button aria-label="More options" variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); onDuplicate(); }}>
             <MoreVertical className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={(e) => { e.stopPropagation(); onDelete(); }}>
+          <Button aria-label="Delete content" variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={(e) => { e.stopPropagation(); onDelete(); }}>
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>

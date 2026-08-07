@@ -228,7 +228,7 @@ export function TeamMembersSection() {
                 <div className="flex items-center gap-2">
                   <Badge variant="outline">{m.role}</Badge>
                   {isOwner && m.user_id !== activeWorkspace?.owner_id && (
-                    <Button
+                    <Button aria-label="Remove team member"
                       variant="ghost"
                       size="icon"
                       onClick={() => removeMember(m.user_id)}
@@ -265,10 +265,10 @@ export function TeamMembersSection() {
                 </div>
                 {isOwner && (
                   <div className="flex items-center gap-1">
-                    <Button variant="ghost" size="icon" onClick={() => copyLink(inv.token)}>
+                    <Button aria-label="Copy invitation link" variant="ghost" size="icon" onClick={() => copyLink(inv.token)}>
                       <Copy className="h-4 w-4" />
                     </Button>
-                    <Button
+                    <Button aria-label="Revoke invitation"
                       variant="ghost"
                       size="icon"
                       onClick={() => revoke(inv.id)}
