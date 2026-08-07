@@ -11,6 +11,8 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { BusinessProfile } from '@/hooks/useWebsiteAnalysis';
 import { cn } from '@/lib/utils';
 import { AnimatedDotGrid } from '@/components/strategist/AnimatedDotGrid';
+import { GettingStartedCard } from '@/components/onboarding/GettingStartedCard';
+
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import {
@@ -260,7 +262,13 @@ export default function AIStrategist() {
           onToggle={() => setRightSidebarOpen(!rightSidebarOpen)}
           onReanalyze={handleContextUpdate}
         />
+
+        {/* Getting Started checklist */}
+        <div className="hidden md:block absolute bottom-4 left-1/2 -translate-x-1/2 z-40">
+          <GettingStartedCard />
+        </div>
       </div>
+
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
