@@ -94,7 +94,7 @@ export default function HowItWorks() {
             </div>
             <div className="flex items-center gap-3">
               <Link to="/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Sign In</Link>
-              <Link to="/signup" className="text-sm px-4 py-2 bg-primary text-white rounded-lg hover:bg-[hsl(var(--primary-dark))] transition-colors">Get Started</Link>
+              <Link to="/signup" className="text-sm px-4 py-2 bg-primary text-white rounded-sm hover:bg-[hsl(var(--primary-dark))] transition-colors">Get Started</Link>
             </div>
           </div>
         </nav>
@@ -134,9 +134,9 @@ export default function HowItWorks() {
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.4, delay: i * 0.05 }}
-                  className="flex gap-5 bg-card border border-border rounded-2xl p-6 hover:border-[hsl(var(--primary)/0.4)] transition-all"
+                  className="flex gap-5 bg-card border border-border rounded-sm p-6 hover:border-[hsl(var(--primary)/0.4)] transition-all"
                 >
-                  <div className="shrink-0 w-12 h-12 rounded-xl bg-[hsl(var(--primary)/0.1)] flex items-center justify-center">
+                  <div className="shrink-0 w-12 h-12 rounded-sm bg-[hsl(var(--primary)/0.1)] flex items-center justify-center">
                     <step.icon className="w-6 h-6 text-primary" />
                   </div>
                   <div>
@@ -166,9 +166,9 @@ export default function HowItWorks() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.4, delay: i * 0.1 }}
-                  className="bg-card border border-border rounded-2xl p-6"
+                  className="bg-card border border-border rounded-sm p-6"
                 >
-                  <div className="w-12 h-12 rounded-xl bg-[hsl(var(--primary)/0.1)] flex items-center justify-center mb-4">
+                  <div className="w-12 h-12 rounded-sm bg-[hsl(var(--primary)/0.1)] flex items-center justify-center mb-4">
                     <f.icon className="w-6 h-6 text-primary" />
                   </div>
                   <h3 className="text-lg font-bold mb-2">{f.title}</h3>
@@ -196,7 +196,7 @@ export default function HowItWorks() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.4, delay: i * 0.05 }}
-                  className="bg-card border border-border rounded-xl p-5"
+                  className="bg-card border border-border rounded-sm p-5"
                 >
                   <div className="flex items-start gap-3">
                     <div className="shrink-0 w-2 h-2 mt-2 rounded-full bg-primary" />
@@ -221,7 +221,7 @@ export default function HowItWorks() {
             <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
               Generate your first strategy in under two minutes. Free to start — no credit card required.
             </p>
-            <Link to="/signup" className="inline-flex items-center gap-2 px-10 py-4 bg-gradient-to-r from-primary to-[hsl(var(--primary-dark))] text-white text-lg font-bold rounded-lg hover:scale-105 transition-all shadow-[0_0_30px_hsl(var(--primary) / 0.3)]">
+            <Link to="/signup" className="inline-flex items-center gap-2 px-10 py-4 bg-gradient-to-r from-primary to-[hsl(var(--primary-dark))] text-white text-lg font-bold rounded-sm hover:scale-105 transition-all shadow-[0_0_30px_hsl(var(--primary) / 0.3)]">
               Start Free Today <ArrowRight className="w-5 h-5" />
             </Link>
           </div>

@@ -14,7 +14,7 @@ const VideoPlayer = () => {
     return (
       <iframe
         src={`https://www.youtube.com/embed/${videoId}`}
-        className="w-full aspect-video rounded-2xl"
+        className="w-full aspect-video rounded-sm"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         allowFullScreen
       />
@@ -23,7 +23,7 @@ const VideoPlayer = () => {
 
   if (DEMO_VIDEO_URL && DEMO_VIDEO_URL.endsWith('.mp4')) {
     return (
-      <video controls className="w-full aspect-video rounded-2xl">
+      <video controls className="w-full aspect-video rounded-sm">
         <source src={DEMO_VIDEO_URL} type="video/mp4" />
       </video>
     );
@@ -31,7 +31,7 @@ const VideoPlayer = () => {
 
   // Styled placeholder
   return (
-    <div className="w-full aspect-video rounded-2xl bg-card border border-[hsl(var(--primary)/0.3)] flex items-center justify-center relative overflow-hidden"
+    <div className="w-full aspect-video rounded-sm bg-card border border-[hsl(var(--primary)/0.3)] flex items-center justify-center relative overflow-hidden"
       style={{ boxShadow: '0 0 40px hsl(var(--primary) / 0.15)' }}>
       <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--primary)/0.1)] to-transparent" />
       <div className="relative z-10 text-center">
@@ -91,7 +91,7 @@ export default function Demo() {
             </div>
             <div className="flex items-center gap-3">
               <Link to="/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Sign In</Link>
-              <Link to="/signup" className="text-sm px-4 py-2 bg-primary text-white rounded-lg hover:bg-[hsl(var(--primary-dark))] transition-colors">Get Started</Link>
+              <Link to="/signup" className="text-sm px-4 py-2 bg-primary text-white rounded-sm hover:bg-[hsl(var(--primary-dark))] transition-colors">Get Started</Link>
             </div>
           </div>
         </nav>
@@ -120,7 +120,7 @@ export default function Demo() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {steps.map((step, i) => (
                 <motion.div key={i} initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: i * 0.15 }}
-                  className="bg-card border border-border rounded-2xl p-8 text-center">
+                  className="bg-card border border-border rounded-sm p-8 text-center">
                   <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center mx-auto mb-5 text-white font-semibold text-lg shadow-[0_0_20px_hsl(var(--primary) / 0.3)]">
                     {i + 1}
                   </div>
@@ -141,7 +141,7 @@ export default function Demo() {
               Ready to Try It Yourself?
             </h2>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link to="/signup" className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-primary to-[hsl(var(--primary-dark))] text-white font-bold rounded-lg hover:scale-105 transition-all shadow-[0_0_30px_hsl(var(--primary) / 0.3)]">
+              <Link to="/signup" className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-primary to-[hsl(var(--primary-dark))] text-white font-bold rounded-sm hover:scale-105 transition-all shadow-[0_0_30px_hsl(var(--primary) / 0.3)]">
                 Create Your Free Account <ArrowRight className="w-5 h-5" />
               </Link>
               <Link to="/#pricing" className="text-muted-foreground hover:text-foreground transition-colors text-sm underline underline-offset-4">

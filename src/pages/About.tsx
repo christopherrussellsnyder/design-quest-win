@@ -83,7 +83,7 @@ export default function About() {
             </div>
             <div className="flex items-center gap-3">
               <Link to="/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Sign In</Link>
-              <Link to="/signup" className="text-sm px-4 py-2 bg-primary text-white rounded-lg hover:bg-[hsl(var(--primary-dark))] transition-colors">Get Started</Link>
+              <Link to="/signup" className="text-sm px-4 py-2 bg-primary text-white rounded-sm hover:bg-[hsl(var(--primary-dark))] transition-colors">Get Started</Link>
             </div>
           </div>
         </nav>
@@ -121,8 +121,8 @@ export default function About() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {beliefs.map((belief, i) => (
                 <motion.div key={i} initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: i * 0.15 }}
-                  className="bg-card border border-border rounded-2xl p-8 hover:border-[hsl(var(--primary)/0.5)] transition-all">
-                  <div className="w-12 h-12 rounded-xl bg-[hsl(var(--primary)/0.1)] flex items-center justify-center mb-5">
+                  className="bg-card border border-border rounded-sm p-8 hover:border-[hsl(var(--primary)/0.5)] transition-all">
+                  <div className="w-12 h-12 rounded-sm bg-[hsl(var(--primary)/0.1)] flex items-center justify-center mb-5">
                     <belief.icon className="w-6 h-6 text-primary" />
                   </div>
                   <h3 className="text-lg font-bold mb-3">{belief.title}</h3>
@@ -144,7 +144,7 @@ export default function About() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-12">
               {capabilities.map((c, i) => (
                 <motion.div key={i} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.4, delay: i * 0.08 }}
-                  className="bg-card border border-border rounded-2xl p-6 hover:border-[hsl(var(--primary)/0.5)] transition-all">
+                  className="bg-card border border-border rounded-sm p-6 hover:border-[hsl(var(--primary)/0.5)] transition-all">
                   <div className="flex items-center gap-3 mb-3">
                     <c.icon className="w-5 h-5 text-primary" />
                     <h3 className="font-bold">{c.title}</h3>
@@ -170,7 +170,7 @@ export default function About() {
             <h2 className="text-2xl sm:text-3xl font-semibold mb-6">
               Join the future of marketing intelligence.
             </h2>
-            <Link to="/signup" className="inline-flex items-center gap-2 px-10 py-4 bg-gradient-to-r from-primary to-[hsl(var(--primary-dark))] text-white text-lg font-bold rounded-lg hover:scale-105 transition-all shadow-[0_0_30px_hsl(var(--primary) / 0.3)]">
+            <Link to="/signup" className="inline-flex items-center gap-2 px-10 py-4 bg-gradient-to-r from-primary to-[hsl(var(--primary-dark))] text-white text-lg font-bold rounded-sm hover:scale-105 transition-all shadow-[0_0_30px_hsl(var(--primary) / 0.3)]">
               Get Started Free <ArrowRight className="w-5 h-5" />
             </Link>
           </div>

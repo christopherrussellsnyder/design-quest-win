@@ -233,7 +233,7 @@ export default function HelpCenter() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <Card className="cursor-pointer hover:border-primary transition-colors" onClick={() => setCategory('Getting Started')}>
             <CardContent className="flex items-center gap-4 p-6">
-              <div className="p-3 bg-primary/10 rounded-lg">
+              <div className="p-3 bg-primary/10 rounded-sm">
                 <Book className="w-6 h-6 text-primary" />
               </div>
               <div>
@@ -245,7 +245,7 @@ export default function HelpCenter() {
           
           <Card className="cursor-pointer hover:border-primary transition-colors" onClick={() => setCategory('Content AI')}>
             <CardContent className="flex items-center gap-4 p-6">
-              <div className="p-3 bg-primary/10 rounded-lg">
+              <div className="p-3 bg-primary/10 rounded-sm">
                 <Video className="w-6 h-6 text-primary" />
               </div>
               <div>
@@ -257,7 +257,7 @@ export default function HelpCenter() {
           
           <Card className="cursor-pointer hover:border-primary transition-colors" onClick={() => navigate('/contact')}>
             <CardContent className="flex items-center gap-4 p-6">
-              <div className="p-3 bg-primary/10 rounded-lg">
+              <div className="p-3 bg-primary/10 rounded-sm">
                 <MessageCircle className="w-6 h-6 text-primary" />
               </div>
               <div>

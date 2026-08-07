@@ -133,7 +133,7 @@ export default function Pricing() {
             return (
               <div
                 key={plan.key}
-                className={`relative bg-card rounded-2xl p-8 h-full flex flex-col border transition-all duration-300 hover:-translate-y-1 ${
+                className={`relative bg-card rounded-sm p-8 h-full flex flex-col border transition-all duration-300 hover:-translate-y-1 ${
                   plan.popular ? 'border-primary shadow-[0_0_30px_hsl(var(--primary) / 0.15)]' : 'border-border hover:border-border'
                 } ${isCurrentPlan ? 'ring-2 ring-green-500' : ''}`}
               >
@@ -171,7 +171,7 @@ export default function Pricing() {
                 {isCurrentPlan ? (
                   <button
                     onClick={handleManage}
-                    className="block text-center py-3 rounded-lg font-bold text-sm border border-green-500 text-green-400 hover:bg-green-500/10 transition-all w-full"
+                    className="block text-center py-3 rounded-sm font-bold text-sm border border-green-500 text-green-400 hover:bg-green-500/10 transition-all w-full"
                   >
                     Manage Subscription
                   </button>
@@ -179,7 +179,7 @@ export default function Pricing() {
                   <button
                     onClick={() => handleCheckout(plan.key)}
                     disabled={loadingPlan === plan.key}
-                    className={`block text-center py-3 rounded-lg font-bold text-sm transition-all w-full ${
+                    className={`block text-center py-3 rounded-sm font-bold text-sm transition-all w-full ${
                       plan.popular
                         ? 'bg-gradient-to-r from-primary to-[hsl(var(--primary-dark))] text-white hover:shadow-[0_0_20px_hsl(var(--primary) / 0.3)]'
                         : 'border border-border text-foreground hover:border-primary hover:text-primary'

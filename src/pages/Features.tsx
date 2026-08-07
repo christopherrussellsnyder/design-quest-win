@@ -97,7 +97,7 @@ export default function Features() {
             </div>
             <div className="flex items-center gap-3">
               <Link to="/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Sign In</Link>
-              <Link to="/signup" className="text-sm px-4 py-2 bg-primary text-white rounded-lg hover:bg-[hsl(var(--primary-dark))] transition-colors">Get Started</Link>
+              <Link to="/signup" className="text-sm px-4 py-2 bg-primary text-white rounded-sm hover:bg-[hsl(var(--primary-dark))] transition-colors">Get Started</Link>
             </div>
           </div>
         </nav>
@@ -116,7 +116,7 @@ export default function Features() {
             </motion.p>
 
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.4 }}>
-              <Link to="/signup" className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-primary to-[hsl(var(--primary-dark))] text-white text-lg font-bold rounded-lg hover:scale-105 transition-all shadow-[0_0_30px_hsl(var(--primary) / 0.3)]">
+              <Link to="/signup" className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-primary to-[hsl(var(--primary-dark))] text-white text-lg font-bold rounded-sm hover:scale-105 transition-all shadow-[0_0_30px_hsl(var(--primary) / 0.3)]">
                 Get Started Free <ArrowRight className="w-5 h-5" />
               </Link>
             </motion.div>
@@ -129,8 +129,8 @@ export default function Features() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {features.map((feature, i) => (
                 <motion.div key={i} initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: i * 0.1 }}
-                  className="bg-card border border-border rounded-2xl p-8 hover:border-[hsl(var(--primary)/0.5)] transition-all group">
-                  <div className="w-14 h-14 rounded-xl bg-[hsl(var(--primary)/0.1)] flex items-center justify-center mb-6 group-hover:bg-[hsl(var(--primary)/0.2)] transition-colors">
+                  className="bg-card border border-border rounded-sm p-8 hover:border-[hsl(var(--primary)/0.5)] transition-all group">
+                  <div className="w-14 h-14 rounded-sm bg-[hsl(var(--primary)/0.1)] flex items-center justify-center mb-6 group-hover:bg-[hsl(var(--primary)/0.2)] transition-colors">
                     <feature.icon className="w-7 h-7 text-primary" />
                   </div>
                   <h3 className="text-xl font-bold mb-3">{feature.title}</h3>
@@ -148,7 +148,7 @@ export default function Features() {
             <h2 className="text-3xl sm:text-5xl font-semibold mb-6">
               Ready to Outperform Your Competition?
             </h2>
-            <Link to="/signup" className="inline-flex items-center gap-2 px-10 py-4 bg-gradient-to-r from-primary to-[hsl(var(--primary-dark))] text-white text-lg font-bold rounded-lg hover:scale-105 transition-all shadow-[0_0_30px_hsl(var(--primary) / 0.3)]">
+            <Link to="/signup" className="inline-flex items-center gap-2 px-10 py-4 bg-gradient-to-r from-primary to-[hsl(var(--primary-dark))] text-white text-lg font-bold rounded-sm hover:scale-105 transition-all shadow-[0_0_30px_hsl(var(--primary) / 0.3)]">
               Start Free Today <ArrowRight className="w-5 h-5" />
             </Link>
           </div>

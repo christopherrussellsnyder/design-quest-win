@@ -217,7 +217,7 @@ const Index = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">
             {painPoints.map((point, i) => (
               <AnimatedSection key={i} delay={i * 0.1}>
-                <div className="flex items-start gap-3 bg-card border border-border rounded-xl p-5">
+                <div className="flex items-start gap-3 bg-card border border-border rounded-sm p-5">
                   <X className="w-5 h-5 text-primary shrink-0 mt-0.5" />
                   <span className="text-muted-foreground text-sm">{point}</span>
                 </div>
@@ -245,7 +245,7 @@ const Index = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {howItWorks.map((step, i) => (
               <AnimatedSection key={i} delay={i * 0.1}>
-                <div className="bg-card border border-border rounded-xl p-6 text-center hover:border-[hsl(var(--primary)/0.5)] transition-all h-full">
+                <div className="bg-card border border-border rounded-sm p-6 text-center hover:border-[hsl(var(--primary)/0.5)] transition-all h-full">
                   <div className="w-14 h-14 rounded-full bg-primary flex items-center justify-center mx-auto mb-4 text-white font-semibold text-lg shadow-[0_0_20px_hsl(var(--primary) / 0.3)]">
                     {i + 1}
                   </div>
@@ -336,7 +336,7 @@ const Index = () => {
           </AnimatedSection>
 
           <AnimatedSection className="mt-8" delay={0.2}>
-            <div className="border border-[hsl(var(--primary)/0.3)] rounded-xl p-6 text-center bg-[hsl(var(--primary)/0.05)]">
+            <div className="border border-[hsl(var(--primary)/0.3)] rounded-sm p-6 text-center bg-[hsl(var(--primary)/0.05)]">
               <p className="text-lg font-bold">With Korex, you save <span className="text-primary">$5,412–$119,412</span> annually.</p>
               <p className="text-muted-foreground text-sm mt-1">Plus 156 hours of your time.</p>
             </div>
@@ -355,7 +355,7 @@ const Index = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
             <AnimatedSection>
-              <div className="bg-card border border-border rounded-xl p-6 h-full">
+              <div className="bg-card border border-border rounded-sm p-6 h-full">
                 <h3 className="text-lg font-bold mb-4 text-[hsl(var(--text-tertiary))]">Generic AI (ChatGPT, etc.)</h3>
                 <ul className="space-y-3">
                   {['Gives template responses', "Doesn't analyze your data", 'One-size-fits-all strategies', 'No platform optimization'].map((item, i) => (
@@ -367,7 +367,7 @@ const Index = () => {
               </div>
             </AnimatedSection>
             <AnimatedSection delay={0.1}>
-              <div className="bg-card border border-[hsl(var(--primary)/0.3)] rounded-xl p-6 h-full">
+              <div className="bg-card border border-[hsl(var(--primary)/0.3)] rounded-sm p-6 h-full">
                 <h3 className="text-lg font-bold mb-4 text-primary">Korex Algorithm</h3>
                 <ul className="space-y-3">
                   {['Analyzes 47 engagement signals from YOUR data', 'Cross-platform pattern recognition', 'Audience behavior prediction', 'Platform-specific ranking optimization', 'Trained on $10M+ in ad spend analysis'].map((item, i) => (
@@ -382,11 +382,11 @@ const Index = () => {
 
           <AnimatedSection delay={0.2}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="bg-card border border-border rounded-xl p-6">
+              <div className="bg-card border border-border rounded-sm p-6">
                 <p className="text-xs uppercase tracking-wider text-[hsl(var(--text-tertiary))] mb-2">ChatGPT says:</p>
                 <p className="text-[hsl(var(--text-tertiary))] text-sm italic">"Here's a social media strategy template"</p>
               </div>
-              <div className="bg-card border border-[hsl(var(--primary)/0.3)] rounded-xl p-6">
+              <div className="bg-card border border-[hsl(var(--primary)/0.3)] rounded-sm p-6">
                 <p className="text-xs uppercase tracking-wider text-primary mb-2">Korex says:</p>
                 <p className="text-muted-foreground text-sm italic">"Based on your data, your audience engages 3.2x more with educational content on Tuesdays at 2pm. Here's your 14-day calendar optimized for this pattern."</p>
               </div>
@@ -405,7 +405,7 @@ const Index = () => {
           </AnimatedSection>
 
           <AnimatedSection>
-            <div className="bg-card border border-border rounded-2xl p-8">
+            <div className="bg-card border border-border rounded-sm p-8">
               <div className="space-y-6 mb-8">
                 {[
                   { label: 'Market research', value: calcResearch, setter: setCalcResearch },
@@ -415,11 +415,11 @@ const Index = () => {
                   <div key={i} className="flex items-center justify-between gap-4">
                     <span className="text-sm text-muted-foreground flex-1">{item.label}</span>
                     <div className="flex items-center gap-2">
-                      <button onClick={() => item.setter(Math.max(0, item.value - 1))} className="w-8 h-8 rounded-lg bg-border flex items-center justify-center text-muted-foreground hover:bg-border transition-colors">
+                      <button onClick={() => item.setter(Math.max(0, item.value - 1))} className="w-8 h-8 rounded-sm bg-border flex items-center justify-center text-muted-foreground hover:bg-border transition-colors">
                         <Minus className="w-3 h-3" />
                       </button>
                       <span className="w-10 text-center font-bold">{item.value}</span>
-                      <button onClick={() => item.setter(item.value + 1)} className="w-8 h-8 rounded-lg bg-border flex items-center justify-center text-muted-foreground hover:bg-border transition-colors">
+                      <button onClick={() => item.setter(item.value + 1)} className="w-8 h-8 rounded-sm bg-border flex items-center justify-center text-muted-foreground hover:bg-border transition-colors">
                         <Plus className="w-3 h-3" />
                       </button>
                       <span className="text-xs text-[hsl(var(--text-tertiary))] w-16">hrs/mo</span>
@@ -434,7 +434,7 @@ const Index = () => {
                       <span className="text-sm text-[hsl(var(--text-tertiary))]">$</span>
                       <input
                         type="number" value={calcHourlyRate} onChange={(e) => setCalcHourlyRate(Math.max(0, parseInt(e.target.value) || 0))}
-                        className="w-20 bg-border border border-border rounded-lg px-3 py-2 text-center text-sm focus:border-primary outline-none"
+                        className="w-20 bg-border border border-border rounded-sm px-3 py-2 text-center text-sm focus:border-primary outline-none"
                       />
                       <span className="text-xs text-[hsl(var(--text-tertiary))]">/hour</span>
                     </div>
@@ -442,7 +442,7 @@ const Index = () => {
                 </div>
               </div>
 
-              <div className="bg-muted rounded-xl p-6 space-y-3">
+              <div className="bg-muted rounded-sm p-6 space-y-3">
                 <div className="flex justify-between text-sm">
                   <span className="text-[hsl(var(--text-tertiary))]">Monthly time saved</span>
                   <span className="font-bold">{totalHours} hours</span>
@@ -466,7 +466,7 @@ const Index = () => {
               </div>
 
               <div className="mt-6 text-center">
-                <Link to="/signup" className="inline-flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-primary to-[hsl(var(--primary-dark))] text-white font-bold rounded-lg hover:scale-105 transition-all shadow-[0_0_20px_hsl(var(--primary) / 0.3)]">
+                <Link to="/signup" className="inline-flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-primary to-[hsl(var(--primary-dark))] text-white font-bold rounded-sm hover:scale-105 transition-all shadow-[0_0_20px_hsl(var(--primary) / 0.3)]">
                   Start Free <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>
@@ -492,7 +492,7 @@ const Index = () => {
                 { icon: Globe, value: '8', label: 'Social platforms' },
                 { icon: Zap, value: '47', label: 'Engagement signals' },
               ].map((stat, i) => (
-                <div key={i} className="bg-card border border-border rounded-xl p-5 text-center">
+                <div key={i} className="bg-card border border-border rounded-sm p-5 text-center">
                   <stat.icon className="w-5 h-5 text-primary mx-auto mb-2" />
                   <p className="text-2xl font-semibold">{stat.value}</p>
                   <p className="text-xs text-[hsl(var(--text-tertiary))] mt-1">{stat.label}</p>
@@ -502,7 +502,7 @@ const Index = () => {
           </AnimatedSection>
 
           <AnimatedSection delay={0.2}>
-            <div className="bg-card border border-[hsl(var(--primary)/0.2)] rounded-2xl p-8 text-center">
+            <div className="bg-card border border-[hsl(var(--primary)/0.2)] rounded-sm p-8 text-center">
               <p className="text-xl sm:text-2xl italic text-muted-foreground mb-6 leading-relaxed">
                 "I spent 6 months analyzing what actually works in marketing data. Then I built an AI that does it in 60 seconds."
               </p>
@@ -525,7 +525,7 @@ const Index = () => {
           <div className="space-y-4">
             {techSteps.map((step, i) => (
               <AnimatedSection key={i} delay={i * 0.1}>
-                <div className="bg-card border border-border rounded-xl p-5 flex items-start gap-4">
+                <div className="bg-card border border-border rounded-sm p-5 flex items-start gap-4">
                   <div className="w-10 h-10 rounded-full bg-[hsl(var(--primary)/0.1)] flex items-center justify-center text-primary font-bold text-sm shrink-0">
                     {i + 1}
                   </div>
@@ -548,7 +548,7 @@ const Index = () => {
           </div>
 
           <AnimatedSection className="mt-8 text-center" delay={0.5}>
-            <div className="inline-flex items-center gap-4 bg-card border border-[hsl(var(--primary)/0.2)] rounded-xl px-6 py-3">
+            <div className="inline-flex items-center gap-4 bg-card border border-[hsl(var(--primary)/0.2)] rounded-sm px-6 py-3">
               <Clock className="w-5 h-5 text-primary" />
               <span className="text-sm">Total time: <strong>60 seconds</strong></span>
               <span className="text-border">|</span>
@@ -597,7 +597,7 @@ const Index = () => {
               const savings = plan.monthlyPrice * 12 - plan.yearlyPrice;
               return (
                 <AnimatedSection key={i} delay={i * 0.1}>
-                  <div className={`relative bg-card rounded-2xl p-8 h-full flex flex-col border transition-all duration-300 hover:-translate-y-1 ${plan.popular ? 'border-primary shadow-[0_0_30px_hsl(var(--primary) / 0.15)]' : 'border-border hover:border-border'}`}>
+                  <div className={`relative bg-card rounded-sm p-8 h-full flex flex-col border transition-all duration-300 hover:-translate-y-1 ${plan.popular ? 'border-primary shadow-[0_0_30px_hsl(var(--primary) / 0.15)]' : 'border-border hover:border-border'}`}>
                     {plan.popular && (
                       <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-primary to-[hsl(var(--primary-dark))] text-white text-xs font-bold px-4 py-1 rounded-full">Most Popular</div>
                     )}
@@ -615,7 +615,7 @@ const Index = () => {
                         </li>
                       ))}
                     </ul>
-                    <Link to="/signup" className={`block text-center py-3 rounded-lg font-bold text-sm transition-all ${plan.popular ? 'bg-gradient-to-r from-primary to-[hsl(var(--primary-dark))] text-white hover:shadow-[0_0_20px_hsl(var(--primary) / 0.3)]' : 'border border-border text-foreground hover:border-primary hover:text-primary'}`}>
+                    <Link to="/signup" className={`block text-center py-3 rounded-sm font-bold text-sm transition-all ${plan.popular ? 'bg-gradient-to-r from-primary to-[hsl(var(--primary-dark))] text-white hover:shadow-[0_0_20px_hsl(var(--primary) / 0.3)]' : 'border border-border text-foreground hover:border-primary hover:text-primary'}`}>
                       Start Free
                     </Link>
                     <p className="text-xs text-[hsl(var(--text-tertiary))] text-center mt-3">No credit card required</p>
@@ -642,7 +642,7 @@ const Index = () => {
             {faqs.map((faq, i) => (
               <AnimatedSection key={i} delay={i * 0.05}>
                 <button onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                  className="w-full text-left bg-card border border-border rounded-xl p-5 hover:border-border transition-all">
+                  className="w-full text-left bg-card border border-border rounded-sm p-5 hover:border-border transition-all">
                   <div className="flex items-center justify-between">
                     <span className="font-semibold text-sm">{faq.q}</span>
                     <ChevronDown className={`w-4 h-4 text-[hsl(var(--text-tertiary))] transition-transform shrink-0 ml-4 ${openFaq === i ? 'rotate-180' : ''}`} />
@@ -673,7 +673,7 @@ const Index = () => {
             Join the marketing teams who've automated their strategy planning.
           </p>
           <Link to="/signup"
-            className="inline-flex items-center gap-2 px-10 py-4 bg-gradient-to-r from-primary to-[hsl(var(--primary-dark))] text-white text-lg font-bold rounded-lg hover:scale-105 transition-all duration-300 shadow-[0_0_30px_hsl(var(--primary) / 0.3)]">
+            className="inline-flex items-center gap-2 px-10 py-4 bg-gradient-to-r from-primary to-[hsl(var(--primary-dark))] text-white text-lg font-bold rounded-sm hover:scale-105 transition-all duration-300 shadow-[0_0_30px_hsl(var(--primary) / 0.3)]">
             Start Free — No Credit Card Required <ArrowRight className="w-5 h-5" />
           </Link>
           <div className="flex items-center justify-center gap-6 text-sm text-[hsl(var(--text-tertiary))] mt-6 flex-wrap">
@@ -756,7 +756,7 @@ const Index = () => {
           <motion.div initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 100, opacity: 0 }}
             className="fixed bottom-6 right-6 z-50 flex items-center gap-2">
             <Link to="/signup"
-              className="px-6 py-3 bg-gradient-to-r from-primary to-[hsl(var(--primary-dark))] text-white font-bold rounded-lg shadow-[0_0_20px_hsl(var(--primary) / 0.4)] hover:scale-105 transition-all text-sm">
+              className="px-6 py-3 bg-gradient-to-r from-primary to-[hsl(var(--primary-dark))] text-white font-bold rounded-sm shadow-[0_0_20px_hsl(var(--primary) / 0.4)] hover:scale-105 transition-all text-sm">
               Start Free
             </Link>
             <button onClick={() => setFloatingDismissed(true)}
