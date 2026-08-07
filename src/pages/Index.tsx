@@ -128,8 +128,8 @@ const Index = () => {
       <section className="relative bg-muted border-b border-border px-6 sm:px-8 pt-16 pb-14 lg:pt-24 lg:pb-20">
         <div className="max-w-6xl mx-auto">
           <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
-            className="mb-12 lg:mb-16">
-            <KorexLogoLockup height={44} mdHeight={52} lgHeight={56} />
+            className="mb-12 flex w-full justify-center lg:mb-16">
+            <KorexLogoLockup height={76} mdHeight={92} lgHeight={108} />
           </motion.div>
 
           <div className="grid lg:grid-cols-12 gap-10 lg:gap-12 items-start">
