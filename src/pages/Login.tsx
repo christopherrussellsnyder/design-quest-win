@@ -100,6 +100,26 @@ export default function Login() {
         </div>
 
         <div className="card-glass rounded-2xl p-8">
+          {mfaFactorId ? (
+            <>
+              <h1 className="text-2xl font-bold mb-2 text-foreground">Two-factor verification</h1>
+              <p className="text-muted-foreground mb-6">Enter the 6-digit code from your authenticator app.</p>
+              <form onSubmit={handleVerifyMfa} className="space-y-4">
+                <div>
+                  <label htmlFor="mfa" className="block text-sm font-medium text-muted-foreground mb-2">Authentication code</label>
+                  <input id="mfa" inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={mfaCode}
+                    onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, ''))} required
+                    className="w-full bg-secondary border border-border rounded-lg px-4 py-3 text-foreground tracking-[0.4em] text-center placeholder-muted-foreground focus:outline-none focus:border-primary focus:shadow-glow transition-all"
+                    placeholder="123456" />
+                </div>
+                <button type="submit" disabled={loading || mfaCode.length < 6}
+                  className="w-full bg-primary text-primary-foreground font-semibold py-3 rounded-lg hover:bg-korex-red-light transition-colors disabled:opacity-50 shadow-glow">
+                  {loading ? 'Verifying...' : 'Verify'}
+                </button>
+              </form>
+            </>
+          ) : (
+          <>
           <h1 className="text-2xl font-bold mb-2 text-foreground">Welcome back</h1>
           <p className="text-muted-foreground mb-6">Sign in to your account to continue</p>
 
@@ -126,6 +146,9 @@ export default function Login() {
               {loading ? 'Signing in...' : 'Sign In'}
             </button>
           </form>
+          </>
+          )}
+
 
           <p className="text-center text-muted-foreground text-sm mt-6">
             Don't have an account?{' '}
