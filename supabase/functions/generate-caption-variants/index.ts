@@ -12,10 +12,8 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  const gate = await requirePro(req);
-  if (gate instanceof Response) return gate;
-
-  // Abuse guard: generous ceiling that won't affect real usage.
+  // Abuse guard runs BEFORE the auth/tier gate so unauthenticated floods are
+  // rejected without any downstream work.
   const rl = await checkRateLimit(clientKey(req, "caption-variants"), { limit: 30, windowMs: 60_000 });
   if (!rl.ok) {
     return new Response(
@@ -23,6 +21,9 @@ serve(async (req) => {
       { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
+
+  const gate = await requirePro(req);
+  if (gate instanceof Response) return gate;
 
   try {
     const body = await req.json().catch(() => ({}));
