@@ -274,37 +274,41 @@ const Index = () => {
       </section>
 
       {/* =================== CAPABILITIES =================== */}
-      <section className="py-24 px-4 bg-muted border-y border-border">
+      <section className="py-24 px-6 sm:px-8 bg-muted border-y border-border">
         <div className="max-w-6xl mx-auto">
-          <AnimatedSection className="text-center mb-14">
-            <h2 className="text-3xl sm:text-[40px] font-semibold mb-4">
-              From Market Research to{' '}
-              <span className="text-primary">Finished Ad Creative</span>
+          <AnimatedSection className="max-w-2xl mb-14">
+            <p className="eyebrow mb-4">Capabilities</p>
+            <h2 className="text-3xl sm:text-[40px] font-semibold tracking-tight leading-tight mb-4">
+              From market research to{' '}
+              <span className="text-primary">finished ad creative</span>
             </h2>
-            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              Korex is no longer just a strategy generator. It researches, plans, writes, produces the creative, and reports on the results.
+            <p className="text-muted-foreground text-lg leading-relaxed">
+              Korex researches, plans, writes, produces the creative and reports on the results — one accountable system
+              rather than a folder of disconnected tools.
             </p>
           </AnimatedSection>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-0 border-t border-l border-[hsl(var(--foreground)/0.1)] bg-card">
             {capabilities.map((c, i) => (
               <AnimatedSection key={i} delay={(i % 4) * 0.08}>
-                <div className="bg-card border border-border rounded-xl p-6 h-full hover:border-[hsl(var(--primary)/0.5)] transition-all">
-                  <c.icon className="w-6 h-6 text-primary mb-4" />
-                  <h3 className="font-bold mb-2">{c.title}</h3>
+                <div className="p-8 h-full border-r border-b border-[hsl(var(--foreground)/0.1)] hover:bg-muted/60 transition-colors">
+                  <span className="eyebrow block mb-6">{String(i + 1).padStart(2, '0')}</span>
+                  <c.icon className="w-5 h-5 text-primary mb-4" />
+                  <h3 className="font-semibold text-lg tracking-tight mb-3">{c.title}</h3>
                   <p className="text-muted-foreground text-sm leading-relaxed">{c.desc}</p>
                 </div>
               </AnimatedSection>
             ))}
           </div>
 
-          <AnimatedSection className="text-center mt-12">
-            <Link to="/features" className="inline-flex items-center gap-2 text-primary font-semibold hover:gap-3 transition-all">
-              Explore all features <ArrowRight className="w-4 h-4" />
+          <AnimatedSection className="mt-12">
+            <Link to="/features" className="inline-flex items-center gap-2 text-primary font-semibold text-sm uppercase tracking-widest hover:gap-3 transition-all">
+              Explore all capabilities <ArrowRight className="w-4 h-4" />
             </Link>
           </AnimatedSection>
         </div>
       </section>
+
 
 
 
