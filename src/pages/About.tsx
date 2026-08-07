@@ -1,6 +1,9 @@
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import { Database, Sparkles, Zap, ArrowRight } from 'lucide-react';
+import {
+  Database, Sparkles, Zap, ArrowRight, Brain, Search, Video,
+  Image as ImageIcon, Building2, FileBarChart,
+} from 'lucide-react';
 import { motion } from 'framer-motion';
 import { KorexLogoLockup } from '@/components/branding/KorexLogoLockup';
 
@@ -21,6 +24,40 @@ const beliefs = [
     description: 'The faster you can test, learn, and adapt, the faster you grow.',
   },
 ];
+
+const capabilities = [
+  {
+    icon: Brain,
+    title: 'Live-Data Strategy Engine',
+    description: 'Strategies grounded in real search demand, competitor ad recon, community sentiment, and a crawl of your own product pages — then critiqued and rewritten before delivery.',
+  },
+  {
+    icon: Search,
+    title: 'Research Analysis',
+    description: 'Industry trend intelligence and personalized market research so you act on what is working now, not last year.',
+  },
+  {
+    icon: Video,
+    title: 'AI Video Ads',
+    description: 'Script, cast an AI actor and voice, render. Studio-grade UGC-style ads produced inside the same workspace as the strategy that called for them.',
+  },
+  {
+    icon: ImageIcon,
+    title: 'AI Image Studio',
+    description: 'A two-stage pipeline — cinematic art direction, then flagship rendering — for creative that looks art-directed rather than auto-generated.',
+  },
+  {
+    icon: Building2,
+    title: 'Multi-Brand Workspaces',
+    description: 'Isolated data, business context, and team seats for every brand or client you run.',
+  },
+  {
+    icon: FileBarChart,
+    title: 'White-Label Client Reports',
+    description: 'Branded exports and shareable public links that turn raw performance into a deliverable.',
+  },
+];
+
 
 export default function About() {
   return (
