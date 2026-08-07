@@ -89,14 +89,14 @@ export default function Features() {
             </Link>
             <div className="hidden md:flex items-center gap-6 text-sm text-muted-foreground">
               <Link to="/features" className="text-primary">Features</Link>
-              <Link to="/how-it-works" className="hover:text-white transition-colors">How It Works</Link>
-              <Link to="/demo" className="hover:text-white transition-colors">Demo</Link>
-              <Link to="/about" className="hover:text-white transition-colors">About</Link>
-              <Link to="/pricing" className="hover:text-white transition-colors">Pricing</Link>
-              <Link to="/contact" className="hover:text-white transition-colors">Contact</Link>
+              <Link to="/how-it-works" className="hover:text-foreground transition-colors">How It Works</Link>
+              <Link to="/demo" className="hover:text-foreground transition-colors">Demo</Link>
+              <Link to="/about" className="hover:text-foreground transition-colors">About</Link>
+              <Link to="/pricing" className="hover:text-foreground transition-colors">Pricing</Link>
+              <Link to="/contact" className="hover:text-foreground transition-colors">Contact</Link>
             </div>
             <div className="flex items-center gap-3">
-              <Link to="/login" className="text-sm text-muted-foreground hover:text-white transition-colors">Sign In</Link>
+              <Link to="/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Sign In</Link>
               <Link to="/signup" className="text-sm px-4 py-2 bg-primary text-white rounded-lg hover:bg-[hsl(var(--primary-dark))] transition-colors">Get Started</Link>
             </div>
           </div>

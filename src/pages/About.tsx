@@ -75,14 +75,14 @@ export default function About() {
               <KorexLogoLockup height={32} showTagline={false} />
             </Link>
             <div className="hidden md:flex items-center gap-6 text-sm text-muted-foreground">
-              <Link to="/features" className="hover:text-white transition-colors">Features</Link>
-              <Link to="/demo" className="hover:text-white transition-colors">Demo</Link>
+              <Link to="/features" className="hover:text-foreground transition-colors">Features</Link>
+              <Link to="/demo" className="hover:text-foreground transition-colors">Demo</Link>
               <Link to="/about" className="text-primary">About</Link>
-              <Link to="/pricing" className="hover:text-white transition-colors">Pricing</Link>
-              <Link to="/contact" className="hover:text-white transition-colors">Contact</Link>
+              <Link to="/pricing" className="hover:text-foreground transition-colors">Pricing</Link>
+              <Link to="/contact" className="hover:text-foreground transition-colors">Contact</Link>
             </div>
             <div className="flex items-center gap-3">
-              <Link to="/login" className="text-sm text-muted-foreground hover:text-white transition-colors">Sign In</Link>
+              <Link to="/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Sign In</Link>
               <Link to="/signup" className="text-sm px-4 py-2 bg-primary text-white rounded-lg hover:bg-[hsl(var(--primary-dark))] transition-colors">Get Started</Link>
             </div>
           </div>

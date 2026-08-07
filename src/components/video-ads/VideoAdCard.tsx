@@ -51,7 +51,7 @@ export function VideoAdCard({ video, url, onResolveUrl, onDelete }: Props) {
           <button
             type="button"
             onClick={handlePlay}
-            className="w-full h-full flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-white transition-colors"
+            className="w-full h-full flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
             style={
               video.thumbnail_url
                 ? {

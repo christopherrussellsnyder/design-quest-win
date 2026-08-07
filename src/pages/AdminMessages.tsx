@@ -103,7 +103,7 @@ export default function AdminMessages() {
       <div className="min-h-screen bg-background text-foreground">
         <div className="border-b border-border px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link to="/ai-strategist" className="text-muted-foreground hover:text-white flex items-center gap-2 text-sm">
+            <Link to="/ai-strategist" className="text-muted-foreground hover:text-foreground flex items-center gap-2 text-sm">
               <ArrowLeft className="w-4 h-4" /> Back
             </Link>
             <h1 className="text-lg font-bold">Contact Messages</h1>
@@ -112,7 +112,7 @@ export default function AdminMessages() {
             {(['all', 'new', 'replied'] as const).map((f) => (
               <button key={f} onClick={() => setFilter(f)}
                 className={`px-3 py-1.5 rounded-md border transition ${
-                  filter === f ? 'bg-primary border-primary text-white' : 'border-border text-muted-foreground hover:text-white'
+                  filter === f ? 'bg-primary border-primary text-white' : 'border-border text-muted-foreground hover:text-foreground'
                 }`}>
                 {f[0].toUpperCase() + f.slice(1)}
               </button>

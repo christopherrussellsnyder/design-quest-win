@@ -738,7 +738,7 @@ const Index = () => {
               Start Free
             </Link>
             <button onClick={() => setFloatingDismissed(true)}
-              className="w-8 h-8 rounded-full bg-card border border-border flex items-center justify-center text-[hsl(var(--text-tertiary))] hover:text-white transition-colors">
+              className="w-8 h-8 rounded-full bg-card border border-border flex items-center justify-center text-[hsl(var(--text-tertiary))] hover:text-foreground transition-colors">
               <X className="w-4 h-4" />
             </button>
           </motion.div>

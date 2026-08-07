@@ -118,7 +118,7 @@ export default function ContentGeneration() {
             variant="ghost"
             size="icon"
             onClick={() => navigate('/ai-strategist')}
-            className="text-muted-foreground hover:text-white hover:bg-card"
+            className="text-muted-foreground hover:text-foreground hover:bg-card"
           >
             <ArrowLeft className="w-4 h-4" />
           </Button>
