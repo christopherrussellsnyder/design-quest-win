@@ -79,17 +79,29 @@ const faqs = [
 
 const platforms = ['Instagram', 'Facebook', 'LinkedIn', 'TikTok', 'Twitter', 'YouTube', 'Pinterest', 'Google Ads', 'Shopify'];
 
+const capabilities = [
+  { icon: Brain, title: 'Live-Data Strategy Engine', desc: 'Real search demand, competitor ad recon, and community sentiment feed every plan — then a CMO-grade critic pass rewrites it before you see it.' },
+  { icon: Search, title: 'Research Analysis', desc: 'Industry trend reports and personalized market research for your exact niche.' },
+  { icon: Video, title: 'AI Video Ads', desc: 'Script, cast an AI actor and voice, render. Studio-grade UGC ads without a film crew.' },
+  { icon: ImageIcon, title: 'AI Image Studio', desc: 'Cinematic art direction plus flagship rendering for creative that looks art-directed.' },
+  { icon: SplitSquareHorizontal, title: 'Caption A/B Variants', desc: 'Multiple hook angles per post, scored for strength, so you test copy instead of guessing.' },
+  { icon: Building2, title: 'Multi-Brand Workspaces', desc: 'Run every brand or client side by side with isolated data and team seats.' },
+  { icon: FileBarChart, title: 'White-Label Reports', desc: 'Branded client exports and shareable public report links.' },
+  { icon: BarChart3, title: 'Analytics Intelligence', desc: 'Upload any platform export or screenshot — Korex scores it and feeds the wins back into your next strategy.' },
+];
+
 const pricing = [
   {
     name: 'Pro', monthlyPrice: 99, yearlyPrice: 831, popular: true,
-    features: ['Unlimited AI strategies', 'Unlimited analytics uploads', 'All platforms supported', 'Export to PDF', 'Priority support', 'Cancel anytime'],
+    features: ['Unlimited AI strategies', 'Research analysis + live market data', 'AI image studio & video ads', 'Unlimited analytics uploads', 'Caption A/B variants', 'Priority support'],
   },
   {
     name: 'Agency', monthlyPrice: 299, yearlyPrice: 2511, popular: false,
-    features: ['Everything in Pro', 'Multi-client management', 'White-label reports', 'API access', 'Dedicated support'],
+    features: ['Everything in Pro', 'Multi-brand workspaces', 'Team seats', 'White-label client reports', 'Public report sharing', 'Dedicated support'],
     badge: 'Popular for agencies',
   },
 ];
+
 
 const CellValue = ({ value }: { value: string | boolean }) => {
   if (typeof value === 'boolean') {
