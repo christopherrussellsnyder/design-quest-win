@@ -219,7 +219,7 @@ export default function Research() {
 
       <div className="min-h-screen bg-background text-foreground">
         {/* Header */}
-        <header className="border-b border-card px-4 py-3 flex items-center gap-3">
+        <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-40 px-4 sm:px-6 lg:px-8 py-4 flex items-center gap-3">
           <Button aria-label="Go back"
             variant="ghost"
             size="icon"
@@ -230,7 +230,7 @@ export default function Research() {
           </Button>
           <div className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-primary" />
-            <h1 className="text-sm font-semibold tracking-tight">Research Analysis</h1>
+            <h1 className="text-xl font-semibold tracking-tight">Research Analysis</h1>
           </div>
           {tier === 'starter' && (
             <Badge variant="outline" className="ml-2 border-primary/40 text-primary">
@@ -257,7 +257,7 @@ export default function Research() {
         </header>
 
         {/* Controls */}
-        <div className="max-w-6xl mx-auto px-4 py-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <Card className="bg-background border-card mb-6">
             <CardContent className="p-4 grid grid-cols-1 sm:grid-cols-4 gap-3">
               <div className="space-y-1.5">
@@ -346,7 +346,7 @@ export default function Research() {
                 <div className="rounded-xl border border-primary/30 bg-gradient-to-br from-primary/10 via-background to-background p-5">
                   <div className="flex items-center gap-2 mb-3">
                     <User className="w-4 h-4 text-primary" />
-                    <h2 className="text-sm font-semibold tracking-tight">
+                    <h2 className="text-xl font-semibold tracking-tight">
                       How this applies to your business
                     </h2>
                     {personalizationCached && (
