@@ -51,11 +51,20 @@ export const KorexLogoLockup = ({
       style={vars}
     >
       {/* Three-tone mark: green candle, foreground tower, cut-out rules. */}
-      <KorexMark
-        title="Korex"
+      <div
         className="max-w-full"
-        colorClassName="text-foreground"
-      />
+        style={{
+          height: "var(--korex-icon-size)",
+          width: "var(--korex-icon-size)",
+        }}
+      >
+        <KorexMark
+          title="Korex"
+          className="w-full h-full"
+          colorClassName="text-foreground"
+        />
+      </div>
+
 
       <div className="flex flex-col items-center leading-none mt-[0.18em]">
         <span
