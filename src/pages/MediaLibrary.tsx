@@ -688,7 +688,7 @@ const MediaLibrary: React.FC = () => {
           <div className="mb-6">
             <Button 
               onClick={() => setUploadModalOpen(true)}
-              className="w-full bg-violet-600 hover:bg-violet-700 mb-2"
+              className="w-full mb-2"
             >
               <Upload className="w-4 h-4 mr-2" />
               Upload Media
@@ -861,7 +861,7 @@ const MediaLibrary: React.FC = () => {
           {/* Loading State */}
           {loading && (
             <div className="flex items-center justify-center py-20">
-              <Loader2 className="w-8 h-8 animate-spin text-violet-500" />
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
             </div>
           )}
 
@@ -890,7 +890,7 @@ const MediaLibrary: React.FC = () => {
                 <div
                   key={item.id}
                   className={`group relative bg-card rounded-lg overflow-hidden border ${
-                    selectedItems.includes(item.id) ? 'border-violet-500' : 'border-border'
+                    selectedItems.includes(item.id) ? 'border-primary' : 'border-border'
                   } hover:border-border transition-all`}
                 >
                   {/* Thumbnail */}
@@ -949,7 +949,7 @@ const MediaLibrary: React.FC = () => {
                         handleToggleFavorite(item.id);
                       }}
                       className={`absolute bottom-2 right-2 p-1 rounded ${
-                        item.is_favorite ? 'text-yellow-400' : 'text-white/60 opacity-0 group-hover:opacity-100'
+                        item.is_favorite ? 'text-primary' : 'text-white/60 opacity-0 group-hover:opacity-100'
                       } hover:text-yellow-400 transition-all`}
                     >
                       <Star className={`w-4 h-4 ${item.is_favorite ? 'fill-current' : ''}`} />
@@ -1273,7 +1273,7 @@ const MediaLibrary: React.FC = () => {
                   {/* Actions */}
                   <div className="pt-4 space-y-2">
                     <Button 
-                      className="w-full bg-violet-600 hover:bg-violet-700"
+                      className="w-full"
                       onClick={() => handleCopyUrl(selectedMedia.storage_url)}
                     >
                       <Copy className="w-4 h-4 mr-2" /> Copy URL
@@ -1358,7 +1358,7 @@ const MediaLibrary: React.FC = () => {
                       size="sm" 
                       variant="outline"
                       onClick={() => setEditorFlipH(f => !f)}
-                      className={editorFlipH ? 'border-violet-500 bg-violet-500/20' : ''}
+                      className={editorFlipH ? 'border-primary bg-primary/10' : ''}
                     >
                       <FlipHorizontal className="w-4 h-4" />
                     </Button>
@@ -1366,7 +1366,7 @@ const MediaLibrary: React.FC = () => {
                       size="sm" 
                       variant="outline"
                       onClick={() => setEditorFlipV(f => !f)}
-                      className={editorFlipV ? 'border-violet-500 bg-violet-500/20' : ''}
+                      className={editorFlipV ? 'border-primary bg-primary/10' : ''}
                     >
                       <FlipVertical className="w-4 h-4" />
                     </Button>
@@ -1428,7 +1428,7 @@ const MediaLibrary: React.FC = () => {
                         key={filter}
                         className={`p-2 rounded border text-xs capitalize ${
                           selectedFilter === filter 
-                            ? 'border-violet-500 bg-violet-500/20' 
+                            ? 'border-primary bg-primary/10' 
                             : 'border-border hover:border-border'
                         }`}
                         onClick={() => setSelectedFilter(filter)}
@@ -1457,7 +1457,7 @@ const MediaLibrary: React.FC = () => {
                     Reset
                   </Button>
                   <Button 
-                    className="w-full bg-violet-600 hover:bg-violet-700"
+                    className="w-full"
                     onClick={handleSaveEditorChanges}
                     disabled={savingChanges}
                   >
@@ -1578,14 +1578,14 @@ const MediaLibrary: React.FC = () => {
             <div className="max-h-[50vh] overflow-y-auto">
               {loadingStock ? (
                 <div className="flex items-center justify-center py-12">
-                  <Loader2 className="w-8 h-8 animate-spin text-violet-500" />
+                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
                 </div>
               ) : stockImages.length > 0 ? (
                 <div className="grid grid-cols-3 md:grid-cols-4 gap-3">
                   {stockImages.map(img => (
                     <div
                       key={img.id}
-                      className="relative aspect-[4/3] rounded-lg overflow-hidden border border-border hover:border-violet-500 transition-colors cursor-pointer group"
+                      className="relative aspect-[4/3] rounded-lg overflow-hidden border border-border hover:border-primary transition-colors cursor-pointer group"
                       onClick={() => handleImportStockImage(img)}
                     >
                       <img
