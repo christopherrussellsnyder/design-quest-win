@@ -117,7 +117,9 @@ const AnalyticsTracker = ({ children }: { children: ReactNode }) => {
 
 const App = () => (
   <HelmetProvider>
+    <ThemeProvider>
     <QueryClientProvider client={queryClient}>
+
       <TooltipProvider>
         <Toaster />
         <Sonner />
