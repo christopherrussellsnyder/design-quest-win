@@ -24,6 +24,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { supabase } from '@/integrations/supabase/client';
+import { KorexMark } from '@/components/branding/KorexMark';
 
 export function UserProfileMenu() {
   const { user, loading, signOut } = useAuth();
@@ -132,7 +133,7 @@ export function UserProfileMenu() {
         >
           {/* Header */}
           <div className="flex items-center gap-3 px-3 py-3 border-b border-[hsl(var(--border-subtle))] mb-1">
-            <img src="/korex-icon.png" alt="Korex" className="w-6 h-6" />
+            <KorexMark className="w-6 h-6" />
             <div className="min-w-0">
               <p className="text-sm font-semibold text-foreground truncate">{fullName}</p>
               <p className="text-xs text-muted-foreground truncate">{email}</p>
