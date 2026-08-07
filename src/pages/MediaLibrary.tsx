@@ -619,7 +619,7 @@ const MediaLibrary: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background text-white">
+    <div className="min-h-screen bg-background text-foreground">
       {/* Header */}
       <div className="border-b border-border bg-card/50 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -643,7 +643,7 @@ const MediaLibrary: React.FC = () => {
             <div className="flex items-center gap-3">
               <Button 
                 onClick={() => setUploadModalOpen(true)}
-                className="bg-violet-600 hover:bg-violet-700"
+                
               >
                 <Upload className="w-4 h-4 mr-2" />
                 Upload
@@ -875,7 +875,7 @@ const MediaLibrary: React.FC = () => {
               </p>
               <Button 
                 onClick={() => setUploadModalOpen(true)}
-                className="bg-violet-600 hover:bg-violet-700"
+                
               >
                 <Upload className="w-4 h-4 mr-2" />
                 Upload Media
@@ -1113,7 +1113,7 @@ const MediaLibrary: React.FC = () => {
               <p className="text-muted-foreground mb-4">
                 {searchQuery ? 'Try adjusting your search or filters' : 'Upload your first media to get started'}
               </p>
-              <Button onClick={() => setUploadModalOpen(true)} className="bg-violet-600 hover:bg-violet-700">
+              <Button onClick={() => setUploadModalOpen(true)} >
                 <Upload className="w-4 h-4 mr-2" />
                 Upload Media
               </Button>
@@ -1518,7 +1518,7 @@ const MediaLibrary: React.FC = () => {
               Cancel
             </Button>
             <Button 
-              className="bg-violet-600 hover:bg-violet-700"
+              
               onClick={handleCreateFolder}
               disabled={!folderName.trim()}
             >
@@ -1594,7 +1594,7 @@ const MediaLibrary: React.FC = () => {
                         className="w-full h-full object-cover"
                       />
                       <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <Button size="sm" className="bg-violet-600 hover:bg-violet-700">
+                        <Button size="sm" >
                           <Plus className="w-4 h-4 mr-1" /> Import
                         </Button>
                       </div>
