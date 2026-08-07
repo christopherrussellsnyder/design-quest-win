@@ -4080,6 +4080,24 @@ export type Database = {
           },
         ]
       }
+      rate_limit_hits: {
+        Row: {
+          bucket_key: string
+          count: number
+          window_start: string
+        }
+        Insert: {
+          bucket_key: string
+          count?: number
+          window_start: string
+        }
+        Update: {
+          bucket_key?: string
+          count?: number
+          window_start?: string
+        }
+        Relationships: []
+      }
       research_insights: {
         Row: {
           content_mode: string
@@ -5528,6 +5546,10 @@ export type Database = {
           status: string
           user_value: number
         }[]
+      }
+      consume_rate_limit: {
+        Args: { _key: string; _limit: number; _window_seconds: number }
+        Returns: boolean
       }
       delete_email: {
         Args: { message_id: number; queue_name: string }
