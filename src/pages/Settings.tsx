@@ -22,6 +22,7 @@ import { BusinessInformationSection } from '@/components/settings/BusinessInform
 import { WorkspacesSection } from '@/components/settings/WorkspacesSection';
 import { TeamMembersSection } from '@/components/settings/TeamMembersSection';
 import { BrandKitSection } from '@/components/settings/BrandKitSection';
+import { TwoFactorSection } from '@/components/settings/TwoFactorSection';
 import { Users } from 'lucide-react';
 
 type SettingsTab = 'profile' | 'workspaces' | 'team' | 'brandkit' | 'business' | 'ai' | 'notifications' | 'billing' | 'about';
