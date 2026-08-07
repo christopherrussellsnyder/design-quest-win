@@ -3,7 +3,6 @@ import { Helmet } from 'react-helmet-async';
 import { Upload, Brain, TrendingUp, ArrowRight, Play } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { KorexLogoLockup } from '@/components/branding/KorexLogoLockup';
-import korexIcon from '/korex-icon.png';
 import { KorexMark } from '@/components/branding/KorexMark';
 
 // REPLACE WITH ACTUAL VIDEO URL WHEN READY
@@ -36,7 +35,7 @@ const VideoPlayer = () => {
       style={{ boxShadow: '0 0 40px hsl(var(--primary) / 0.15)' }}>
       <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--primary)/0.1)] to-transparent" />
       <div className="relative z-10 text-center">
-        <KorexMark className="h-12 mx-auto mb-6 opacity-40" />
+        <KorexMark className="h-12 w-12 mx-auto mb-6 opacity-40" />
         <motion.div
           animate={{ scale: [1, 1.15, 1] }}
           transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
