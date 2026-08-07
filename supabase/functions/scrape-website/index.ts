@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { DOMParser } from "https://deno.land/x/deno_dom@v0.1.38/deno-dom-wasm.ts";
+import { checkRateLimit, clientKey } from "../_shared/rate-limit.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -420,6 +421,14 @@ function countByType(pages: PageData[]): Record<string, number> {
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
+  }
+
+  const rl = checkRateLimit(clientKey(req, "scrape-website"), { limit: 20, windowMs: 60000 });
+  if (!rl.ok) {
+    return new Response(JSON.stringify({ error: "Too many requests. Please slow down." }), {
+      status: 429,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 
   try {
