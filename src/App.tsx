@@ -6,7 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { UpgradePromptModal } from "@/components/upgrade/UpgradePromptModal";
 import { HelmetProvider } from "react-helmet-async";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { ThemeProvider } from "@/contexts/ThemeContext";
+import { ThemeProvider, ThemeRouteScope } from "@/contexts/ThemeContext";
 
 import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 import { WorkspaceProvider } from "@/contexts/WorkspaceContext";
@@ -136,6 +136,7 @@ const App = () => (
               <SupportWidget />
               <Suspense fallback={<LoadingFallback />}>
 
+                <ThemeRouteScope />
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/login" element={<Login />} />
