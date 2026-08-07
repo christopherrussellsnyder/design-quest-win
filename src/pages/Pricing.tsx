@@ -105,7 +105,7 @@ export default function Pricing() {
           <Link to="/" className="inline-block mb-8">
             <KorexLogoLockup height={48} className="mx-auto" />
           </Link>
-          <h1 className="text-3xl sm:text-[48px] font-black mb-4" style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '3px' }}>
+          <h1 className="text-3xl sm:text-[48px] font-semibold mb-4">
             Simple, Transparent Pricing
           </h1>
           <p className="text-muted-foreground mb-6">Free Starter plan includes 2 strategy generations. Upgrade anytime for unlimited access.</p>
@@ -149,7 +149,7 @@ export default function Pricing() {
                 )}
                 <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
                 <div className="mb-2">
-                  <span className="text-4xl font-black" style={{ fontFamily: 'Arial Black, sans-serif' }}>
+                  <span className="text-4xl font-semibold">
                     ${displayPrice}
                   </span>
                   <span className="text-[hsl(var(--text-tertiary))] text-sm">/month</span>

@@ -141,7 +141,7 @@ const Index = () => {
       <section className="relative min-h-screen flex flex-col items-center justify-center px-4 py-20">
         <ParticleField />
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="w-[500px] h-[500px] opacity-[0.04] text-[400px] font-black select-none" style={{ fontFamily: 'Arial Black, sans-serif', color: 'hsl(var(--primary))' }}>K</div>
+          <div className="w-[500px] h-[500px] opacity-[0.04] text-[400px] font-semibold select-none">K</div>
         </div>
         <div className="absolute inset-0 bg-gradient-to-br from-background via-muted to-background opacity-90" />
         <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-[hsl(var(--primary)/0.05)] blur-[120px] pointer-events-none" />
@@ -152,10 +152,9 @@ const Index = () => {
           </motion.div>
 
           <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.2 }}
-            className="text-4xl sm:text-5xl lg:text-[56px] font-black leading-tight mb-6"
-            style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '2px' }}>
+            className="text-4xl sm:text-5xl lg:text-[56px] font-semibold leading-tight mb-6">
             Replace 8 Hours of Strategy Planning{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-[hsl(var(--primary-light))]">with 60 Seconds of AI Intelligence</span>
+            <span className="text-primary">with 60 Seconds of AI Intelligence</span>
           </motion.h1>
 
           <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.4 }}
@@ -190,7 +189,7 @@ const Index = () => {
       <section className="py-24 px-4 bg-muted">
         <div className="max-w-4xl mx-auto">
           <AnimatedSection className="text-center mb-12">
-            <h2 className="text-3xl sm:text-[40px] font-black mb-4" style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '2px' }}>
+            <h2 className="text-3xl sm:text-[40px] font-semibold mb-4">
               Creating Effective Marketing Strategies Shouldn't Take Days
             </h2>
             <p className="text-lg text-muted-foreground">If you're an e-commerce founder or marketing manager, you know the pain:</p>
@@ -208,7 +207,7 @@ const Index = () => {
           </div>
 
           <AnimatedSection className="text-center" delay={0.4}>
-            <p className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary to-[hsl(var(--primary-light))]">There's a better way.</p>
+            <p className="text-2xl font-bold text-primary">There's a better way.</p>
           </AnimatedSection>
         </div>
       </section>
@@ -217,9 +216,9 @@ const Index = () => {
       <section className="py-24 px-4">
         <div className="max-w-5xl mx-auto">
           <AnimatedSection className="text-center mb-16">
-            <h2 className="text-3xl sm:text-[42px] font-black mb-4" style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '2px' }}>
+            <h2 className="text-3xl sm:text-[42px] font-semibold mb-4">
               Korex: Marketing Intelligence That{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-[hsl(var(--primary-light))]">Actually Knows Your Business</span>
+              <span className="text-primary">Actually Knows Your Business</span>
             </h2>
             <p className="text-muted-foreground text-lg mt-4">No templates. No guessing. Just strategies built for YOUR audience.</p>
           </AnimatedSection>
@@ -228,7 +227,7 @@ const Index = () => {
             {howItWorks.map((step, i) => (
               <AnimatedSection key={i} delay={i * 0.1}>
                 <div className="bg-card border border-border rounded-xl p-6 text-center hover:border-[hsl(var(--primary)/0.5)] transition-all h-full">
-                  <div className="w-14 h-14 rounded-full bg-primary flex items-center justify-center mx-auto mb-4 text-white font-black text-lg shadow-[0_0_20px_hsl(var(--primary) / 0.3)]">
+                  <div className="w-14 h-14 rounded-full bg-primary flex items-center justify-center mx-auto mb-4 text-white font-semibold text-lg shadow-[0_0_20px_hsl(var(--primary) / 0.3)]">
                     {i + 1}
                   </div>
                   <step.icon className="w-6 h-6 text-primary mx-auto mb-3" />
@@ -246,9 +245,9 @@ const Index = () => {
       <section className="py-24 px-4 bg-muted border-y border-border">
         <div className="max-w-6xl mx-auto">
           <AnimatedSection className="text-center mb-14">
-            <h2 className="text-3xl sm:text-[40px] font-black mb-4" style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '2px' }}>
+            <h2 className="text-3xl sm:text-[40px] font-semibold mb-4">
               From Market Research to{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-[hsl(var(--primary-light))]">Finished Ad Creative</span>
+              <span className="text-primary">Finished Ad Creative</span>
             </h2>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
               Korex is no longer just a strategy generator. It researches, plans, writes, produces the creative, and reports on the results.
@@ -281,7 +280,7 @@ const Index = () => {
       <section className="py-24 px-4 bg-muted">
         <div className="max-w-5xl mx-auto">
           <AnimatedSection className="text-center mb-12">
-            <h2 className="text-3xl sm:text-[40px] font-black mb-4" style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '2px' }}>
+            <h2 className="text-3xl sm:text-[40px] font-semibold mb-4">
               Why Korex Outperforms Agencies, Freelancers, and Generic AI
             </h2>
           </AnimatedSection>
@@ -326,7 +325,7 @@ const Index = () => {
       <section className="py-24 px-4">
         <div className="max-w-5xl mx-auto">
           <AnimatedSection className="text-center mb-12">
-            <h2 className="text-3xl sm:text-[40px] font-black mb-4" style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '2px' }}>
+            <h2 className="text-3xl sm:text-[40px] font-semibold mb-4">
               Why It's Not 'Just Another AI Tool'
             </h2>
           </AnimatedSection>
@@ -377,7 +376,7 @@ const Index = () => {
       <section className="py-24 px-4 bg-muted">
         <div className="max-w-3xl mx-auto">
           <AnimatedSection className="text-center mb-12">
-            <h2 className="text-3xl sm:text-[40px] font-black mb-4" style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '2px' }}>
+            <h2 className="text-3xl sm:text-[40px] font-semibold mb-4">
               Calculate Your Time Savings
             </h2>
           </AnimatedSection>
@@ -439,7 +438,7 @@ const Index = () => {
                 </div>
                 <div className="border-t border-border pt-3 flex justify-between">
                   <span className="text-muted-foreground font-semibold">ROI</span>
-                  <span className="text-2xl font-black text-primary">{roi > 0 ? `${roi}%` : '—'}</span>
+                  <span className="text-2xl font-semibold text-primary">{roi > 0 ? `${roi}%` : '—'}</span>
                 </div>
               </div>
 
@@ -457,7 +456,7 @@ const Index = () => {
       <section className="py-24 px-4">
         <div className="max-w-4xl mx-auto">
           <AnimatedSection className="text-center mb-12">
-            <h2 className="text-3xl sm:text-[40px] font-black mb-4" style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '2px' }}>
+            <h2 className="text-3xl sm:text-[40px] font-semibold mb-4">
               Built by Marketers, for Marketers
             </h2>
           </AnimatedSection>
@@ -472,7 +471,7 @@ const Index = () => {
               ].map((stat, i) => (
                 <div key={i} className="bg-card border border-border rounded-xl p-5 text-center">
                   <stat.icon className="w-5 h-5 text-primary mx-auto mb-2" />
-                  <p className="text-2xl font-black" style={{ fontFamily: 'Arial Black, sans-serif' }}>{stat.value}</p>
+                  <p className="text-2xl font-semibold">{stat.value}</p>
                   <p className="text-xs text-[hsl(var(--text-tertiary))] mt-1">{stat.label}</p>
                 </div>
               ))}
@@ -494,7 +493,7 @@ const Index = () => {
       <section className="py-24 px-4 bg-muted">
         <div className="max-w-4xl mx-auto">
           <AnimatedSection className="text-center mb-12">
-            <h2 className="text-3xl sm:text-[40px] font-black mb-4" style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '2px' }}>
+            <h2 className="text-3xl sm:text-[40px] font-semibold mb-4">
               The Technology Behind Korex
             </h2>
             <p className="text-muted-foreground">Powered by advanced AI + a live Research Analysis engine that tracks what's actually working — organic and paid — across every major platform.</p>
@@ -555,7 +554,7 @@ const Index = () => {
       <section className="py-24 px-4 bg-muted">
         <div className="max-w-4xl mx-auto">
           <AnimatedSection className="text-center mb-12">
-            <h2 className="text-3xl sm:text-[48px] font-black mb-4" style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '3px' }}>
+            <h2 className="text-3xl sm:text-[48px] font-semibold mb-4">
               Simple, Transparent Pricing
             </h2>
             <div className="flex items-center justify-center gap-3 mt-6">
@@ -581,7 +580,7 @@ const Index = () => {
                     )}
                     <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
                     <div className="mb-2">
-                      <span className="text-4xl font-black" style={{ fontFamily: 'Arial Black, sans-serif' }}>${displayPrice}</span>
+                      <span className="text-4xl font-semibold">${displayPrice}</span>
                       <span className="text-[hsl(var(--text-tertiary))] text-sm">/month</span>
                     </div>
                     {billingAnnual && <p className="text-xs text-[hsl(var(--text-tertiary))] mb-4">${plan.yearlyPrice}/year · Save ${savings}</p>}
@@ -611,7 +610,7 @@ const Index = () => {
       <section className="py-24 px-4">
         <div className="max-w-3xl mx-auto">
           <AnimatedSection className="text-center mb-12">
-            <h2 className="text-3xl sm:text-[40px] font-black" style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '3px' }}>
+            <h2 className="text-3xl sm:text-[40px] font-semibold">
               Frequently Asked Questions
             </h2>
           </AnimatedSection>
@@ -644,7 +643,7 @@ const Index = () => {
       <section className="py-24 px-4 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--primary)/0.05)] to-transparent pointer-events-none" />
         <AnimatedSection className="max-w-3xl mx-auto text-center relative z-10">
-          <h2 className="text-3xl sm:text-5xl font-black mb-6" style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '3px' }}>
+          <h2 className="text-3xl sm:text-5xl font-semibold mb-6">
             Ready to Save 8 Hours Every Month?
           </h2>
           <p className="text-muted-foreground text-lg mb-8 max-w-lg mx-auto">

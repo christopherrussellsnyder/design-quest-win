@@ -100,7 +100,7 @@ export default function Demo() {
         <section className="py-24 px-4">
           <div className="max-w-4xl mx-auto">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="text-center mb-12">
-              <h1 className="text-4xl sm:text-5xl font-black mb-4" style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '2px' }}>
+              <h1 className="text-4xl sm:text-5xl font-semibold mb-4">
                 The Korex Platform Demo
               </h1>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -121,7 +121,7 @@ export default function Demo() {
               {steps.map((step, i) => (
                 <motion.div key={i} initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: i * 0.15 }}
                   className="bg-card border border-border rounded-2xl p-8 text-center">
-                  <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center mx-auto mb-5 text-white font-black text-lg shadow-[0_0_20px_hsl(var(--primary) / 0.3)]">
+                  <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center mx-auto mb-5 text-white font-semibold text-lg shadow-[0_0_20px_hsl(var(--primary) / 0.3)]">
                     {i + 1}
                   </div>
                   <step.icon className="w-6 h-6 text-primary mx-auto mb-3" />
@@ -137,7 +137,7 @@ export default function Demo() {
         <section className="py-24 px-4 text-center relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--primary)/0.05)] to-transparent pointer-events-none" />
           <div className="relative z-10 max-w-3xl mx-auto">
-            <h2 className="text-3xl sm:text-4xl font-black mb-6" style={{ fontFamily: 'Arial Black, sans-serif' }}>
+            <h2 className="text-3xl sm:text-4xl font-semibold mb-6">
               Ready to Try It Yourself?
             </h2>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">

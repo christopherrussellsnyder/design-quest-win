@@ -92,9 +92,9 @@ export default function About() {
         <section className="py-24 px-4 text-center">
           <div className="max-w-4xl mx-auto">
             <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
-              className="text-4xl sm:text-5xl lg:text-[56px] font-black mb-6" style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '2px' }}>
+              className="text-4xl sm:text-5xl lg:text-[56px] font-semibold mb-6">
               Built for Marketers Who{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-[hsl(var(--primary-light))]">Play to Win</span>
+              <span className="text-primary">Play to Win</span>
             </motion.h1>
             <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }}
               className="text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -107,7 +107,7 @@ export default function About() {
         <section className="py-24 px-4 bg-muted">
           <div className="max-w-3xl mx-auto">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-              <h2 className="text-3xl font-black mb-6" style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '2px' }}>Our Mission</h2>
+              <h2 className="text-3xl font-semibold mb-6">Our Mission</h2>
               <p className="text-muted-foreground text-lg leading-relaxed">
                 Marketing has always favored those with the biggest budgets and the largest teams. We built Korex to change that. Our mission is to democratize marketing intelligence — giving independent businesses, agencies, and growth teams the same AI-powered strategic advantage that Fortune 500 companies have always had.
               </p>
@@ -136,7 +136,7 @@ export default function About() {
         {/* Platform */}
         <section className="py-24 px-4 bg-muted">
           <div className="max-w-5xl mx-auto">
-            <h2 className="text-3xl font-black mb-6" style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '2px' }}>The Korex Platform</h2>
+            <h2 className="text-3xl font-semibold mb-6">The Korex Platform</h2>
             <p className="text-muted-foreground text-lg leading-relaxed max-w-3xl">
               Korex Intelligence Systems is a full-stack marketing intelligence platform. It researches your market with live data, builds the strategy, writes the copy, produces the creative, and reports on the results — in one workspace.
             </p>
@@ -167,7 +167,7 @@ export default function About() {
         <section className="py-24 px-4 text-center relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--primary)/0.05)] to-transparent pointer-events-none" />
           <div className="relative z-10 max-w-3xl mx-auto">
-            <h2 className="text-2xl sm:text-3xl font-black mb-6" style={{ fontFamily: 'Arial Black, sans-serif' }}>
+            <h2 className="text-2xl sm:text-3xl font-semibold mb-6">
               Join the future of marketing intelligence.
             </h2>
             <Link to="/signup" className="inline-flex items-center gap-2 px-10 py-4 bg-gradient-to-r from-primary to-[hsl(var(--primary-dark))] text-white text-lg font-bold rounded-lg hover:scale-105 transition-all shadow-[0_0_30px_hsl(var(--primary) / 0.3)]">

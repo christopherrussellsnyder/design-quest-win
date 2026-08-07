@@ -133,7 +133,7 @@ export default function Contact() {
           <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16">
             {/* Left */}
             <div>
-              <h1 className="text-4xl sm:text-5xl font-black mb-6" style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '2px' }}>
+              <h1 className="text-4xl sm:text-5xl font-semibold mb-6">
                 Get In Touch
               </h1>
               <p className="text-muted-foreground text-lg mb-8 leading-relaxed">

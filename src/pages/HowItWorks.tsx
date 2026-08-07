@@ -106,9 +106,9 @@ export default function HowItWorks() {
               <span className="inline-block px-3 py-1 text-xs uppercase tracking-widest text-primary border border-[hsl(var(--primary)/0.3)] rounded-full mb-6">
                 Under the Hood
               </span>
-              <h1 className="text-4xl sm:text-5xl lg:text-[56px] font-black mb-6" style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '2px' }}>
+              <h1 className="text-4xl sm:text-5xl lg:text-[56px] font-semibold mb-6">
                 How Korex{' '}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-[hsl(var(--primary-light))]">Actually Works</span>
+                <span className="text-primary">Actually Works</span>
               </h1>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
                 No black box. Here's exactly how we turn your business data into marketing strategies that beat generic AI output.
@@ -121,7 +121,7 @@ export default function HowItWorks() {
         <section className="py-16 px-4 bg-muted">
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-12">
-              <h2 className="text-3xl sm:text-4xl font-black mb-3" style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '1px' }}>
+              <h2 className="text-3xl sm:text-4xl font-semibold mb-3">
                 The Strategy Generation Pipeline
               </h2>
               <p className="text-muted-foreground max-w-2xl mx-auto">Six stages, running every time you click "Generate Strategy."</p>
@@ -153,7 +153,7 @@ export default function HowItWorks() {
         <section className="py-20 px-4">
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-12">
-              <h2 className="text-3xl sm:text-4xl font-black mb-3" style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '1px' }}>
+              <h2 className="text-3xl sm:text-4xl font-semibold mb-3">
                 Beyond Strategy Generation
               </h2>
               <p className="text-muted-foreground max-w-2xl mx-auto">Every feature is built on the same principle: real data in, personalized output out.</p>
@@ -183,7 +183,7 @@ export default function HowItWorks() {
         <section className="py-20 px-4 bg-muted">
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-12">
-              <h2 className="text-3xl sm:text-4xl font-black mb-3" style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '1px' }}>
+              <h2 className="text-3xl sm:text-4xl font-semibold mb-3">
                 Why Korex Beats Generic AI Tools
               </h2>
               <p className="text-muted-foreground max-w-2xl mx-auto">What we do differently — and why it produces measurably better strategies.</p>
@@ -215,7 +215,7 @@ export default function HowItWorks() {
         <section className="py-24 px-4 text-center relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--primary)/0.05)] to-transparent pointer-events-none" />
           <div className="relative z-10 max-w-3xl mx-auto">
-            <h2 className="text-3xl sm:text-5xl font-black mb-6" style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '2px' }}>
+            <h2 className="text-3xl sm:text-5xl font-semibold mb-6">
               See It Run on Your Business
             </h2>
             <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
