@@ -137,53 +137,85 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
 
-      {/* =================== HERO =================== */}
-      <section className="relative min-h-screen flex flex-col items-center justify-center px-4 py-20">
-        <ParticleField />
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="w-[500px] h-[500px] opacity-[0.04] text-[400px] font-semibold select-none">K</div>
+      {/* =================== HERO — editorial masthead =================== */}
+      <section className="relative bg-muted border-b border-border px-6 sm:px-8 pt-16 pb-14 lg:pt-24 lg:pb-20">
+        <div className="max-w-6xl mx-auto">
+          <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
+            className="mb-12 lg:mb-16">
+            <KorexLogoLockup height={44} mdHeight={52} lgHeight={56} />
+          </motion.div>
+
+          <div className="grid lg:grid-cols-12 gap-10 lg:gap-12 items-start">
+            <div className="lg:col-span-8">
+              <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.15 }} className="eyebrow mb-5">
+                Marketing Intelligence Platform
+              </motion.p>
+
+              <motion.h1 initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }}
+                className="text-4xl sm:text-5xl lg:text-[64px] font-semibold tracking-tight leading-[1.05] mb-7">
+                Agency-grade marketing strategy,{' '}
+                <span className="text-primary">delivered in sixty seconds.</span>
+              </motion.h1>
+
+              <motion.p initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.35 }}
+                className="text-lg sm:text-xl text-muted-foreground max-w-xl leading-relaxed mb-9">
+                Korex turns live market data, competitor ad intelligence and your own performance history into a
+                complete, executable plan — researched, written and reviewed before it reaches you.
+              </motion.p>
+
+              <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.5 }}
+                className="flex flex-wrap gap-4">
+                <Link to="/signup"
+                  className="px-8 py-4 bg-primary text-primary-foreground font-semibold text-sm uppercase tracking-widest rounded-sm hover:bg-[hsl(var(--primary-dark))] transition-colors">
+                  Start Free
+                </Link>
+                <Link to="/features"
+                  className="px-8 py-4 border border-[hsl(var(--foreground)/0.2)] text-foreground font-semibold text-sm uppercase tracking-widest rounded-sm hover:bg-[hsl(var(--foreground)/0.05)] transition-colors">
+                  View Capabilities
+                </Link>
+              </motion.div>
+
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }}
+                className="flex items-center gap-6 text-sm text-[hsl(var(--text-tertiary))] flex-wrap mt-6">
+                <span>No credit card required</span>
+                <span className="hidden sm:inline w-px h-4 bg-border" />
+                <span>2 free strategy generations</span>
+                <span className="hidden sm:inline w-px h-4 bg-border" />
+                <span>Cancel anytime</span>
+              </motion.div>
+            </div>
+
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.55 }}
+              className="lg:col-span-4 lg:pt-14">
+              <div className="border-l border-[hsl(var(--accent-gold))] pl-6 py-2">
+                <p className="eyebrow mb-3">Built for operators</p>
+                <p className="text-foreground text-sm leading-relaxed">
+                  Used by founders, in-house marketers and agencies to replace $3,000–$10,000 monthly retainers with
+                  research-backed strategy they own outright.
+                </p>
+              </div>
+            </motion.div>
+          </div>
+
+          {/* Credibility strip */}
+          <div className="border-y border-[hsl(var(--foreground)/0.1)] mt-16 py-8">
+            <div className="flex flex-wrap justify-between items-center gap-8">
+              {[
+                { v: '60 sec', l: 'Full strategy turnaround' },
+                { v: '9', l: 'Platforms analysed' },
+                { v: '14-day', l: 'Executable content calendars' },
+                { v: 'CMO-grade', l: 'Critic review on every plan' },
+              ].map((s) => (
+                <div key={s.l} className="flex flex-col">
+                  <span className="text-foreground text-2xl font-semibold tracking-tight">{s.v}</span>
+                  <span className="text-[hsl(var(--text-tertiary))] text-xs uppercase tracking-widest mt-1">{s.l}</span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-        <div className="absolute inset-0 bg-gradient-to-br from-background via-muted to-background opacity-90" />
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-[hsl(var(--primary)/0.05)] blur-[120px] pointer-events-none" />
-
-        <div className="relative z-10 text-center max-w-4xl mx-auto">
-          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-            <KorexLogoLockup height={80} mdHeight={120} lgHeight={152} className="mx-auto mb-6 md:mb-10" />
-          </motion.div>
-
-          <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.2 }}
-            className="text-4xl sm:text-5xl lg:text-[56px] font-semibold leading-tight mb-6">
-            Replace 8 Hours of Strategy Planning{' '}
-            <span className="text-primary">with 60 Seconds of AI Intelligence</span>
-          </motion.h1>
-
-          <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.4 }}
-            className="text-lg sm:text-xl text-muted-foreground max-w-[640px] mx-auto mb-10">
-            Agency-level marketing strategies, built specifically for your business, delivered in less time than it takes to make coffee.
-          </motion.p>
-
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.6 }}
-            className="flex items-center justify-center gap-4 flex-wrap mb-4">
-            <Link to="/signup"
-              className="px-8 py-4 bg-gradient-to-r from-primary to-[hsl(var(--primary-dark))] text-white text-lg font-bold rounded-lg hover:scale-105 transition-all duration-300 shadow-[0_0_30px_hsl(var(--primary) / 0.3)] hover:shadow-[0_0_40px_hsl(var(--primary) / 0.5)]">
-              Start Free — No Credit Card Required
-            </Link>
-          </motion.div>
-
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }}
-            className="flex items-center justify-center gap-6 text-sm text-[hsl(var(--text-tertiary))] flex-wrap">
-            <span>✓ No credit card required</span>
-            <span>✓ 2 free strategy generations</span>
-            <span>✓ Cancel anytime</span>
-          </motion.div>
-        </div>
-
-        <motion.div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-[hsl(var(--text-tertiary))]"
-          animate={{ y: [0, 8, 0] }} transition={{ repeat: Infinity, duration: 2 }}>
-          <span className="text-xs tracking-widest uppercase">Scroll to see how it works</span>
-          <ChevronDown className="w-5 h-5" />
-        </motion.div>
       </section>
+
 
       {/* =================== THE PROBLEM =================== */}
       <section className="py-24 px-4 bg-muted">
