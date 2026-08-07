@@ -242,6 +242,41 @@ const Index = () => {
         </div>
       </section>
 
+      {/* =================== CAPABILITIES =================== */}
+      <section className="py-24 px-4 bg-[#0A0A0B] border-y border-[#2A2B2E]">
+        <div className="max-w-6xl mx-auto">
+          <AnimatedSection className="text-center mb-14">
+            <h2 className="text-3xl sm:text-[40px] font-black mb-4" style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '2px' }}>
+              From Market Research to{' '}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#CC0000] to-[#FF1A1A]">Finished Ad Creative</span>
+            </h2>
+            <p className="text-[#A0A0A8] text-lg max-w-2xl mx-auto">
+              Korex is no longer just a strategy generator. It researches, plans, writes, produces the creative, and reports on the results.
+            </p>
+          </AnimatedSection>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {capabilities.map((c, i) => (
+              <AnimatedSection key={i} delay={(i % 4) * 0.08}>
+                <div className="bg-[#16171A] border border-[#2A2B2E] rounded-xl p-6 h-full hover:border-[#CC0000]/50 transition-all">
+                  <c.icon className="w-6 h-6 text-[#CC0000] mb-4" />
+                  <h3 className="font-bold mb-2">{c.title}</h3>
+                  <p className="text-[#A0A0A8] text-sm leading-relaxed">{c.desc}</p>
+                </div>
+              </AnimatedSection>
+            ))}
+          </div>
+
+          <AnimatedSection className="text-center mt-12">
+            <Link to="/features" className="inline-flex items-center gap-2 text-[#CC0000] font-semibold hover:gap-3 transition-all">
+              Explore all features <ArrowRight className="w-4 h-4" />
+            </Link>
+          </AnimatedSection>
+        </div>
+      </section>
+
+
+
       {/* =================== VALUE COMPARISON =================== */}
       <section className="py-24 px-4 bg-[#0A0A0A]">
         <div className="max-w-5xl mx-auto">
