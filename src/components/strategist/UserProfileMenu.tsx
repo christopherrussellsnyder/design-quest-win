@@ -182,6 +182,27 @@ export function UserProfileMenu() {
 
           <DropdownMenuItem
             className="flex items-center gap-3 px-3 py-2.5 cursor-pointer rounded-md hover:bg-surface-tertiary focus:bg-surface-tertiary transition-colors"
+            onSelect={(e) => {
+              e.preventDefault();
+              toggleTheme();
+            }}
+          >
+            {theme === 'dark' ? (
+              <Sun className="w-4 h-4 text-muted-foreground" />
+            ) : (
+              <Moon className="w-4 h-4 text-muted-foreground" />
+            )}
+            <span className="text-sm">{theme === 'dark' ? 'Light mode' : 'Dark mode'}</span>
+            <span className="ml-auto text-[10px] uppercase tracking-wider text-muted-foreground">
+              {theme}
+            </span>
+          </DropdownMenuItem>
+
+          <DropdownMenuSeparator className="bg-[hsl(var(--border-subtle))]" />
+
+
+          <DropdownMenuItem
+            className="flex items-center gap-3 px-3 py-2.5 cursor-pointer rounded-md hover:bg-surface-tertiary focus:bg-surface-tertiary transition-colors"
             onClick={() => navigate('/settings')}
           >
             <Settings className="w-4 h-4 text-muted-foreground" />
