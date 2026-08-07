@@ -29,7 +29,18 @@ export default function ContentCard({ item, onView, onEdit, onDuplicate, onDelet
   return (
     <div className="group bg-card rounded-xl border border-border hover:border-primary/50 transition-all duration-200 overflow-hidden">
       {/* Content preview */}
-      <div className="p-4 cursor-pointer" onClick={onView}>
+      <div
+        role="button"
+        tabIndex={0}
+        className="p-4 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-xl"
+        onClick={onView}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onView();
+          }
+        }}
+      >
         {/* Header */}
         <div className="flex items-start justify-between mb-3">
           <div className="flex-1 min-w-0">
