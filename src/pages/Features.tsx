@@ -1,48 +1,83 @@
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import { Brain, BarChart3, MessageSquare, Users, FileText, Briefcase, ArrowRight } from 'lucide-react';
+import {
+  Brain, BarChart3, MessageSquare, Users, FileText, Video,
+  Image as ImageIcon, Search, SplitSquareHorizontal, Building2,
+  FileBarChart, Tag, ArrowRight,
+} from 'lucide-react';
 import { motion } from 'framer-motion';
 import { KorexLogoLockup } from '@/components/branding/KorexLogoLockup';
 
 const features = [
   {
     icon: Brain,
-    title: 'AI Strategy Generation',
-    description: 'Generate data-driven marketing strategies tailored to your business in seconds. Korex analyzes your market, audience, and analytics to produce actionable plans that drive results.',
+    title: 'Ultra-Intelligence Strategy Engine',
+    description: 'Every strategy is grounded in live signal: real search demand, competitor ad recon from public ad libraries, Reddit voice-of-customer mining, and a deep crawl of your own product pages — then scored and rewritten by a "CMO Critic" pass before you ever see it.',
+  },
+  {
+    icon: Search,
+    title: 'Research Analysis',
+    description: 'Industry trend reports and personalized market research built for your niche, so you know what is actually working right now instead of guessing from last year\'s playbook.',
   },
   {
     icon: BarChart3,
     title: 'Analytics Intelligence',
-    description: 'Upload screenshots or exports from any platform — Facebook, Instagram, Google — and let Korex extract insights, identify trends, and recommend optimizations automatically.',
+    description: 'Upload screenshots or exports from Meta, Instagram, TikTok, Google and beyond. Korex extracts the metrics, scores performance health, surfaces trends, and feeds those wins back into your next strategy.',
+  },
+  {
+    icon: Video,
+    title: 'AI Video Ads',
+    description: 'Studio-grade UGC-style video ads from a three-step flow: script, cast your AI actor and voice, render. Production quality on par with the best dedicated ad-video tools — inside the same workspace as your strategy.',
+  },
+  {
+    icon: ImageIcon,
+    title: 'AI Image Studio',
+    description: 'A two-stage generation pipeline — cinematic art direction first, flagship image model second — for on-brand creative that looks art-directed, not auto-generated.',
+  },
+  {
+    icon: SplitSquareHorizontal,
+    title: 'Caption A/B Variants',
+    description: 'Every post ships with multiple caption angles and hook framings scored for strength, so you can test copy instead of committing to one guess.',
+  },
+  {
+    icon: FileText,
+    title: 'Organic, Paid, or Hybrid Modes',
+    description: 'Choose how you want to grow. Korex builds organic content plans, paid campaign structures with CBO/ABO recommendations, or a hybrid of both — matched to your budget and stage.',
+  },
+  {
+    icon: Users,
+    title: 'Audience & Demographic Targeting',
+    description: 'Define exact age ranges, behaviors, and buying motivations. Strategies are anchored to your specific audience and product differentiators, so no two businesses in the same niche get the same plan.',
+  },
+  {
+    icon: Tag,
+    title: 'Promotions & Offer Awareness',
+    description: 'Add your live sales, discounts, and seasonal offers to your business context and Korex weaves them into the calendar at the right moments.',
   },
   {
     icon: MessageSquare,
     title: 'AI Strategist Chat',
-    description: 'Ask anything. Get expert-level marketing guidance 24/7. Korex understands your business context and gives you advice tailored to your specific goals and data.',
+    description: 'Ask anything, any time. Korex holds your full business context — brand, audience, analytics, past strategies — and answers like a strategist who already knows the account.',
   },
   {
-    icon: Users,
-    title: 'Audience Intelligence',
-    description: 'Identify your ideal customer segments, understand behavioral patterns, and receive targeting recommendations that help you reach the right people at the right time.',
+    icon: Building2,
+    title: 'Multi-Brand Workspaces',
+    description: 'Run multiple brands or clients side by side with isolated data, separate business context, and team seats for collaborators.',
   },
   {
-    icon: FileText,
-    title: 'Content AI',
-    description: 'From ad copy to social captions to email campaigns — Korex generates on-brand content optimized for engagement and conversion across every channel.',
-  },
-  {
-    icon: Briefcase,
-    title: 'Campaign Management',
-    description: 'Manage your marketing campaigns end-to-end. Build campaign structures, set schedules, track performance, and iterate — all from one unified dashboard.',
+    icon: FileBarChart,
+    title: 'White-Label Client Reports',
+    description: 'Export branded reports or share a public link. Agencies deliver polished, client-ready intelligence without rebuilding a deck every month.',
   },
 ];
+
 
 export default function Features() {
   return (
     <>
       <Helmet>
         <title>Features | Korex Intelligence Systems</title>
-        <meta name="description" content="Explore Korex features: AI strategy generation, analytics intelligence, content AI, audience insights, and campaign management." />
+        <meta name="description" content="Korex features: live-data AI strategy, research analysis, AI video ads, image studio, caption A/B testing, multi-brand workspaces and white-label client reports." />
       </Helmet>
 
       <div className="min-h-screen bg-[#060606] text-[#EEEEEE]">
@@ -72,13 +107,14 @@ export default function Features() {
           <div className="max-w-4xl mx-auto">
             <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
               className="text-4xl sm:text-5xl lg:text-[56px] font-black mb-6" style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '2px' }}>
-              Everything You Need to{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#CC0000] to-[#FF1A1A]">Dominate Your Market</span>
+              One Platform From Strategy to{' '}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#CC0000] to-[#FF1A1A]">Finished Ad Creative</span>
             </motion.h1>
             <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }}
               className="text-lg text-[#A0A0A8] max-w-2xl mx-auto mb-10">
-              Korex combines AI strategy, analytics intelligence, and content automation into one powerful platform.
+              Korex researches your market with live data, builds the strategy, writes the copy, and produces the images and video ads — then reports on what worked.
             </motion.p>
+
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.4 }}>
               <Link to="/signup" className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-[#CC0000] to-[#990000] text-white text-lg font-bold rounded-lg hover:scale-105 transition-all shadow-[0_0_30px_rgba(204,0,0,0.3)]">
                 Get Started Free <ArrowRight className="w-5 h-5" />

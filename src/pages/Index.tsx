@@ -5,8 +5,11 @@ import {
   Upload, Brain, BarChart3, Download, ChevronDown,
   Check, X, ArrowRight, Shield, Minus, Plus,
   Clock, DollarSign, Users, Zap,
-  Lock, Globe, Award
+  Lock, Globe, Award,
+  Video, Search, Building2, FileBarChart, SplitSquareHorizontal,
+  Image as ImageIcon,
 } from 'lucide-react';
+
 import { KorexLogoLockup } from '@/components/branding/KorexLogoLockup';
 
 // --- Section wrapper ---
@@ -76,17 +79,29 @@ const faqs = [
 
 const platforms = ['Instagram', 'Facebook', 'LinkedIn', 'TikTok', 'Twitter', 'YouTube', 'Pinterest', 'Google Ads', 'Shopify'];
 
+const capabilities = [
+  { icon: Brain, title: 'Live-Data Strategy Engine', desc: 'Real search demand, competitor ad recon, and community sentiment feed every plan — then a CMO-grade critic pass rewrites it before you see it.' },
+  { icon: Search, title: 'Research Analysis', desc: 'Industry trend reports and personalized market research for your exact niche.' },
+  { icon: Video, title: 'AI Video Ads', desc: 'Script, cast an AI actor and voice, render. Studio-grade UGC ads without a film crew.' },
+  { icon: ImageIcon, title: 'AI Image Studio', desc: 'Cinematic art direction plus flagship rendering for creative that looks art-directed.' },
+  { icon: SplitSquareHorizontal, title: 'Caption A/B Variants', desc: 'Multiple hook angles per post, scored for strength, so you test copy instead of guessing.' },
+  { icon: Building2, title: 'Multi-Brand Workspaces', desc: 'Run every brand or client side by side with isolated data and team seats.' },
+  { icon: FileBarChart, title: 'White-Label Reports', desc: 'Branded client exports and shareable public report links.' },
+  { icon: BarChart3, title: 'Analytics Intelligence', desc: 'Upload any platform export or screenshot — Korex scores it and feeds the wins back into your next strategy.' },
+];
+
 const pricing = [
   {
     name: 'Pro', monthlyPrice: 99, yearlyPrice: 831, popular: true,
-    features: ['Unlimited AI strategies', 'Unlimited analytics uploads', 'All platforms supported', 'Export to PDF', 'Priority support', 'Cancel anytime'],
+    features: ['Unlimited AI strategies', 'Research analysis + live market data', 'AI image studio & video ads', 'Unlimited analytics uploads', 'Caption A/B variants', 'Priority support'],
   },
   {
     name: 'Agency', monthlyPrice: 299, yearlyPrice: 2511, popular: false,
-    features: ['Everything in Pro', 'Multi-client management', 'White-label reports', 'API access', 'Dedicated support'],
+    features: ['Everything in Pro', 'Multi-brand workspaces', 'Team seats', 'White-label client reports', 'Public report sharing', 'Dedicated support'],
     badge: 'Popular for agencies',
   },
 ];
+
 
 const CellValue = ({ value }: { value: string | boolean }) => {
   if (typeof value === 'boolean') {
@@ -226,6 +241,41 @@ const Index = () => {
 
         </div>
       </section>
+
+      {/* =================== CAPABILITIES =================== */}
+      <section className="py-24 px-4 bg-[#0A0A0B] border-y border-[#2A2B2E]">
+        <div className="max-w-6xl mx-auto">
+          <AnimatedSection className="text-center mb-14">
+            <h2 className="text-3xl sm:text-[40px] font-black mb-4" style={{ fontFamily: 'Arial Black, sans-serif', letterSpacing: '2px' }}>
+              From Market Research to{' '}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#CC0000] to-[#FF1A1A]">Finished Ad Creative</span>
+            </h2>
+            <p className="text-[#A0A0A8] text-lg max-w-2xl mx-auto">
+              Korex is no longer just a strategy generator. It researches, plans, writes, produces the creative, and reports on the results.
+            </p>
+          </AnimatedSection>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {capabilities.map((c, i) => (
+              <AnimatedSection key={i} delay={(i % 4) * 0.08}>
+                <div className="bg-[#16171A] border border-[#2A2B2E] rounded-xl p-6 h-full hover:border-[#CC0000]/50 transition-all">
+                  <c.icon className="w-6 h-6 text-[#CC0000] mb-4" />
+                  <h3 className="font-bold mb-2">{c.title}</h3>
+                  <p className="text-[#A0A0A8] text-sm leading-relaxed">{c.desc}</p>
+                </div>
+              </AnimatedSection>
+            ))}
+          </div>
+
+          <AnimatedSection className="text-center mt-12">
+            <Link to="/features" className="inline-flex items-center gap-2 text-[#CC0000] font-semibold hover:gap-3 transition-all">
+              Explore all features <ArrowRight className="w-4 h-4" />
+            </Link>
+          </AnimatedSection>
+        </div>
+      </section>
+
+
 
       {/* =================== VALUE COMPARISON =================== */}
       <section className="py-24 px-4 bg-[#0A0A0A]">
