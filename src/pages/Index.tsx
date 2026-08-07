@@ -5,8 +5,11 @@ import {
   Upload, Brain, BarChart3, Download, ChevronDown,
   Check, X, ArrowRight, Shield, Minus, Plus,
   Clock, DollarSign, Users, Zap,
-  Lock, Globe, Award
+  Lock, Globe, Award,
+  Video, Search, Building2, FileBarChart, SplitSquareHorizontal,
+  Image as ImageIcon,
 } from 'lucide-react';
+
 import { KorexLogoLockup } from '@/components/branding/KorexLogoLockup';
 
 // --- Section wrapper ---
