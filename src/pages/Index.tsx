@@ -518,9 +518,9 @@ const Index = () => {
           <AnimatedSection className="mt-8 text-center" delay={0.5}>
             <div className="inline-flex items-center gap-4 bg-card border border-[hsl(var(--primary)/0.2)] rounded-sm px-6 py-3">
               <Clock className="w-5 h-5 text-primary" />
-              <span className="text-sm">Total time: <strong>60 seconds</strong></span>
+              <span className="text-sm">Market intelligence refreshed every <strong>24 hours</strong></span>
               <span className="text-border">|</span>
-              <span className="text-sm text-muted-foreground">You save: <strong className="text-primary">8-12 hours</strong></span>
+              <span className="text-sm text-muted-foreground">Every recommendation traceable to a <strong className="text-primary">source signal</strong></span>
             </div>
           </AnimatedSection>
         </div>
