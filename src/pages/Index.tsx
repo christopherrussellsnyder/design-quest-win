@@ -635,10 +635,10 @@ const Index = () => {
         <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--primary)/0.05)] to-transparent pointer-events-none" />
         <AnimatedSection className="max-w-3xl mx-auto text-center relative z-10">
           <h2 className="text-3xl sm:text-5xl font-semibold mb-6">
-            Ready to Save 8 Hours Every Month?
+            Stop Guessing. Start Working From Evidence.
           </h2>
           <p className="text-muted-foreground text-lg mb-8 max-w-lg mx-auto">
-            Join the marketing teams who've automated their strategy planning.
+            Generate your first strategy and see exactly what market data it was built from.
           </p>
           <Link to="/signup"
             className="inline-flex items-center gap-2 px-10 py-4 bg-gradient-to-r from-primary to-[hsl(var(--primary-dark))] text-white text-lg font-bold rounded-sm hover:scale-105 transition-all duration-300 shadow-[0_0_30px_hsl(var(--primary) / 0.3)]">
