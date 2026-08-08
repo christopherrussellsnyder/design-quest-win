@@ -4,6 +4,7 @@ import { Search, Book, Video, MessageCircle, ArrowLeft } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Seo } from '@/components/Seo';
 
 interface Article {
   id: string;
@@ -213,6 +214,20 @@ export default function HelpCenter() {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
+      <Seo
+        title="Help Center | Korex Intelligence Systems"
+        description="Guides and answers for Korex Intelligence Systems: getting started, generating strategies, analytics uploads, AI content generation, billing and account setup."
+        path="/help"
+        jsonLd={{
+          '@context': 'https://schema.org',
+          '@type': 'FAQPage',
+          mainEntity: articles.map((a) => ({
+            '@type': 'Question',
+            name: a.title,
+            acceptedAnswer: { '@type': 'Answer', text: a.description },
+          })),
+        }}
+      />
       <div className="bg-primary py-12 px-4">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-3xl font-bold text-primary-foreground mb-6">How can we help?</h1>

@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 
 import { KorexLogoLockup } from '@/components/branding/KorexLogoLockup';
+import { Seo } from '@/components/Seo';
 
 // --- Section wrapper ---
 const AnimatedSection = ({ children, className = '', delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) => {
@@ -114,6 +115,20 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
+      <Seo
+        title="AI Marketing Strategy Software | Korex Intelligence"
+        description="Korex builds evidence-based social media and paid ad strategies from live search demand, competitor ad recon and your own analytics. 2 strategies free."
+        path="/"
+        jsonLd={{
+          '@context': 'https://schema.org',
+          '@type': 'FAQPage',
+          mainEntity: faqs.map((f) => ({
+            '@type': 'Question',
+            name: f.q,
+            acceptedAnswer: { '@type': 'Answer', text: f.a },
+          })),
+        }}
+      />
 
       {/* =================== HERO — editorial masthead =================== */}
       <section className="relative bg-muted border-b border-border px-6 sm:px-8 pt-16 pb-14 lg:pt-24 lg:pb-20">

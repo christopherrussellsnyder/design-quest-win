@@ -6,6 +6,7 @@ import { useSubscription } from '@/contexts/SubscriptionContext';
 import { STRIPE_TIERS } from '@/config/stripe.config';
 import { toast } from 'sonner';
 import { KorexLogoLockup } from '@/components/branding/KorexLogoLockup';
+import { Seo } from '@/components/Seo';
 
 const plans = [
   {
@@ -100,6 +101,25 @@ export default function Pricing() {
 
   return (
     <div className="min-h-screen bg-background text-foreground py-20 px-4">
+      <Seo
+        title="Pricing | Korex Intelligence Systems"
+        description="Simple pricing for AI marketing strategy: Pro at $99/month and Agency at $299/month, with 30% off annual plans. Start free with 2 strategy generations."
+        path="/pricing"
+        jsonLd={plans.map((plan) => ({
+          '@context': 'https://schema.org',
+          '@type': 'Product',
+          name: `Korex ${plan.name}`,
+          description: plan.features.join('. '),
+          brand: { '@type': 'Brand', name: 'Korex Intelligence Systems' },
+          offers: {
+            '@type': 'Offer',
+            price: String(plan.monthlyPrice),
+            priceCurrency: 'USD',
+            url: 'https://korexintelligencesystems.com/pricing',
+            availability: 'https://schema.org/InStock',
+          },
+        }))}
+      />
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-12">
           <Link to="/" className="inline-block mb-8">
