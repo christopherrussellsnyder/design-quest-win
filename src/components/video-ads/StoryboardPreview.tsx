@@ -107,10 +107,16 @@ export function StoryboardPreview({ plan, stale }: Props) {
                       <Icon className="w-3 h-3" />
                       {SCENE_VISUAL_LABELS[scene.visual] ?? scene.visual}
                     </Badge>
+                    {scene.duration_seconds ? (
+                      <span className="text-[10px] text-muted-foreground tabular-nums">
+                        {scene.duration_seconds}s
+                      </span>
+                    ) : null}
                     {scene.on_screen_text && (
                       <span className="text-[11px] text-primary">“{scene.on_screen_text}”</span>
                     )}
                   </div>
+
                   <p className="text-xs text-muted-foreground line-clamp-3">{scene.spoken}</p>
 
                   <div className="flex flex-wrap items-center gap-1.5">
