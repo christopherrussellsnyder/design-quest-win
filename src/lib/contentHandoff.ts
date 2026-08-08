@@ -75,7 +75,6 @@ export function platformForPost(platform?: string | null): string {
   const p = (platform ?? '').toLowerCase();
   if (p.includes('tiktok')) return 'tiktok';
   if (p.includes('linkedin')) return 'linkedin';
-  if (p.includes('facebook')) return 'facebook';
-  if (p.includes('x') || p.includes('twitter')) return 'twitter';
+  if (p.includes('youtube')) return 'youtube';
   return 'instagram';
 }
