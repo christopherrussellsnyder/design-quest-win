@@ -5182,14 +5182,17 @@ export type Database = {
           error_message: string | null
           hook: string | null
           id: string
+          production_plan: Json | null
           provider: string
           provider_video_id: string | null
+          scene_count: number
           script: string
           status: string
           storage_path: string | null
           strategy_post_id: string | null
           thumbnail_url: string | null
           title: string | null
+          treatment: string | null
           updated_at: string
           user_id: string
           voice_id: string | null
@@ -5208,14 +5211,17 @@ export type Database = {
           error_message?: string | null
           hook?: string | null
           id?: string
+          production_plan?: Json | null
           provider?: string
           provider_video_id?: string | null
+          scene_count?: number
           script: string
           status?: string
           storage_path?: string | null
           strategy_post_id?: string | null
           thumbnail_url?: string | null
           title?: string | null
+          treatment?: string | null
           updated_at?: string
           user_id: string
           voice_id?: string | null
@@ -5234,14 +5240,17 @@ export type Database = {
           error_message?: string | null
           hook?: string | null
           id?: string
+          production_plan?: Json | null
           provider?: string
           provider_video_id?: string | null
+          scene_count?: number
           script?: string
           status?: string
           storage_path?: string | null
           strategy_post_id?: string | null
           thumbnail_url?: string | null
           title?: string | null
+          treatment?: string | null
           updated_at?: string
           user_id?: string
           voice_id?: string | null

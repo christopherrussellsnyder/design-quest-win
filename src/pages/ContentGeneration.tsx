@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -30,11 +31,18 @@ import { useAdActors, useAdScripts, useVideoAds } from '@/hooks/useVideoAds';
 import { VIDEO_ASPECT_RATIOS, VIDEO_HOOK_ANGLES } from '@/config/video.config';
 import type { AdScriptVariant } from '@/config/video.config';
 import { VideoAdCard } from '@/components/video-ads/VideoAdCard';
+import { StoryboardPreview } from '@/components/video-ads/StoryboardPreview';
 import { ImageStudio } from '@/components/content-generation/ImageStudio';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function ContentGeneration() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  // Present when the user arrived from a specific strategy day. The whole
+  // production layer keys off this: no linked day, no invented visuals.
+  const strategyPostId = searchParams.get('strategyPostId') ?? undefined;
+  const strategyTheme = searchParams.get('theme') ?? undefined;
+
 
   const { data: catalog, isLoading: loadingActors, error: actorsError } = useAdActors();
   const { variants, generate, isGenerating } = useAdScripts();
@@ -80,6 +88,12 @@ export default function ContentGeneration() {
     setEditedScript(variant.script);
   };
 
+  // The storyboard is scene-by-scene locked to the exact words. Once the script
+  // is edited by hand we drop back to a clean presenter read rather than
+  // rendering visuals over the wrong beats.
+  const planIsStale = !!selectedScript && editedScript.trim() !== selectedScript.script.trim();
+  const activePlan = selectedScript?.production_plan;
+
   const handleRender = () => {
     if (!editedScript.trim() || !avatarId || !voiceId) return;
     createVideo({
@@ -92,8 +106,11 @@ export default function ContentGeneration() {
       avatarPreviewUrl: selectedActor?.preview_image_url,
       voiceId,
       aspectRatio,
+      strategyPostId,
+      productionPlan: planIsStale ? undefined : activePlan,
     });
   };
+
 
   const providerDown =
     (actorsError as { code?: string })?.code === 'PROVIDER_NOT_CONFIGURED' ||
@@ -161,6 +178,23 @@ export default function ContentGeneration() {
               </CardContent>
             </Card>
           )}
+
+          {strategyPostId && (
+            <Card className="bg-background border-primary/30">
+              <CardContent className="p-4 flex items-start gap-3">
+                <Film className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                <div className="text-sm">
+                  <p className="font-medium">Linked to a strategy day</p>
+                  <p className="text-muted-foreground text-xs mt-1">
+                    {strategyTheme
+                      ? `Scripts and visuals will be built around “${strategyTheme}”.`
+                      : 'Scripts and visuals will be built around that day’s post — same promise, same angle.'}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
 
           {/* ---------------- Step 1: Script ---------------- */}
           <section className="space-y-3">
@@ -247,6 +281,8 @@ export default function ContentGeneration() {
                       promoDetail: promoDetail || undefined,
                       promoCode: promoCode || undefined,
                       customBrief: brief || undefined,
+                      strategyPostId,
+
                     })
                   }
                   disabled={isGenerating}
@@ -283,12 +319,19 @@ export default function ContentGeneration() {
                       }`}
                     >
                       <div className="flex items-center justify-between gap-2 mb-2">
-                        <Badge
-                          variant="outline"
-                          className="border-border text-[10px] capitalize"
-                        >
-                          {v.angle}
-                        </Badge>
+                        <div className="flex items-center gap-1.5">
+                          <Badge
+                            variant="outline"
+                            className="border-border text-[10px] capitalize"
+                          >
+                            {v.angle}
+                          </Badge>
+                          {v.production_plan && (
+                            <Badge variant="outline" className="border-border text-[10px]">
+                              {v.production_plan.scenes.length}-scene
+                            </Badge>
+                          )}
+                        </div>
                         {active && <Check className="w-3.5 h-3.5 text-primary" />}
                       </div>
                       <p className="text-sm font-medium leading-snug mb-1.5">{v.hook}</p>
@@ -301,7 +344,10 @@ export default function ContentGeneration() {
                 })}
               </div>
             )}
+
+            {activePlan && <StoryboardPreview plan={activePlan} stale={planIsStale} />}
           </section>
+
 
           {/* ---------------- Step 2: Cast ---------------- */}
           <section className="space-y-3">

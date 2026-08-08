@@ -58,35 +58,65 @@ async function heygenFetch(path: string, init: RequestInit = {}): Promise<unknow
   return parsed;
 }
 
+/** One rendered beat of the ad. Backgrounds must already be resolved to a HeyGen-reachable asset. */
+export interface RenderScene {
+  text: string;
+  backgroundUrl?: string;
+  backgroundAssetId?: string;
+  backgroundColor?: string;
+  /** 1 = full frame. Smaller values push the presenter aside so on-screen visuals breathe. */
+  characterScale?: number;
+  offsetX?: number;
+  offsetY?: number;
+}
+
 export interface CreateVideoArgs {
   script: string;
   avatarId: string;
   voiceId: string;
   aspectRatio: string;
   speed?: number;
+  /** When supplied, the ad renders as a multi-scene storyboard instead of a single talking head. */
+  scenes?: RenderScene[];
+  /** Burn animated captions into the render. */
+  captions?: boolean;
+}
+
+function buildBackground(scene: RenderScene): Record<string, unknown> | undefined {
+  if (scene.backgroundAssetId) return { type: "image", image_asset_id: scene.backgroundAssetId, fit: "cover" };
+  if (scene.backgroundUrl) return { type: "image", url: scene.backgroundUrl, fit: "cover" };
+  if (scene.backgroundColor) return { type: "color", value: scene.backgroundColor };
+  return undefined;
 }
 
 /** Kicks off a render. Returns the HeyGen video id to poll. */
 export async function createHeygenVideo(args: CreateVideoArgs): Promise<string> {
   const dimension = ASPECT_DIMENSIONS[args.aspectRatio] ?? ASPECT_DIMENSIONS["9:16"];
+  const speed = args.speed ?? 1.05; // slightly quick — reads as natural UGC, not corporate
+
+  const scenes: RenderScene[] =
+    args.scenes && args.scenes.length ? args.scenes : [{ text: args.script }];
 
   const payload = {
-    video_inputs: [
-      {
-        character: {
-          type: "avatar",
-          avatar_id: args.avatarId,
-          avatar_style: "normal",
-        },
-        voice: {
-          type: "text",
-          input_text: args.script,
-          voice_id: args.voiceId,
-          speed: args.speed ?? 1.05, // slightly quick — reads as natural UGC, not corporate
-        },
-      },
-    ],
+    video_inputs: scenes.map((scene) => {
+      const background = buildBackground(scene);
+      const character: Record<string, unknown> = {
+        type: "avatar",
+        avatar_id: args.avatarId,
+        avatar_style: "normal",
+      };
+      if (scene.characterScale && scene.characterScale !== 1) {
+        character.scale = scene.characterScale;
+        character.offset = { x: scene.offsetX ?? 0, y: scene.offsetY ?? 0 };
+      }
+      return {
+        character,
+        voice: { type: "text", input_text: scene.text, voice_id: args.voiceId, speed },
+        ...(background ? { background } : {}),
+      };
+    }),
     dimension,
+    ...(args.captions ? { caption: true } : {}),
   };
 
   const result = (await heygenFetch("/v2/video/generate", {
@@ -98,6 +128,37 @@ export async function createHeygenVideo(args: CreateVideoArgs): Promise<string> 
   if (!videoId) throw new Error("HeyGen did not return a video id");
   return videoId;
 }
+
+/**
+ * Uploads raw image bytes to HeyGen's asset store so they can be used as a
+ * scene background. Avoids needing a publicly reachable URL of our own.
+ */
+export async function uploadHeygenImage(
+  bytes: Uint8Array,
+  contentType = "image/png",
+): Promise<{ url?: string; assetId?: string }> {
+  const res = await fetch("https://upload.heygen.com/v1/asset", {
+    method: "POST",
+    headers: { "X-Api-Key": heygenKey(), "Content-Type": contentType },
+    body: bytes as unknown as BodyInit,
+  });
+
+  const text = await res.text();
+  if (!res.ok) {
+    console.error(`[heygen] asset upload failed [${res.status}]: ${text}`);
+    throw new Error(`HeyGen asset upload failed (${res.status})`);
+  }
+
+  let parsed: { data?: { url?: string; image_key?: string; id?: string } };
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    throw new Error("HeyGen returned a malformed asset response");
+  }
+
+  return { url: parsed?.data?.url, assetId: parsed?.data?.image_key ?? parsed?.data?.id };
+}
+
 
 export interface HeygenStatus {
   status: "pending" | "processing" | "completed" | "failed" | string;

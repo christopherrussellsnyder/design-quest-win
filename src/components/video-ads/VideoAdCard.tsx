@@ -105,7 +105,7 @@ export function VideoAdCard({ video, url, onResolveUrl, onDelete }: Props) {
           <p className="text-xs text-muted-foreground line-clamp-2">{video.hook}</p>
         )}
 
-        <div className="flex items-center gap-2 text-[11px] text-[hsl(var(--text-tertiary))]">
+        <div className="flex items-center gap-2 text-[11px] text-[hsl(var(--text-tertiary))] flex-wrap">
           {video.avatar_name && <span className="truncate">{video.avatar_name}</span>}
           <span>·</span>
           <span>{video.aspect_ratio}</span>
@@ -118,7 +118,20 @@ export function VideoAdCard({ video, url, onResolveUrl, onDelete }: Props) {
               </span>
             </>
           ) : null}
+          {video.treatment && (
+            <>
+              <span>·</span>
+              <span className="capitalize">{video.treatment.replace(/-/g, ' ')}</span>
+            </>
+          )}
+          {video.scene_count && video.scene_count > 1 ? (
+            <>
+              <span>·</span>
+              <span>{video.scene_count} scenes</span>
+            </>
+          ) : null}
         </div>
+
 
         <div className="flex items-center gap-2 pt-1">
           {video.status === 'completed' && resolved && (

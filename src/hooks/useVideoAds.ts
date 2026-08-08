@@ -98,7 +98,10 @@ export interface ScriptRequest {
   promoCode?: string;
   promoDetail?: string;
   customBrief?: string;
+  /** Ties the ad's visual treatment to a specific strategy day. */
+  strategyPostId?: string;
 }
+
 
 export function useAdScripts() {
   const { activeWorkspaceId } = useWorkspace();
@@ -226,7 +229,9 @@ export function useVideoAds() {
       voiceId: string;
       aspectRatio: string;
       strategyPostId?: string;
+      productionPlan?: unknown;
     }) => invokeFn<{ id: string }>('generate-video-ad', { ...input, workspaceId: activeWorkspaceId }),
+
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey });
       queryClient.invalidateQueries({ queryKey: ['ad-actors'] });

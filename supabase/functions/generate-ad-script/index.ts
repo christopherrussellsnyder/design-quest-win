@@ -1,6 +1,8 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.4";
 import { checkRateLimit, clientKey } from "../_shared/rate-limit.ts";
+import { loadBrandKit, recentTreatments, normalizePlan } from "../_shared/ad-production.ts";
+
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -56,6 +58,7 @@ serve(async (req) => {
       promoDetail,
       customBrief,
       workspaceId,
+      strategyPostId,
     } = (body ?? {}) as {
       angle?: HookAngle;
       durationSeconds?: number;
@@ -64,7 +67,9 @@ serve(async (req) => {
       promoDetail?: string;
       customBrief?: string;
       workspaceId?: string;
+      strategyPostId?: string;
     };
+
 
     if (typeof customBrief === "string" && customBrief.length > 4000) {
       return json({ error: "Brief is too long." }, 400);
@@ -106,6 +111,44 @@ ${JSON.stringify(promos, null, 2)}`;
       console.error("[ad-script] context load failed (non-fatal):", e);
     }
 
+    // ---- Strategy-day linkage ------------------------------------------
+    // Production elements only earn their place when the day's post calls for
+    // them. Without a linked post we deliberately stay closer to a clean read.
+    let strategyBlock = "";
+    if (strategyPostId) {
+      try {
+        const { data: post } = await supabase
+          .from("strategy_posts")
+          .select(
+            "day_number, post_type, theme, hook, caption, cta, content_pillar, primary_emotion, hook_technique, visual_guidance, week_theme",
+          )
+          .eq("id", strategyPostId)
+          .maybeSingle();
+        if (post) {
+          strategyBlock = `
+LINKED STRATEGY DAY (this ad must be the video expression of THIS post — same promise, same emotion, same angle):
+${JSON.stringify(post, null, 2)}`;
+        }
+      } catch (e) {
+        console.error("[ad-script] strategy post load failed (non-fatal):", e);
+      }
+    }
+
+    // ---- Brand kit + anti-repetition ------------------------------------
+    const brandKit = await loadBrandKit(supabase, userId, workspaceId);
+    const priorTreatments = await recentTreatments(supabase, userId);
+
+    const brandBlock = `
+BRAND KIT (design inspiration lifted from the advertiser's own website — every generated visual must look like it belongs to this brand):
+${JSON.stringify(brandKit, null, 2)}`;
+
+    const diversityBlock = priorTreatments.length
+      ? `
+RECENTLY SHIPPED TREATMENTS (do NOT repeat these looks — the market has already seen them from this advertiser):
+${JSON.stringify(priorTreatments, null, 2)}`
+      : "";
+
+
     const promoLine =
       promoCode || promoDetail
         ? `Explicit promo to feature: ${[promoDetail, promoCode ? `code ${promoCode}` : null]
@@ -136,6 +179,23 @@ PACING: roughly 2.4 spoken words per second. A ${seconds}-second script is about
 
 ${angleInstruction}
 
+PRODUCTION DIRECTION — you are also the ad's art director.
+For every variant, split the script into 2 to 5 scenes and decide, scene by scene, what the viewer should be LOOKING at:
+- "avatar": presenter on a clean neutral set. The default. Use it whenever the words carry the beat alone.
+- "broll": a cinematic background plate of the product/service in context. Only when the words describe something physical, visual, or demonstrable.
+- "text-card": a kinetic typographic frame carrying one short headline (max 6 words) — reserve this for a number, a claim, or the promo.
+- "brand-color": a flat brand-coloured field from the brand kit. A palate cleanser, useful for the close.
+
+HARD RULES:
+- Restraint wins. Never add a visual element just because it is available. If the beat does not earn it, use "avatar".
+- At most TWO generated plates ("broll" or "text-card") across the whole ad.
+- The scenes' "spoken" fields, concatenated in order, must equal the full script exactly — same words, nothing added or dropped.
+- The HOOK beat is almost always "avatar": a face is the strongest scroll-stopper in the first two seconds.
+- Any "broll" background_prompt must reference the advertiser's real product/service and the brand palette. Never generic stock imagery.
+- Any "on_screen_text" must be spelled correctly and be a compressed version of what is spoken over it.
+- Pick a treatment that is genuinely different from the recently shipped treatments listed by the advertiser. Repeating a look is how a brand becomes invisible.
+${strategyBlock ? "- This ad is tied to a specific strategy day. The visual treatment must express THAT post's theme, emotion and pillar — not a generic brand film." : "- No strategy day is linked, so bias hard toward the clean talking-head treatment."}
+
 Return ONLY valid JSON, no markdown fences.
 
 Schema:
@@ -147,20 +207,39 @@ Schema:
       "hook": "<the single opening sentence, verbatim from the script>",
       "script": "<the FULL spoken script, plain prose, all five beats flowing naturally as one continuous read>",
       "estimated_seconds": <number>,
-      "why_it_works": "<one sentence on the psychological mechanic>"
+      "why_it_works": "<one sentence on the psychological mechanic>",
+      "production_plan": {
+        "treatment": "talking-head" | "product-showcase" | "text-driven" | "hybrid",
+        "rationale": "<one sentence on why this treatment fits this script and this day>",
+        "captions": true,
+        "scenes": [
+          {
+            "role": "hook" | "benefit" | "mechanism" | "promo" | "close",
+            "spoken": "<exact words spoken in this scene>",
+            "visual": "avatar" | "broll" | "text-card" | "brand-color",
+            "background_prompt": "<art direction, only for broll>",
+            "on_screen_text": "<max 6 words, only for text-card>",
+            "background_color": "<hex from the brand kit, only for brand-color>"
+          }
+        ]
+      }
     }
   ]
 }`;
 
     const userPrompt = `${contextBlock}
 ${promotionsBlock}
+${strategyBlock}
+${brandBlock}
+${diversityBlock}
 
 ${promoLine}
 
 Target spoken length: ${seconds} seconds.
 ${customBrief ? `\nAdditional direction from the advertiser:\n${customBrief}` : ""}
 
-Write the ${variantCount} script variants now.`;
+Write the ${variantCount} script variants, each with its production plan, now.`;
+
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
@@ -208,12 +287,22 @@ Write the ${variantCount} script variants now.`;
       parsed = match ? JSON.parse(match[0]) : { variants: [] };
     }
 
-    const variants = Array.isArray(parsed.variants) ? parsed.variants : [];
-    if (!variants.length) {
+    const rawVariants = Array.isArray(parsed.variants) ? parsed.variants : [];
+    if (!rawVariants.length) {
       return json({ error: "The script engine returned nothing usable. Please try again." }, 502);
     }
 
-    return json({ variants });
+    // Sanitise the art direction: caps generated plates, drops malformed scenes,
+    // and falls back to a clean read when the model gives us nothing usable.
+    const variants = rawVariants.map((v) => {
+      const variant = (v ?? {}) as Record<string, unknown>;
+      const script = String(variant.script ?? "");
+      const plan = normalizePlan(variant.production_plan, script);
+      return { ...variant, production_plan: plan };
+    });
+
+    return json({ variants, brand_kit: brandKit });
+
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error("[ad-script] ERROR:", message);
