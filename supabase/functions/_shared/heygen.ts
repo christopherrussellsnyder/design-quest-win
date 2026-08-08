@@ -109,7 +109,7 @@ export async function createHeygenVideo(args: CreateVideoArgs): Promise<string> 
       const character: Record<string, unknown> = {
         type: "avatar",
         avatar_id: args.avatarId,
-        avatar_style: "normal",
+        avatar_style: background && scene.characterStyle === "circle" ? "circle" : "normal",
       };
       if (withBackgrounds && scene.characterScale && scene.characterScale !== 1) {
         character.scale = scene.characterScale;
@@ -122,8 +122,9 @@ export async function createHeygenVideo(args: CreateVideoArgs): Promise<string> 
       };
     }),
     dimension,
-    ...(args.captions ? { caption: true } : {}),
+    ...(args.captions === false ? {} : { caption: true }),
   });
+
 
   const send = async (withBackgrounds: boolean) => {
     const result = (await heygenFetch("/v2/video/generate", {
