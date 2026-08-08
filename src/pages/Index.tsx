@@ -212,9 +212,9 @@ const Index = () => {
         <div className="max-w-4xl mx-auto">
           <AnimatedSection className="text-center mb-12">
             <h2 className="text-3xl sm:text-[40px] font-semibold mb-4">
-              Creating Effective Marketing Strategies Shouldn't Take Days
+              Most Marketing Plans Are Written Without Evidence
             </h2>
-            <p className="text-lg text-muted-foreground">If you're an e-commerce founder or marketing manager, you know the pain:</p>
+            <p className="text-lg text-muted-foreground">The problem is not effort. It is what the plan was built on:</p>
           </AnimatedSection>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">
