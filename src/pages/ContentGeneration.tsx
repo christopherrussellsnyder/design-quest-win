@@ -319,12 +319,19 @@ export default function ContentGeneration() {
                       }`}
                     >
                       <div className="flex items-center justify-between gap-2 mb-2">
-                        <Badge
-                          variant="outline"
-                          className="border-border text-[10px] capitalize"
-                        >
-                          {v.angle}
-                        </Badge>
+                        <div className="flex items-center gap-1.5">
+                          <Badge
+                            variant="outline"
+                            className="border-border text-[10px] capitalize"
+                          >
+                            {v.angle}
+                          </Badge>
+                          {v.production_plan && (
+                            <Badge variant="outline" className="border-border text-[10px]">
+                              {v.production_plan.scenes.length}-scene
+                            </Badge>
+                          )}
+                        </div>
                         {active && <Check className="w-3.5 h-3.5 text-primary" />}
                       </div>
                       <p className="text-sm font-medium leading-snug mb-1.5">{v.hook}</p>
@@ -337,7 +344,10 @@ export default function ContentGeneration() {
                 })}
               </div>
             )}
+
+            {activePlan && <StoryboardPreview plan={activePlan} stale={planIsStale} />}
           </section>
+
 
           {/* ---------------- Step 2: Cast ---------------- */}
           <section className="space-y-3">
