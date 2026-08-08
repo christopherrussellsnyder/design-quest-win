@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
 import { ArrowRight, Database, Sparkles, LineChart, Layers, Shield, Repeat, Target, Zap } from 'lucide-react';
 import { KorexLogoLockup } from '@/components/branding/KorexLogoLockup';
+import { Seo } from '@/components/Seo';
 
 const pipelineSteps = [
   {
@@ -72,11 +72,11 @@ const edges = [
 export default function HowItWorks() {
   return (
     <>
-      <Helmet>
-        <title>How Korex Works | Korex Intelligence Systems</title>
-        <meta name="description" content="See exactly how Korex generates marketing strategies — real analytics ingestion, anti-oversaturation logic, feedback loops on your own winners, and live campaign intelligence." />
-        <link rel="canonical" href="https://korexintelligencesystems.com/how-it-works" />
-      </Helmet>
+      <Seo
+        title="How Korex Builds a Marketing Strategy"
+        description="See the pipeline behind every plan: analytics ingestion, competitor ad recon, anti-oversaturation logic, platform ranking models and a CMO-grade critic pass."
+        path="/how-it-works"
+      />
 
       <div className="min-h-screen bg-background text-foreground">
         {/* Navbar */}

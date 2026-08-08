@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
 import { Upload, Brain, TrendingUp, ArrowRight, Play } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { KorexLogoLockup } from '@/components/branding/KorexLogoLockup';
 import { KorexMark } from '@/components/branding/KorexMark';
+import { Seo } from '@/components/Seo';
 
 // REPLACE WITH ACTUAL VIDEO URL WHEN READY
 const DEMO_VIDEO_URL: string = '';
@@ -70,10 +70,11 @@ const steps = [
 export default function Demo() {
   return (
     <>
-      <Helmet>
-        <title>Demo | Korex Intelligence Systems</title>
-        <meta name="description" content="See exactly how Korex turns your analytics and goals into a complete marketing strategy." />
-      </Helmet>
+      <Seo
+        title="Product Demo | Korex Intelligence Systems"
+        description="Watch how Korex turns your analytics, website and goals into a complete evidence-based social media and paid advertising strategy."
+        path="/demo"
+      />
 
       <div className="min-h-screen bg-background text-foreground">
         {/* Navbar */}

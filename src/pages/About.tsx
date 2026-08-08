@@ -1,11 +1,11 @@
 import { Link } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
 import {
   Database, Sparkles, Zap, ArrowRight, Brain, Search, Video,
   Image as ImageIcon, Building2, FileBarChart,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { KorexLogoLockup } from '@/components/branding/KorexLogoLockup';
+import { Seo } from '@/components/Seo';
 
 const beliefs = [
   {
@@ -62,10 +62,11 @@ const capabilities = [
 export default function About() {
   return (
     <>
-      <Helmet>
-        <title>About | Korex Intelligence Systems</title>
-        <meta name="description" content="How Korex Intelligence Systems works: a live research pipeline, business-grounded strategy generation and a senior-level review pass on every plan." />
-      </Helmet>
+      <Seo
+        title="About Korex Intelligence Systems"
+        description="How Korex works: a live research pipeline, business-grounded strategy generation and a senior-strategist review pass on every marketing plan we produce."
+        path="/about"
+      />
 
       <div className="min-h-screen bg-background text-foreground">
         {/* Navbar */}

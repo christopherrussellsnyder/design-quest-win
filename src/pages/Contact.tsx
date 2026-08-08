@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
 import { Mail, Clock, DollarSign, Wrench, Handshake, ArrowRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { KorexLogoLockup } from '@/components/branding/KorexLogoLockup';
+import { Seo } from '@/components/Seo';
 
 const contactReasons = [
   { icon: DollarSign, title: 'Sales & Pricing', description: 'Questions about plans, enterprise, or custom pricing.' },
@@ -103,10 +103,11 @@ export default function Contact() {
 
   return (
     <>
-      <Helmet>
-        <title>Contact | Korex Intelligence Systems</title>
-        <meta name="description" content="Get in touch with Korex Intelligence Systems. Questions about features, pricing, or partnerships — our team is ready to help." />
-      </Helmet>
+      <Seo
+        title="Contact Korex Intelligence Systems"
+        description="Questions about features, pricing, or partnerships? Contact the Korex Intelligence Systems team and get a reply from a human, usually within one business day."
+        path="/contact"
+      />
 
       <div className="min-h-screen bg-background text-foreground">
         {/* Navbar */}

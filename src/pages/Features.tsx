@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
 import {
   Brain, BarChart3, MessageSquare, Users, FileText, Video,
   Image as ImageIcon, Search, SplitSquareHorizontal, Building2,
@@ -7,6 +6,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { KorexLogoLockup } from '@/components/branding/KorexLogoLockup';
+import { Seo } from '@/components/Seo';
 
 const features = [
   {
@@ -75,10 +75,11 @@ const features = [
 export default function Features() {
   return (
     <>
-      <Helmet>
-        <title>Features | Korex Intelligence Systems</title>
-        <meta name="description" content="Korex features: live-data AI strategy, research analysis, AI video ads, image studio, caption A/B testing, multi-brand workspaces and white-label client reports." />
-      </Helmet>
+      <Seo
+        title="Marketing Intelligence Features | Korex"
+        description="Live-data AI strategy generation, market research analysis, AI video ads, image studio, caption A/B testing, multi-brand workspaces and white-label reports."
+        path="/features"
+      />
 
       <div className="min-h-screen bg-background text-foreground">
         {/* Navbar */}

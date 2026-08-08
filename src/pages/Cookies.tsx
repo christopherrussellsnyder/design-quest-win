@@ -1,22 +1,19 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
+import { Seo } from '@/components/Seo';
 
 const Cookies: React.FC = () => {
   const navigate = useNavigate();
 
   return (
     <>
-      <Helmet>
-        <title>Cookie Policy | Korex</title>
-        <meta name="description" content="How Korex uses cookies and similar technologies, and how you can control them." />
-        <meta property="og:title" content="Cookie Policy | Korex" />
-        <meta property="og:description" content="Learn which cookies Korex sets, why we use them, and how to manage your preferences." />
-        <meta property="og:type" content="website" />
-        <meta name="robots" content="index, follow" />
-      </Helmet>
+      <Seo
+        title="Cookie Policy | Korex Intelligence Systems"
+        description="Which cookies Korex Intelligence Systems sets, why we use them, how long they last, and how you can control or disable them in your browser."
+        path="/cookies"
+      />
 
       <div className="min-h-screen bg-background">
         <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">

@@ -1,19 +1,16 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
 import { KorexMark } from '@/components/branding/KorexMark';
+import { Seo } from '@/components/Seo';
 
 const Privacy: React.FC = () => {
   return (
     <>
-      <Helmet>
-        <title>Privacy Policy | Korex</title>
-        <meta name="description" content="How Korex Intelligence Systems collects, uses, shares, and protects your personal data." />
-        <meta property="og:title" content="Privacy Policy | Korex" />
-        <meta property="og:description" content="Read Korex's Privacy Policy, including subprocessors, retention, and your GDPR/CCPA rights." />
-        <meta property="og:type" content="website" />
-        <meta name="robots" content="index, follow" />
-      </Helmet>
+      <Seo
+        title="Privacy Policy | Korex Intelligence Systems"
+        description="How Korex Intelligence Systems collects, uses, shares and protects your data, including subprocessors, retention periods and your GDPR/CCPA rights."
+        path="/privacy"
+      />
 
       <div className="min-h-screen bg-background">
         <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
