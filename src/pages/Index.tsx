@@ -229,7 +229,7 @@ const Index = () => {
           </div>
 
           <AnimatedSection className="text-center" delay={0.4}>
-            <p className="text-2xl font-bold text-primary">There's a better way.</p>
+            <p className="text-2xl font-bold text-primary">A strategy is only as good as the evidence underneath it.</p>
           </AnimatedSection>
         </div>
       </section>
@@ -239,10 +239,10 @@ const Index = () => {
         <div className="max-w-5xl mx-auto">
           <AnimatedSection className="text-center mb-16">
             <h2 className="text-3xl sm:text-[42px] font-semibold mb-4">
-              Korex: Marketing Intelligence That{' '}
-              <span className="text-primary">Actually Knows Your Business</span>
+              What Happens{' '}
+              <span className="text-primary">Before You Get a Plan</span>
             </h2>
-            <p className="text-muted-foreground text-lg mt-4">No templates. No guessing. Just strategies built for YOUR audience.</p>
+            <p className="text-muted-foreground text-lg mt-4">Four stages run on every generation. Plain English, no jargon required.</p>
           </AnimatedSection>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
