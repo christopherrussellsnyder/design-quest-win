@@ -2,8 +2,8 @@ import { Link } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
 import { motion, useInView, AnimatePresence } from 'framer-motion';
 import {
-  Upload, Brain, BarChart3, Download, ChevronDown,
-  Check, X, ArrowRight, Shield, Minus, Plus,
+  Brain, BarChart3, ChevronDown,
+  Check, X, ArrowRight, Shield,
   Clock, DollarSign, Users, Zap,
   Lock, Globe, Award,
   Video, Search, Building2, FileBarChart, SplitSquareHorizontal,
