@@ -100,6 +100,8 @@ export interface ScriptRequest {
   customBrief?: string;
   /** Ties the ad's visual treatment to a specific strategy day. */
   strategyPostId?: string;
+  /** Target ad platform — drives the niche intelligence + production spec. */
+  platform?: string;
 }
 
 

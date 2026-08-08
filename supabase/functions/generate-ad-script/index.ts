@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.4";
 import { checkRateLimit, clientKey } from "../_shared/rate-limit.ts";
 import { loadBrandKit, recentTreatments, normalizePlan } from "../_shared/ad-production.ts";
+import { buildAdCtx, gatherAdIntel, normalizeAdPlatform } from "../_shared/ad-intel.ts";
 
 
 const corsHeaders = {
@@ -59,6 +60,7 @@ serve(async (req) => {
       customBrief,
       workspaceId,
       strategyPostId,
+      platform,
     } = (body ?? {}) as {
       angle?: HookAngle;
       durationSeconds?: number;
@@ -68,6 +70,7 @@ serve(async (req) => {
       customBrief?: string;
       workspaceId?: string;
       strategyPostId?: string;
+      platform?: string;
     };
 
 
@@ -80,6 +83,7 @@ serve(async (req) => {
     // ---- Business context grounding -------------------------------------
     let contextBlock = "";
     let promotionsBlock = "";
+    let businessContextRow: any = null;
     try {
       let ctxQuery = supabase
         .from("business_context")
@@ -88,6 +92,7 @@ serve(async (req) => {
         .limit(1);
       if (workspaceId) ctxQuery = ctxQuery.eq("workspace_id", workspaceId);
       const { data: ctx } = await ctxQuery.maybeSingle();
+      businessContextRow = ctx;
 
       if (ctx) {
         contextBlock = `
@@ -115,6 +120,7 @@ ${JSON.stringify(promos, null, 2)}`;
     // Production elements only earn their place when the day's post calls for
     // them. Without a linked post we deliberately stay closer to a clean read.
     let strategyBlock = "";
+    let linkedPost: any = null;
     if (strategyPostId) {
       try {
         const { data: post } = await supabase
@@ -125,6 +131,7 @@ ${JSON.stringify(promos, null, 2)}`;
           .eq("id", strategyPostId)
           .maybeSingle();
         if (post) {
+          linkedPost = post;
           strategyBlock = `
 LINKED STRATEGY DAY (this ad must be the video expression of THIS post — same promise, same emotion, same angle):
 ${JSON.stringify(post, null, 2)}`;
@@ -148,6 +155,30 @@ RECENTLY SHIPPED TREATMENTS (do NOT repeat these looks — the market has alread
 ${JSON.stringify(priorTreatments, null, 2)}`
       : "";
 
+
+    // ---- Niche + performance intelligence (same engine as strategy gen) ---
+    // Live platform signals, search demand, competitor ad recon, site crawl,
+    // voice-of-customer and this advertiser's own proven results — reshaped
+    // into art direction so the ad is built on evidence, not vibes.
+    let intelBlock = "";
+    let intelSources: string[] = [];
+    let adPlatform = normalizeAdPlatform(platform || linkedPost?.platform);
+    try {
+      const [settingsRes, bizInfoRes] = await Promise.all([
+        supabase.from("user_business_settings").select("*").eq("user_id", userId).maybeSingle(),
+        supabase.from("business_information").select("*").eq("user_id", userId).maybeSingle(),
+      ]);
+      const adCtx = buildAdCtx(settingsRes.data, bizInfoRes.data, businessContextRow);
+      const intel = await gatherAdIntel(supabase, userId, adCtx, adPlatform);
+      adPlatform = intel.platform;
+      intelSources = intel.sources;
+      intelBlock = intel.section
+        ? `\nNICHE + PERFORMANCE INTELLIGENCE (evidence base for this ad — obey it):\n${intel.section}`
+        : "";
+      console.log("[ad-script] intel sources:", intelSources.join(", ") || "none");
+    } catch (e) {
+      console.error("[ad-script] intel gathering failed (non-fatal):", e);
+    }
 
     const promoLine =
       promoCode || promoDetail
@@ -195,6 +226,8 @@ HARD RULES:
 - Any "broll" background_prompt must name the advertiser's real product/service, the physical environment it lives in, the lighting, and the brand palette. Never generic stock imagery, never abstract gradients.
 - The PROMO and CLOSE beats should almost always be "text-card" so the offer is readable on a muted feed.
 - Pick a treatment that is genuinely different from the recently shipped treatments listed by the advertiser. Repeating a look is how a brand becomes invisible.
+- You have been handed a NICHE + PERFORMANCE INTELLIGENCE brief built from live platform signals, search demand, competitor ad recon, the advertiser's own website, customer voice, and their historical results. Ground the hook, the mechanism, the on-screen text and every visual in that evidence. An ad that ignores it is a rejected ad.
+- Obey the platform production spec in that brief (aspect ratio, hook timing, cut rhythm, sound-off readability) — the ad runs on ${adPlatform.toUpperCase()}.
 ${strategyBlock ? "- This ad is tied to a specific strategy day. The visual treatment must express THAT post's theme, emotion and pillar — not a generic brand film." : ""}
 
 
@@ -233,6 +266,7 @@ Schema:
 ${promotionsBlock}
 ${strategyBlock}
 ${brandBlock}
+${intelBlock}
 ${diversityBlock}
 
 ${promoLine}
@@ -303,7 +337,7 @@ Write the ${variantCount} script variants, each with its production plan, now.`;
       return { ...variant, production_plan: plan };
     });
 
-    return json({ variants, brand_kit: brandKit });
+    return json({ variants, brand_kit: brandKit, intel_sources: intelSources, platform: adPlatform });
 
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
