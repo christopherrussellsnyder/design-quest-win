@@ -105,17 +105,6 @@ const Index = () => {
   const [showFloatingCta, setShowFloatingCta] = useState(false);
   const [floatingDismissed, setFloatingDismissed] = useState(false);
 
-  // Calculator state
-  const [calcResearch, setCalcResearch] = useState(4);
-  const [calcPlanning, setCalcPlanning] = useState(6);
-  const [calcCalendar, setCalcCalendar] = useState(3);
-  const [calcHourlyRate, setCalcHourlyRate] = useState(50);
-
-  const totalHours = calcResearch + calcPlanning + calcCalendar;
-  const annualHours = totalHours * 12;
-  const annualValue = annualHours * calcHourlyRate;
-  const netBenefit = annualValue - 831;
-  const roi = Math.round((netBenefit / 831) * 100);
 
   useEffect(() => {
     const onScroll = () => setShowFloatingCta(window.scrollY > 800);
