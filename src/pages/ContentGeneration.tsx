@@ -142,24 +142,26 @@ export default function ContentGeneration() {
     setEditedScript(variants[0].script);
   }, [handoff, selectedScript, variants]);
 
-  // Auto-cast: a presentable actor plus a natural English voice that matches
-  // their gender, so the render step is usable the moment the page loads.
+  // Auto-cast: a presentable actor plus a natural English voice whose gender
+  // matches the actor. A female actor never gets a male read, and vice versa.
   useEffect(() => {
     if (!actors.length && !voices.length) return;
 
     const actor = selectedActor ?? actors[0];
     if (!avatarId && actor) setAvatarId(actor.avatar_id);
+    if (!voices.length) return;
 
-    if (voiceId || !voices.length) return;
+    const actorGender = normalizeGender(actor?.gender, actor?.name);
+    const current = voices.find((v) => v.voice_id === voiceId);
+    const currentGender = current ? normalizeGender(current.gender, current.name) : null;
 
-    const english = voices.filter((v) => (v.language ?? '').toLowerCase().includes('english'));
-    const pool = english.length ? english : voices;
-    const gender = (actor?.gender ?? '').toLowerCase();
-    const matched = gender
-      ? pool.find((v) => (v.gender ?? '').toLowerCase() === gender)
-      : undefined;
-    setVoiceId((matched ?? pool[0]).voice_id);
-  }, [actors, voices, avatarId, voiceId, selectedActor]);
+    // Keep the current voice only when it still matches the actor.
+    if (current && (!actorGender || currentGender === actorGender)) return;
+
+    const pick = matchingVoices[0] ?? voices[0];
+    if (pick) setVoiceId(pick.voice_id);
+  }, [actors, voices, avatarId, voiceId, selectedActor, matchingVoices]);
+
 
 
   const providerDown =
