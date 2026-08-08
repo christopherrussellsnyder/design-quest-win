@@ -4,6 +4,7 @@ import { checkRateLimit, clientKey } from "../_shared/rate-limit.ts";
 import { createHeygenVideo, uploadHeygenImage, ASPECT_DIMENSIONS, type RenderScene } from "../_shared/heygen.ts";
 import {
   archiveSceneImage,
+  fetchReferenceImage,
   generateSceneImage,
   loadBrandKit,
   normalizePlan,
