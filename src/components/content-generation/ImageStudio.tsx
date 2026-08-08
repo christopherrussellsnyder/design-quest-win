@@ -43,12 +43,25 @@ interface GeneratedImage {
   size: string;
 }
 
-export function ImageStudio() {
-  const [concept, setConcept] = useState('');
-  const [textOverlay, setTextOverlay] = useState('');
-  const [platform, setPlatform] = useState('instagram');
+interface ImageStudioProps {
+  /** Prefilled from a linked strategy day so nothing has to be retyped. */
+  initialConcept?: string;
+  initialTextOverlay?: string;
+  initialPalette?: string;
+  initialPlatform?: string;
+}
+
+export function ImageStudio({
+  initialConcept = '',
+  initialTextOverlay = '',
+  initialPalette = '',
+  initialPlatform = 'instagram',
+}: ImageStudioProps = {}) {
+  const [concept, setConcept] = useState(initialConcept);
+  const [textOverlay, setTextOverlay] = useState(initialTextOverlay);
+  const [platform, setPlatform] = useState(initialPlatform);
   const [style, setStyle] = useState('');
-  const [palette, setPalette] = useState('');
+  const [palette, setPalette] = useState(initialPalette);
   const [engine, setEngine] = useState('openai/gpt-image-2');
   const [isGenerating, setIsGenerating] = useState(false);
   const [images, setImages] = useState<GeneratedImage[]>([]);

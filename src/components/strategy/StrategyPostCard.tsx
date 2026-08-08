@@ -16,6 +16,14 @@ import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { UpgradeModal } from '@/components/UpgradeModal';
+import { useNavigate } from 'react-router-dom';
+import {
+  saveContentHandoff,
+  aspectForPost,
+  durationForPost,
+  angleForTheme,
+  platformForPost,
+} from '@/lib/contentHandoff';
 
 interface CaptionVariant {
   label: string;
@@ -75,6 +83,7 @@ export function StrategyPostCard({ post, onEdit, onAskAI }: StrategyPostCardProp
   const [loadingVariants, setLoadingVariants] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);
   const { isPro } = useSubscription();
+  const navigate = useNavigate();
 
 
 
@@ -172,6 +181,32 @@ export function StrategyPostCard({ post, onEdit, onAskAI }: StrategyPostCardProp
     line('Close with this CTA', post.cta) +
     `Suggested length: ${post.post_type === 'story' ? '15' : '30'} seconds\n` +
     `Full script reference (caption): ${activeCaption}`;
+
+  // Hand the whole day off to Content Generation pre-filled — script direction,
+  // visual concept, palette, on-screen text, format and length — so the user
+  // never retypes what the strategy already decided.
+  const openContentGeneration = (tab: 'video' | 'image') => {
+    saveContentHandoff({
+      postId: post.id,
+      theme: post.theme ?? undefined,
+      dayNumber: post.day_number,
+      videoBrief,
+      angle: angleForTheme(post.theme),
+      durationSeconds: durationForPost(post.post_type),
+      aspectRatio: aspectForPost(post.post_type, (post as any).platform),
+      promoDetail: post.theme === 'promotional' ? post.cta ?? undefined : undefined,
+      imageConcept: imageBrief,
+      textOverlay: vg.text_overlay || undefined,
+      palette: vg.color_palette || undefined,
+      platform: platformForPost((post as any).platform),
+      tab,
+    });
+    navigate(
+      `/content-generation?strategyPostId=${encodeURIComponent(post.id)}${
+        post.theme ? `&theme=${encodeURIComponent(post.theme)}` : ''
+      }`,
+    );
+  };
 
   const CopyButton = ({ text, field, label }: { text: string; field: string; label: string }) => (
     <Button
@@ -525,15 +560,25 @@ export function StrategyPostCard({ post, onEdit, onAskAI }: StrategyPostCardProp
                       Open Content Generation from here and the scripts, storyboard and on-screen
                       visuals are built around this exact day — same promise, same angle.
                     </p>
-                    <Button size="sm" variant="outline" className="h-8 text-xs gap-1" asChild>
-                      <a
-                        href={`/content-generation?strategyPostId=${encodeURIComponent(post.id)}${
-                          post.theme ? `&theme=${encodeURIComponent(post.theme)}` : ''
-                        }`}
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-8 text-xs gap-1"
+                        onClick={() => openContentGeneration('video')}
                       >
                         Open Content Generation
-                      </a>
-                    </Button>
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 text-xs gap-1"
+                        onClick={() => openContentGeneration('image')}
+                      >
+                        Go straight to images
+                      </Button>
+                    </div>
+
 
                   </div>
 
