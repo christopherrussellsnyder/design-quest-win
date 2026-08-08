@@ -96,6 +96,12 @@ serve(async (req) => {
     const brandKit = await loadBrandKit(supabase, userId, asText(workspaceId));
     const lovableKey = Deno.env.get("LOVABLE_API_KEY");
 
+    // Ground generated plates in the advertiser's real website photography so
+    // the ad looks like their brand, not generic stock.
+    const referenceImage = brandKit.referenceImages.length
+      ? await fetchReferenceImage(brandKit.referenceImages)
+      : null;
+
     const renderScenes: RenderScene[] = [];
     const usedAssets: { role: string; visual: string; storage_path?: string }[] = [];
 
@@ -104,16 +110,22 @@ serve(async (req) => {
 
       const wantsPlate = scene.visual === "broll" || scene.visual === "text-card";
       if (wantsPlate && lovableKey) {
-        const bytes = await generateSceneImage(sceneImagePrompt(scene, brandKit, aspectRatio), lovableKey);
+        const bytes = await generateSceneImage(
+          sceneImagePrompt(scene, brandKit, aspectRatio),
+          lovableKey,
+          referenceImage,
+        );
         if (bytes) {
           try {
             const uploaded = await uploadHeygenImage(bytes, "image/png");
             rendered.backgroundAssetId = uploaded.assetId;
-            rendered.backgroundUrl = uploaded.assetId ? undefined : uploaded.url;
-            // Pull the presenter down and aside so the visual reads.
-            rendered.characterScale = scene.visual === "text-card" ? 0.72 : 0.82;
-            rendered.offsetX = 0.18;
-            rendered.offsetY = 0.12;
+            rendered.backgroundUrl = uploaded.url;
+            // Presenter reframed as a picture-in-picture so the visual reads
+            // full-frame the way high-production ads cut their b-roll.
+            rendered.characterStyle = "circle";
+            rendered.characterScale = scene.visual === "text-card" ? 0.42 : 0.5;
+            rendered.offsetX = 0.28;
+            rendered.offsetY = aspectRatio === "9:16" ? 0.3 : 0.24;
           } catch (e) {
             console.error("[video-ad] plate upload failed, falling back to plain scene:", e);
           }
@@ -127,6 +139,7 @@ serve(async (req) => {
 
       renderScenes.push(rendered);
     }
+
 
     // ---- Kick off the render -------------------------------------------
     let providerVideoId: string;
