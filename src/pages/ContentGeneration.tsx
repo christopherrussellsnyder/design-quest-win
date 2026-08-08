@@ -36,6 +36,21 @@ import { ImageStudio } from '@/components/content-generation/ImageStudio';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { readContentHandoff } from '@/lib/contentHandoff';
 
+const FEMALE_HINTS = /\b(female|woman|women|girl|she|her|lady)\b/i;
+const MALE_HINTS = /\b(male|man|men|boy|he|him|guy)\b/i;
+
+/** Resolve a usable male/female signal from provider gender fields, falling
+ *  back to naming conventions when the catalog leaves gender blank. */
+function normalizeGender(gender?: string | null, name?: string | null): 'male' | 'female' | null {
+  const g = (gender ?? '').trim().toLowerCase();
+  if (g.startsWith('f')) return 'female';
+  if (g.startsWith('m')) return 'male';
+  const n = name ?? '';
+  if (FEMALE_HINTS.test(n)) return 'female';
+  if (MALE_HINTS.test(n)) return 'male';
+  return null;
+}
+
 export default function ContentGeneration() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -78,6 +93,22 @@ export default function ContentGeneration() {
     () => actors.find((a) => a.avatar_id === avatarId),
     [actors, avatarId],
   );
+
+  const actorGender = useMemo(
+    () => normalizeGender(selectedActor?.gender, selectedActor?.name),
+    [selectedActor],
+  );
+
+  // Voices that can credibly read for the selected actor: same gender first,
+  // natural English preferred.
+  const matchingVoices = useMemo(() => {
+    const english = voices.filter((v) => (v.language ?? '').toLowerCase().includes('english'));
+    const pool = english.length ? english : voices;
+    if (!actorGender) return pool;
+    const same = pool.filter((v) => normalizeGender(v.gender, v.name) === actorGender);
+    return same.length ? same : pool;
+  }, [voices, actorGender]);
+
 
   const quotaLabel = useMemo(() => {
     if (!quota) return null;
@@ -142,24 +173,26 @@ export default function ContentGeneration() {
     setEditedScript(variants[0].script);
   }, [handoff, selectedScript, variants]);
 
-  // Auto-cast: a presentable actor plus a natural English voice that matches
-  // their gender, so the render step is usable the moment the page loads.
+  // Auto-cast: a presentable actor plus a natural English voice whose gender
+  // matches the actor. A female actor never gets a male read, and vice versa.
   useEffect(() => {
     if (!actors.length && !voices.length) return;
 
     const actor = selectedActor ?? actors[0];
     if (!avatarId && actor) setAvatarId(actor.avatar_id);
+    if (!voices.length) return;
 
-    if (voiceId || !voices.length) return;
+    const actorGender = normalizeGender(actor?.gender, actor?.name);
+    const current = voices.find((v) => v.voice_id === voiceId);
+    const currentGender = current ? normalizeGender(current.gender, current.name) : null;
 
-    const english = voices.filter((v) => (v.language ?? '').toLowerCase().includes('english'));
-    const pool = english.length ? english : voices;
-    const gender = (actor?.gender ?? '').toLowerCase();
-    const matched = gender
-      ? pool.find((v) => (v.gender ?? '').toLowerCase() === gender)
-      : undefined;
-    setVoiceId((matched ?? pool[0]).voice_id);
-  }, [actors, voices, avatarId, voiceId, selectedActor]);
+    // Keep the current voice only when it still matches the actor.
+    if (current && (!actorGender || currentGender === actorGender)) return;
+
+    const pick = matchingVoices[0] ?? voices[0];
+    if (pick) setVoiceId(pick.voice_id);
+  }, [actors, voices, avatarId, voiceId, selectedActor, matchingVoices]);
+
 
 
   const providerDown =
@@ -460,13 +493,20 @@ export default function ContentGeneration() {
 
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-1.5">
-                    <Label className="text-xs text-muted-foreground">Voice</Label>
+                    <Label className="text-xs text-muted-foreground">
+                      Voice
+                      {actorGender ? (
+                        <span className="ml-1 normal-case text-[hsl(var(--text-tertiary))]">
+                          · matched to {actorGender} actor
+                        </span>
+                      ) : null}
+                    </Label>
                     <Select value={voiceId} onValueChange={setVoiceId}>
                       <SelectTrigger className="bg-muted border-border">
                         <SelectValue placeholder="Choose a voice" />
                       </SelectTrigger>
                       <SelectContent className="max-h-[280px]">
-                        {voices.map((v) => (
+                        {matchingVoices.map((v) => (
                           <SelectItem key={v.voice_id} value={v.voice_id}>
                             {v.name}
                             {v.gender ? ` · ${v.gender}` : ''}
@@ -475,6 +515,7 @@ export default function ContentGeneration() {
                       </SelectContent>
                     </Select>
                   </div>
+
 
                   <div className="space-y-1.5">
                     <Label className="text-xs text-muted-foreground">Format</Label>
