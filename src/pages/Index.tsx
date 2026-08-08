@@ -340,8 +340,8 @@ const Index = () => {
 
           <AnimatedSection className="mt-8" delay={0.2}>
             <div className="border border-[hsl(var(--primary)/0.3)] rounded-sm p-6 text-center bg-[hsl(var(--primary)/0.05)]">
-              <p className="text-lg font-bold">With Korex, you save <span className="text-primary">$5,412–$119,412</span> annually.</p>
-              <p className="text-muted-foreground text-sm mt-1">Plus 156 hours of your time.</p>
+              <p className="text-lg font-bold">The difference is the <span className="text-primary">inputs</span>, not the output format.</p>
+              <p className="text-muted-foreground text-sm mt-1">Anyone can produce a content calendar. Korex shows you the market evidence each recommendation came from.</p>
             </div>
           </AnimatedSection>
         </div>
