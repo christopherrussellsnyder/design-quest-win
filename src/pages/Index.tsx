@@ -191,10 +191,10 @@ const Index = () => {
           <div className="border-y border-[hsl(var(--foreground)/0.1)] mt-16 py-8">
             <div className="flex flex-wrap justify-between items-center gap-8">
               {[
-                { v: '60 sec', l: 'Full strategy turnaround' },
-                { v: '9', l: 'Platforms analysed' },
-                { v: '14-day', l: 'Executable content calendars' },
-                { v: 'CMO-grade', l: 'Critic review on every plan' },
+                { v: '5', l: 'Live data sources per strategy' },
+                { v: '9', l: 'Platforms modelled' },
+                { v: '24h', l: 'Market intelligence refresh' },
+                { v: 'Critic', l: 'Review pass on every plan' },
               ].map((s) => (
                 <div key={s.l} className="flex flex-col">
                   <span className="text-foreground text-2xl font-semibold tracking-tight">{s.v}</span>
