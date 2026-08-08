@@ -31,11 +31,18 @@ import { useAdActors, useAdScripts, useVideoAds } from '@/hooks/useVideoAds';
 import { VIDEO_ASPECT_RATIOS, VIDEO_HOOK_ANGLES } from '@/config/video.config';
 import type { AdScriptVariant } from '@/config/video.config';
 import { VideoAdCard } from '@/components/video-ads/VideoAdCard';
+import { StoryboardPreview } from '@/components/video-ads/StoryboardPreview';
 import { ImageStudio } from '@/components/content-generation/ImageStudio';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function ContentGeneration() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  // Present when the user arrived from a specific strategy day. The whole
+  // production layer keys off this: no linked day, no invented visuals.
+  const strategyPostId = searchParams.get('strategyPostId') ?? undefined;
+  const strategyTheme = searchParams.get('theme') ?? undefined;
+
 
   const { data: catalog, isLoading: loadingActors, error: actorsError } = useAdActors();
   const { variants, generate, isGenerating } = useAdScripts();
