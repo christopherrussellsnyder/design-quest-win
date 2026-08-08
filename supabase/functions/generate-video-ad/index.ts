@@ -1,9 +1,18 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { resolveVideoQuota, videoCorsHeaders as corsHeaders } from "../_shared/video-quota.ts";
 import { checkRateLimit, clientKey } from "../_shared/rate-limit.ts";
-import { createHeygenVideo, ASPECT_DIMENSIONS } from "../_shared/heygen.ts";
+import { createHeygenVideo, uploadHeygenImage, ASPECT_DIMENSIONS, type RenderScene } from "../_shared/heygen.ts";
+import {
+  archiveSceneImage,
+  generateSceneImage,
+  loadBrandKit,
+  normalizePlan,
+  sceneImagePrompt,
+  type AdScene,
+} from "../_shared/ad-production.ts";
 
 const MAX_SCRIPT_CHARS = 3000;
+
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
