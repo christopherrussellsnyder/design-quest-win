@@ -471,7 +471,8 @@ const Index = () => {
           <AnimatedSection delay={0.2}>
             <div className="bg-card border border-[hsl(var(--primary)/0.2)] rounded-sm p-8 text-center">
               <p className="text-xl sm:text-2xl italic text-muted-foreground mb-6 leading-relaxed">
-                "I spent 6 months analyzing what actually works in marketing data. Then I built an AI that does it in 60 seconds."
+                "I spent six months studying what separates campaigns that work from campaigns that don't. Korex is that
+                analysis, turned into a system that runs it for your business."
               </p>
               <p className="text-sm text-[hsl(var(--text-tertiary))]">— Founder, Korex Intelligence</p>
             </div>
