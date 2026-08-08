@@ -144,6 +144,29 @@ serve(async (req) => {
       }
       const bytes = await videoRes.arrayBuffer();
 
+      // ---- Validate the delivered frame against the target spec ---------
+      // A malformed file is worse than a failed render: the user posts it and
+      // finds out the hard way. Fail loudly instead.
+      const spec = formatSpec((ad.aspect_ratio as string) ?? "9:16");
+      const dims = mp4Dimensions(bytes);
+      if (dims) {
+        const target = spec.width / spec.height;
+        const actual = dims.width / dims.height;
+        if (Math.abs(actual - target) / target > ASPECT_TOLERANCE) {
+          const message =
+            `The render came back ${dims.width}x${dims.height}, which isn't ${spec.aspect}. ` +
+            `We've stopped it rather than hand you a file that would be cropped on posting — please render again.`;
+          console.error(`[video-ad-status] aspect mismatch for ${id}: ${dims.width}x${dims.height} vs ${spec.aspect}`);
+          await supabase
+            .from("video_ads")
+            .update({ status: "failed", error_message: message, counts_against_quota: false })
+            .eq("id", id);
+          return json({ id: ad.id, status: "failed", error: message });
+        }
+      } else {
+        console.warn(`[video-ad-status] could not read dimensions for ${id}; skipping format check`);
+      }
+
       const { error: uploadError } = await supabase.storage
         .from(BUCKET)
         .upload(storagePath, bytes, { contentType: "video/mp4", upsert: true });
@@ -153,6 +176,7 @@ serve(async (req) => {
         return json({ id: ad.id, status: "processing" });
       }
     }
+
 
     await supabase
       .from("video_ads")
