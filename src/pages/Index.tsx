@@ -58,10 +58,10 @@ const techSteps = [
 ];
 
 const faqs = [
-  { q: 'Is this just ChatGPT with a wrapper?', a: 'No. ChatGPT gives template responses. Korex analyzes YOUR actual performance data using proprietary algorithms trained on $10M+ in ad spend. It\'s like the difference between getting generic advice vs. hiring a strategist who studied your business.' },
-  { q: 'Do I need to be tech-savvy?', a: 'Not at all. If you can take a screenshot and upload it, you can use Korex. The interface is simpler than Instagram.' },
-  { q: 'What platforms do you support?', a: 'Any platform you can screenshot. Instagram, Facebook, TikTok, Google Ads, LinkedIn, Twitter, YouTube, Pinterest, Shopify — if you have analytics, we can analyze them.' },
-  { q: 'How is this different from a marketing agency?', a: 'Cost: $99/month vs $3,000-$10,000/month. Speed: 60 seconds vs 2-3 weeks. Revisions: Unlimited vs 2-3 max. Data: Real-time analysis vs monthly reports.' },
+  { q: 'Is this just ChatGPT with a wrapper?', a: 'No. A general AI answers from memory. Korex runs a research pipeline first: it queries live search demand, pulls competitor ads currently running in your niche, mines how buyers describe the problem, crawls your own site, and parses your uploaded analytics. Only then does it write — and a second model reviews the draft before you see it.' },
+  { q: 'Do I need to be tech-savvy?', a: 'No. The technical work happens on our side. You describe your business once, upload analytics if you have them, and read a plan written in plain language with the reasoning attached.' },
+  { q: 'What platforms do you support?', a: 'Any platform you can screenshot or export. Instagram, Facebook, TikTok, Google Ads, LinkedIn, Twitter, YouTube, Pinterest, Shopify — if you have analytics, we can analyze them.' },
+  { q: 'How is this different from a marketing agency?', a: 'An agency gives you a strategist\'s opinion, refreshed monthly. Korex gives you a research pipeline that re-reads your market every 24 hours, shows the evidence behind each recommendation, and lets you regenerate as often as you want — at $99/month instead of $3,000–$10,000.' },
   { q: 'What do I get with the free Starter plan?', a: 'You get 2 free strategy generations with no credit card required. After using them, you can upgrade to Pro for unlimited access or continue using basic features.' },
   { q: 'Can I cancel anytime?', a: 'Yes. Cancel in 2 clicks. No contracts, no commitments.' },
 ];
