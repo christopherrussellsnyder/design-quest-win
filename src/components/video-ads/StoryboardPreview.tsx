@@ -16,6 +16,7 @@ import {
   COMPOSITION_LABELS,
   SCENE_VISUAL_LABELS,
   SHOT_LABELS,
+  TEXT_POSITION_LABELS,
   TREATMENT_LABELS,
   type ProductionPlan,
   type SceneVisual,
