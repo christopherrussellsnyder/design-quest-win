@@ -100,15 +100,15 @@ export async function createHeygenVideo(args: CreateVideoArgs): Promise<string> 
   const scenes: RenderScene[] =
     args.scenes && args.scenes.length ? args.scenes : [{ text: args.script }];
 
-  const payload = {
+  const build = (withBackgrounds: boolean) => ({
     video_inputs: scenes.map((scene) => {
-      const background = buildBackground(scene);
+      const background = withBackgrounds ? buildBackground(scene) : undefined;
       const character: Record<string, unknown> = {
         type: "avatar",
         avatar_id: args.avatarId,
         avatar_style: "normal",
       };
-      if (scene.characterScale && scene.characterScale !== 1) {
+      if (withBackgrounds && scene.characterScale && scene.characterScale !== 1) {
         character.scale = scene.characterScale;
         character.offset = { x: scene.offsetX ?? 0, y: scene.offsetY ?? 0 };
       }
@@ -120,17 +120,29 @@ export async function createHeygenVideo(args: CreateVideoArgs): Promise<string> 
     }),
     dimension,
     ...(args.captions ? { caption: true } : {}),
+  });
+
+  const send = async (withBackgrounds: boolean) => {
+    const result = (await heygenFetch("/v2/video/generate", {
+      method: "POST",
+      body: JSON.stringify(build(withBackgrounds)),
+    })) as { data?: { video_id?: string } };
+    const videoId = result?.data?.video_id;
+    if (!videoId) throw new Error("HeyGen did not return a video id");
+    return videoId;
   };
 
-  const result = (await heygenFetch("/v2/video/generate", {
-    method: "POST",
-    body: JSON.stringify(payload),
-  })) as { data?: { video_id?: string } };
-
-  const videoId = result?.data?.video_id;
-  if (!videoId) throw new Error("HeyGen did not return a video id");
-  return videoId;
+  const hasBackgrounds = scenes.some((s) => buildBackground(s));
+  try {
+    return await send(hasBackgrounds);
+  } catch (err) {
+    // A bad background must never cost the user the whole render — retry clean.
+    if (!hasBackgrounds) throw err;
+    console.error("[heygen] render with backgrounds failed, retrying without them:", err);
+    return await send(false);
+  }
 }
+
 
 /**
  * Uploads raw image bytes to HeyGen's asset store so they can be used as a
