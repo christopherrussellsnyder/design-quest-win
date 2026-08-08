@@ -217,6 +217,14 @@ For every variant, split the script into 3 to 5 scenes and decide, scene by scen
 - "text-card": a kinetic typographic frame carrying one short headline (max 6 words) — for a number, a claim, or the promo.
 - "brand-color": a flat brand-coloured field from the brand kit. A palate cleanser, useful between two heavy visuals.
 
+EDIT & CINEMATOGRAPHY — you are cutting this ad, not stacking slides. Every scene must also carry:
+- "shot_type": "extreme-close" | "close-up" | "medium" | "wide" | "overhead" | "detail-insert" — vary it every cut. Two identical shot sizes back to back is a slideshow.
+- "camera_move": "static" | "push-in" | "pull-out" | "pan" | "tilt" | "handheld" | "whip" — the hook almost always pushes in. Never repeat the same move on consecutive beats.
+- "composition": "full-bleed" | "presenter-left" | "presenter-right" | "pip" | "split" — this decides where the presenter sits over the visual. Alternate sides across the ad so the frame keeps changing.
+- "energy": "calm" | "steady" | "punchy" — the hook, promo and close run punchy; the mechanism can breathe.
+Also set "edit_style" on the production plan: one line describing the overall cut rhythm (e.g. "fast punch-in cuts with two wide breathers").
+Design the cut like an editor: open tight and punchy, widen for the mechanism, then snap back tight for the promo and close.
+
 HARD RULES:
 - Every variant MUST contain at least TWO generated plates ("broll" or "text-card"). A flat all-presenter ad is below the production bar and is not acceptable.
 - At most FOUR generated plates across the whole ad.
@@ -247,6 +255,7 @@ Schema:
         "treatment": "talking-head" | "product-showcase" | "text-driven" | "hybrid",
         "rationale": "<one sentence on why this treatment fits this script and this day>",
         "captions": true,
+        "edit_style": "<one line on the overall cut rhythm>",
         "scenes": [
           {
             "role": "hook" | "benefit" | "mechanism" | "promo" | "close",
@@ -254,7 +263,11 @@ Schema:
             "visual": "avatar" | "broll" | "text-card" | "brand-color",
             "background_prompt": "<art direction, only for broll>",
             "on_screen_text": "<max 6 words, only for text-card>",
-            "background_color": "<hex from the brand kit, only for brand-color>"
+            "background_color": "<hex from the brand kit, only for brand-color>",
+            "shot_type": "extreme-close" | "close-up" | "medium" | "wide" | "overhead" | "detail-insert",
+            "camera_move": "static" | "push-in" | "pull-out" | "pan" | "tilt" | "handheld" | "whip",
+            "composition": "full-bleed" | "presenter-left" | "presenter-right" | "pip" | "split",
+            "energy": "calm" | "steady" | "punchy"
           }
         ]
       }
