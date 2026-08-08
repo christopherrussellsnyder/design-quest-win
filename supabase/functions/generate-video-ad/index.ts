@@ -4,7 +4,9 @@ import { checkRateLimit, clientKey } from "../_shared/rate-limit.ts";
 import { createHeygenVideo, uploadHeygenImage, ASPECT_DIMENSIONS, type RenderScene } from "../_shared/heygen.ts";
 import {
   archiveSceneImage,
+  conformPlate,
   fetchReferenceImage,
+  formatSpec,
   generateSceneImage,
   loadBrandKit,
   normalizePlan,
@@ -90,10 +92,12 @@ serve(async (req) => {
       return json({ error: "Unsupported aspect ratio." }, 400);
     }
 
-    // ---- Build the storyboard -------------------------------------------
-    // Visual elements are only produced for scenes the art direction actually
-    // asked for; everything else stays a clean presenter shot.
-    const plan = normalizePlan(productionPlan, scriptText.trim());
+    // ---- Stage 1: the shot list is the brief ----------------------------
+    // Every beat leaves normalizePlan with a duration, a resolved text
+    // position and the delivery format's safe zones attached. No downstream
+    // stage is allowed to invent structure that isn't defined here.
+    const spec = formatSpec(aspectRatio);
+    const plan = normalizePlan(productionPlan, scriptText.trim(), aspectRatio);
     const brandKit = await loadBrandKit(supabase, userId, asText(workspaceId));
     const lovableKey = Deno.env.get("LOVABLE_API_KEY");
 
@@ -106,16 +110,21 @@ serve(async (req) => {
     const renderScenes: RenderScene[] = [];
     const usedAssets: { role: string; visual: string; storage_path?: string }[] = [];
 
+    // ---- Stage 2: asset generation, always at the shot list's format -----
     for (const scene of plan.scenes as AdScene[]) {
       const rendered: RenderScene = { text: scene.spoken };
 
       const wantsPlate = scene.visual === "broll" || scene.visual === "text-card";
       if (wantsPlate && lovableKey) {
-        const bytes = await generateSceneImage(
+        const raw = await generateSceneImage(
           sceneImagePrompt(scene, brandKit, aspectRatio),
           lovableKey,
           referenceImage,
         );
+        // Image models only approximate the requested ratio, so conform the
+        // plate to the exact delivery resolution before anything downstream
+        // gets a chance to crop it unpredictably.
+        const bytes = raw ? await conformPlate(raw, spec.width, spec.height) : null;
         if (bytes) {
           try {
             const uploaded = await uploadHeygenImage(bytes, "image/png");

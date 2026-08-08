@@ -22,6 +22,63 @@ export type CameraMove = "static" | "push-in" | "pull-out" | "pan" | "tilt" | "h
 export type Composition = "full-bleed" | "presenter-left" | "presenter-right" | "pip" | "split";
 /** Cut rhythm for this beat — drives grade, contrast and framing tension. */
 export type SceneEnergy = "calm" | "steady" | "punchy";
+/** Where a headline sits vertically, expressed against the format's safe zones. */
+export type TextPosition = "top" | "center" | "lower-third";
+
+/* -------------------------------------------------------------------------- */
+/* Format spec — the single source of truth for pixels and safe zones          */
+/* -------------------------------------------------------------------------- */
+
+export interface FormatSpec {
+  aspect: string;
+  width: number;
+  height: number;
+  /**
+   * Fractions of the frame that must stay free of critical content. Anything
+   * inside these bands is at risk of being cropped by the platform chrome
+   * (feed UI, profile rail, CTA button) or covered by burned-in captions.
+   */
+  safe: { top: number; bottom: number; left: number; right: number };
+  /** Human-readable note for the art-direction prompt. */
+  captionBand: string;
+}
+
+export const FORMAT_SPECS: Record<string, FormatSpec> = {
+  // Reels / TikTok / Shorts: heavy top and bottom chrome.
+  "9:16": {
+    aspect: "9:16",
+    width: 720,
+    height: 1280,
+    safe: { top: 0.14, bottom: 0.2, left: 0.06, right: 0.06 },
+    captionBand: "bottom fifth",
+  },
+  "1:1": {
+    aspect: "1:1",
+    width: 1080,
+    height: 1080,
+    safe: { top: 0.1, bottom: 0.16, left: 0.06, right: 0.06 },
+    captionBand: "bottom sixth",
+  },
+  "16:9": {
+    aspect: "16:9",
+    width: 1280,
+    height: 720,
+    safe: { top: 0.08, bottom: 0.16, left: 0.05, right: 0.05 },
+    captionBand: "bottom sixth",
+  },
+};
+
+export function formatSpec(aspectRatio: string): FormatSpec {
+  return FORMAT_SPECS[aspectRatio] ?? FORMAT_SPECS["9:16"];
+}
+
+/** Spoken words per second the TTS engine lands on at our render speed. */
+export const WORDS_PER_SECOND = 2.4;
+
+export function estimateSeconds(spoken: string): number {
+  const words = spoken.trim().split(/\s+/).filter(Boolean).length;
+  return Math.max(1.5, Math.round((words / WORDS_PER_SECOND) * 10) / 10);
+}
 
 export interface AdScene {
   /** hook | benefit | mechanism | promo | close */
@@ -41,6 +98,10 @@ export interface AdScene {
   camera_move?: CameraMove;
   composition?: Composition;
   energy?: SceneEnergy;
+
+  /* ---- Timing + typography placement (derived, never improvised downstream) */
+  duration_seconds?: number;
+  text_position?: TextPosition;
 }
 
 export interface ProductionPlan {
@@ -50,6 +111,10 @@ export interface ProductionPlan {
   /** One-line summary of the cut rhythm across the whole ad. */
   edit_style?: string;
   scenes: AdScene[];
+  /** Resolved delivery format — every asset request must carry these numbers. */
+  format?: FormatSpec;
+  /** Sum of the scene durations, used for the post-render sanity check. */
+  total_seconds?: number;
 }
 
 
@@ -269,6 +334,28 @@ function safeSideFor(composition: Composition, aspectRatio: string): string {
     : "Keep the lower right third calm and low-detail — a presenter bubble is composited there.";
 }
 
+/**
+ * Turns the format's safe zones into hard, numeric art-direction the image
+ * model can obey. This is what stops headlines being cropped when the plate is
+ * conformed to the delivery resolution or covered by platform chrome.
+ */
+function safeZoneDirective(spec: FormatSpec, position: TextPosition): string {
+  const pct = (n: number) => `${Math.round(n * 100)}%`;
+  const band =
+    position === "top"
+      ? `Anchor the headline in the UPPER-MIDDLE of the frame, starting below the top ${pct(spec.safe.top)} of the image.`
+      : position === "lower-third"
+        ? `Anchor the headline in the lower third, but keep it entirely ABOVE the bottom ${pct(spec.safe.bottom)} of the image.`
+        : "Anchor the headline in the exact optical centre of the frame.";
+
+  return [
+    `Target delivery resolution is exactly ${spec.width}x${spec.height} pixels (${spec.aspect}). Compose for that frame — no borders, no letterboxing, no mockup frames.`,
+    band,
+    `SAFE ZONES — absolutely no text, logo or critical subject detail inside the top ${pct(spec.safe.top)}, the bottom ${pct(spec.safe.bottom)}, the left ${pct(spec.safe.left)} or the right ${pct(spec.safe.right)} of the frame. Those bands are reserved for platform UI and burned-in captions.`,
+    `Keep the ${spec.captionBand} calm and low-detail — captions are burned in there.`,
+  ].join(" ");
+}
+
 /** Fills in shot grammar the model didn't specify, and guarantees cut-to-cut variety. */
 export function applyEditGrammar(scenes: AdScene[]): AdScene[] {
   const shotCycle: ShotType[] = ["medium", "close-up", "detail-insert", "wide", "extreme-close"];
@@ -349,7 +436,9 @@ export function sceneImagePrompt(scene: AdScene, kit: BrandKit, aspectRatio: str
     : "";
 
   const composition = scene.composition ?? "presenter-right";
+  const spec = formatSpec(aspectRatio);
   const safeSide = safeSideFor(composition, aspectRatio);
+  const safeZones = safeZoneDirective(spec, scene.text_position ?? "center");
   const shot = SHOT_DIRECTION[scene.shot_type ?? "medium"];
   const camera = CAMERA_DIRECTION[scene.camera_move ?? "static"];
   const energy = ENERGY_DIRECTION[scene.energy ?? "steady"];
@@ -360,7 +449,7 @@ export function sceneImagePrompt(scene: AdScene, kit: BrandKit, aspectRatio: str
         ? "Split-screen layout: type locked to one half, a brand-tinted photographic field on the other."
         : composition === "presenter-left"
           ? "Type set hard to the right of frame on a strict grid, left third left empty."
-          : "Type set as an oversized centred or top-weighted stack with a deliberate baseline grid.";
+          : "Type set as an oversized stack on a deliberate baseline grid.";
 
     return [
       `A broadcast-grade advertising motion-graphics title frame, ${aspectHint(aspectRatio)}, at the quality bar of a Nike or Apple campaign end-card.`,
@@ -369,6 +458,7 @@ export function sceneImagePrompt(scene: AdScene, kit: BrandKit, aspectRatio: str
       layout,
       camera,
       energy,
+      safeZones,
       safeSide,
       palette,
       typography,
@@ -387,6 +477,7 @@ export function sceneImagePrompt(scene: AdScene, kit: BrandKit, aspectRatio: str
     camera,
     energy,
     "Shot on a full-frame camera with a fast prime, shallow depth of field, motivated directional key light with soft falloff, rich contrast, subtle film grain, professional colour grade with clean skin tones and deep blacks. Real materials and real environments — nothing plasticky, nothing AI-glossy, no surreal artefacts.",
+    safeZones,
     safeSide,
     palette,
     imagery,
@@ -395,6 +486,48 @@ export function sceneImagePrompt(scene: AdScene, kit: BrandKit, aspectRatio: str
   ]
     .filter(Boolean)
     .join(" ");
+}
+
+/* -------------------------------------------------------------------------- */
+/* Plate conforming — the fix for wrong framing / cropping                     */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Image models only *approximate* a requested aspect ratio (a 9:16 request
+ * commonly comes back 768x1376, a 1:1 request comes back landscape). Handing
+ * that straight to the renderer means it gets cover-cropped by an unknown
+ * amount and the composition — including any headline — drifts out of frame.
+ *
+ * We conform every plate to the exact delivery resolution ourselves, with a
+ * centre-weighted cover crop, so what the art direction composed is what the
+ * renderer receives.
+ */
+export async function conformPlate(
+  bytes: Uint8Array,
+  width: number,
+  height: number,
+): Promise<Uint8Array> {
+  try {
+    const { decode, Image } = await import("https://deno.land/x/imagescript@1.2.17/mod.ts");
+    const decoded = (await decode(bytes)) as InstanceType<typeof Image>;
+    if (decoded.width === width && decoded.height === height) return bytes;
+
+    const scale = Math.max(width / decoded.width, height / decoded.height);
+    const resized = decoded.resize(
+      Math.max(width, Math.ceil(decoded.width * scale)),
+      Math.max(height, Math.ceil(decoded.height * scale)),
+    );
+    const cropped = resized.crop(
+      Math.floor((resized.width - width) / 2),
+      Math.floor((resized.height - height) / 2),
+      width,
+      height,
+    );
+    return await cropped.encode();
+  } catch (e) {
+    console.error("[ad-production] plate conform failed, using original:", e);
+    return bytes;
+  }
 }
 
 
@@ -476,7 +609,16 @@ function headlineFrom(spoken: string): string {
   return words.join(" ").replace(/[.,]$/, "");
 }
 
-export function normalizePlan(plan: unknown, fallbackScript: string): ProductionPlan {
+/**
+ * Finalises the shot list: every scene leaves this function with a duration, a
+ * text position resolved against the format's safe zones, and full edit
+ * grammar. Downstream stages read the plan — they never improvise structure.
+ */
+export function normalizePlan(
+  plan: unknown,
+  fallbackScript: string,
+  aspectRatio = "9:16",
+): ProductionPlan {
   const p = (plan ?? {}) as Partial<ProductionPlan>;
   const rawScenes = Array.isArray(p.scenes) ? p.scenes : [];
 
@@ -527,9 +669,12 @@ export function normalizePlan(plan: unknown, fallbackScript: string): Production
           "split",
         ] as const),
         energy: pick(scene.energy, ["calm", "steady", "punchy"] as const),
+        text_position: pick(scene.text_position, ["top", "center", "lower-third"] as const),
       };
     });
 
+
+  const spec = formatSpec(aspectRatio);
 
   if (!scenes.length) {
     // Even a bare script gets a produced treatment — a flat talking head is
@@ -545,23 +690,29 @@ export function normalizePlan(plan: unknown, fallbackScript: string): Production
       sentences.slice(mid * 2).join(" "),
     ].filter(Boolean);
 
+    const fallbackScenes: AdScene[] =
+      parts.length > 1
+        ? parts.map((spoken, i) => ({
+            role: i === 0 ? "hook" : i === parts.length - 1 ? "close" : "benefit",
+            spoken,
+            visual: (i === 0 ? "avatar" : i === parts.length - 1 ? "text-card" : "broll") as SceneVisual,
+            on_screen_text: i === parts.length - 1 ? headlineFrom(spoken) : undefined,
+            background_prompt:
+              i === 0 || i === parts.length - 1
+                ? undefined
+                : "The advertiser's product or service being used in its real environment.",
+          }))
+        : [{ role: "full", spoken: fallbackScript, visual: "avatar" as SceneVisual }];
+
+    const finalised = finaliseTiming(applyEditGrammar(fallbackScenes), spec);
     return {
       treatment: parts.length > 1 ? "hybrid" : "talking-head",
       rationale: "Auto-storyboarded: presenter hook, product b-roll, typographic close.",
       captions: true,
-      scenes:
-        parts.length > 1
-          ? parts.map((spoken, i) => ({
-              role: i === 0 ? "hook" : i === parts.length - 1 ? "close" : "benefit",
-              spoken,
-              visual: (i === 0 ? "avatar" : i === parts.length - 1 ? "text-card" : "broll") as SceneVisual,
-              on_screen_text: i === parts.length - 1 ? headlineFrom(spoken) : undefined,
-              background_prompt:
-                i === 0 || i === parts.length - 1
-                  ? undefined
-                  : "The advertiser's product or service being used in its real environment.",
-            }))
-          : [{ role: "full", spoken: fallbackScript, visual: "avatar" }],
+      edit_style: editStyleSummary(finalised),
+      scenes: finalised,
+      format: spec,
+      total_seconds: totalSeconds(finalised),
     };
   }
 
@@ -598,7 +749,7 @@ export function normalizePlan(plan: unknown, fallbackScript: string): Production
     ? (p.treatment as ProductionPlan["treatment"])
     : "hybrid";
 
-  const edited = applyEditGrammar(scenes);
+  const edited = finaliseTiming(applyEditGrammar(scenes), spec);
 
   return {
     treatment,
@@ -608,7 +759,36 @@ export function normalizePlan(plan: unknown, fallbackScript: string): Production
       ? String(p.edit_style).slice(0, 200)
       : editStyleSummary(edited),
     scenes: edited,
+    format: spec,
+    total_seconds: totalSeconds(edited),
   };
+}
+
+/**
+ * Stamps every beat with its spoken duration and resolves where its headline
+ * sits. Text never lands in a safe-zone band, and never in the caption band.
+ */
+function finaliseTiming(scenes: AdScene[], spec: FormatSpec): AdScene[] {
+  return scenes.map((scene) => {
+    const next = { ...scene };
+    if (!next.duration_seconds || next.duration_seconds <= 0) {
+      next.duration_seconds = estimateSeconds(next.spoken);
+    }
+    if (!next.text_position) {
+      // Captions occupy the bottom band, so a headline only ever sits high or
+      // dead centre — the lower third is reserved and must be opted into.
+      next.text_position = next.composition === "full-bleed" ? "center" : "top";
+    }
+    if (next.text_position === "lower-third" && spec.safe.bottom >= 0.2) {
+      // Not enough clearance in this format — promote it out of the caption band.
+      next.text_position = "center";
+    }
+    return next;
+  });
+}
+
+function totalSeconds(scenes: AdScene[]): number {
+  return Math.round(scenes.reduce((sum, s) => sum + (s.duration_seconds ?? 0), 0) * 10) / 10;
 }
 
 /** Human-readable one-liner describing the cut rhythm we ended up with. */
@@ -617,4 +797,5 @@ function editStyleSummary(scenes: AdScene[]): string {
   const shots = Array.from(new Set(scenes.map((s) => s.shot_type ?? "medium")));
   return `${scenes.length}-beat cut — ${shots.join(" / ")} shot sizes, ${moves.join(" / ")} camera.`;
 }
+
 

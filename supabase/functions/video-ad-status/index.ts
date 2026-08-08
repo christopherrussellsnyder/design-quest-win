@@ -1,9 +1,47 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { resolveVideoQuota, videoCorsHeaders as corsHeaders } from "../_shared/video-quota.ts";
 import { getHeygenStatus } from "../_shared/heygen.ts";
+import { formatSpec } from "../_shared/ad-production.ts";
 
 const BUCKET = "video-ads";
 const SIGNED_URL_TTL = 60 * 60; // 1 hour
+
+/** How far the delivered frame may drift from the target ratio before we reject it. */
+const ASPECT_TOLERANCE = 0.02;
+
+/**
+ * Reads the encoded frame size straight out of the MP4 container by walking
+ * the `tkhd` (track header) atoms. Cheap, dependency-free, and enough to prove
+ * the provider actually rendered the format we asked for.
+ */
+function mp4Dimensions(buffer: ArrayBuffer): { width: number; height: number } | null {
+  const bytes = new Uint8Array(buffer);
+  const view = new DataView(buffer);
+  // "tkhd"
+  const tag = [0x74, 0x6b, 0x68, 0x64];
+  let best: { width: number; height: number } | null = null;
+
+  const limit = Math.min(bytes.length, 4_000_000); // headers live near the start or end
+  for (let i = 4; i < limit - 4; i++) {
+    if (
+      bytes[i] !== tag[0] || bytes[i + 1] !== tag[1] ||
+      bytes[i + 2] !== tag[2] || bytes[i + 3] !== tag[3]
+    ) continue;
+
+    const boxStart = i - 4;
+    const size = view.getUint32(boxStart);
+    const end = boxStart + size;
+    if (size < 32 || end > bytes.length) continue;
+
+    const width = view.getUint32(end - 8) / 65536;
+    const height = view.getUint32(end - 4) / 65536;
+    if (width < 16 || height < 16) continue; // audio tracks report 0x0
+    if (!best || width * height > best.width * best.height) {
+      best = { width: Math.round(width), height: Math.round(height) };
+    }
+  }
+  return best;
+}
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
