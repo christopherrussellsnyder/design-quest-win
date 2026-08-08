@@ -10,18 +10,18 @@ import { KorexLogoLockup } from '@/components/branding/KorexLogoLockup';
 const beliefs = [
   {
     icon: Database,
-    title: 'Data Should Drive Every Decision',
-    description: 'Great marketing isn\'t guesswork. It\'s built on real signals from real audiences.',
+    title: 'Evidence Beats Opinion',
+    description: 'Every recommendation should trace back to a real signal — live search demand, a running competitor ad, or your own performance data.',
   },
   {
     icon: Sparkles,
-    title: 'AI Should Amplify Human Creativity',
-    description: 'Korex doesn\'t replace your team. It makes every member of your team more powerful.',
+    title: 'The Process Is the Product',
+    description: 'Anyone can output a content calendar. The value is in the research pipeline and the review pass that happen before it is written.',
   },
   {
     icon: Zap,
-    title: 'Speed Is a Competitive Advantage',
-    description: 'The faster you can test, learn, and adapt, the faster you grow.',
+    title: 'Sophistication Should Be Legible',
+    description: 'A deep system is worthless if you cannot understand what it did. We explain the reasoning in plain language, every time.',
   },
 ];
 
