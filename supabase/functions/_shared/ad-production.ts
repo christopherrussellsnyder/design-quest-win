@@ -210,49 +210,78 @@ export function sceneImagePrompt(scene: AdScene, kit: BrandKit, aspectRatio: str
   const palette = kit.colors.length ? `Brand palette to obey exactly: ${kit.colors.join(", ")}.` : "";
   const typography = kit.fonts.length ? `Typographic feel: ${kit.fonts.join(", ")}.` : "";
   const imagery = kit.imagery ? `Existing brand imagery style: ${kit.imagery}.` : "";
+  const product = kit.products ? `The advertiser sells: ${kit.products}.` : "";
+  const grounding = kit.referenceImages.length
+    ? "A reference photograph from the advertiser's own website is attached. Match its product, colour grade, materials, lighting and photographic style so the frame is unmistakably this brand. Do not copy it literally — art-direct a new, better-composed campaign frame from it."
+    : "";
+  const safeSide =
+    aspectRatio === "9:16"
+      ? "Keep the bottom third and the right side calm and low-detail — a presenter and captions are composited there."
+      : "Keep the lower right third calm and low-detail — a presenter and captions are composited there.";
 
   if (scene.visual === "text-card") {
     return [
-      `A modern advertising motion-graphics title card, ${aspectHint(aspectRatio)}.`,
-      `Render this exact headline, spelled precisely, as the only text in the image: "${scene.on_screen_text ?? ""}".`,
-      "Bold contemporary sans-serif typography, generous negative space, strong contrast, editorial ad-agency composition.",
-      "Leave the lower right third visually calm — a presenter will be composited there.",
+      `A broadcast-grade advertising motion-graphics title frame, ${aspectHint(aspectRatio)}, at the quality bar of a Nike or Apple campaign end-card.`,
+      `Render this exact headline, spelled precisely, as the ONLY text in the image: "${scene.on_screen_text ?? ""}".`,
+      "Oversized bold contemporary grotesk typography, tight kerning, one accent word emphasised in the brand accent colour, crisp edges, deliberate baseline grid, generous negative space, subtle depth (soft gradient field or gently blurred brand-tinted photographic backdrop — never flat clip-art).",
+      safeSide,
       palette,
       typography,
-      "No watermarks, no logos, no extra words, no lorem ipsum, no gibberish letterforms.",
+      grounding,
+      "No watermarks, no logos, no extra words, no lorem ipsum, no misspellings, no gibberish letterforms, no UI chrome.",
     ]
       .filter(Boolean)
       .join(" ");
   }
 
   return [
-    `Cinematic advertising b-roll background plate, ${aspectHint(aspectRatio)}.`,
+    `Cinematic advertising b-roll background plate, ${aspectHint(aspectRatio)}, at the production quality of a national brand campaign.`,
     scene.background_prompt ?? "Premium product-in-context environment.",
-    "Shot on a full-frame camera, shallow depth of field, soft directional light, subtle film grain, colour-graded like a high-end brand campaign.",
-    "Composition keeps the centre and lower right uncluttered so a presenter can be composited over it.",
+    product,
+    "Shot on a full-frame camera with a fast prime, shallow depth of field, motivated directional key light with soft falloff, rich contrast, subtle film grain, professional colour grade with clean skin tones and deep blacks. Real materials and real environments — nothing plasticky, nothing AI-glossy, no surreal artefacts.",
+    safeSide,
     palette,
     imagery,
-    "No text, no typography, no logos, no watermarks, no people looking at camera.",
+    grounding,
+    "No text, no typography, no logos, no watermarks, no people looking at camera, no distorted hands or faces.",
   ]
     .filter(Boolean)
     .join(" ");
 }
 
-/** Generates one background plate and returns raw PNG bytes. */
-export async function generateSceneImage(prompt: string, apiKey: string): Promise<Uint8Array | null> {
+/**
+ * Generates one background plate and returns raw PNG bytes.
+ * When a reference image from the advertiser's website is supplied, the plate
+ * is art-directed from their real brand imagery rather than invented.
+ */
+export async function generateSceneImage(
+  prompt: string,
+  apiKey: string,
+  referenceImage?: string | null,
+): Promise<Uint8Array | null> {
+  const content = referenceImage
+    ? [
+        { type: "text", text: prompt },
+        { type: "image_url", image_url: { url: referenceImage } },
+      ]
+    : prompt;
+
   try {
     const res = await fetch("https://ai.gateway.lovable.dev/v1/images/generations", {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         model: IMAGE_MODEL,
-        messages: [{ role: "user", content: prompt }],
+        messages: [{ role: "user", content }],
         modalities: ["image", "text"],
       }),
     });
 
     if (!res.ok) {
-      console.error(`[ad-production] scene image failed [${res.status}]: ${await res.text()}`);
+      const body = await res.text();
+      console.error(`[ad-production] scene image failed [${res.status}]: ${body}`);
+      // A rejected reference image must never cost us the visual entirely.
+      if (referenceImage) return await generateSceneImage(prompt, apiKey, null);
       return null;
     }
 
@@ -265,6 +294,7 @@ export async function generateSceneImage(prompt: string, apiKey: string): Promis
     return null;
   }
 }
+
 
 /** Archives the plate so the user can see what was used inside their ad. */
 export async function archiveSceneImage(
