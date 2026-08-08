@@ -79,6 +79,22 @@ export default function ContentGeneration() {
     [actors, avatarId],
   );
 
+  const actorGender = useMemo(
+    () => normalizeGender(selectedActor?.gender, selectedActor?.name),
+    [selectedActor],
+  );
+
+  // Voices that can credibly read for the selected actor: same gender first,
+  // natural English preferred.
+  const matchingVoices = useMemo(() => {
+    const english = voices.filter((v) => (v.language ?? '').toLowerCase().includes('english'));
+    const pool = english.length ? english : voices;
+    if (!actorGender) return pool;
+    const same = pool.filter((v) => normalizeGender(v.gender, v.name) === actorGender);
+    return same.length ? same : pool;
+  }, [voices, actorGender]);
+
+
   const quotaLabel = useMemo(() => {
     if (!quota) return null;
     if (quota.limit === null) return 'Unlimited renders';
