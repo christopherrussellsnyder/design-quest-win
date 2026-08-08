@@ -179,22 +179,24 @@ PACING: roughly 2.4 spoken words per second. A ${seconds}-second script is about
 
 ${angleInstruction}
 
-PRODUCTION DIRECTION — you are also the ad's art director.
-For every variant, split the script into 2 to 5 scenes and decide, scene by scene, what the viewer should be LOOKING at:
-- "avatar": presenter on a clean neutral set. The default. Use it whenever the words carry the beat alone.
-- "broll": a cinematic background plate of the product/service in context. Only when the words describe something physical, visual, or demonstrable.
-- "text-card": a kinetic typographic frame carrying one short headline (max 6 words) — reserve this for a number, a claim, or the promo.
-- "brand-color": a flat brand-coloured field from the brand kit. A palate cleanser, useful for the close.
+PRODUCTION DIRECTION — you are also the ad's art director, and the bar is a nationally-run brand campaign, not a webcam read.
+For every variant, split the script into 3 to 5 scenes and decide, scene by scene, what the viewer should be LOOKING at:
+- "avatar": presenter on a clean neutral set. Use it for the hook and for beats where the face carries the moment.
+- "broll": a cinematic plate of the advertiser's real product/service in context, art-directed from their own website imagery.
+- "text-card": a kinetic typographic frame carrying one short headline (max 6 words) — for a number, a claim, or the promo.
+- "brand-color": a flat brand-coloured field from the brand kit. A palate cleanser, useful between two heavy visuals.
 
 HARD RULES:
-- Restraint wins. Never add a visual element just because it is available. If the beat does not earn it, use "avatar".
-- At most TWO generated plates ("broll" or "text-card") across the whole ad.
+- Every variant MUST contain at least TWO generated plates ("broll" or "text-card"). A flat all-presenter ad is below the production bar and is not acceptable.
+- At most FOUR generated plates across the whole ad.
+- Every scene must carry an "on_screen_text" headline (max 6 words, correctly spelled, a compression of what is spoken) so the ad still lands with the sound off.
 - The scenes' "spoken" fields, concatenated in order, must equal the full script exactly — same words, nothing added or dropped.
 - The HOOK beat is almost always "avatar": a face is the strongest scroll-stopper in the first two seconds.
-- Any "broll" background_prompt must reference the advertiser's real product/service and the brand palette. Never generic stock imagery.
-- Any "on_screen_text" must be spelled correctly and be a compressed version of what is spoken over it.
+- Any "broll" background_prompt must name the advertiser's real product/service, the physical environment it lives in, the lighting, and the brand palette. Never generic stock imagery, never abstract gradients.
+- The PROMO and CLOSE beats should almost always be "text-card" so the offer is readable on a muted feed.
 - Pick a treatment that is genuinely different from the recently shipped treatments listed by the advertiser. Repeating a look is how a brand becomes invisible.
-${strategyBlock ? "- This ad is tied to a specific strategy day. The visual treatment must express THAT post's theme, emotion and pillar — not a generic brand film." : "- No strategy day is linked, so bias hard toward the clean talking-head treatment."}
+${strategyBlock ? "- This ad is tied to a specific strategy day. The visual treatment must express THAT post's theme, emotion and pillar — not a generic brand film." : ""}
+
 
 Return ONLY valid JSON, no markdown fences.
 

@@ -44,6 +44,8 @@ export interface BrandKit {
   tone?: string;
   products?: string;
   summary?: string;
+  /** Real photography lifted from the advertiser's own website. */
+  referenceImages: string[];
 }
 
 /* -------------------------------------------------------------------------- */
@@ -62,17 +64,48 @@ function pluckStrings(value: unknown, depth = 0): string[] {
 
 const HEX = /#[0-9a-fA-F]{3,8}\b/g;
 
+/** Keeps only real, usable hero/product photography from a scraped page. */
+function usableImages(scrapedPages: unknown, baseUrl?: string): string[] {
+  const out: string[] = [];
+  const pages = Array.isArray(scrapedPages) ? scrapedPages : [];
+
+  for (const page of pages.slice(0, 6)) {
+    const imgs = (page as { images?: { src?: string; alt?: string }[] })?.images ?? [];
+    for (const img of imgs) {
+      let src = String(img?.src ?? "").trim();
+      if (!src) continue;
+      if (src.startsWith("//")) src = `https:${src}`;
+      if (src.startsWith("/") && baseUrl) {
+        try {
+          src = new URL(src, baseUrl).toString();
+        } catch {
+          continue;
+        }
+      }
+      if (!/^https?:\/\//i.test(src)) continue;
+      // Icons, sprites, trackers and vector marks make terrible art references.
+      if (/\.svg(\?|$)|sprite|favicon|icon|logo|pixel|tracking|1x1|badge/i.test(src)) continue;
+      if (!/\.(jpe?g|png|webp|avif)(\?|$)/i.test(src) && !/images?\.|cdn|media/i.test(src)) continue;
+      out.push(src);
+      if (out.length >= 8) return out;
+    }
+  }
+  return out;
+}
+
 export async function loadBrandKit(
   supabase: SupabaseClient,
   userId: string,
   workspaceId?: string,
 ): Promise<BrandKit> {
-  const kit: BrandKit = { colors: [], fonts: [] };
+  const kit: BrandKit = { colors: [], fonts: [], referenceImages: [] };
 
   try {
     let q = supabase
       .from("business_context")
-      .select("website_url, visual_identity, brand_architecture, business_profile, executive_summary")
+      .select(
+        "website_url, visual_identity, brand_architecture, business_profile, executive_summary, scraped_pages",
+      )
       .eq("user_id", userId)
       .limit(1);
     if (workspaceId) q = q.eq("workspace_id", workspaceId);
@@ -99,12 +132,42 @@ export async function loadBrandKit(
       pluckStrings(profile.products ?? profile.offerings ?? profile.services).slice(0, 6).join("; ") || undefined;
 
     kit.summary = pluckStrings(data.executive_summary).slice(0, 3).join(" ") || undefined;
+
+    kit.referenceImages = usableImages((data as { scraped_pages?: unknown }).scraped_pages, kit.websiteUrl);
   } catch (e) {
     console.error("[ad-production] brand kit load failed (non-fatal):", e);
   }
 
   return kit;
 }
+
+/**
+ * Downloads one of the advertiser's own website images and returns it as a
+ * data URL so the image model can match their real product, palette and
+ * photographic style instead of inventing generic stock imagery.
+ */
+export async function fetchReferenceImage(urls: string[]): Promise<string | null> {
+  for (const url of urls.slice(0, 4)) {
+    try {
+      const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
+      if (!res.ok) continue;
+      const type = res.headers.get("content-type") ?? "image/jpeg";
+      if (!type.startsWith("image/")) continue;
+      const buf = new Uint8Array(await res.arrayBuffer());
+      // Skip tracking pixels and anything too heavy to inline.
+      if (buf.byteLength < 8_000 || buf.byteLength > 4_000_000) continue;
+      let binary = "";
+      for (let i = 0; i < buf.length; i += 0x8000) {
+        binary += String.fromCharCode(...buf.subarray(i, i + 0x8000));
+      }
+      return `data:${type};base64,${btoa(binary)}`;
+    } catch {
+      continue;
+    }
+  }
+  return null;
+}
+
 
 /* -------------------------------------------------------------------------- */
 /* Diversification — never ship the same look twice in a row                   */
@@ -147,49 +210,78 @@ export function sceneImagePrompt(scene: AdScene, kit: BrandKit, aspectRatio: str
   const palette = kit.colors.length ? `Brand palette to obey exactly: ${kit.colors.join(", ")}.` : "";
   const typography = kit.fonts.length ? `Typographic feel: ${kit.fonts.join(", ")}.` : "";
   const imagery = kit.imagery ? `Existing brand imagery style: ${kit.imagery}.` : "";
+  const product = kit.products ? `The advertiser sells: ${kit.products}.` : "";
+  const grounding = kit.referenceImages.length
+    ? "A reference photograph from the advertiser's own website is attached. Match its product, colour grade, materials, lighting and photographic style so the frame is unmistakably this brand. Do not copy it literally — art-direct a new, better-composed campaign frame from it."
+    : "";
+  const safeSide =
+    aspectRatio === "9:16"
+      ? "Keep the bottom third and the right side calm and low-detail — a presenter and captions are composited there."
+      : "Keep the lower right third calm and low-detail — a presenter and captions are composited there.";
 
   if (scene.visual === "text-card") {
     return [
-      `A modern advertising motion-graphics title card, ${aspectHint(aspectRatio)}.`,
-      `Render this exact headline, spelled precisely, as the only text in the image: "${scene.on_screen_text ?? ""}".`,
-      "Bold contemporary sans-serif typography, generous negative space, strong contrast, editorial ad-agency composition.",
-      "Leave the lower right third visually calm — a presenter will be composited there.",
+      `A broadcast-grade advertising motion-graphics title frame, ${aspectHint(aspectRatio)}, at the quality bar of a Nike or Apple campaign end-card.`,
+      `Render this exact headline, spelled precisely, as the ONLY text in the image: "${scene.on_screen_text ?? ""}".`,
+      "Oversized bold contemporary grotesk typography, tight kerning, one accent word emphasised in the brand accent colour, crisp edges, deliberate baseline grid, generous negative space, subtle depth (soft gradient field or gently blurred brand-tinted photographic backdrop — never flat clip-art).",
+      safeSide,
       palette,
       typography,
-      "No watermarks, no logos, no extra words, no lorem ipsum, no gibberish letterforms.",
+      grounding,
+      "No watermarks, no logos, no extra words, no lorem ipsum, no misspellings, no gibberish letterforms, no UI chrome.",
     ]
       .filter(Boolean)
       .join(" ");
   }
 
   return [
-    `Cinematic advertising b-roll background plate, ${aspectHint(aspectRatio)}.`,
+    `Cinematic advertising b-roll background plate, ${aspectHint(aspectRatio)}, at the production quality of a national brand campaign.`,
     scene.background_prompt ?? "Premium product-in-context environment.",
-    "Shot on a full-frame camera, shallow depth of field, soft directional light, subtle film grain, colour-graded like a high-end brand campaign.",
-    "Composition keeps the centre and lower right uncluttered so a presenter can be composited over it.",
+    product,
+    "Shot on a full-frame camera with a fast prime, shallow depth of field, motivated directional key light with soft falloff, rich contrast, subtle film grain, professional colour grade with clean skin tones and deep blacks. Real materials and real environments — nothing plasticky, nothing AI-glossy, no surreal artefacts.",
+    safeSide,
     palette,
     imagery,
-    "No text, no typography, no logos, no watermarks, no people looking at camera.",
+    grounding,
+    "No text, no typography, no logos, no watermarks, no people looking at camera, no distorted hands or faces.",
   ]
     .filter(Boolean)
     .join(" ");
 }
 
-/** Generates one background plate and returns raw PNG bytes. */
-export async function generateSceneImage(prompt: string, apiKey: string): Promise<Uint8Array | null> {
+/**
+ * Generates one background plate and returns raw PNG bytes.
+ * When a reference image from the advertiser's website is supplied, the plate
+ * is art-directed from their real brand imagery rather than invented.
+ */
+export async function generateSceneImage(
+  prompt: string,
+  apiKey: string,
+  referenceImage?: string | null,
+): Promise<Uint8Array | null> {
+  const content = referenceImage
+    ? [
+        { type: "text", text: prompt },
+        { type: "image_url", image_url: { url: referenceImage } },
+      ]
+    : prompt;
+
   try {
     const res = await fetch("https://ai.gateway.lovable.dev/v1/images/generations", {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         model: IMAGE_MODEL,
-        messages: [{ role: "user", content: prompt }],
+        messages: [{ role: "user", content }],
         modalities: ["image", "text"],
       }),
     });
 
     if (!res.ok) {
-      console.error(`[ad-production] scene image failed [${res.status}]: ${await res.text()}`);
+      const body = await res.text();
+      console.error(`[ad-production] scene image failed [${res.status}]: ${body}`);
+      // A rejected reference image must never cost us the visual entirely.
+      if (referenceImage) return await generateSceneImage(prompt, apiKey, null);
       return null;
     }
 
@@ -202,6 +294,7 @@ export async function generateSceneImage(prompt: string, apiKey: string): Promis
     return null;
   }
 }
+
 
 /** Archives the plate so the user can see what was used inside their ad. */
 export async function archiveSceneImage(
@@ -225,7 +318,14 @@ export async function archiveSceneImage(
 /* -------------------------------------------------------------------------- */
 
 /** Caps how much visual production a single render is allowed to request. */
-export const MAX_GENERATED_PLATES = 2;
+export const MAX_GENERATED_PLATES = 4;
+
+/** Compresses a spoken line into a short kinetic headline for a text card. */
+function headlineFrom(spoken: string): string {
+  const clean = spoken.replace(/[^\w\s%$.,'-]/g, " ").replace(/\s+/g, " ").trim();
+  const words = clean.split(" ").filter(Boolean).slice(0, 6);
+  return words.join(" ").replace(/[.,]$/, "");
+}
 
 export function normalizePlan(plan: unknown, fallbackScript: string): ProductionPlan {
   const p = (plan ?? {}) as Partial<ProductionPlan>;
@@ -254,11 +354,36 @@ export function normalizePlan(plan: unknown, fallbackScript: string): Production
     });
 
   if (!scenes.length) {
+    // Even a bare script gets a produced treatment — a flat talking head is
+    // below the bar advertisers are competing against.
+    const sentences = fallbackScript
+      .split(/(?<=[.!?])\s+/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+    const mid = Math.max(1, Math.ceil(sentences.length / 3));
+    const parts = [
+      sentences.slice(0, mid).join(" "),
+      sentences.slice(mid, mid * 2).join(" "),
+      sentences.slice(mid * 2).join(" "),
+    ].filter(Boolean);
+
     return {
-      treatment: "talking-head",
-      rationale: "Straight-to-camera read — no visual element earned its place here.",
+      treatment: parts.length > 1 ? "hybrid" : "talking-head",
+      rationale: "Auto-storyboarded: presenter hook, product b-roll, typographic close.",
       captions: true,
-      scenes: [{ role: "full", spoken: fallbackScript, visual: "avatar" }],
+      scenes:
+        parts.length > 1
+          ? parts.map((spoken, i) => ({
+              role: i === 0 ? "hook" : i === parts.length - 1 ? "close" : "benefit",
+              spoken,
+              visual: (i === 0 ? "avatar" : i === parts.length - 1 ? "text-card" : "broll") as SceneVisual,
+              on_screen_text: i === parts.length - 1 ? headlineFrom(spoken) : undefined,
+              background_prompt:
+                i === 0 || i === parts.length - 1
+                  ? undefined
+                  : "The advertiser's product or service being used in its real environment.",
+            }))
+          : [{ role: "full", spoken: fallbackScript, visual: "avatar" }],
     };
   }
 
@@ -269,7 +394,25 @@ export function normalizePlan(plan: unknown, fallbackScript: string): Production
       plates += 1;
       if (plates > MAX_GENERATED_PLATES) scene.visual = "brand-color";
     }
+    // A text card without a headline is just an empty frame.
+    if (scene.visual === "text-card" && !scene.on_screen_text) {
+      scene.on_screen_text = headlineFrom(scene.spoken);
+    }
   }
+
+  // Never ship an all-avatar multi-scene ad — the mid beats carry the visuals.
+  if (plates === 0 && scenes.length > 1) {
+    const last = scenes[scenes.length - 1];
+    const mid = scenes[1];
+    mid.visual = "broll";
+    mid.background_prompt =
+      mid.background_prompt ?? "The advertiser's product or service being used in its real environment.";
+    if (scenes.length > 2) {
+      last.visual = "text-card";
+      last.on_screen_text = last.on_screen_text ?? headlineFrom(last.spoken);
+    }
+  }
+
 
   const treatment = (["talking-head", "product-showcase", "text-driven", "hybrid"] as const).includes(
     p.treatment as never,
