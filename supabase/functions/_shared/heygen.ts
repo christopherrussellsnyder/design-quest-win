@@ -68,7 +68,10 @@ export interface RenderScene {
   characterScale?: number;
   offsetX?: number;
   offsetY?: number;
+  /** "normal" for a full set shot, "circle" for a picture-in-picture presenter over b-roll. */
+  characterStyle?: "normal" | "circle";
 }
+
 
 export interface CreateVideoArgs {
   script: string;
