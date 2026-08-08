@@ -36,6 +36,21 @@ import { ImageStudio } from '@/components/content-generation/ImageStudio';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { readContentHandoff } from '@/lib/contentHandoff';
 
+const FEMALE_HINTS = /\b(female|woman|women|girl|she|her|lady)\b/i;
+const MALE_HINTS = /\b(male|man|men|boy|he|him|guy)\b/i;
+
+/** Resolve a usable male/female signal from provider gender fields, falling
+ *  back to naming conventions when the catalog leaves gender blank. */
+function normalizeGender(gender?: string | null, name?: string | null): 'male' | 'female' | null {
+  const g = (gender ?? '').trim().toLowerCase();
+  if (g.startsWith('f')) return 'female';
+  if (g.startsWith('m')) return 'male';
+  const n = name ?? '';
+  if (FEMALE_HINTS.test(n)) return 'female';
+  if (MALE_HINTS.test(n)) return 'male';
+  return null;
+}
+
 export default function ContentGeneration() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
