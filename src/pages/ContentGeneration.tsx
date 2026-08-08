@@ -142,11 +142,25 @@ export default function ContentGeneration() {
     setEditedScript(variants[0].script);
   }, [handoff, selectedScript, variants]);
 
+  // Auto-cast: a presentable actor plus a natural English voice that matches
+  // their gender, so the render step is usable the moment the page loads.
   useEffect(() => {
-    if (!handoff) return;
-    if (!avatarId && actors.length) setAvatarId(actors[0].avatar_id);
-    if (!voiceId && voices.length) setVoiceId(voices[0].voice_id);
-  }, [handoff, actors, voices, avatarId, voiceId]);
+    if (!actors.length && !voices.length) return;
+
+    const actor = selectedActor ?? actors[0];
+    if (!avatarId && actor) setAvatarId(actor.avatar_id);
+
+    if (voiceId || !voices.length) return;
+
+    const english = voices.filter((v) => (v.language ?? '').toLowerCase().includes('english'));
+    const pool = english.length ? english : voices;
+    const gender = (actor?.gender ?? '').toLowerCase();
+    const matched = gender
+      ? pool.find((v) => (v.gender ?? '').toLowerCase() === gender)
+      : undefined;
+    setVoiceId((matched ?? pool[0]).voice_id);
+  }, [actors, voices, avatarId, voiceId, selectedActor]);
+
 
   const providerDown =
     (actorsError as { code?: string })?.code === 'PROVIDER_NOT_CONFIGURED' ||
