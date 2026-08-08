@@ -142,7 +142,13 @@ export function StoryboardPreview({ plan, stale }: Props) {
                         {scene.energy}
                       </span>
                     )}
+                    {scene.on_screen_text && scene.text_position && (
+                      <span className="text-[10px] rounded border border-border px-1.5 py-0.5 text-muted-foreground">
+                        {TEXT_POSITION_LABELS[scene.text_position] ?? scene.text_position}
+                      </span>
+                    )}
                   </div>
+
                   {scene.background_prompt && (
                     <p className="text-[11px] text-[hsl(var(--text-tertiary))] line-clamp-2 italic">
                       {scene.background_prompt}
