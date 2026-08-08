@@ -44,6 +44,8 @@ export interface BrandKit {
   tone?: string;
   products?: string;
   summary?: string;
+  /** Real photography lifted from the advertiser's own website. */
+  referenceImages: string[];
 }
 
 /* -------------------------------------------------------------------------- */
