@@ -1,6 +1,8 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.4";
 import { checkRateLimit, clientKey } from "../_shared/rate-limit.ts";
+import { loadBrandKit, recentTreatments, normalizePlan } from "../_shared/ad-production.ts";
+
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
