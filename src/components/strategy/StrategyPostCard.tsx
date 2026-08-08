@@ -522,12 +522,19 @@ export function StrategyPostCard({ post, onEdit, onAskAI }: StrategyPostCardProp
                       <h4 className="text-sm font-semibold text-foreground">Use this in Content Generation</h4>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Copy the brief that matches the asset you want, paste it into the Content Generation
-                      feature, and you'll get a visual that matches this exact day of the strategy.
+                      Open Content Generation from here and the scripts, storyboard and on-screen
+                      visuals are built around this exact day — same promise, same angle.
                     </p>
                     <Button size="sm" variant="outline" className="h-8 text-xs gap-1" asChild>
-                      <a href="/content-generation">Open Content Generation</a>
+                      <a
+                        href={`/content-generation?strategyPostId=${encodeURIComponent(post.id)}${
+                          post.theme ? `&theme=${encodeURIComponent(post.theme)}` : ''
+                        }`}
+                      >
+                        Open Content Generation
+                      </a>
                     </Button>
+
                   </div>
 
                   <div>
