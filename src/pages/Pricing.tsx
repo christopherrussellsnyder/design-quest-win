@@ -133,6 +133,10 @@ export default function Pricing() {
           <div className="flex items-center justify-center gap-3">
             <span className={`text-sm ${!billingAnnual ? 'text-white' : 'text-[hsl(var(--text-tertiary))]'}`}>Monthly</span>
             <button
+              type="button"
+              role="switch"
+              aria-checked={billingAnnual}
+              aria-label="Toggle between monthly and yearly billing"
               onClick={() => setBillingAnnual(!billingAnnual)}
               className={`relative w-12 h-6 rounded-full transition-colors ${billingAnnual ? 'bg-primary' : 'bg-border'}`}
             >

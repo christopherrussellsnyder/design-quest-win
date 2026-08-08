@@ -234,6 +234,7 @@ export default function HelpCenter() {
           <div className="relative max-w-2xl mx-auto">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5" />
             <Input
+              aria-label="Search help articles"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search for help articles..."

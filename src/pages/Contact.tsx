@@ -180,34 +180,34 @@ export default function Contact() {
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-5">
                   <div>
-                    <label className="block text-sm font-medium text-muted-foreground mb-2">Full Name *</label>
+                    <label htmlFor="contact-name" className="block text-sm font-medium text-muted-foreground mb-2">Full Name *</label>
                     <input
-                      type="text" value={name} onChange={(e) => setName(e.target.value)} required maxLength={100}
+                      id="contact-name" type="text" value={name} onChange={(e) => setName(e.target.value)} required maxLength={100}
                       className="w-full bg-muted border border-border rounded-sm px-4 py-3 text-white placeholder-[hsl(var(--text-tertiary))] focus:outline-none focus:border-primary transition-colors"
                       placeholder="Your name"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-muted-foreground mb-2">Email Address *</label>
+                    <label htmlFor="contact-email" className="block text-sm font-medium text-muted-foreground mb-2">Email Address *</label>
                     <input
-                      type="email" value={email} onChange={(e) => setEmail(e.target.value)} required maxLength={255}
+                      id="contact-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required maxLength={255}
                       className="w-full bg-muted border border-border rounded-sm px-4 py-3 text-white placeholder-[hsl(var(--text-tertiary))] focus:outline-none focus:border-primary transition-colors"
                       placeholder="you@example.com"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-muted-foreground mb-2">Subject</label>
+                    <label htmlFor="contact-subject" className="block text-sm font-medium text-muted-foreground mb-2">Subject</label>
                     <select
-                      value={subject} onChange={(e) => setSubject(e.target.value)}
+                      id="contact-subject" value={subject} onChange={(e) => setSubject(e.target.value)}
                       className="w-full bg-muted border border-border rounded-sm px-4 py-3 text-white focus:outline-none focus:border-primary transition-colors"
                     >
                       {allowedSubjects.map(s => <option key={s} value={s}>{s}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-muted-foreground mb-2">Message *</label>
+                    <label htmlFor="contact-message" className="block text-sm font-medium text-muted-foreground mb-2">Message *</label>
                     <textarea
-                      value={message} onChange={(e) => setMessage(e.target.value)} required rows={4} maxLength={5000}
+                      id="contact-message" value={message} onChange={(e) => setMessage(e.target.value)} required rows={4} maxLength={5000}
                       className="w-full bg-muted border border-border rounded-sm px-4 py-3 text-white placeholder-[hsl(var(--text-tertiary))] focus:outline-none focus:border-primary transition-colors resize-none"
                       placeholder="How can we help?"
                     />
