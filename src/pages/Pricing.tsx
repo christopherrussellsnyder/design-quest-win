@@ -171,7 +171,7 @@ export default function Pricing() {
                     Your Plan
                   </div>
                 )}
-                <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
+                <h2 className="text-xl font-bold mb-2">{plan.name}</h2>
                 <div className="mb-2">
                   <span className="text-4xl font-semibold">
                     ${displayPrice}
