@@ -83,8 +83,11 @@ export interface CreateVideoArgs {
 }
 
 function buildBackground(scene: RenderScene): Record<string, unknown> | undefined {
-  if (scene.backgroundAssetId) return { type: "image", image_asset_id: scene.backgroundAssetId, fit: "cover" };
+  // Prefer the hosted URL HeyGen hands back on upload. The `image_key`
+  // ("image/<id>/original.png") is NOT a valid `image_asset_id` for v2 and the
+  // API rejects the render with "Background image asset not found".
   if (scene.backgroundUrl) return { type: "image", url: scene.backgroundUrl, fit: "cover" };
+  if (scene.backgroundAssetId) return { type: "image", image_asset_id: scene.backgroundAssetId, fit: "cover" };
   if (scene.backgroundColor) return { type: "color", value: scene.backgroundColor };
   return undefined;
 }
