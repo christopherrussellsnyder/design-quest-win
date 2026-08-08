@@ -598,10 +598,23 @@ export function normalizePlan(plan: unknown, fallbackScript: string): Production
     ? (p.treatment as ProductionPlan["treatment"])
     : "hybrid";
 
+  const edited = applyEditGrammar(scenes);
+
   return {
     treatment,
     rationale: String(p.rationale ?? "").slice(0, 400),
     captions: p.captions !== false,
-    scenes,
+    edit_style: p.edit_style
+      ? String(p.edit_style).slice(0, 200)
+      : editStyleSummary(edited),
+    scenes: edited,
   };
 }
+
+/** Human-readable one-liner describing the cut rhythm we ended up with. */
+function editStyleSummary(scenes: AdScene[]): string {
+  const moves = Array.from(new Set(scenes.map((s) => s.camera_move ?? "static")));
+  const shots = Array.from(new Set(scenes.map((s) => s.shot_type ?? "medium")));
+  return `${scenes.length}-beat cut — ${shots.join(" / ")} shot sizes, ${moves.join(" / ")} camera.`;
+}
+
