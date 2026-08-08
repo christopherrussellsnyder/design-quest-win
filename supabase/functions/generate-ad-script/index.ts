@@ -111,6 +111,44 @@ ${JSON.stringify(promos, null, 2)}`;
       console.error("[ad-script] context load failed (non-fatal):", e);
     }
 
+    // ---- Strategy-day linkage ------------------------------------------
+    // Production elements only earn their place when the day's post calls for
+    // them. Without a linked post we deliberately stay closer to a clean read.
+    let strategyBlock = "";
+    if (strategyPostId) {
+      try {
+        const { data: post } = await supabase
+          .from("strategy_posts")
+          .select(
+            "day_number, post_type, theme, hook, caption, cta, content_pillar, primary_emotion, hook_technique, visual_guidance, week_theme",
+          )
+          .eq("id", strategyPostId)
+          .maybeSingle();
+        if (post) {
+          strategyBlock = `
+LINKED STRATEGY DAY (this ad must be the video expression of THIS post — same promise, same emotion, same angle):
+${JSON.stringify(post, null, 2)}`;
+        }
+      } catch (e) {
+        console.error("[ad-script] strategy post load failed (non-fatal):", e);
+      }
+    }
+
+    // ---- Brand kit + anti-repetition ------------------------------------
+    const brandKit = await loadBrandKit(supabase, userId, workspaceId);
+    const priorTreatments = await recentTreatments(supabase, userId);
+
+    const brandBlock = `
+BRAND KIT (design inspiration lifted from the advertiser's own website — every generated visual must look like it belongs to this brand):
+${JSON.stringify(brandKit, null, 2)}`;
+
+    const diversityBlock = priorTreatments.length
+      ? `
+RECENTLY SHIPPED TREATMENTS (do NOT repeat these looks — the market has already seen them from this advertiser):
+${JSON.stringify(priorTreatments, null, 2)}`
+      : "";
+
+
     const promoLine =
       promoCode || promoDetail
         ? `Explicit promo to feature: ${[promoDetail, promoCode ? `code ${promoCode}` : null]
