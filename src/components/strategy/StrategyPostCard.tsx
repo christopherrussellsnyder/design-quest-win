@@ -525,15 +525,25 @@ export function StrategyPostCard({ post, onEdit, onAskAI }: StrategyPostCardProp
                       Open Content Generation from here and the scripts, storyboard and on-screen
                       visuals are built around this exact day — same promise, same angle.
                     </p>
-                    <Button size="sm" variant="outline" className="h-8 text-xs gap-1" asChild>
-                      <a
-                        href={`/content-generation?strategyPostId=${encodeURIComponent(post.id)}${
-                          post.theme ? `&theme=${encodeURIComponent(post.theme)}` : ''
-                        }`}
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-8 text-xs gap-1"
+                        onClick={() => openContentGeneration('video')}
                       >
                         Open Content Generation
-                      </a>
-                    </Button>
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 text-xs gap-1"
+                        onClick={() => openContentGeneration('image')}
+                      >
+                        Go straight to images
+                      </Button>
+                    </div>
+
 
                   </div>
 
