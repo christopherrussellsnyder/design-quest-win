@@ -112,7 +112,8 @@ export default function Features() {
             </motion.h1>
             <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }}
               className="text-lg text-muted-foreground max-w-2xl mx-auto mb-10">
-              Korex researches your market with live data, builds the strategy, writes the copy, and produces the images and video ads — then reports on what worked.
+              Every output starts with evidence: live search demand, competitor ad recon, buyer language, your own site and
+              your own analytics. Korex builds the strategy from that, produces the creative, and reports on what worked.
             </motion.p>
 
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.4 }}>
