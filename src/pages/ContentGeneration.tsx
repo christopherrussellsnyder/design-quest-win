@@ -493,13 +493,20 @@ export default function ContentGeneration() {
 
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-1.5">
-                    <Label className="text-xs text-muted-foreground">Voice</Label>
+                    <Label className="text-xs text-muted-foreground">
+                      Voice
+                      {actorGender ? (
+                        <span className="ml-1 normal-case text-[hsl(var(--text-tertiary))]">
+                          · matched to {actorGender} actor
+                        </span>
+                      ) : null}
+                    </Label>
                     <Select value={voiceId} onValueChange={setVoiceId}>
                       <SelectTrigger className="bg-muted border-border">
                         <SelectValue placeholder="Choose a voice" />
                       </SelectTrigger>
                       <SelectContent className="max-h-[280px]">
-                        {voices.map((v) => (
+                        {matchingVoices.map((v) => (
                           <SelectItem key={v.voice_id} value={v.voice_id}>
                             {v.name}
                             {v.gender ? ` · ${v.gender}` : ''}
@@ -508,6 +515,7 @@ export default function ContentGeneration() {
                       </SelectContent>
                     </Select>
                   </div>
+
 
                   <div className="space-y-1.5">
                     <Label className="text-xs text-muted-foreground">Format</Label>
