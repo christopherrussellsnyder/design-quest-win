@@ -398,85 +398,60 @@ const Index = () => {
         </div>
       </section>
 
-      {/* =================== TIME SAVINGS CALCULATOR =================== */}
+      {/* =================== RESEARCH ANALYSIS EXPLAINER =================== */}
       <section className="py-24 px-4 bg-muted">
-        <div className="max-w-3xl mx-auto">
-          <AnimatedSection className="text-center mb-12">
-            <h2 className="text-3xl sm:text-[40px] font-semibold mb-4">
-              Calculate Your Time Savings
+        <div className="max-w-5xl mx-auto">
+          <AnimatedSection className="mb-12">
+            <p className="eyebrow mb-4">Research Analysis</p>
+            <h2 className="text-3xl sm:text-[40px] font-semibold mb-4 max-w-3xl">
+              A standing intelligence desk for your niche
             </h2>
+            <p className="text-muted-foreground text-lg max-w-3xl leading-relaxed">
+              Research Analysis runs continuously in the background, not only when you ask for a strategy. It watches your
+              category across every major platform and keeps a current picture of what is working — so when you do generate a
+              plan, it is written against this week's market, not a model's memory of last year.
+            </p>
           </AnimatedSection>
 
-          <AnimatedSection>
-            <div className="bg-card border border-border rounded-sm p-8">
-              <div className="space-y-6 mb-8">
-                {[
-                  { label: 'Market research', value: calcResearch, setter: setCalcResearch },
-                  { label: 'Strategy planning', value: calcPlanning, setter: setCalcPlanning },
-                  { label: 'Content calendar creation', value: calcCalendar, setter: setCalcCalendar },
-                ].map((item, i) => (
-                  <div key={i} className="flex items-center justify-between gap-4">
-                    <span className="text-sm text-muted-foreground flex-1">{item.label}</span>
-                    <div className="flex items-center gap-2">
-                      <button onClick={() => item.setter(Math.max(0, item.value - 1))} className="w-8 h-8 rounded-sm bg-border flex items-center justify-center text-muted-foreground hover:bg-border transition-colors">
-                        <Minus className="w-3 h-3" />
-                      </button>
-                      <span className="w-10 text-center font-bold">{item.value}</span>
-                      <button onClick={() => item.setter(item.value + 1)} className="w-8 h-8 rounded-sm bg-border flex items-center justify-center text-muted-foreground hover:bg-border transition-colors">
-                        <Plus className="w-3 h-3" />
-                      </button>
-                      <span className="text-xs text-[hsl(var(--text-tertiary))] w-16">hrs/mo</span>
-                    </div>
-                  </div>
-                ))}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {[
+              {
+                t: 'What it collects',
+                b: 'Search demand for your category, ads currently running by competitors, hooks and formats performing organically per platform, and how buyers describe the problem in their own words.',
+              },
+              {
+                t: 'How it gets it',
+                b: 'Live search and ad-library queries, platform-level content pattern extraction, community discussion mining, and a crawl of your own site for offer, pricing and positioning.',
+              },
+              {
+                t: 'How it is cleaned',
+                b: 'Raw signals are de-duplicated, scored for relevance to your niche and stripped of noise. Anything that cannot be tied back to a source is discarded rather than guessed.',
+              },
+              {
+                t: 'Why it stays current',
+                b: 'The intelligence layer refreshes on a rolling 24-hour cycle and is cached per niche, so every strategy and every ad script draws from the same fresh, shared evidence base.',
+              },
+            ].map((c, i) => (
+              <AnimatedSection key={c.t} delay={i * 0.08}>
+                <div className="bg-card border border-border rounded-sm p-6 h-full">
+                  <h3 className="font-bold mb-2">{c.t}</h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed">{c.b}</p>
+                </div>
+              </AnimatedSection>
+            ))}
+          </div>
 
-                <div className="border-t border-border pt-4">
-                  <div className="flex items-center justify-between gap-4">
-                    <span className="text-sm text-muted-foreground">Your hourly rate</span>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-[hsl(var(--text-tertiary))]">$</span>
-                      <input
-                        type="number" value={calcHourlyRate} onChange={(e) => setCalcHourlyRate(Math.max(0, parseInt(e.target.value) || 0))}
-                        className="w-20 bg-border border border-border rounded-sm px-3 py-2 text-center text-sm focus:border-primary outline-none"
-                      />
-                      <span className="text-xs text-[hsl(var(--text-tertiary))]">/hour</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-muted rounded-sm p-6 space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span className="text-[hsl(var(--text-tertiary))]">Monthly time saved</span>
-                  <span className="font-bold">{totalHours} hours</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-[hsl(var(--text-tertiary))]">Annual time saved</span>
-                  <span className="font-bold">{annualHours} hours</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-[hsl(var(--text-tertiary))]">Annual value saved</span>
-                  <span className="font-bold text-primary">${annualValue.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-[hsl(var(--text-tertiary))]">Korex annual cost</span>
-                  <span className="font-bold">$831</span>
-                </div>
-                <div className="border-t border-border pt-3 flex justify-between">
-                  <span className="text-muted-foreground font-semibold">ROI</span>
-                  <span className="text-2xl font-semibold text-primary">{roi > 0 ? `${roi}%` : '—'}</span>
-                </div>
-              </div>
-
-              <div className="mt-6 text-center">
-                <Link to="/signup" className="inline-flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-primary to-[hsl(var(--primary-dark))] text-white font-bold rounded-sm hover:scale-105 transition-all shadow-[0_0_20px_hsl(var(--primary) / 0.3)]">
-                  Start Free <ArrowRight className="w-4 h-4" />
-                </Link>
-              </div>
+          <AnimatedSection className="mt-8" delay={0.3}>
+            <div className="border-l-2 border-[hsl(var(--accent-gold))] pl-6 py-2 max-w-3xl">
+              <p className="text-foreground leading-relaxed">
+                In plain terms: instead of asking an AI what it thinks might work, Korex goes and looks at what is already
+                working in your market — then writes your plan from that.
+              </p>
             </div>
           </AnimatedSection>
         </div>
       </section>
+
 
       {/* =================== SOCIAL PROOF =================== */}
       <section className="py-24 px-4">
