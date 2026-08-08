@@ -179,6 +179,23 @@ export default function ContentGeneration() {
             </Card>
           )}
 
+          {strategyPostId && (
+            <Card className="bg-background border-primary/30">
+              <CardContent className="p-4 flex items-start gap-3">
+                <Film className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                <div className="text-sm">
+                  <p className="font-medium">Linked to a strategy day</p>
+                  <p className="text-muted-foreground text-xs mt-1">
+                    {strategyTheme
+                      ? `Scripts and visuals will be built around “${strategyTheme}”.`
+                      : 'Scripts and visuals will be built around that day’s post — same promise, same angle.'}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+
           {/* ---------------- Step 1: Script ---------------- */}
           <section className="space-y-3">
             <div className="flex items-center gap-2">
