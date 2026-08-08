@@ -14,6 +14,15 @@ import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.57.4
 
 export type SceneVisual = "avatar" | "broll" | "text-card" | "brand-color";
 
+/** Lens/shot grammar — what size the frame is cut at. */
+export type ShotType = "extreme-close" | "close-up" | "medium" | "wide" | "overhead" | "detail-insert";
+/** Implied camera motion baked into the plate's blur, perspective and framing. */
+export type CameraMove = "static" | "push-in" | "pull-out" | "pan" | "tilt" | "handheld" | "whip";
+/** Where the presenter sits relative to the visual. */
+export type Composition = "full-bleed" | "presenter-left" | "presenter-right" | "pip" | "split";
+/** Cut rhythm for this beat — drives grade, contrast and framing tension. */
+export type SceneEnergy = "calm" | "steady" | "punchy";
+
 export interface AdScene {
   /** hook | benefit | mechanism | promo | close */
   role: string;
@@ -26,14 +35,23 @@ export interface AdScene {
   on_screen_text?: string;
   /** Hex fallback pulled from the brand kit. */
   background_color?: string;
+
+  /* ---- Edit layer: how the beat is SHOT and CUT, not just what's on it ---- */
+  shot_type?: ShotType;
+  camera_move?: CameraMove;
+  composition?: Composition;
+  energy?: SceneEnergy;
 }
 
 export interface ProductionPlan {
   treatment: "talking-head" | "product-showcase" | "text-driven" | "hybrid";
   rationale: string;
   captions: boolean;
+  /** One-line summary of the cut rhythm across the whole ad. */
+  edit_style?: string;
   scenes: AdScene[];
 }
+
 
 export interface BrandKit {
   websiteUrl?: string;
