@@ -485,9 +485,9 @@ const Index = () => {
         <div className="max-w-4xl mx-auto">
           <AnimatedSection className="text-center mb-12">
             <h2 className="text-3xl sm:text-[40px] font-semibold mb-4">
-              The Technology Behind Korex
+              Inside a Strategy Generation
             </h2>
-            <p className="text-muted-foreground">Powered by advanced AI + a live Research Analysis engine that tracks what's actually working — organic and paid — across every major platform.</p>
+            <p className="text-muted-foreground">Six stages run in sequence. Here is what each one is actually doing.</p>
           </AnimatedSection>
 
           <div className="space-y-4">
