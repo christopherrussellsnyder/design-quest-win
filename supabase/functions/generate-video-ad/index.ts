@@ -150,7 +150,7 @@ serve(async (req) => {
         voiceId: voiceIdText,
         aspectRatio,
         scenes: renderScenes,
-        captions: plan.captions,
+        captions: true,
       });
     } catch (err) {
       const detail = err instanceof Error ? err.message : String(err);
