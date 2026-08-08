@@ -269,7 +269,9 @@ Schema:
             "shot_type": "extreme-close" | "close-up" | "medium" | "wide" | "overhead" | "detail-insert",
             "camera_move": "static" | "push-in" | "pull-out" | "pan" | "tilt" | "handheld" | "whip",
             "composition": "full-bleed" | "presenter-left" | "presenter-right" | "pip" | "split",
-            "energy": "calm" | "steady" | "punchy"
+            "energy": "calm" | "steady" | "punchy",
+            "duration_seconds": <number>,
+            "text_position": "top" | "center" | "lower-third"
           }
         ]
       }
