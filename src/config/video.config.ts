@@ -127,6 +127,13 @@ export const TREATMENT_LABELS: Record<ProductionPlan['treatment'], string> = {
   hybrid: 'Hybrid',
 };
 
+export const TEXT_POSITION_LABELS: Record<TextPosition, string> = {
+  top: 'Text top',
+  center: 'Text centre',
+  'lower-third': 'Text lower third',
+};
+
+
 export interface VideoAdRecord {
   id: string;
   title: string | null;
