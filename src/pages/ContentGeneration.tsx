@@ -281,6 +281,8 @@ export default function ContentGeneration() {
                       promoDetail: promoDetail || undefined,
                       promoCode: promoCode || undefined,
                       customBrief: brief || undefined,
+                      strategyPostId,
+
                     })
                   }
                   disabled={isGenerating}
