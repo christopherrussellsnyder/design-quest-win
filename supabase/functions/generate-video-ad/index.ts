@@ -8,6 +8,7 @@ import {
   generateSceneImage,
   loadBrandKit,
   normalizePlan,
+  sceneFraming,
   sceneImagePrompt,
   type AdScene,
 } from "../_shared/ad-production.ts";
@@ -122,10 +123,11 @@ serve(async (req) => {
             rendered.backgroundUrl = uploaded.url;
             // Presenter reframed as a picture-in-picture so the visual reads
             // full-frame the way high-production ads cut their b-roll.
-            rendered.characterStyle = "circle";
-            rendered.characterScale = scene.visual === "text-card" ? 0.42 : 0.5;
-            rendered.offsetX = 0.28;
-            rendered.offsetY = aspectRatio === "9:16" ? 0.3 : 0.24;
+            const framing = sceneFraming(scene, aspectRatio);
+            rendered.characterStyle = framing.characterStyle;
+            rendered.characterScale = framing.characterScale;
+            rendered.offsetX = framing.offsetX;
+            rendered.offsetY = framing.offsetY;
           } catch (e) {
             console.error("[video-ad] plate upload failed, falling back to plain scene:", e);
           }
@@ -134,6 +136,13 @@ serve(async (req) => {
         }
       } else if (scene.visual === "brand-color") {
         rendered.backgroundColor = scene.background_color ?? brandKit.primaryColor ?? "#101010";
+        // A flat brand field is a palate cleanser — keep the presenter large so
+        // the cut still reads as a deliberate beat, not dead air.
+        const framing = sceneFraming({ ...scene, composition: scene.composition ?? "split" }, aspectRatio);
+        rendered.characterStyle = framing.characterStyle;
+        rendered.characterScale = framing.characterScale;
+        rendered.offsetX = framing.offsetX;
+        rendered.offsetY = framing.offsetY;
         usedAssets.push({ role: scene.role, visual: scene.visual });
       }
 
