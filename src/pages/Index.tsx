@@ -142,14 +142,15 @@ const Index = () => {
 
               <motion.h1 initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }}
                 className="text-4xl sm:text-5xl lg:text-[64px] font-semibold tracking-tight leading-[1.05] mb-7">
-                Agency-grade marketing strategy,{' '}
-                <span className="text-primary">delivered in sixty seconds.</span>
+                Marketing strategy built from evidence,{' '}
+                <span className="text-primary">not opinion.</span>
               </motion.h1>
 
               <motion.p initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.35 }}
                 className="text-lg sm:text-xl text-muted-foreground max-w-xl leading-relaxed mb-9">
-                Korex turns live market data, competitor ad intelligence and your own performance history into a
-                complete, executable plan — researched, written and reviewed before it reaches you.
+                Before Korex writes a single post, it reads live search demand, the ads your competitors are running right now,
+                how real buyers talk about the problem, your own website and your own analytics. Then a second model reviews
+                the plan like a senior strategist and rewrites what is weak. You see the reasoning, not just the output.
               </motion.p>
 
               <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.5 }}
