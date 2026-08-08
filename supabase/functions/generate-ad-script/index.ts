@@ -179,6 +179,23 @@ PACING: roughly 2.4 spoken words per second. A ${seconds}-second script is about
 
 ${angleInstruction}
 
+PRODUCTION DIRECTION — you are also the ad's art director.
+For every variant, split the script into 2 to 5 scenes and decide, scene by scene, what the viewer should be LOOKING at:
+- "avatar": presenter on a clean neutral set. The default. Use it whenever the words carry the beat alone.
+- "broll": a cinematic background plate of the product/service in context. Only when the words describe something physical, visual, or demonstrable.
+- "text-card": a kinetic typographic frame carrying one short headline (max 6 words) — reserve this for a number, a claim, or the promo.
+- "brand-color": a flat brand-coloured field from the brand kit. A palate cleanser, useful for the close.
+
+HARD RULES:
+- Restraint wins. Never add a visual element just because it is available. If the beat does not earn it, use "avatar".
+- At most TWO generated plates ("broll" or "text-card") across the whole ad.
+- The scenes' "spoken" fields, concatenated in order, must equal the full script exactly — same words, nothing added or dropped.
+- The HOOK beat is almost always "avatar": a face is the strongest scroll-stopper in the first two seconds.
+- Any "broll" background_prompt must reference the advertiser's real product/service and the brand palette. Never generic stock imagery.
+- Any "on_screen_text" must be spelled correctly and be a compressed version of what is spoken over it.
+- Pick a treatment that is genuinely different from the recently shipped treatments listed by the advertiser. Repeating a look is how a brand becomes invisible.
+${strategyBlock ? "- This ad is tied to a specific strategy day. The visual treatment must express THAT post's theme, emotion and pillar — not a generic brand film." : "- No strategy day is linked, so bias hard toward the clean talking-head treatment."}
+
 Return ONLY valid JSON, no markdown fences.
 
 Schema:
@@ -190,20 +207,39 @@ Schema:
       "hook": "<the single opening sentence, verbatim from the script>",
       "script": "<the FULL spoken script, plain prose, all five beats flowing naturally as one continuous read>",
       "estimated_seconds": <number>,
-      "why_it_works": "<one sentence on the psychological mechanic>"
+      "why_it_works": "<one sentence on the psychological mechanic>",
+      "production_plan": {
+        "treatment": "talking-head" | "product-showcase" | "text-driven" | "hybrid",
+        "rationale": "<one sentence on why this treatment fits this script and this day>",
+        "captions": true,
+        "scenes": [
+          {
+            "role": "hook" | "benefit" | "mechanism" | "promo" | "close",
+            "spoken": "<exact words spoken in this scene>",
+            "visual": "avatar" | "broll" | "text-card" | "brand-color",
+            "background_prompt": "<art direction, only for broll>",
+            "on_screen_text": "<max 6 words, only for text-card>",
+            "background_color": "<hex from the brand kit, only for brand-color>"
+          }
+        ]
+      }
     }
   ]
 }`;
 
     const userPrompt = `${contextBlock}
 ${promotionsBlock}
+${strategyBlock}
+${brandBlock}
+${diversityBlock}
 
 ${promoLine}
 
 Target spoken length: ${seconds} seconds.
 ${customBrief ? `\nAdditional direction from the advertiser:\n${customBrief}` : ""}
 
-Write the ${variantCount} script variants now.`;
+Write the ${variantCount} script variants, each with its production plan, now.`;
+
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
