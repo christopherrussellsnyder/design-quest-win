@@ -58,6 +58,7 @@ serve(async (req) => {
       promoDetail,
       customBrief,
       workspaceId,
+      strategyPostId,
     } = (body ?? {}) as {
       angle?: HookAngle;
       durationSeconds?: number;
@@ -66,7 +67,9 @@ serve(async (req) => {
       promoDetail?: string;
       customBrief?: string;
       workspaceId?: string;
+      strategyPostId?: string;
     };
+
 
     if (typeof customBrief === "string" && customBrief.length > 4000) {
       return json({ error: "Brief is too long." }, 400);
