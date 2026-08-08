@@ -98,7 +98,10 @@ export interface ScriptRequest {
   promoCode?: string;
   promoDetail?: string;
   customBrief?: string;
+  /** Ties the ad's visual treatment to a specific strategy day. */
+  strategyPostId?: string;
 }
+
 
 export function useAdScripts() {
   const { activeWorkspaceId } = useWorkspace();
