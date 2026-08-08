@@ -287,12 +287,22 @@ Write the ${variantCount} script variants, each with its production plan, now.`;
       parsed = match ? JSON.parse(match[0]) : { variants: [] };
     }
 
-    const variants = Array.isArray(parsed.variants) ? parsed.variants : [];
-    if (!variants.length) {
+    const rawVariants = Array.isArray(parsed.variants) ? parsed.variants : [];
+    if (!rawVariants.length) {
       return json({ error: "The script engine returned nothing usable. Please try again." }, 502);
     }
 
-    return json({ variants });
+    // Sanitise the art direction: caps generated plates, drops malformed scenes,
+    // and falls back to a clean read when the model gives us nothing usable.
+    const variants = rawVariants.map((v) => {
+      const variant = (v ?? {}) as Record<string, unknown>;
+      const script = String(variant.script ?? "");
+      const plan = normalizePlan(variant.production_plan, script);
+      return { ...variant, production_plan: plan };
+    });
+
+    return json({ variants, brand_kit: brandKit });
+
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error("[ad-script] ERROR:", message);
