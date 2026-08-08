@@ -422,7 +422,7 @@ export default function Insights() {
                           ) : upload.image_url && upload.file_format !== 'csv' && upload.file_format !== 'excel' && upload.file_format !== 'json' && upload.file_format !== 'xml' ? (
                             <img 
                               src={upload.image_url} 
-                              alt="Screenshot" 
+                              alt="Uploaded analytics screenshot preview" 
                               className="w-12 h-12 object-cover rounded-lg"
                             />
                           ) : (

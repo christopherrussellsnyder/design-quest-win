@@ -1,19 +1,16 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
 import { KorexMark } from '@/components/branding/KorexMark';
+import { Seo } from '@/components/Seo';
 
 const Terms: React.FC = () => {
   return (
     <>
-      <Helmet>
-        <title>Terms of Service | Korex</title>
-        <meta name="description" content="Terms of Service for Korex Intelligence Systems - the marketing intelligence platform." />
-        <meta property="og:title" content="Terms of Service | Korex" />
-        <meta property="og:description" content="Read Korex's Terms of Service governing use of our marketing intelligence platform." />
-        <meta property="og:type" content="website" />
-        <meta name="robots" content="index, follow" />
-      </Helmet>
+      <Seo
+        title="Terms of Service | Korex Intelligence Systems"
+        description="Read the Terms of Service governing your use of Korex Intelligence Systems, our marketing intelligence platform, subscriptions and refund policy."
+        path="/terms"
+      />
 
       <div className="min-h-screen bg-background">
         <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-50">
