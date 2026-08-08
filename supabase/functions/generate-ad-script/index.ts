@@ -222,6 +222,8 @@ EDIT & CINEMATOGRAPHY — you are cutting this ad, not stacking slides. Every sc
 - "camera_move": "static" | "push-in" | "pull-out" | "pan" | "tilt" | "handheld" | "whip" — the hook almost always pushes in. Never repeat the same move on consecutive beats.
 - "composition": "full-bleed" | "presenter-left" | "presenter-right" | "pip" | "split" — this decides where the presenter sits over the visual. Alternate sides across the ad so the frame keeps changing.
 - "energy": "calm" | "steady" | "punchy" — the hook, promo and close run punchy; the mechanism can breathe.
+- "duration_seconds": how long this beat is on screen, matching how long its "spoken" line takes to say at roughly 2.4 words per second. Hooks run 2-3s; no single beat runs longer than 8s.
+- "text_position": "top" | "center" | "lower-third" — where the on-screen headline sits. Burned-in captions own the bottom of the frame, so use "lower-third" sparingly and never on a beat that already carries a long spoken line.
 Also set "edit_style" on the production plan: one line describing the overall cut rhythm (e.g. "fast punch-in cuts with two wide breathers").
 Design the cut like an editor: open tight and punchy, widen for the mechanism, then snap back tight for the promo and close.
 
