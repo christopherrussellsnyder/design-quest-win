@@ -134,6 +134,7 @@ export default function ContentGeneration() {
       promoCode: handoff.promoCode || undefined,
       customBrief: handoff.videoBrief,
       strategyPostId,
+      platform: handoff.platform,
     });
   }, [handoff, isGenerating, variants.length, generate, strategyPostId]);
 
@@ -369,6 +370,7 @@ export default function ContentGeneration() {
                       promoCode: promoCode || undefined,
                       customBrief: brief || undefined,
                       strategyPostId,
+                      platform: handoff?.platform,
 
                     })
                   }
