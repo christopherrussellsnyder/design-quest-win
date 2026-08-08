@@ -159,7 +159,9 @@ export async function uploadHeygenImage(
     throw new Error("HeyGen returned a malformed asset response");
   }
 
-  return { url: parsed?.data?.url, assetId: parsed?.data?.image_key ?? parsed?.data?.id };
+  // `image_key` is an upload path, not a render-time asset id — never use it as one.
+  return { url: parsed?.data?.url, assetId: parsed?.data?.id };
+
 }
 
 
