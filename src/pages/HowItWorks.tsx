@@ -219,7 +219,7 @@ export default function HowItWorks() {
               See It Run on Your Business
             </h2>
             <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
-              Generate your first strategy in under two minutes. Free to start — no credit card required.
+              Run the full research pipeline on your own business and see the evidence behind every recommendation. Free to start — no credit card required.
             </p>
             <Link to="/signup" className="inline-flex items-center gap-2 px-10 py-4 bg-gradient-to-r from-primary to-[hsl(var(--primary-dark))] text-white text-lg font-bold rounded-sm hover:scale-105 transition-all shadow-[0_0_30px_hsl(var(--primary) / 0.3)]">
               Start Free Today <ArrowRight className="w-5 h-5" />

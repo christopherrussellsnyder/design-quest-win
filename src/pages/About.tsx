@@ -64,7 +64,7 @@ export default function About() {
     <>
       <Helmet>
         <title>About | Korex Intelligence Systems</title>
-        <meta name="description" content="Built for marketers who play to win. Learn about Korex Intelligence Systems and our mission to democratize marketing intelligence." />
+        <meta name="description" content="How Korex Intelligence Systems works: a live research pipeline, business-grounded strategy generation and a senior-level review pass on every plan." />
       </Helmet>
 
       <div className="min-h-screen bg-background text-foreground">
