@@ -226,7 +226,9 @@ export function useVideoAds() {
       voiceId: string;
       aspectRatio: string;
       strategyPostId?: string;
+      productionPlan?: unknown;
     }) => invokeFn<{ id: string }>('generate-video-ad', { ...input, workspaceId: activeWorkspaceId }),
+
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey });
       queryClient.invalidateQueries({ queryKey: ['ad-actors'] });
