@@ -490,6 +490,9 @@ export function normalizePlan(plan: unknown, fallbackScript: string): Production
       )
         ? scene.visual
         : "avatar";
+      const pick = <T extends string>(value: unknown, allowed: readonly T[]): T | undefined =>
+        allowed.includes(value as T) ? (value as T) : undefined;
+
       return {
         role: String(scene.role ?? "beat"),
         spoken: scene.spoken.trim(),
@@ -499,8 +502,34 @@ export function normalizePlan(plan: unknown, fallbackScript: string): Production
         background_color: /^#[0-9a-fA-F]{3,8}$/.test(String(scene.background_color ?? ""))
           ? String(scene.background_color)
           : undefined,
+        shot_type: pick(scene.shot_type, [
+          "extreme-close",
+          "close-up",
+          "medium",
+          "wide",
+          "overhead",
+          "detail-insert",
+        ] as const),
+        camera_move: pick(scene.camera_move, [
+          "static",
+          "push-in",
+          "pull-out",
+          "pan",
+          "tilt",
+          "handheld",
+          "whip",
+        ] as const),
+        composition: pick(scene.composition, [
+          "full-bleed",
+          "presenter-left",
+          "presenter-right",
+          "pip",
+          "split",
+        ] as const),
+        energy: pick(scene.energy, ["calm", "steady", "punchy"] as const),
       };
     });
+
 
   if (!scenes.length) {
     // Even a bare script gets a produced treatment — a flat talking head is
