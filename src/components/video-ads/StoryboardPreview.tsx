@@ -16,6 +16,7 @@ import {
   COMPOSITION_LABELS,
   SCENE_VISUAL_LABELS,
   SHOT_LABELS,
+  TEXT_POSITION_LABELS,
   TREATMENT_LABELS,
   type ProductionPlan,
   type SceneVisual,
@@ -49,6 +50,16 @@ export function StoryboardPreview({ plan, stale }: Props) {
           <Badge variant="outline" className="border-border text-[10px]">
             {plan.scenes.length} {plan.scenes.length === 1 ? 'scene' : 'scenes'}
           </Badge>
+          {plan.total_seconds ? (
+            <Badge variant="outline" className="border-border text-[10px]">
+              ~{plan.total_seconds}s
+            </Badge>
+          ) : null}
+          {plan.format ? (
+            <Badge variant="outline" className="border-border text-[10px]">
+              {plan.format.width}×{plan.format.height}
+            </Badge>
+          ) : null}
           {plan.captions && (
             <Badge variant="outline" className="border-border text-[10px] gap-1">
               <Captions className="w-3 h-3" />
@@ -56,6 +67,7 @@ export function StoryboardPreview({ plan, stale }: Props) {
             </Badge>
           )}
         </div>
+
 
         {plan.rationale && (
           <p className="text-xs text-muted-foreground leading-relaxed">{plan.rationale}</p>
@@ -95,10 +107,16 @@ export function StoryboardPreview({ plan, stale }: Props) {
                       <Icon className="w-3 h-3" />
                       {SCENE_VISUAL_LABELS[scene.visual] ?? scene.visual}
                     </Badge>
+                    {scene.duration_seconds ? (
+                      <span className="text-[10px] text-muted-foreground tabular-nums">
+                        {scene.duration_seconds}s
+                      </span>
+                    ) : null}
                     {scene.on_screen_text && (
                       <span className="text-[11px] text-primary">“{scene.on_screen_text}”</span>
                     )}
                   </div>
+
                   <p className="text-xs text-muted-foreground line-clamp-3">{scene.spoken}</p>
 
                   <div className="flex flex-wrap items-center gap-1.5">
@@ -124,7 +142,13 @@ export function StoryboardPreview({ plan, stale }: Props) {
                         {scene.energy}
                       </span>
                     )}
+                    {scene.on_screen_text && scene.text_position && (
+                      <span className="text-[10px] rounded border border-border px-1.5 py-0.5 text-muted-foreground">
+                        {TEXT_POSITION_LABELS[scene.text_position] ?? scene.text_position}
+                      </span>
+                    )}
                   </div>
+
                   {scene.background_prompt && (
                     <p className="text-[11px] text-[hsl(var(--text-tertiary))] line-clamp-2 italic">
                       {scene.background_prompt}

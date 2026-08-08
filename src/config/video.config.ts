@@ -48,6 +48,16 @@ export type CameraMove =
   | 'whip';
 export type Composition = 'full-bleed' | 'presenter-left' | 'presenter-right' | 'pip' | 'split';
 export type SceneEnergy = 'calm' | 'steady' | 'punchy';
+export type TextPosition = 'top' | 'center' | 'lower-third';
+
+/** Pixel spec + safe zones for a delivery format. Mirrors FORMAT_SPECS on the backend. */
+export interface FormatSpec {
+  aspect: string;
+  width: number;
+  height: number;
+  safe: { top: number; bottom: number; left: number; right: number };
+  captionBand: string;
+}
 
 export interface AdScene {
   role: string;
@@ -60,6 +70,8 @@ export interface AdScene {
   camera_move?: CameraMove;
   composition?: Composition;
   energy?: SceneEnergy;
+  duration_seconds?: number;
+  text_position?: TextPosition;
 }
 
 export interface ProductionPlan {
@@ -69,7 +81,10 @@ export interface ProductionPlan {
   edit_style?: string;
   scenes: AdScene[];
   assets?: { role: string; visual: string; storage_path?: string }[];
+  format?: FormatSpec;
+  total_seconds?: number;
 }
+
 
 export const SCENE_VISUAL_LABELS: Record<SceneVisual, string> = {
   avatar: 'Presenter',
@@ -111,6 +126,13 @@ export const TREATMENT_LABELS: Record<ProductionPlan['treatment'], string> = {
   'text-driven': 'Text driven',
   hybrid: 'Hybrid',
 };
+
+export const TEXT_POSITION_LABELS: Record<TextPosition, string> = {
+  top: 'Text top',
+  center: 'Text centre',
+  'lower-third': 'Text lower third',
+};
+
 
 export interface VideoAdRecord {
   id: string;
