@@ -25,34 +25,36 @@ const AnimatedSection = ({ children, className = '', delay = 0 }: { children: Re
 
 // --- Data ---
 const painPoints = [
-  'Spending 8-12 hours every month planning content',
-  'Paying $3,000-$10,000/month for agency retainers',
-  'Using generic AI tools that give template responses',
-  'Guessing what content will actually perform',
+  'Marketing advice based on opinion instead of current market evidence',
+  'Generic AI that has never seen your website, your offer, or your numbers',
+  'No visibility into what competitors in your niche are actually running',
+  'Plans that ignore how each platform ranks and distributes content',
 ];
 
 const howItWorks = [
-  { icon: Upload, title: 'Upload Analytics', desc: 'Instagram, Facebook, TikTok, Google Ads — any platform' },
-  { icon: Brain, title: 'AI Analysis', desc: 'Real-time performance data analysis in 30 seconds' },
-  { icon: BarChart3, title: 'Generate Strategy', desc: 'Complete 14-day strategy + content calendar' },
-  { icon: Download, title: 'Export & Implement', desc: 'Download as PDF or copy directly' },
+  { icon: Search, title: 'We read the market', desc: 'Live search demand, competitor ads and community discussion in your niche are pulled in as evidence.' },
+  { icon: Globe, title: 'We read your business', desc: 'Your site is crawled and your uploaded analytics parsed, so the plan is grounded in your real offer and real numbers.' },
+  { icon: Brain, title: 'We build the plan', desc: 'Every post is written against platform ranking behaviour — hook, format, timing and campaign structure.' },
+  { icon: Shield, title: 'We review it before you see it', desc: 'A senior-strategist critic pass challenges weak angles and rewrites the plan before delivery.' },
 ];
 
 const comparisonData = [
-  { label: 'Cost/Month', korex: '$49', agency: '$3-10K', freelancer: '$500-2K', chatgpt: '$20' },
-  { label: 'Strategy Time', korex: '60 sec', agency: '2-3 weeks', freelancer: '1 week', chatgpt: 'Manual' },
-  { label: 'Uses Your Data', korex: true, agency: true, freelancer: false, chatgpt: false },
-  { label: 'Platform AI', korex: true, agency: false, freelancer: false, chatgpt: false },
-  { label: 'Revisions', korex: 'Unlimited', agency: '2-3 max', freelancer: 'Limited', chatgpt: 'Manual' },
-  { label: 'Content Calendar', korex: true, agency: true, freelancer: true, chatgpt: false },
+  { label: 'Cost/Month', korex: '$99', agency: '$3-10K', freelancer: '$500-2K', chatgpt: '$20' },
+  { label: 'Uses live market data', korex: true, agency: false, freelancer: false, chatgpt: false },
+  { label: 'Competitor ad recon', korex: true, agency: true, freelancer: false, chatgpt: false },
+  { label: 'Reads your own site & analytics', korex: true, agency: true, freelancer: false, chatgpt: false },
+  { label: 'Platform ranking logic', korex: true, agency: false, freelancer: false, chatgpt: false },
+  { label: 'Reviewed before delivery', korex: 'Critic pass', agency: 'Varies', freelancer: 'Rarely', chatgpt: 'Never' },
+  { label: 'Shows its evidence', korex: true, agency: false, freelancer: false, chatgpt: false },
 ];
 
 const techSteps = [
-  { name: 'OCR Analysis', time: '2 seconds', details: ['Extracts all metrics from screenshots', 'Supports any platform, any format'] },
-  { name: 'Pattern Recognition', time: '10 seconds', details: ['Identifies top-performing content types', 'Maps engagement patterns', 'Analyzes audience behavior'] },
-  { name: 'Algorithm Optimization', time: '15 seconds', details: ['Platform-specific ranking signals', 'Instagram: Engagement-first', 'TikTok: Watch time + completion rate'] },
-  { name: 'Strategy Generation', time: '25 seconds', details: ['Personalized 14-day plan', 'Content calendar with daily tasks', 'Performance prediction modeling'] },
-  { name: 'Export & Implement', time: '8 seconds', details: ['Download as PDF or copy directly'] },
+  { name: 'Demand capture', time: 'Search signals', details: ['Reads live search demand for your category', 'Separates what people are actively looking for from what is only trending'] },
+  { name: 'Competitor ad recon', time: 'Paid signals', details: ['Pulls ads currently running in your niche', 'Breaks down the hooks, offers and formats behind them'] },
+  { name: 'Sentiment mining', time: 'Community signals', details: ['Reads how real buyers describe the problem in their own words', 'Turns their language into hooks that sound human'] },
+  { name: 'Business grounding', time: 'Your data', details: ['Crawls your website for offer, pricing and positioning', 'Parses uploaded analytics to learn what already performs for you'] },
+  { name: 'Platform modelling', time: 'Distribution logic', details: ['Applies how each platform actually ranks content', 'Chooses format, hook length, posting cadence and campaign structure (CBO / ABO / Advantage+)'] },
+  { name: 'Critic pass', time: 'Quality control', details: ['A second model attacks the draft like a senior strategist', 'Weak angles are rewritten before the plan reaches you'] },
 ];
 
 const faqs = [
