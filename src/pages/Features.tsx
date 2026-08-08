@@ -112,7 +112,8 @@ export default function Features() {
             </motion.h1>
             <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }}
               className="text-lg text-muted-foreground max-w-2xl mx-auto mb-10">
-              Korex researches your market with live data, builds the strategy, writes the copy, and produces the images and video ads — then reports on what worked.
+              Every output starts with evidence: live search demand, competitor ad recon, buyer language, your own site and
+              your own analytics. Korex builds the strategy from that, produces the creative, and reports on what worked.
             </motion.p>
 
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.4 }}>
@@ -122,6 +123,58 @@ export default function Features() {
             </motion.div>
           </div>
         </section>
+
+        {/* Under the hood */}
+        <section className="py-20 px-4 border-y border-border">
+          <div className="max-w-5xl mx-auto">
+            <p className="eyebrow mb-4">Under the hood</p>
+            <h2 className="text-3xl font-semibold mb-4 max-w-3xl">Two engines do the heavy lifting</h2>
+            <p className="text-muted-foreground max-w-3xl leading-relaxed mb-12">
+              Most tools are a prompt with a nice interface. Korex runs a research pipeline before any writing happens, and
+              a review pass after. Here is what each engine is actually doing, without the jargon.
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-card border border-border rounded-sm p-7">
+                <div className="flex items-center gap-3 mb-4">
+                  <Search className="w-5 h-5 text-primary" />
+                  <h3 className="font-bold">Research Analysis engine</h3>
+                </div>
+                <ol className="space-y-3 text-sm text-muted-foreground leading-relaxed list-decimal pl-4">
+                  <li>Queries live search demand to see what your market is actively looking for right now.</li>
+                  <li>Pulls ads currently running in your niche from public ad libraries and breaks down their hooks, offers and formats.</li>
+                  <li>Mines community discussion so we capture the exact words buyers use to describe the problem.</li>
+                  <li>Extracts the organic patterns performing per platform — hook style, format, length, cadence.</li>
+                  <li>De-duplicates, scores relevance and discards anything that cannot be traced to a source.</li>
+                  <li>Caches the result per niche and refreshes it on a rolling 24-hour cycle.</li>
+                </ol>
+              </div>
+
+              <div className="bg-card border border-border rounded-sm p-7">
+                <div className="flex items-center gap-3 mb-4">
+                  <Brain className="w-5 h-5 text-primary" />
+                  <h3 className="font-bold">Strategy generation engine</h3>
+                </div>
+                <ol className="space-y-3 text-sm text-muted-foreground leading-relaxed list-decimal pl-4">
+                  <li>Crawls your website to learn your real offer, pricing, positioning and proof.</li>
+                  <li>Parses any analytics you have uploaded to learn what already performs for your audience.</li>
+                  <li>Layers in your stated audience demographics and differentiators so two businesses in one niche never get the same plan.</li>
+                  <li>Applies platform distribution logic — how each network ranks and surfaces content — to choose format, hook and timing.</li>
+                  <li>Selects the paid campaign structure that fits your budget and stage (CBO, ABO or Advantage+).</li>
+                  <li>Hands the draft to a critic model that attacks weak angles and rewrites them before delivery.</li>
+                </ol>
+              </div>
+            </div>
+
+            <div className="border-l-2 border-[hsl(var(--accent-gold))] pl-6 py-2 mt-10 max-w-3xl">
+              <p className="text-foreground leading-relaxed">
+                The short version: we do not ask an AI what it thinks might work. We collect what is already working in your
+                market, prove it against your own business data, and only then write the plan.
+              </p>
+            </div>
+          </div>
+        </section>
+
 
         {/* Features Grid */}
         <section className="py-24 px-4 bg-muted">

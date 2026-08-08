@@ -2,8 +2,8 @@ import { Link } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
 import { motion, useInView, AnimatePresence } from 'framer-motion';
 import {
-  Upload, Brain, BarChart3, Download, ChevronDown,
-  Check, X, ArrowRight, Shield, Minus, Plus,
+  Brain, BarChart3, ChevronDown,
+  Check, X, ArrowRight, Shield,
   Clock, DollarSign, Users, Zap,
   Lock, Globe, Award,
   Video, Search, Building2, FileBarChart, SplitSquareHorizontal,
@@ -25,41 +25,43 @@ const AnimatedSection = ({ children, className = '', delay = 0 }: { children: Re
 
 // --- Data ---
 const painPoints = [
-  'Spending 8-12 hours every month planning content',
-  'Paying $3,000-$10,000/month for agency retainers',
-  'Using generic AI tools that give template responses',
-  'Guessing what content will actually perform',
+  'Marketing advice based on opinion instead of current market evidence',
+  'Generic AI that has never seen your website, your offer, or your numbers',
+  'No visibility into what competitors in your niche are actually running',
+  'Plans that ignore how each platform ranks and distributes content',
 ];
 
 const howItWorks = [
-  { icon: Upload, title: 'Upload Analytics', desc: 'Instagram, Facebook, TikTok, Google Ads — any platform' },
-  { icon: Brain, title: 'AI Analysis', desc: 'Real-time performance data analysis in 30 seconds' },
-  { icon: BarChart3, title: 'Generate Strategy', desc: 'Complete 14-day strategy + content calendar' },
-  { icon: Download, title: 'Export & Implement', desc: 'Download as PDF or copy directly' },
+  { icon: Search, title: 'We read the market', desc: 'Live search demand, competitor ads and community discussion in your niche are pulled in as evidence.' },
+  { icon: Globe, title: 'We read your business', desc: 'Your site is crawled and your uploaded analytics parsed, so the plan is grounded in your real offer and real numbers.' },
+  { icon: Brain, title: 'We build the plan', desc: 'Every post is written against platform ranking behaviour — hook, format, timing and campaign structure.' },
+  { icon: Shield, title: 'We review it before you see it', desc: 'A senior-strategist critic pass challenges weak angles and rewrites the plan before delivery.' },
 ];
 
 const comparisonData = [
-  { label: 'Cost/Month', korex: '$49', agency: '$3-10K', freelancer: '$500-2K', chatgpt: '$20' },
-  { label: 'Strategy Time', korex: '60 sec', agency: '2-3 weeks', freelancer: '1 week', chatgpt: 'Manual' },
-  { label: 'Uses Your Data', korex: true, agency: true, freelancer: false, chatgpt: false },
-  { label: 'Platform AI', korex: true, agency: false, freelancer: false, chatgpt: false },
-  { label: 'Revisions', korex: 'Unlimited', agency: '2-3 max', freelancer: 'Limited', chatgpt: 'Manual' },
-  { label: 'Content Calendar', korex: true, agency: true, freelancer: true, chatgpt: false },
+  { label: 'Cost/Month', korex: '$99', agency: '$3-10K', freelancer: '$500-2K', chatgpt: '$20' },
+  { label: 'Uses live market data', korex: true, agency: false, freelancer: false, chatgpt: false },
+  { label: 'Competitor ad recon', korex: true, agency: true, freelancer: false, chatgpt: false },
+  { label: 'Reads your own site & analytics', korex: true, agency: true, freelancer: false, chatgpt: false },
+  { label: 'Platform ranking logic', korex: true, agency: false, freelancer: false, chatgpt: false },
+  { label: 'Reviewed before delivery', korex: 'Critic pass', agency: 'Varies', freelancer: 'Rarely', chatgpt: 'Never' },
+  { label: 'Shows its evidence', korex: true, agency: false, freelancer: false, chatgpt: false },
 ];
 
 const techSteps = [
-  { name: 'OCR Analysis', time: '2 seconds', details: ['Extracts all metrics from screenshots', 'Supports any platform, any format'] },
-  { name: 'Pattern Recognition', time: '10 seconds', details: ['Identifies top-performing content types', 'Maps engagement patterns', 'Analyzes audience behavior'] },
-  { name: 'Algorithm Optimization', time: '15 seconds', details: ['Platform-specific ranking signals', 'Instagram: Engagement-first', 'TikTok: Watch time + completion rate'] },
-  { name: 'Strategy Generation', time: '25 seconds', details: ['Personalized 14-day plan', 'Content calendar with daily tasks', 'Performance prediction modeling'] },
-  { name: 'Export & Implement', time: '8 seconds', details: ['Download as PDF or copy directly'] },
+  { name: 'Demand capture', time: 'Search signals', details: ['Reads live search demand for your category', 'Separates what people are actively looking for from what is only trending'] },
+  { name: 'Competitor ad recon', time: 'Paid signals', details: ['Pulls ads currently running in your niche', 'Breaks down the hooks, offers and formats behind them'] },
+  { name: 'Sentiment mining', time: 'Community signals', details: ['Reads how real buyers describe the problem in their own words', 'Turns their language into hooks that sound human'] },
+  { name: 'Business grounding', time: 'Your data', details: ['Crawls your website for offer, pricing and positioning', 'Parses uploaded analytics to learn what already performs for you'] },
+  { name: 'Platform modelling', time: 'Distribution logic', details: ['Applies how each platform actually ranks content', 'Chooses format, hook length, posting cadence and campaign structure (CBO / ABO / Advantage+)'] },
+  { name: 'Critic pass', time: 'Quality control', details: ['A second model attacks the draft like a senior strategist', 'Weak angles are rewritten before the plan reaches you'] },
 ];
 
 const faqs = [
-  { q: 'Is this just ChatGPT with a wrapper?', a: 'No. ChatGPT gives template responses. Korex analyzes YOUR actual performance data using proprietary algorithms trained on $10M+ in ad spend. It\'s like the difference between getting generic advice vs. hiring a strategist who studied your business.' },
-  { q: 'Do I need to be tech-savvy?', a: 'Not at all. If you can take a screenshot and upload it, you can use Korex. The interface is simpler than Instagram.' },
-  { q: 'What platforms do you support?', a: 'Any platform you can screenshot. Instagram, Facebook, TikTok, Google Ads, LinkedIn, Twitter, YouTube, Pinterest, Shopify — if you have analytics, we can analyze them.' },
-  { q: 'How is this different from a marketing agency?', a: 'Cost: $99/month vs $3,000-$10,000/month. Speed: 60 seconds vs 2-3 weeks. Revisions: Unlimited vs 2-3 max. Data: Real-time analysis vs monthly reports.' },
+  { q: 'Is this just ChatGPT with a wrapper?', a: 'No. A general AI answers from memory. Korex runs a research pipeline first: it queries live search demand, pulls competitor ads currently running in your niche, mines how buyers describe the problem, crawls your own site, and parses your uploaded analytics. Only then does it write — and a second model reviews the draft before you see it.' },
+  { q: 'Do I need to be tech-savvy?', a: 'No. The technical work happens on our side. You describe your business once, upload analytics if you have them, and read a plan written in plain language with the reasoning attached.' },
+  { q: 'What platforms do you support?', a: 'Any platform you can screenshot or export. Instagram, Facebook, TikTok, Google Ads, LinkedIn, Twitter, YouTube, Pinterest, Shopify — if you have analytics, we can analyze them.' },
+  { q: 'How is this different from a marketing agency?', a: 'An agency gives you a strategist\'s opinion, refreshed monthly. Korex gives you a research pipeline that re-reads your market every 24 hours, shows the evidence behind each recommendation, and lets you regenerate as often as you want — at $99/month instead of $3,000–$10,000.' },
   { q: 'What do I get with the free Starter plan?', a: 'You get 2 free strategy generations with no credit card required. After using them, you can upgrade to Pro for unlimited access or continue using basic features.' },
   { q: 'Can I cancel anytime?', a: 'Yes. Cancel in 2 clicks. No contracts, no commitments.' },
 ];
@@ -103,17 +105,6 @@ const Index = () => {
   const [showFloatingCta, setShowFloatingCta] = useState(false);
   const [floatingDismissed, setFloatingDismissed] = useState(false);
 
-  // Calculator state
-  const [calcResearch, setCalcResearch] = useState(4);
-  const [calcPlanning, setCalcPlanning] = useState(6);
-  const [calcCalendar, setCalcCalendar] = useState(3);
-  const [calcHourlyRate, setCalcHourlyRate] = useState(50);
-
-  const totalHours = calcResearch + calcPlanning + calcCalendar;
-  const annualHours = totalHours * 12;
-  const annualValue = annualHours * calcHourlyRate;
-  const netBenefit = annualValue - 831;
-  const roi = Math.round((netBenefit / 831) * 100);
 
   useEffect(() => {
     const onScroll = () => setShowFloatingCta(window.scrollY > 800);
@@ -140,14 +131,15 @@ const Index = () => {
 
               <motion.h1 initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }}
                 className="text-4xl sm:text-5xl lg:text-[64px] font-semibold tracking-tight leading-[1.05] mb-7">
-                Agency-grade marketing strategy,{' '}
-                <span className="text-primary">delivered in sixty seconds.</span>
+                Marketing strategy built from evidence,{' '}
+                <span className="text-primary">not opinion.</span>
               </motion.h1>
 
               <motion.p initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.35 }}
                 className="text-lg sm:text-xl text-muted-foreground max-w-xl leading-relaxed mb-9">
-                Korex turns live market data, competitor ad intelligence and your own performance history into a
-                complete, executable plan — researched, written and reviewed before it reaches you.
+                Before Korex writes a single post, it reads live search demand, the ads your competitors are running right now,
+                how real buyers talk about the problem, your own website and your own analytics. Then a second model reviews
+                the plan like a senior strategist and rewrites what is weak. You see the reasoning, not just the output.
               </motion.p>
 
               <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.5 }}
@@ -188,10 +180,10 @@ const Index = () => {
           <div className="border-y border-[hsl(var(--foreground)/0.1)] mt-16 py-8">
             <div className="flex flex-wrap justify-between items-center gap-8">
               {[
-                { v: '60 sec', l: 'Full strategy turnaround' },
-                { v: '9', l: 'Platforms analysed' },
-                { v: '14-day', l: 'Executable content calendars' },
-                { v: 'CMO-grade', l: 'Critic review on every plan' },
+                { v: '5', l: 'Live data sources per strategy' },
+                { v: '9', l: 'Platforms modelled' },
+                { v: '24h', l: 'Market intelligence refresh' },
+                { v: 'Critic', l: 'Review pass on every plan' },
               ].map((s) => (
                 <div key={s.l} className="flex flex-col">
                   <span className="text-foreground text-2xl font-semibold tracking-tight">{s.v}</span>
@@ -209,9 +201,9 @@ const Index = () => {
         <div className="max-w-4xl mx-auto">
           <AnimatedSection className="text-center mb-12">
             <h2 className="text-3xl sm:text-[40px] font-semibold mb-4">
-              Creating Effective Marketing Strategies Shouldn't Take Days
+              Most Marketing Plans Are Written Without Evidence
             </h2>
-            <p className="text-lg text-muted-foreground">If you're an e-commerce founder or marketing manager, you know the pain:</p>
+            <p className="text-lg text-muted-foreground">The problem is not effort. It is what the plan was built on:</p>
           </AnimatedSection>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">
@@ -226,7 +218,7 @@ const Index = () => {
           </div>
 
           <AnimatedSection className="text-center" delay={0.4}>
-            <p className="text-2xl font-bold text-primary">There's a better way.</p>
+            <p className="text-2xl font-bold text-primary">A strategy is only as good as the evidence underneath it.</p>
           </AnimatedSection>
         </div>
       </section>
@@ -236,10 +228,10 @@ const Index = () => {
         <div className="max-w-5xl mx-auto">
           <AnimatedSection className="text-center mb-16">
             <h2 className="text-3xl sm:text-[42px] font-semibold mb-4">
-              Korex: Marketing Intelligence That{' '}
-              <span className="text-primary">Actually Knows Your Business</span>
+              What Happens{' '}
+              <span className="text-primary">Before You Get a Plan</span>
             </h2>
-            <p className="text-muted-foreground text-lg mt-4">No templates. No guessing. Just strategies built for YOUR audience.</p>
+            <p className="text-muted-foreground text-lg mt-4">Four stages run on every generation. Plain English, no jargon required.</p>
           </AnimatedSection>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -337,8 +329,8 @@ const Index = () => {
 
           <AnimatedSection className="mt-8" delay={0.2}>
             <div className="border border-[hsl(var(--primary)/0.3)] rounded-sm p-6 text-center bg-[hsl(var(--primary)/0.05)]">
-              <p className="text-lg font-bold">With Korex, you save <span className="text-primary">$5,412–$119,412</span> annually.</p>
-              <p className="text-muted-foreground text-sm mt-1">Plus 156 hours of your time.</p>
+              <p className="text-lg font-bold">The difference is the <span className="text-primary">inputs</span>, not the output format.</p>
+              <p className="text-muted-foreground text-sm mt-1">Anyone can produce a content calendar. Korex shows you the market evidence each recommendation came from.</p>
             </div>
           </AnimatedSection>
         </div>
@@ -395,85 +387,60 @@ const Index = () => {
         </div>
       </section>
 
-      {/* =================== TIME SAVINGS CALCULATOR =================== */}
+      {/* =================== RESEARCH ANALYSIS EXPLAINER =================== */}
       <section className="py-24 px-4 bg-muted">
-        <div className="max-w-3xl mx-auto">
-          <AnimatedSection className="text-center mb-12">
-            <h2 className="text-3xl sm:text-[40px] font-semibold mb-4">
-              Calculate Your Time Savings
+        <div className="max-w-5xl mx-auto">
+          <AnimatedSection className="mb-12">
+            <p className="eyebrow mb-4">Research Analysis</p>
+            <h2 className="text-3xl sm:text-[40px] font-semibold mb-4 max-w-3xl">
+              A standing intelligence desk for your niche
             </h2>
+            <p className="text-muted-foreground text-lg max-w-3xl leading-relaxed">
+              Research Analysis runs continuously in the background, not only when you ask for a strategy. It watches your
+              category across every major platform and keeps a current picture of what is working — so when you do generate a
+              plan, it is written against this week's market, not a model's memory of last year.
+            </p>
           </AnimatedSection>
 
-          <AnimatedSection>
-            <div className="bg-card border border-border rounded-sm p-8">
-              <div className="space-y-6 mb-8">
-                {[
-                  { label: 'Market research', value: calcResearch, setter: setCalcResearch },
-                  { label: 'Strategy planning', value: calcPlanning, setter: setCalcPlanning },
-                  { label: 'Content calendar creation', value: calcCalendar, setter: setCalcCalendar },
-                ].map((item, i) => (
-                  <div key={i} className="flex items-center justify-between gap-4">
-                    <span className="text-sm text-muted-foreground flex-1">{item.label}</span>
-                    <div className="flex items-center gap-2">
-                      <button onClick={() => item.setter(Math.max(0, item.value - 1))} className="w-8 h-8 rounded-sm bg-border flex items-center justify-center text-muted-foreground hover:bg-border transition-colors">
-                        <Minus className="w-3 h-3" />
-                      </button>
-                      <span className="w-10 text-center font-bold">{item.value}</span>
-                      <button onClick={() => item.setter(item.value + 1)} className="w-8 h-8 rounded-sm bg-border flex items-center justify-center text-muted-foreground hover:bg-border transition-colors">
-                        <Plus className="w-3 h-3" />
-                      </button>
-                      <span className="text-xs text-[hsl(var(--text-tertiary))] w-16">hrs/mo</span>
-                    </div>
-                  </div>
-                ))}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {[
+              {
+                t: 'What it collects',
+                b: 'Search demand for your category, ads currently running by competitors, hooks and formats performing organically per platform, and how buyers describe the problem in their own words.',
+              },
+              {
+                t: 'How it gets it',
+                b: 'Live search and ad-library queries, platform-level content pattern extraction, community discussion mining, and a crawl of your own site for offer, pricing and positioning.',
+              },
+              {
+                t: 'How it is cleaned',
+                b: 'Raw signals are de-duplicated, scored for relevance to your niche and stripped of noise. Anything that cannot be tied back to a source is discarded rather than guessed.',
+              },
+              {
+                t: 'Why it stays current',
+                b: 'The intelligence layer refreshes on a rolling 24-hour cycle and is cached per niche, so every strategy and every ad script draws from the same fresh, shared evidence base.',
+              },
+            ].map((c, i) => (
+              <AnimatedSection key={c.t} delay={i * 0.08}>
+                <div className="bg-card border border-border rounded-sm p-6 h-full">
+                  <h3 className="font-bold mb-2">{c.t}</h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed">{c.b}</p>
+                </div>
+              </AnimatedSection>
+            ))}
+          </div>
 
-                <div className="border-t border-border pt-4">
-                  <div className="flex items-center justify-between gap-4">
-                    <span className="text-sm text-muted-foreground">Your hourly rate</span>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-[hsl(var(--text-tertiary))]">$</span>
-                      <input
-                        type="number" value={calcHourlyRate} onChange={(e) => setCalcHourlyRate(Math.max(0, parseInt(e.target.value) || 0))}
-                        className="w-20 bg-border border border-border rounded-sm px-3 py-2 text-center text-sm focus:border-primary outline-none"
-                      />
-                      <span className="text-xs text-[hsl(var(--text-tertiary))]">/hour</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-muted rounded-sm p-6 space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span className="text-[hsl(var(--text-tertiary))]">Monthly time saved</span>
-                  <span className="font-bold">{totalHours} hours</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-[hsl(var(--text-tertiary))]">Annual time saved</span>
-                  <span className="font-bold">{annualHours} hours</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-[hsl(var(--text-tertiary))]">Annual value saved</span>
-                  <span className="font-bold text-primary">${annualValue.toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-[hsl(var(--text-tertiary))]">Korex annual cost</span>
-                  <span className="font-bold">$831</span>
-                </div>
-                <div className="border-t border-border pt-3 flex justify-between">
-                  <span className="text-muted-foreground font-semibold">ROI</span>
-                  <span className="text-2xl font-semibold text-primary">{roi > 0 ? `${roi}%` : '—'}</span>
-                </div>
-              </div>
-
-              <div className="mt-6 text-center">
-                <Link to="/signup" className="inline-flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-primary to-[hsl(var(--primary-dark))] text-white font-bold rounded-sm hover:scale-105 transition-all shadow-[0_0_20px_hsl(var(--primary) / 0.3)]">
-                  Start Free <ArrowRight className="w-4 h-4" />
-                </Link>
-              </div>
+          <AnimatedSection className="mt-8" delay={0.3}>
+            <div className="border-l-2 border-[hsl(var(--accent-gold))] pl-6 py-2 max-w-3xl">
+              <p className="text-foreground leading-relaxed">
+                In plain terms: instead of asking an AI what it thinks might work, Korex goes and looks at what is already
+                working in your market — then writes your plan from that.
+              </p>
             </div>
           </AnimatedSection>
         </div>
       </section>
+
 
       {/* =================== SOCIAL PROOF =================== */}
       <section className="py-24 px-4">
@@ -504,7 +471,8 @@ const Index = () => {
           <AnimatedSection delay={0.2}>
             <div className="bg-card border border-[hsl(var(--primary)/0.2)] rounded-sm p-8 text-center">
               <p className="text-xl sm:text-2xl italic text-muted-foreground mb-6 leading-relaxed">
-                "I spent 6 months analyzing what actually works in marketing data. Then I built an AI that does it in 60 seconds."
+                "I spent six months studying what separates campaigns that work from campaigns that don't. Korex is that
+                analysis, turned into a system that runs it for your business."
               </p>
               <p className="text-sm text-[hsl(var(--text-tertiary))]">— Founder, Korex Intelligence</p>
             </div>
@@ -517,9 +485,9 @@ const Index = () => {
         <div className="max-w-4xl mx-auto">
           <AnimatedSection className="text-center mb-12">
             <h2 className="text-3xl sm:text-[40px] font-semibold mb-4">
-              The Technology Behind Korex
+              Inside a Strategy Generation
             </h2>
-            <p className="text-muted-foreground">Powered by advanced AI + a live Research Analysis engine that tracks what's actually working — organic and paid — across every major platform.</p>
+            <p className="text-muted-foreground">Six stages run in sequence. Here is what each one is actually doing.</p>
           </AnimatedSection>
 
           <div className="space-y-4">
@@ -550,9 +518,9 @@ const Index = () => {
           <AnimatedSection className="mt-8 text-center" delay={0.5}>
             <div className="inline-flex items-center gap-4 bg-card border border-[hsl(var(--primary)/0.2)] rounded-sm px-6 py-3">
               <Clock className="w-5 h-5 text-primary" />
-              <span className="text-sm">Total time: <strong>60 seconds</strong></span>
+              <span className="text-sm">Market intelligence refreshed every <strong>24 hours</strong></span>
               <span className="text-border">|</span>
-              <span className="text-sm text-muted-foreground">You save: <strong className="text-primary">8-12 hours</strong></span>
+              <span className="text-sm text-muted-foreground">Every recommendation traceable to a <strong className="text-primary">source signal</strong></span>
             </div>
           </AnimatedSection>
         </div>
@@ -667,10 +635,10 @@ const Index = () => {
         <div className="absolute inset-0 bg-gradient-to-br from-[hsl(var(--primary)/0.05)] to-transparent pointer-events-none" />
         <AnimatedSection className="max-w-3xl mx-auto text-center relative z-10">
           <h2 className="text-3xl sm:text-5xl font-semibold mb-6">
-            Ready to Save 8 Hours Every Month?
+            Stop Guessing. Start Working From Evidence.
           </h2>
           <p className="text-muted-foreground text-lg mb-8 max-w-lg mx-auto">
-            Join the marketing teams who've automated their strategy planning.
+            Generate your first strategy and see exactly what market data it was built from.
           </p>
           <Link to="/signup"
             className="inline-flex items-center gap-2 px-10 py-4 bg-gradient-to-r from-primary to-[hsl(var(--primary-dark))] text-white text-lg font-bold rounded-sm hover:scale-105 transition-all duration-300 shadow-[0_0_30px_hsl(var(--primary) / 0.3)]">

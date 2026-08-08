@@ -10,18 +10,18 @@ import { KorexLogoLockup } from '@/components/branding/KorexLogoLockup';
 const beliefs = [
   {
     icon: Database,
-    title: 'Data Should Drive Every Decision',
-    description: 'Great marketing isn\'t guesswork. It\'s built on real signals from real audiences.',
+    title: 'Evidence Beats Opinion',
+    description: 'Every recommendation should trace back to a real signal — live search demand, a running competitor ad, or your own performance data.',
   },
   {
     icon: Sparkles,
-    title: 'AI Should Amplify Human Creativity',
-    description: 'Korex doesn\'t replace your team. It makes every member of your team more powerful.',
+    title: 'The Process Is the Product',
+    description: 'Anyone can output a content calendar. The value is in the research pipeline and the review pass that happen before it is written.',
   },
   {
     icon: Zap,
-    title: 'Speed Is a Competitive Advantage',
-    description: 'The faster you can test, learn, and adapt, the faster you grow.',
+    title: 'Sophistication Should Be Legible',
+    description: 'A deep system is worthless if you cannot understand what it did. We explain the reasoning in plain language, every time.',
   },
 ];
 
@@ -64,7 +64,7 @@ export default function About() {
     <>
       <Helmet>
         <title>About | Korex Intelligence Systems</title>
-        <meta name="description" content="Built for marketers who play to win. Learn about Korex Intelligence Systems and our mission to democratize marketing intelligence." />
+        <meta name="description" content="How Korex Intelligence Systems works: a live research pipeline, business-grounded strategy generation and a senior-level review pass on every plan." />
       </Helmet>
 
       <div className="min-h-screen bg-background text-foreground">
@@ -93,12 +93,13 @@ export default function About() {
           <div className="max-w-4xl mx-auto">
             <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
               className="text-4xl sm:text-5xl lg:text-[56px] font-semibold mb-6">
-              Built for Marketers Who{' '}
-              <span className="text-primary">Play to Win</span>
+              We Built the Research Desk{' '}
+              <span className="text-primary">Most Businesses Can't Afford</span>
             </motion.h1>
             <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }}
               className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Korex Intelligence Systems was built to give every business access to enterprise-level marketing intelligence.
+              Korex Intelligence Systems reads your market the way a well-resourced strategy team would — then explains its
+              reasoning in language any owner can act on.
             </motion.p>
           </div>
         </section>
@@ -109,9 +110,40 @@ export default function About() {
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
               <h2 className="text-3xl font-semibold mb-6">Our Mission</h2>
               <p className="text-muted-foreground text-lg leading-relaxed">
-                Marketing has always favored those with the biggest budgets and the largest teams. We built Korex to change that. Our mission is to democratize marketing intelligence — giving independent businesses, agencies, and growth teams the same AI-powered strategic advantage that Fortune 500 companies have always had.
+                Large companies do not out-market small ones because they are more creative. They do it because they can pay
+                for research: analysts watching search demand, teams tearing down competitor campaigns, strategists testing
+                positioning against real data. That research layer is the advantage — and it has always been priced out of
+                reach. Korex rebuilds it as software. The same evidence gathering, the same rigour, the same senior-level
+                review of the work — running automatically for a business of any size, and explained clearly enough that you
+                do not need a marketing background to use it.
               </p>
             </motion.div>
+          </div>
+        </section>
+
+        {/* How it actually works */}
+        <section className="py-24 px-4">
+          <div className="max-w-5xl mx-auto">
+            <h2 className="text-3xl font-semibold mb-4">How It Actually Works</h2>
+            <p className="text-muted-foreground text-lg leading-relaxed max-w-3xl mb-12">
+              Our value is not the document you receive. It is everything that happens before it is written.
+            </p>
+            <div className="space-y-6">
+              {[
+                { n: '01', t: 'We gather evidence, not opinions', b: 'Live search demand, competitor ads currently running in your niche, and the language real buyers use to describe the problem — collected fresh, on a rolling 24-hour cycle.' },
+                { n: '02', t: 'We ground it in your business', b: 'Your website is crawled for offer, pricing and positioning. Your uploaded analytics are parsed for what already works. Your stated audience and differentiators anchor the plan so it cannot drift generic.' },
+                { n: '03', t: 'We apply platform mechanics', b: 'Each network distributes content differently. Format, hook length, posting cadence and paid campaign structure are chosen against how that platform actually ranks — not a one-size template.' },
+                { n: '04', t: 'We review before you see it', b: 'A second model reads the draft like a senior strategist, challenges weak angles and rewrites them. You receive the revised version, with the reasoning attached.' },
+              ].map((s) => (
+                <div key={s.n} className="flex gap-6 border-t border-border pt-6">
+                  <span className="text-primary font-semibold text-sm pt-1 shrink-0">{s.n}</span>
+                  <div>
+                    <h3 className="font-bold mb-2">{s.t}</h3>
+                    <p className="text-muted-foreground text-sm leading-relaxed max-w-3xl">{s.b}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 
