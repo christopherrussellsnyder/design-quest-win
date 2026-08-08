@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
@@ -34,6 +34,7 @@ import { VideoAdCard } from '@/components/video-ads/VideoAdCard';
 import { StoryboardPreview } from '@/components/video-ads/StoryboardPreview';
 import { ImageStudio } from '@/components/content-generation/ImageStudio';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { readContentHandoff } from '@/lib/contentHandoff';
 
 export default function ContentGeneration() {
   const navigate = useNavigate();
@@ -42,6 +43,11 @@ export default function ContentGeneration() {
   // production layer keys off this: no linked day, no invented visuals.
   const strategyPostId = searchParams.get('strategyPostId') ?? undefined;
   const strategyTheme = searchParams.get('theme') ?? undefined;
+  // Everything the linked strategy day already decided, so nothing is retyped.
+  const handoff = useMemo(
+    () => (strategyPostId ? readContentHandoff(strategyPostId) : null),
+    [strategyPostId],
+  );
 
 
   const { data: catalog, isLoading: loadingActors, error: actorsError } = useAdActors();
@@ -50,18 +56,19 @@ export default function ContentGeneration() {
     useVideoAds();
 
   // Script step
-  const [angle, setAngle] = useState<string>('auto');
-  const [duration, setDuration] = useState<string>('30');
-  const [promoDetail, setPromoDetail] = useState('');
-  const [promoCode, setPromoCode] = useState('');
-  const [brief, setBrief] = useState('');
+  const [angle, setAngle] = useState<string>(handoff?.angle ?? 'auto');
+  const [duration, setDuration] = useState<string>(String(handoff?.durationSeconds ?? 30));
+  const [promoDetail, setPromoDetail] = useState(handoff?.promoDetail ?? '');
+  const [promoCode, setPromoCode] = useState(handoff?.promoCode ?? '');
+  const [brief, setBrief] = useState(handoff?.videoBrief ?? '');
+  const [tab, setTab] = useState<'video' | 'image'>(handoff?.tab ?? 'video');
 
   // Selection step
   const [selectedScript, setSelectedScript] = useState<AdScriptVariant | null>(null);
   const [editedScript, setEditedScript] = useState('');
   const [avatarId, setAvatarId] = useState('');
   const [voiceId, setVoiceId] = useState('');
-  const [aspectRatio, setAspectRatio] = useState('9:16');
+  const [aspectRatio, setAspectRatio] = useState(handoff?.aspectRatio ?? '9:16');
 
   const actors = catalog?.actors ?? [];
   const voices = catalog?.voices ?? [];
@@ -82,6 +89,22 @@ export default function ContentGeneration() {
   }, [quota]);
 
   const outOfCredits = quota?.limit !== null && (quota?.remaining ?? 1) <= 0;
+
+  // Auto-run the script pass once when arriving from a strategy day.
+  const autoRan = useRef(false);
+  useEffect(() => {
+    if (!handoff || autoRan.current || isGenerating || variants.length) return;
+    autoRan.current = true;
+    generate({
+      angle: handoff.angle,
+      durationSeconds: handoff.durationSeconds,
+      count: 3,
+      promoDetail: handoff.promoDetail || undefined,
+      promoCode: handoff.promoCode || undefined,
+      customBrief: handoff.videoBrief,
+      strategyPostId,
+    });
+  }, [handoff, isGenerating, variants.length, generate, strategyPostId]);
 
   const handlePickScript = (variant: AdScriptVariant) => {
     setSelectedScript(variant);
@@ -111,6 +134,19 @@ export default function ContentGeneration() {
     });
   };
 
+
+  // Preselect the first script and a default cast so the render step is ready.
+  useEffect(() => {
+    if (!handoff || selectedScript || !variants.length) return;
+    setSelectedScript(variants[0]);
+    setEditedScript(variants[0].script);
+  }, [handoff, selectedScript, variants]);
+
+  useEffect(() => {
+    if (!handoff) return;
+    if (!avatarId && actors.length) setAvatarId(actors[0].avatar_id);
+    if (!voiceId && voices.length) setVoiceId(voices[0].voice_id);
+  }, [handoff, actors, voices, avatarId, voiceId]);
 
   const providerDown =
     (actorsError as { code?: string })?.code === 'PROVIDER_NOT_CONFIGURED' ||
@@ -151,7 +187,7 @@ export default function ContentGeneration() {
         </header>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-          <Tabs defaultValue="video" className="space-y-6">
+          <Tabs value={tab} onValueChange={(v) => setTab(v as 'video' | 'image')} className="space-y-6">
             <TabsList className="bg-background border border-card">
               <TabsTrigger value="video" className="text-xs gap-1.5">
                 <Clapperboard className="w-3.5 h-3.5" />
@@ -186,9 +222,13 @@ export default function ContentGeneration() {
                 <div className="text-sm">
                   <p className="font-medium">Linked to a strategy day</p>
                   <p className="text-muted-foreground text-xs mt-1">
-                    {strategyTheme
-                      ? `Scripts and visuals will be built around “${strategyTheme}”.`
-                      : 'Scripts and visuals will be built around that day’s post — same promise, same angle.'}
+                    {handoff
+                      ? `Everything below is pre-filled from day ${handoff.dayNumber ?? ''}${
+                          strategyTheme ? ` (${strategyTheme})` : ''
+                        } — scripts are already being written for that exact post.`
+                      : strategyTheme
+                        ? `Scripts and visuals will be built around “${strategyTheme}”.`
+                        : 'Scripts and visuals will be built around that day’s post — same promise, same angle.'}
                   </p>
                 </div>
               </CardContent>
@@ -534,7 +574,12 @@ export default function ContentGeneration() {
             </TabsContent>
 
             <TabsContent value="image" className="mt-0">
-              <ImageStudio />
+              <ImageStudio
+                initialConcept={handoff?.imageConcept}
+                initialTextOverlay={handoff?.textOverlay}
+                initialPalette={handoff?.palette}
+                initialPlatform={handoff?.platform}
+              />
             </TabsContent>
           </Tabs>
         </div>
