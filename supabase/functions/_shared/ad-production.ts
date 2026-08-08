@@ -64,17 +64,48 @@ function pluckStrings(value: unknown, depth = 0): string[] {
 
 const HEX = /#[0-9a-fA-F]{3,8}\b/g;
 
+/** Keeps only real, usable hero/product photography from a scraped page. */
+function usableImages(scrapedPages: unknown, baseUrl?: string): string[] {
+  const out: string[] = [];
+  const pages = Array.isArray(scrapedPages) ? scrapedPages : [];
+
+  for (const page of pages.slice(0, 6)) {
+    const imgs = (page as { images?: { src?: string; alt?: string }[] })?.images ?? [];
+    for (const img of imgs) {
+      let src = String(img?.src ?? "").trim();
+      if (!src) continue;
+      if (src.startsWith("//")) src = `https:${src}`;
+      if (src.startsWith("/") && baseUrl) {
+        try {
+          src = new URL(src, baseUrl).toString();
+        } catch {
+          continue;
+        }
+      }
+      if (!/^https?:\/\//i.test(src)) continue;
+      // Icons, sprites, trackers and vector marks make terrible art references.
+      if (/\.svg(\?|$)|sprite|favicon|icon|logo|pixel|tracking|1x1|badge/i.test(src)) continue;
+      if (!/\.(jpe?g|png|webp|avif)(\?|$)/i.test(src) && !/images?\.|cdn|media/i.test(src)) continue;
+      out.push(src);
+      if (out.length >= 8) return out;
+    }
+  }
+  return out;
+}
+
 export async function loadBrandKit(
   supabase: SupabaseClient,
   userId: string,
   workspaceId?: string,
 ): Promise<BrandKit> {
-  const kit: BrandKit = { colors: [], fonts: [] };
+  const kit: BrandKit = { colors: [], fonts: [], referenceImages: [] };
 
   try {
     let q = supabase
       .from("business_context")
-      .select("website_url, visual_identity, brand_architecture, business_profile, executive_summary")
+      .select(
+        "website_url, visual_identity, brand_architecture, business_profile, executive_summary, scraped_pages",
+      )
       .eq("user_id", userId)
       .limit(1);
     if (workspaceId) q = q.eq("workspace_id", workspaceId);
@@ -101,12 +132,42 @@ export async function loadBrandKit(
       pluckStrings(profile.products ?? profile.offerings ?? profile.services).slice(0, 6).join("; ") || undefined;
 
     kit.summary = pluckStrings(data.executive_summary).slice(0, 3).join(" ") || undefined;
+
+    kit.referenceImages = usableImages((data as { scraped_pages?: unknown }).scraped_pages, kit.websiteUrl);
   } catch (e) {
     console.error("[ad-production] brand kit load failed (non-fatal):", e);
   }
 
   return kit;
 }
+
+/**
+ * Downloads one of the advertiser's own website images and returns it as a
+ * data URL so the image model can match their real product, palette and
+ * photographic style instead of inventing generic stock imagery.
+ */
+export async function fetchReferenceImage(urls: string[]): Promise<string | null> {
+  for (const url of urls.slice(0, 4)) {
+    try {
+      const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
+      if (!res.ok) continue;
+      const type = res.headers.get("content-type") ?? "image/jpeg";
+      if (!type.startsWith("image/")) continue;
+      const buf = new Uint8Array(await res.arrayBuffer());
+      // Skip tracking pixels and anything too heavy to inline.
+      if (buf.byteLength < 8_000 || buf.byteLength > 4_000_000) continue;
+      let binary = "";
+      for (let i = 0; i < buf.length; i += 0x8000) {
+        binary += String.fromCharCode(...buf.subarray(i, i + 0x8000));
+      }
+      return `data:${type};base64,${btoa(binary)}`;
+    } catch {
+      continue;
+    }
+  }
+  return null;
+}
+
 
 /* -------------------------------------------------------------------------- */
 /* Diversification — never ship the same look twice in a row                   */
