@@ -318,7 +318,14 @@ export async function archiveSceneImage(
 /* -------------------------------------------------------------------------- */
 
 /** Caps how much visual production a single render is allowed to request. */
-export const MAX_GENERATED_PLATES = 2;
+export const MAX_GENERATED_PLATES = 4;
+
+/** Compresses a spoken line into a short kinetic headline for a text card. */
+function headlineFrom(spoken: string): string {
+  const clean = spoken.replace(/[^\w\s%$.,'-]/g, " ").replace(/\s+/g, " ").trim();
+  const words = clean.split(" ").filter(Boolean).slice(0, 6);
+  return words.join(" ").replace(/[.,]$/, "");
+}
 
 export function normalizePlan(plan: unknown, fallbackScript: string): ProductionPlan {
   const p = (plan ?? {}) as Partial<ProductionPlan>;
@@ -347,11 +354,36 @@ export function normalizePlan(plan: unknown, fallbackScript: string): Production
     });
 
   if (!scenes.length) {
+    // Even a bare script gets a produced treatment — a flat talking head is
+    // below the bar advertisers are competing against.
+    const sentences = fallbackScript
+      .split(/(?<=[.!?])\s+/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+    const mid = Math.max(1, Math.ceil(sentences.length / 3));
+    const parts = [
+      sentences.slice(0, mid).join(" "),
+      sentences.slice(mid, mid * 2).join(" "),
+      sentences.slice(mid * 2).join(" "),
+    ].filter(Boolean);
+
     return {
-      treatment: "talking-head",
-      rationale: "Straight-to-camera read — no visual element earned its place here.",
+      treatment: parts.length > 1 ? "hybrid" : "talking-head",
+      rationale: "Auto-storyboarded: presenter hook, product b-roll, typographic close.",
       captions: true,
-      scenes: [{ role: "full", spoken: fallbackScript, visual: "avatar" }],
+      scenes:
+        parts.length > 1
+          ? parts.map((spoken, i) => ({
+              role: i === 0 ? "hook" : i === parts.length - 1 ? "close" : "benefit",
+              spoken,
+              visual: (i === 0 ? "avatar" : i === parts.length - 1 ? "text-card" : "broll") as SceneVisual,
+              on_screen_text: i === parts.length - 1 ? headlineFrom(spoken) : undefined,
+              background_prompt:
+                i === 0 || i === parts.length - 1
+                  ? undefined
+                  : "The advertiser's product or service being used in its real environment.",
+            }))
+          : [{ role: "full", spoken: fallbackScript, visual: "avatar" }],
     };
   }
 
@@ -362,7 +394,25 @@ export function normalizePlan(plan: unknown, fallbackScript: string): Production
       plates += 1;
       if (plates > MAX_GENERATED_PLATES) scene.visual = "brand-color";
     }
+    // A text card without a headline is just an empty frame.
+    if (scene.visual === "text-card" && !scene.on_screen_text) {
+      scene.on_screen_text = headlineFrom(scene.spoken);
+    }
   }
+
+  // Never ship an all-avatar multi-scene ad — the mid beats carry the visuals.
+  if (plates === 0 && scenes.length > 1) {
+    const last = scenes[scenes.length - 1];
+    const mid = scenes[1];
+    mid.visual = "broll";
+    mid.background_prompt =
+      mid.background_prompt ?? "The advertiser's product or service being used in its real environment.";
+    if (scenes.length > 2) {
+      last.visual = "text-card";
+      last.on_screen_text = last.on_screen_text ?? headlineFrom(last.spoken);
+    }
+  }
+
 
   const treatment = (["talking-head", "product-showcase", "text-driven", "hybrid"] as const).includes(
     p.treatment as never,
