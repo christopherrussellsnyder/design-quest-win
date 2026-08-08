@@ -29,6 +29,39 @@ export const VIDEO_HOOK_ANGLES = [
 
 export type VideoAdStatus = 'queued' | 'processing' | 'completed' | 'failed';
 
+export type SceneVisual = 'avatar' | 'broll' | 'text-card' | 'brand-color';
+
+export interface AdScene {
+  role: string;
+  spoken: string;
+  visual: SceneVisual;
+  background_prompt?: string;
+  on_screen_text?: string;
+  background_color?: string;
+}
+
+export interface ProductionPlan {
+  treatment: 'talking-head' | 'product-showcase' | 'text-driven' | 'hybrid';
+  rationale: string;
+  captions: boolean;
+  scenes: AdScene[];
+  assets?: { role: string; visual: string; storage_path?: string }[];
+}
+
+export const SCENE_VISUAL_LABELS: Record<SceneVisual, string> = {
+  avatar: 'Presenter',
+  broll: 'B-roll',
+  'text-card': 'Text card',
+  'brand-color': 'Brand field',
+};
+
+export const TREATMENT_LABELS: Record<ProductionPlan['treatment'], string> = {
+  'talking-head': 'Talking head',
+  'product-showcase': 'Product showcase',
+  'text-driven': 'Text driven',
+  hybrid: 'Hybrid',
+};
+
 export interface VideoAdRecord {
   id: string;
   title: string | null;
@@ -46,6 +79,9 @@ export interface VideoAdRecord {
   duration_seconds: number | null;
   error_message: string | null;
   created_at: string;
+  treatment: string | null;
+  scene_count: number | null;
+  production_plan: ProductionPlan | null;
 }
 
 export interface AdScriptVariant {
@@ -55,7 +91,9 @@ export interface AdScriptVariant {
   script: string;
   estimated_seconds?: number;
   why_it_works?: string;
+  production_plan?: ProductionPlan;
 }
+
 
 export interface AdActor {
   avatar_id: string;
