@@ -31,6 +31,24 @@ export type VideoAdStatus = 'queued' | 'processing' | 'completed' | 'failed';
 
 export type SceneVisual = 'avatar' | 'broll' | 'text-card' | 'brand-color';
 
+export type ShotType =
+  | 'extreme-close'
+  | 'close-up'
+  | 'medium'
+  | 'wide'
+  | 'overhead'
+  | 'detail-insert';
+export type CameraMove =
+  | 'static'
+  | 'push-in'
+  | 'pull-out'
+  | 'pan'
+  | 'tilt'
+  | 'handheld'
+  | 'whip';
+export type Composition = 'full-bleed' | 'presenter-left' | 'presenter-right' | 'pip' | 'split';
+export type SceneEnergy = 'calm' | 'steady' | 'punchy';
+
 export interface AdScene {
   role: string;
   spoken: string;
@@ -38,12 +56,17 @@ export interface AdScene {
   background_prompt?: string;
   on_screen_text?: string;
   background_color?: string;
+  shot_type?: ShotType;
+  camera_move?: CameraMove;
+  composition?: Composition;
+  energy?: SceneEnergy;
 }
 
 export interface ProductionPlan {
   treatment: 'talking-head' | 'product-showcase' | 'text-driven' | 'hybrid';
   rationale: string;
   captions: boolean;
+  edit_style?: string;
   scenes: AdScene[];
   assets?: { role: string; visual: string; storage_path?: string }[];
 }
@@ -53,6 +76,33 @@ export const SCENE_VISUAL_LABELS: Record<SceneVisual, string> = {
   broll: 'B-roll',
   'text-card': 'Text card',
   'brand-color': 'Brand field',
+};
+
+export const SHOT_LABELS: Record<ShotType, string> = {
+  'extreme-close': 'Extreme close',
+  'close-up': 'Close-up',
+  medium: 'Medium',
+  wide: 'Wide',
+  overhead: 'Overhead',
+  'detail-insert': 'Detail insert',
+};
+
+export const CAMERA_LABELS: Record<CameraMove, string> = {
+  static: 'Locked off',
+  'push-in': 'Push in',
+  'pull-out': 'Pull out',
+  pan: 'Pan',
+  tilt: 'Tilt',
+  handheld: 'Handheld',
+  whip: 'Whip pan',
+};
+
+export const COMPOSITION_LABELS: Record<Composition, string> = {
+  'full-bleed': 'Full bleed',
+  'presenter-left': 'Presenter left',
+  'presenter-right': 'Presenter right',
+  pip: 'Picture-in-picture',
+  split: 'Split screen',
 };
 
 export const TREATMENT_LABELS: Record<ProductionPlan['treatment'], string> = {

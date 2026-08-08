@@ -14,6 +14,15 @@ import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.57.4
 
 export type SceneVisual = "avatar" | "broll" | "text-card" | "brand-color";
 
+/** Lens/shot grammar — what size the frame is cut at. */
+export type ShotType = "extreme-close" | "close-up" | "medium" | "wide" | "overhead" | "detail-insert";
+/** Implied camera motion baked into the plate's blur, perspective and framing. */
+export type CameraMove = "static" | "push-in" | "pull-out" | "pan" | "tilt" | "handheld" | "whip";
+/** Where the presenter sits relative to the visual. */
+export type Composition = "full-bleed" | "presenter-left" | "presenter-right" | "pip" | "split";
+/** Cut rhythm for this beat — drives grade, contrast and framing tension. */
+export type SceneEnergy = "calm" | "steady" | "punchy";
+
 export interface AdScene {
   /** hook | benefit | mechanism | promo | close */
   role: string;
@@ -26,14 +35,23 @@ export interface AdScene {
   on_screen_text?: string;
   /** Hex fallback pulled from the brand kit. */
   background_color?: string;
+
+  /* ---- Edit layer: how the beat is SHOT and CUT, not just what's on it ---- */
+  shot_type?: ShotType;
+  camera_move?: CameraMove;
+  composition?: Composition;
+  energy?: SceneEnergy;
 }
 
 export interface ProductionPlan {
   treatment: "talking-head" | "product-showcase" | "text-driven" | "hybrid";
   rationale: string;
   captions: boolean;
+  /** One-line summary of the cut rhythm across the whole ad. */
+  edit_style?: string;
   scenes: AdScene[];
 }
+
 
 export interface BrandKit {
   websiteUrl?: string;
@@ -205,6 +223,121 @@ function aspectHint(aspectRatio: string): string {
   return "vertical 9:16 mobile frame";
 }
 
+/* ---- Edit grammar -------------------------------------------------------- */
+
+const SHOT_DIRECTION: Record<ShotType, string> = {
+  "extreme-close": "Extreme close-up on a single telling detail — texture, hands, a surface, a moment. Frame fills with one subject, everything else falls away.",
+  "close-up": "Close-up framing, subject large in frame, tight crop, strong subject separation from a soft background.",
+  medium: "Medium shot, subject in its working environment, balanced headroom, clear foreground/midground/background layering.",
+  wide: "Wide establishing shot, generous negative space, subject small and deliberately placed against the environment.",
+  overhead: "Top-down overhead flat-lay composition, precise geometric alignment, even directional light, clean shadow shapes.",
+  "detail-insert": "Tight insert shot of a product detail or interaction, macro-adjacent, razor-thin depth of field, tactile materials.",
+};
+
+const CAMERA_DIRECTION: Record<CameraMove, string> = {
+  static: "Locked-off tripod frame, perfectly still and composed.",
+  "push-in": "Frozen mid dolly push-in: slight wide-angle compression toward the subject, edges of frame gently falling out of focus, sense of forward momentum.",
+  "pull-out": "Frozen mid dolly pull-out: the subject sits deeper in frame with the environment opening up around it.",
+  pan: "Frozen mid lateral pan: a whisper of horizontal motion blur on the frame edges, subject held sharp.",
+  tilt: "Frozen mid vertical tilt: low or high perspective with converging vertical lines.",
+  handheld: "Handheld documentary energy — very slight dutch tilt, imperfect framing, lived-in realism.",
+  whip: "Frozen mid whip-pan: strong directional motion streaks across the outer third, subject core still readable.",
+};
+
+const ENERGY_DIRECTION: Record<SceneEnergy, string> = {
+  calm: "Soft, airy grade. Low contrast, generous negative space, slow cinematic stillness.",
+  steady: "Balanced commercial grade, confident contrast, controlled highlights.",
+  punchy: "High-contrast punchy grade, deep blacks, crisp specular highlights, saturated brand accent, kinetic tension in the framing.",
+};
+
+/** Which side of the frame must stay quiet so the presenter can be composited in. */
+function safeSideFor(composition: Composition, aspectRatio: string): string {
+  if (composition === "full-bleed") {
+    return aspectRatio === "9:16"
+      ? "Keep the bottom fifth calm and low-detail — burned-in captions sit there."
+      : "Keep the bottom fifth calm and low-detail — burned-in captions sit there.";
+  }
+  if (composition === "presenter-left") {
+    return "Keep the LEFT third of the frame calm, uncluttered and low-detail — a presenter is composited there. Push the subject to the right of frame.";
+  }
+  if (composition === "split") {
+    return "Compose so one clean half of the frame is a quiet field of colour or soft gradient and the other half carries the subject — a hard graphic split.";
+  }
+  // presenter-right / pip
+  return aspectRatio === "9:16"
+    ? "Keep the lower right quadrant calm and low-detail — a presenter bubble is composited there. Push the subject up and left."
+    : "Keep the lower right third calm and low-detail — a presenter bubble is composited there.";
+}
+
+/** Fills in shot grammar the model didn't specify, and guarantees cut-to-cut variety. */
+export function applyEditGrammar(scenes: AdScene[]): AdScene[] {
+  const shotCycle: ShotType[] = ["medium", "close-up", "detail-insert", "wide", "extreme-close"];
+  const moveCycle: CameraMove[] = ["push-in", "static", "pan", "pull-out", "handheld"];
+
+  return scenes.map((scene, i) => {
+    const isHook = i === 0 || scene.role === "hook";
+    const next = { ...scene };
+
+    if (!next.energy) {
+      next.energy = isHook || scene.role === "promo" ? "punchy" : i === scenes.length - 1 ? "punchy" : "steady";
+    }
+    if (!next.shot_type) {
+      next.shot_type = scene.visual === "text-card" ? "medium" : shotCycle[i % shotCycle.length];
+    }
+    if (!next.camera_move) {
+      next.camera_move = isHook ? "push-in" : moveCycle[i % moveCycle.length];
+    }
+    if (!next.composition) {
+      if (scene.visual === "avatar") next.composition = "full-bleed";
+      else if (scene.visual === "text-card") next.composition = i === scenes.length - 1 ? "full-bleed" : "pip";
+      else next.composition = i % 2 === 0 ? "presenter-right" : "presenter-left";
+    }
+
+    return next;
+  }).map((scene, i, all) => {
+    // Never cut two identical shot sizes or moves back to back — that reads as a slideshow.
+    if (i === 0) return scene;
+    const prev = all[i - 1];
+    if (scene.shot_type === prev.shot_type) {
+      const alt: ShotType[] = ["close-up", "wide", "detail-insert", "medium", "overhead"];
+      scene.shot_type = alt.find((s) => s !== prev.shot_type) ?? scene.shot_type;
+    }
+    if (scene.camera_move === prev.camera_move && scene.camera_move !== "static") {
+      scene.camera_move = "static";
+    }
+    return scene;
+  });
+}
+
+/**
+ * Translates a scene's edit grammar into HeyGen presenter framing.
+ * Varying scale and position between consecutive beats is what makes the ad
+ * feel cut rather than pasted together.
+ */
+export function sceneFraming(
+  scene: AdScene,
+  aspectRatio: string,
+): { characterStyle?: "normal" | "circle"; characterScale?: number; offsetX?: number; offsetY?: number } {
+  const composition = scene.composition ?? "presenter-right";
+  const vertical = aspectRatio === "9:16";
+
+  if (composition === "full-bleed") {
+    // Presenter tucked small and low so the visual owns the frame.
+    return { characterStyle: "circle", characterScale: 0.3, offsetX: 0.3, offsetY: vertical ? 0.34 : 0.28 };
+  }
+  if (composition === "presenter-left") {
+    return { characterStyle: "circle", characterScale: 0.46, offsetX: -0.28, offsetY: vertical ? 0.26 : 0.2 };
+  }
+  if (composition === "split") {
+    return { characterStyle: "normal", characterScale: 0.62, offsetX: -0.22, offsetY: vertical ? 0.12 : 0.08 };
+  }
+  if (composition === "pip") {
+    return { characterStyle: "circle", characterScale: 0.34, offsetX: 0.3, offsetY: vertical ? 0.32 : 0.26 };
+  }
+  // presenter-right
+  return { characterStyle: "circle", characterScale: 0.48, offsetX: 0.28, offsetY: vertical ? 0.28 : 0.22 };
+}
+
 /** Composes the art-direction prompt for one scene background. */
 export function sceneImagePrompt(scene: AdScene, kit: BrandKit, aspectRatio: string): string {
   const palette = kit.colors.length ? `Brand palette to obey exactly: ${kit.colors.join(", ")}.` : "";
@@ -214,16 +347,28 @@ export function sceneImagePrompt(scene: AdScene, kit: BrandKit, aspectRatio: str
   const grounding = kit.referenceImages.length
     ? "A reference photograph from the advertiser's own website is attached. Match its product, colour grade, materials, lighting and photographic style so the frame is unmistakably this brand. Do not copy it literally — art-direct a new, better-composed campaign frame from it."
     : "";
-  const safeSide =
-    aspectRatio === "9:16"
-      ? "Keep the bottom third and the right side calm and low-detail — a presenter and captions are composited there."
-      : "Keep the lower right third calm and low-detail — a presenter and captions are composited there.";
+
+  const composition = scene.composition ?? "presenter-right";
+  const safeSide = safeSideFor(composition, aspectRatio);
+  const shot = SHOT_DIRECTION[scene.shot_type ?? "medium"];
+  const camera = CAMERA_DIRECTION[scene.camera_move ?? "static"];
+  const energy = ENERGY_DIRECTION[scene.energy ?? "steady"];
 
   if (scene.visual === "text-card") {
+    const layout =
+      composition === "split"
+        ? "Split-screen layout: type locked to one half, a brand-tinted photographic field on the other."
+        : composition === "presenter-left"
+          ? "Type set hard to the right of frame on a strict grid, left third left empty."
+          : "Type set as an oversized centred or top-weighted stack with a deliberate baseline grid.";
+
     return [
       `A broadcast-grade advertising motion-graphics title frame, ${aspectHint(aspectRatio)}, at the quality bar of a Nike or Apple campaign end-card.`,
       `Render this exact headline, spelled precisely, as the ONLY text in the image: "${scene.on_screen_text ?? ""}".`,
-      "Oversized bold contemporary grotesk typography, tight kerning, one accent word emphasised in the brand accent colour, crisp edges, deliberate baseline grid, generous negative space, subtle depth (soft gradient field or gently blurred brand-tinted photographic backdrop — never flat clip-art).",
+      "Oversized bold contemporary grotesk typography, tight kerning, one accent word emphasised in the brand accent colour, crisp edges, generous negative space, subtle depth (soft gradient field or gently blurred brand-tinted photographic backdrop — never flat clip-art).",
+      layout,
+      camera,
+      energy,
       safeSide,
       palette,
       typography,
@@ -238,6 +383,9 @@ export function sceneImagePrompt(scene: AdScene, kit: BrandKit, aspectRatio: str
     `Cinematic advertising b-roll background plate, ${aspectHint(aspectRatio)}, at the production quality of a national brand campaign.`,
     scene.background_prompt ?? "Premium product-in-context environment.",
     product,
+    shot,
+    camera,
+    energy,
     "Shot on a full-frame camera with a fast prime, shallow depth of field, motivated directional key light with soft falloff, rich contrast, subtle film grain, professional colour grade with clean skin tones and deep blacks. Real materials and real environments — nothing plasticky, nothing AI-glossy, no surreal artefacts.",
     safeSide,
     palette,
@@ -248,6 +396,7 @@ export function sceneImagePrompt(scene: AdScene, kit: BrandKit, aspectRatio: str
     .filter(Boolean)
     .join(" ");
 }
+
 
 /**
  * Generates one background plate and returns raw PNG bytes.
@@ -341,6 +490,9 @@ export function normalizePlan(plan: unknown, fallbackScript: string): Production
       )
         ? scene.visual
         : "avatar";
+      const pick = <T extends string>(value: unknown, allowed: readonly T[]): T | undefined =>
+        allowed.includes(value as T) ? (value as T) : undefined;
+
       return {
         role: String(scene.role ?? "beat"),
         spoken: scene.spoken.trim(),
@@ -350,8 +502,34 @@ export function normalizePlan(plan: unknown, fallbackScript: string): Production
         background_color: /^#[0-9a-fA-F]{3,8}$/.test(String(scene.background_color ?? ""))
           ? String(scene.background_color)
           : undefined,
+        shot_type: pick(scene.shot_type, [
+          "extreme-close",
+          "close-up",
+          "medium",
+          "wide",
+          "overhead",
+          "detail-insert",
+        ] as const),
+        camera_move: pick(scene.camera_move, [
+          "static",
+          "push-in",
+          "pull-out",
+          "pan",
+          "tilt",
+          "handheld",
+          "whip",
+        ] as const),
+        composition: pick(scene.composition, [
+          "full-bleed",
+          "presenter-left",
+          "presenter-right",
+          "pip",
+          "split",
+        ] as const),
+        energy: pick(scene.energy, ["calm", "steady", "punchy"] as const),
       };
     });
+
 
   if (!scenes.length) {
     // Even a bare script gets a produced treatment — a flat talking head is
@@ -420,10 +598,23 @@ export function normalizePlan(plan: unknown, fallbackScript: string): Production
     ? (p.treatment as ProductionPlan["treatment"])
     : "hybrid";
 
+  const edited = applyEditGrammar(scenes);
+
   return {
     treatment,
     rationale: String(p.rationale ?? "").slice(0, 400),
     captions: p.captions !== false,
-    scenes,
+    edit_style: p.edit_style
+      ? String(p.edit_style).slice(0, 200)
+      : editStyleSummary(edited),
+    scenes: edited,
   };
 }
+
+/** Human-readable one-liner describing the cut rhythm we ended up with. */
+function editStyleSummary(scenes: AdScene[]): string {
+  const moves = Array.from(new Set(scenes.map((s) => s.camera_move ?? "static")));
+  const shots = Array.from(new Set(scenes.map((s) => s.shot_type ?? "medium")));
+  return `${scenes.length}-beat cut — ${shots.join(" / ")} shot sizes, ${moves.join(" / ")} camera.`;
+}
+

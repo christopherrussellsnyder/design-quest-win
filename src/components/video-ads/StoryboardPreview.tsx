@@ -1,8 +1,21 @@
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { Captions, Film, Image as ImageIcon, Palette, Type, User } from 'lucide-react';
 import {
+  Captions,
+  Film,
+  Image as ImageIcon,
+  Layout,
+  Move,
+  Palette,
+  Scissors,
+  Type,
+  User,
+} from 'lucide-react';
+import {
+  CAMERA_LABELS,
+  COMPOSITION_LABELS,
   SCENE_VISUAL_LABELS,
+  SHOT_LABELS,
   TREATMENT_LABELS,
   type ProductionPlan,
   type SceneVisual,
@@ -48,6 +61,13 @@ export function StoryboardPreview({ plan, stale }: Props) {
           <p className="text-xs text-muted-foreground leading-relaxed">{plan.rationale}</p>
         )}
 
+        {plan.edit_style && (
+          <p className="text-[11px] text-muted-foreground flex items-start gap-1.5">
+            <Scissors className="w-3 h-3 mt-0.5 shrink-0 text-primary" />
+            <span>{plan.edit_style}</span>
+          </p>
+        )}
+
         {stale ? (
           <p className="text-[11px] text-amber-500">
             You've edited the script, so this ad will render as a clean presenter read. Regenerate
@@ -80,6 +100,31 @@ export function StoryboardPreview({ plan, stale }: Props) {
                     )}
                   </div>
                   <p className="text-xs text-muted-foreground line-clamp-3">{scene.spoken}</p>
+
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {scene.shot_type && (
+                      <span className="text-[10px] rounded border border-border px-1.5 py-0.5 text-muted-foreground">
+                        {SHOT_LABELS[scene.shot_type] ?? scene.shot_type}
+                      </span>
+                    )}
+                    {scene.camera_move && (
+                      <span className="text-[10px] rounded border border-border px-1.5 py-0.5 text-muted-foreground inline-flex items-center gap-1">
+                        <Move className="w-2.5 h-2.5" />
+                        {CAMERA_LABELS[scene.camera_move] ?? scene.camera_move}
+                      </span>
+                    )}
+                    {scene.composition && (
+                      <span className="text-[10px] rounded border border-border px-1.5 py-0.5 text-muted-foreground inline-flex items-center gap-1">
+                        <Layout className="w-2.5 h-2.5" />
+                        {COMPOSITION_LABELS[scene.composition] ?? scene.composition}
+                      </span>
+                    )}
+                    {scene.energy && (
+                      <span className="text-[10px] rounded border border-border px-1.5 py-0.5 text-muted-foreground capitalize">
+                        {scene.energy}
+                      </span>
+                    )}
+                  </div>
                   {scene.background_prompt && (
                     <p className="text-[11px] text-[hsl(var(--text-tertiary))] line-clamp-2 italic">
                       {scene.background_prompt}
