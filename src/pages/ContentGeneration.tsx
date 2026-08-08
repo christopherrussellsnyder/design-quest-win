@@ -88,6 +88,12 @@ export default function ContentGeneration() {
     setEditedScript(variant.script);
   };
 
+  // The storyboard is scene-by-scene locked to the exact words. Once the script
+  // is edited by hand we drop back to a clean presenter read rather than
+  // rendering visuals over the wrong beats.
+  const planIsStale = !!selectedScript && editedScript.trim() !== selectedScript.script.trim();
+  const activePlan = selectedScript?.production_plan;
+
   const handleRender = () => {
     if (!editedScript.trim() || !avatarId || !voiceId) return;
     createVideo({
@@ -100,8 +106,11 @@ export default function ContentGeneration() {
       avatarPreviewUrl: selectedActor?.preview_image_url,
       voiceId,
       aspectRatio,
+      strategyPostId,
+      productionPlan: planIsStale ? undefined : activePlan,
     });
   };
+
 
   const providerDown =
     (actorsError as { code?: string })?.code === 'PROVIDER_NOT_CONFIGURED' ||
