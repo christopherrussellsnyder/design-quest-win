@@ -50,6 +50,16 @@ export function StoryboardPreview({ plan, stale }: Props) {
           <Badge variant="outline" className="border-border text-[10px]">
             {plan.scenes.length} {plan.scenes.length === 1 ? 'scene' : 'scenes'}
           </Badge>
+          {plan.total_seconds ? (
+            <Badge variant="outline" className="border-border text-[10px]">
+              ~{plan.total_seconds}s
+            </Badge>
+          ) : null}
+          {plan.format ? (
+            <Badge variant="outline" className="border-border text-[10px]">
+              {plan.format.width}×{plan.format.height}
+            </Badge>
+          ) : null}
           {plan.captions && (
             <Badge variant="outline" className="border-border text-[10px] gap-1">
               <Captions className="w-3 h-3" />
@@ -57,6 +67,7 @@ export function StoryboardPreview({ plan, stale }: Props) {
             </Badge>
           )}
         </div>
+
 
         {plan.rationale && (
           <p className="text-xs text-muted-foreground leading-relaxed">{plan.rationale}</p>
