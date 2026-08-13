@@ -26,6 +26,7 @@ import {
   AlertTriangle,
   Check,
   ImageIcon,
+  Scissors,
 } from 'lucide-react';
 import { useAdActors, useAdScripts, useVideoAds } from '@/hooks/useVideoAds';
 import { VIDEO_ASPECT_RATIOS, VIDEO_HOOK_ANGLES } from '@/config/video.config';
@@ -33,6 +34,8 @@ import type { AdScriptVariant } from '@/config/video.config';
 import { VideoAdCard } from '@/components/video-ads/VideoAdCard';
 import { StoryboardPreview } from '@/components/video-ads/StoryboardPreview';
 import { ImageStudio } from '@/components/content-generation/ImageStudio';
+import { EditStudio } from '@/components/content-generation/EditStudio';
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { readContentHandoff } from '@/lib/contentHandoff';
 
