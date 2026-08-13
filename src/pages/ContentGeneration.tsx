@@ -26,6 +26,7 @@ import {
   AlertTriangle,
   Check,
   ImageIcon,
+  Scissors,
 } from 'lucide-react';
 import { useAdActors, useAdScripts, useVideoAds } from '@/hooks/useVideoAds';
 import { VIDEO_ASPECT_RATIOS, VIDEO_HOOK_ANGLES } from '@/config/video.config';
@@ -33,6 +34,8 @@ import type { AdScriptVariant } from '@/config/video.config';
 import { VideoAdCard } from '@/components/video-ads/VideoAdCard';
 import { StoryboardPreview } from '@/components/video-ads/StoryboardPreview';
 import { ImageStudio } from '@/components/content-generation/ImageStudio';
+import { EditStudio } from '@/components/content-generation/EditStudio';
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { readContentHandoff } from '@/lib/contentHandoff';
 
@@ -76,7 +79,7 @@ export default function ContentGeneration() {
   const [promoDetail, setPromoDetail] = useState(handoff?.promoDetail ?? '');
   const [promoCode, setPromoCode] = useState(handoff?.promoCode ?? '');
   const [brief, setBrief] = useState(handoff?.videoBrief ?? '');
-  const [tab, setTab] = useState<'video' | 'image'>(handoff?.tab ?? 'video');
+  const [tab, setTab] = useState<'video' | 'image' | 'edit'>(handoff?.tab ?? 'video');
 
   // Selection step
   const [selectedScript, setSelectedScript] = useState<AdScriptVariant | null>(null);
@@ -235,7 +238,7 @@ export default function ContentGeneration() {
         </header>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-          <Tabs value={tab} onValueChange={(v) => setTab(v as 'video' | 'image')} className="space-y-6">
+          <Tabs value={tab} onValueChange={(v) => setTab(v as 'video' | 'image' | 'edit')} className="space-y-6">
             <TabsList className="bg-background border border-card">
               <TabsTrigger value="video" className="text-xs gap-1.5">
                 <Clapperboard className="w-3.5 h-3.5" />
@@ -245,7 +248,12 @@ export default function ContentGeneration() {
                 <ImageIcon className="w-3.5 h-3.5" />
                 Images
               </TabsTrigger>
+              <TabsTrigger value="edit" className="text-xs gap-1.5">
+                <Scissors className="w-3.5 h-3.5" />
+                Edit studio
+              </TabsTrigger>
             </TabsList>
+
 
             <TabsContent value="video" className="space-y-6 mt-0">
           {providerDown && (
@@ -638,6 +646,20 @@ export default function ContentGeneration() {
                 initialPlatform={handoff?.platform}
               />
             </TabsContent>
+
+            <TabsContent value="edit" className="mt-0">
+              <EditStudio
+                plan={activePlan}
+                planStale={planIsStale}
+                script={editedScript}
+                aspectRatio={aspectRatio}
+                handoff={handoff}
+                videos={videos}
+                urls={urls}
+                onResolveUrl={getPlaybackUrl}
+              />
+            </TabsContent>
+
           </Tabs>
         </div>
       </div>
