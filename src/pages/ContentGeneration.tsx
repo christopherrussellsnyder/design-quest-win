@@ -646,6 +646,20 @@ export default function ContentGeneration() {
                 initialPlatform={handoff?.platform}
               />
             </TabsContent>
+
+            <TabsContent value="edit" className="mt-0">
+              <EditStudio
+                plan={activePlan}
+                planStale={planIsStale}
+                script={editedScript}
+                aspectRatio={aspectRatio}
+                handoff={handoff}
+                videos={videos}
+                urls={urls}
+                onResolveUrl={getPlaybackUrl}
+              />
+            </TabsContent>
+
           </Tabs>
         </div>
       </div>
