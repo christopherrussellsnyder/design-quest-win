@@ -235,7 +235,7 @@ export default function ContentGeneration() {
         </header>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-          <Tabs value={tab} onValueChange={(v) => setTab(v as 'video' | 'image')} className="space-y-6">
+          <Tabs value={tab} onValueChange={(v) => setTab(v as 'video' | 'image' | 'edit')} className="space-y-6">
             <TabsList className="bg-background border border-card">
               <TabsTrigger value="video" className="text-xs gap-1.5">
                 <Clapperboard className="w-3.5 h-3.5" />
@@ -245,7 +245,12 @@ export default function ContentGeneration() {
                 <ImageIcon className="w-3.5 h-3.5" />
                 Images
               </TabsTrigger>
+              <TabsTrigger value="edit" className="text-xs gap-1.5">
+                <Scissors className="w-3.5 h-3.5" />
+                Edit studio
+              </TabsTrigger>
             </TabsList>
+
 
             <TabsContent value="video" className="space-y-6 mt-0">
           {providerDown && (
