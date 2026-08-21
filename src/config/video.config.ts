@@ -74,6 +74,19 @@ export interface AdScene {
   text_position?: TextPosition;
 }
 
+/** Evidence-backed guidance for how to CUT the ad, surfaced in the Edit studio. */
+export interface EditRecommendations {
+  cut_rhythm?: string;
+  hook_retention?: string;
+  caption_style?: string;
+  text_density?: string;
+  sound?: string;
+  cta_treatment?: string;
+  do_this?: string[];
+  avoid?: string[];
+  evidence?: string;
+}
+
 export interface ProductionPlan {
   treatment: 'talking-head' | 'product-showcase' | 'text-driven' | 'hybrid';
   rationale: string;
@@ -83,7 +96,9 @@ export interface ProductionPlan {
   assets?: { role: string; visual: string; storage_path?: string }[];
   format?: FormatSpec;
   total_seconds?: number;
+  edit_recommendations?: EditRecommendations;
 }
+
 
 
 export const SCENE_VISUAL_LABELS: Record<SceneVisual, string> = {
