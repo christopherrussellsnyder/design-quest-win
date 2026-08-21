@@ -79,7 +79,12 @@ export default function ContentGeneration() {
   const [promoDetail, setPromoDetail] = useState(handoff?.promoDetail ?? '');
   const [promoCode, setPromoCode] = useState(handoff?.promoCode ?? '');
   const [brief, setBrief] = useState(handoff?.videoBrief ?? '');
-  const [tab, setTab] = useState<'video' | 'image' | 'edit'>(handoff?.tab ?? 'video');
+  const requestedTab = searchParams.get('tab');
+  const [tab, setTab] = useState<'video' | 'image' | 'edit'>(
+    requestedTab === 'edit' || requestedTab === 'image' || requestedTab === 'video'
+      ? requestedTab
+      : (handoff?.tab ?? 'video'),
+  );
 
   // Selection step
   const [selectedScript, setSelectedScript] = useState<AdScriptVariant | null>(null);
