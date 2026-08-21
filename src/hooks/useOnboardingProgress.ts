@@ -11,6 +11,7 @@ export interface OnboardingStep {
 }
 
 const DISMISS_KEY = 'korex.onboarding.dismissed';
+const EDIT_STUDIO_KEY = 'korex.editstudio.visited';
 
 async function countRows(table: 'research_personalizations' | 'content_strategies' | 'content_library' | 'ai_generated_videos', userId: string) {
   const { count } = await supabase
@@ -28,6 +29,32 @@ export function useOnboardingProgress() {
       return false;
     }
   });
+
+  // Ticks as soon as the user has actually opened the Edit studio.
+  const [visitedEditStudio, setVisitedEditStudio] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem(EDIT_STUDIO_KEY) === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    const sync = () => {
+      try {
+        setVisitedEditStudio(localStorage.getItem(EDIT_STUDIO_KEY) === 'true');
+      } catch {
+        /* no-op */
+      }
+    };
+    window.addEventListener('korex:edit-studio-visited', sync);
+    window.addEventListener('storage', sync);
+    return () => {
+      window.removeEventListener('korex:edit-studio-visited', sync);
+      window.removeEventListener('storage', sync);
+    };
+  }, []);
+
 
   const { data, isLoading } = useQuery({
     queryKey: ['onboarding-progress'],
