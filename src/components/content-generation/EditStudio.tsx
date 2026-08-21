@@ -122,6 +122,14 @@ export function EditStudio({
 }: Props) {
   const [sourceId, setSourceId] = useState<string>('');
   const [copied, setCopied] = useState(false);
+  // Open by default for first-timers, collapsed once they've been here before.
+  const [guideOpen, setGuideOpen] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem(EDIT_STUDIO_VISITED_KEY) !== 'true';
+    } catch {
+      return true;
+    }
+  });
 
   const completed = useMemo(
     () => videos.filter((v) => v.status === 'completed'),
