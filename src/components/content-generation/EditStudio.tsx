@@ -44,16 +44,17 @@ export const EDIT_STUDIO_VISITED_KEY = 'korex.editstudio.visited';
 const WALKTHROUGH: { title: string; body: string }[] = [
   {
     title: 'Pick the ad you want to finish',
-    body: 'Choose one of your rendered ads as the base clip in step 3 below. That clip becomes the footage layer of your edit.',
+    body: 'Choose one of your rendered ads as the base clip in step 3 below, then download it. That clip becomes the footage layer of your edit.',
   },
   {
-    title: 'Copy the template',
-    body: 'Press “Copy template JSON”. This is a ready-made edit — canvas size, timings and the exact words that appear on screen are already set from your strategy and script.',
+    title: 'Grab the captions and timing sheet',
+    body: 'Download the .srt caption file and copy the text sheet. Both are already timed to your script, so nothing needs typing out.',
   },
   {
-    title: 'Open Creatomate and import it',
-    body: 'Create a free Creatomate account, click New template, then choose “Import JSON source” and paste. Your edit opens on the timeline.',
+    title: 'Open CapCut and drop the clip in',
+    body: 'CapCut is free and runs in your browser. Create a new project, set the ratio to match step 1, then drag your clip onto the timeline.',
   },
+
   {
     title: 'Follow the beat list',
     body: 'The numbered beats below tell you what happens at each second — what is said, what should be on screen, and where the text sits. Match the timeline to that list.',
