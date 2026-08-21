@@ -105,11 +105,8 @@ interface Props {
   onResolveUrl: (id: string) => Promise<string | null>;
 }
 
-function yFor(position: string | undefined, spec: FormatSpec): string {
-  if (position === 'top') return `${Math.round((spec.safe.top + 0.06) * 100)}%`;
-  if (position === 'lower-third') return `${Math.round((1 - spec.safe.bottom - 0.14) * 100)}%`;
-  return '50%';
-}
+
+
 
 export function EditStudio({
   plan,
