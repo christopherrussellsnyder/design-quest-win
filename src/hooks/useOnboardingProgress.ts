@@ -94,7 +94,15 @@ export function useOnboardingProgress() {
       done: !!data?.hasAsset,
       to: '/content-generation',
     },
+    {
+      id: 'edit',
+      title: 'Finish it in the Edit studio',
+      description: 'Follow the beat-by-beat brief to add text and cuts — no editing experience needed.',
+      done: visitedEditStudio,
+      to: '/content-generation?tab=edit',
+    },
   ];
+
 
   const completed = steps.filter((s) => s.done).length;
 
