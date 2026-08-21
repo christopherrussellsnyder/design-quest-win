@@ -90,7 +90,7 @@ serve(async (req) => {
     // correct delivery dimensions and nothing else. No plates, no picture-in-
     // picture framing, no burned-in captions, no transitions. All editing now
     // happens in the Edit studio, so the master must stay untouched footage.
-    const spec = formatSpec(aspectRatio);
+    formatSpec(aspectRatio); // validates the delivery format is known
     const plan = normalizePlan(productionPlan, scriptText.trim(), aspectRatio);
 
     // Beats are still passed through so the delivered master is cut at the same
@@ -153,7 +153,7 @@ serve(async (req) => {
         counts_against_quota: true,
         treatment: plan.treatment,
         scene_count: plan.scenes.length,
-        production_plan: { ...plan, assets: usedAssets },
+        production_plan: { ...plan, assets: [] },
       })
       .select("id, status, created_at")
       .single();
