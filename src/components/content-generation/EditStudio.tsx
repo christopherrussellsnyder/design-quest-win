@@ -141,90 +141,80 @@ export function EditStudio({
 
   const scenes = plan?.scenes ?? [];
 
-  /** Creatomate-shaped source: one clip track plus safe-zone-anchored text. */
-  const creatomateSource = useMemo(() => {
+  const sourceUrl = sourceVideo ? (urls[sourceVideo.id] ?? null) : null;
+
+  /** Beat timings shared by the caption file and the timing sheet. */
+  const beats = useMemo(() => {
     let t = 0;
-    const elements: Record<string, unknown>[] = [
-      {
-        type: 'video',
-        track: 1,
-        source: sourceVideo ? (urls[sourceVideo.id] ?? 'REPLACE_WITH_VIDEO_URL') : 'REPLACE_WITH_VIDEO_URL',
-        fit: 'cover',
-        x: '50%',
-        y: '50%',
-        width: '100%',
-        height: '100%',
-      },
-    ];
-
-    scenes.forEach((scene, i) => {
-      const duration = scene.duration_seconds ?? 3;
-      if (scene.on_screen_text) {
-        elements.push({
-          type: 'text',
-          name: `scene-${i + 1}-headline`,
-          track: 2,
-          time: Number(t.toFixed(2)),
-          duration,
-          text: scene.on_screen_text,
-          x: '50%',
-          y: yFor(scene.text_position, spec),
-          width: `${Math.round((1 - spec.safe.left - spec.safe.right) * 100)}%`,
-          x_alignment: '50%',
-          y_alignment: '50%',
-          font_family: 'Outfit',
-          font_weight: '700',
-          font_size: '7.5 vmin',
-          line_height: '112%',
-          fill_color: '#FFFFFF',
-          shadow_color: 'rgba(0,0,0,0.45)',
-          shadow_blur: '2 vmin',
-          animations: [
-            { type: 'text-slide', time: 0, duration: 0.5, direction: 'up', scope: 'split-clip', split: 'word' },
-          ],
-        });
-      }
-      if (i > 0) {
-        elements.push({
-          type: 'composition',
-          track: 3,
-          time: Number(t.toFixed(2)),
-          duration: 0.25,
-          elements: [],
-          animations: [{ type: 'fade', time: 0, duration: 0.25 }],
-        });
-      }
-      t += duration;
+    return scenes.map((scene) => {
+      const start = t;
+      const dur = scene.duration_seconds ?? 3;
+      t += dur;
+      return { scene, start, end: t };
     });
+  }, [scenes]);
 
-    return {
-      output_format: 'mp4',
-      frame_rate: 30,
-      width: spec.width,
-      height: spec.height,
-      duration: Number(t.toFixed(2)) || undefined,
-      elements,
+  /** SRT captions CapCut can import directly (Captions → Import captions). */
+  const srt = useMemo(() => {
+    const stamp = (s: number) => {
+      const ms = Math.round(s * 1000);
+      const hh = String(Math.floor(ms / 3_600_000)).padStart(2, '0');
+      const mm = String(Math.floor(ms / 60_000) % 60).padStart(2, '0');
+      const ss = String(Math.floor(ms / 1000) % 60).padStart(2, '0');
+      const mmm = String(ms % 1000).padStart(3, '0');
+      return `${hh}:${mm}:${ss},${mmm}`;
     };
-  }, [scenes, spec, sourceVideo, urls]);
+    return beats
+      .filter((b) => b.scene.spoken?.trim())
+      .map(
+        (b, i) =>
+          `${i + 1}\n${stamp(b.start)} --> ${stamp(b.end)}\n${b.scene.spoken.trim()}\n`,
+      )
+      .join('\n');
+  }, [beats]);
 
-  const json = useMemo(() => JSON.stringify(creatomateSource, null, 2), [creatomateSource]);
+  /** Plain-text cheat sheet: what text goes on screen, when, and where. */
+  const textSheet = useMemo(() => {
+    if (!beats.length) return '';
+    const lines = [
+      `KOREX EDIT SHEET — ${spec.width}x${spec.height} (${spec.aspect}), 30 fps, MP4`,
+      `Safe margins: top ${Math.round(spec.safe.top * 100)}%, bottom ${Math.round(
+        spec.safe.bottom * 100,
+      )}%, sides ${Math.round(spec.safe.left * 100)}%`,
+      '',
+    ];
+    beats.forEach((b, i) => {
+      lines.push(`BEAT ${i + 1} · ${b.start.toFixed(1)}s – ${b.end.toFixed(1)}s · ${b.scene.role}`);
+      lines.push(`  Says: ${b.scene.spoken}`);
+      if (b.scene.on_screen_text) {
+        lines.push(
+          `  On-screen text: "${b.scene.on_screen_text}" (${
+            TEXT_POSITION_LABELS[b.scene.text_position ?? 'center']
+          })`,
+        );
+      }
+      if (b.scene.background_prompt) lines.push(`  B-roll: ${b.scene.background_prompt}`);
+      lines.push('');
+    });
+    return lines.join('\n');
+  }, [beats, spec]);
 
-  const handleCopy = async () => {
+  const handleCopySheet = async () => {
     try {
-      await navigator.clipboard.writeText(json);
+      await navigator.clipboard.writeText(textSheet);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-      toast({ title: 'Template copied', description: 'Paste it into a Creatomate template.' });
+      toast({ title: 'Sheet copied', description: 'Keep it beside CapCut as you edit.' });
     } catch {
-      toast({ title: 'Copy failed', description: 'Select the JSON and copy manually.', variant: 'destructive' });
+      toast({ title: 'Copy failed', description: 'Select the sheet and copy manually.', variant: 'destructive' });
     }
   };
 
-  const handleDownload = () => {
-    const blob = new Blob([json], { type: 'application/json' });
+  const handleDownload = (body: string, filename: string, mime: string) => {
+    const blob = new Blob([body], { type: mime });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `korex-edit-${spec.aspect.replace(':', 'x')}.json`;
+    a.download = filename;
     a.click();
     URL.revokeObjectURL(a.href);
   };
@@ -233,6 +223,7 @@ export function EditStudio({
     setSourceId(id);
     if (!urls[id]) await onResolveUrl(id);
   };
+
 
   const recs = plan?.edit_recommendations;
 
