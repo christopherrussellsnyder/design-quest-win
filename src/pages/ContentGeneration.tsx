@@ -79,7 +79,12 @@ export default function ContentGeneration() {
   const [promoDetail, setPromoDetail] = useState(handoff?.promoDetail ?? '');
   const [promoCode, setPromoCode] = useState(handoff?.promoCode ?? '');
   const [brief, setBrief] = useState(handoff?.videoBrief ?? '');
-  const [tab, setTab] = useState<'video' | 'image' | 'edit'>(handoff?.tab ?? 'video');
+  const requestedTab = searchParams.get('tab');
+  const [tab, setTab] = useState<'video' | 'image' | 'edit'>(
+    requestedTab === 'edit' || requestedTab === 'image' || requestedTab === 'video'
+      ? requestedTab
+      : (handoff?.tab ?? 'video'),
+  );
 
   // Selection step
   const [selectedScript, setSelectedScript] = useState<AdScriptVariant | null>(null);
@@ -555,6 +560,13 @@ export default function ContentGeneration() {
               </span>
               <h2 className="text-sm font-semibold">Review and render</h2>
             </div>
+
+            <p className="text-[11px] text-muted-foreground -mt-1">
+              This renders a clean master — presenter, voice and correct dimensions, with no text or
+              cuts baked in. Add the on-screen text, cuts and music in the Edit studio tab, where
+              your strategy day is turned into a beat-by-beat brief.
+            </p>
+
 
             <Card className="bg-background border-card">
               <CardContent className="p-4 space-y-3">

@@ -1,17 +1,10 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { resolveVideoQuota, videoCorsHeaders as corsHeaders } from "../_shared/video-quota.ts";
 import { checkRateLimit, clientKey } from "../_shared/rate-limit.ts";
-import { createHeygenVideo, uploadHeygenImage, ASPECT_DIMENSIONS, type RenderScene } from "../_shared/heygen.ts";
+import { createHeygenVideo, ASPECT_DIMENSIONS, type RenderScene } from "../_shared/heygen.ts";
 import {
-  archiveSceneImage,
-  conformPlate,
-  fetchReferenceImage,
   formatSpec,
-  generateSceneImage,
-  loadBrandKit,
   normalizePlan,
-  sceneFraming,
-  sceneImagePrompt,
   type AdScene,
 } from "../_shared/ad-production.ts";
 
@@ -93,70 +86,19 @@ serve(async (req) => {
     }
 
     // ---- Stage 1: the shot list is the brief ----------------------------
-    // Every beat leaves normalizePlan with a duration, a resolved text
-    // position and the delivery format's safe zones attached. No downstream
-    // stage is allowed to invent structure that isn't defined here.
-    const spec = formatSpec(aspectRatio);
+    // The render stage deliberately produces a CLEAN MASTER: presenter, voice,
+    // correct delivery dimensions and nothing else. No plates, no picture-in-
+    // picture framing, no burned-in captions, no transitions. All editing now
+    // happens in the Edit studio, so the master must stay untouched footage.
+    formatSpec(aspectRatio); // validates the delivery format is known
     const plan = normalizePlan(productionPlan, scriptText.trim(), aspectRatio);
-    const brandKit = await loadBrandKit(supabase, userId, asText(workspaceId));
-    const lovableKey = Deno.env.get("LOVABLE_API_KEY");
 
-    // Ground generated plates in the advertiser's real website photography so
-    // the ad looks like their brand, not generic stock.
-    const referenceImage = brandKit.referenceImages.length
-      ? await fetchReferenceImage(brandKit.referenceImages)
-      : null;
+    // Beats are still passed through so the delivered master is cut at the same
+    // boundaries as the edit brief — but every beat renders full-frame clean.
+    const renderScenes: RenderScene[] = (plan.scenes as AdScene[]).map((scene) => ({
+      text: scene.spoken,
+    }));
 
-    const renderScenes: RenderScene[] = [];
-    const usedAssets: { role: string; visual: string; storage_path?: string }[] = [];
-
-    // ---- Stage 2: asset generation, always at the shot list's format -----
-    for (const scene of plan.scenes as AdScene[]) {
-      const rendered: RenderScene = { text: scene.spoken };
-
-      const wantsPlate = scene.visual === "broll" || scene.visual === "text-card";
-      if (wantsPlate && lovableKey) {
-        const raw = await generateSceneImage(
-          sceneImagePrompt(scene, brandKit, aspectRatio),
-          lovableKey,
-          referenceImage,
-        );
-        // Image models only approximate the requested ratio, so conform the
-        // plate to the exact delivery resolution before anything downstream
-        // gets a chance to crop it unpredictably.
-        const bytes = raw ? await conformPlate(raw, spec.width, spec.height) : null;
-        if (bytes) {
-          try {
-            const uploaded = await uploadHeygenImage(bytes, "image/png");
-            rendered.backgroundAssetId = uploaded.assetId;
-            rendered.backgroundUrl = uploaded.url;
-            // Presenter reframed as a picture-in-picture so the visual reads
-            // full-frame the way high-production ads cut their b-roll.
-            const framing = sceneFraming(scene, aspectRatio);
-            rendered.characterStyle = framing.characterStyle;
-            rendered.characterScale = framing.characterScale;
-            rendered.offsetX = framing.offsetX;
-            rendered.offsetY = framing.offsetY;
-          } catch (e) {
-            console.error("[video-ad] plate upload failed, falling back to plain scene:", e);
-          }
-          const storagePath = await archiveSceneImage(supabase, userId, bytes);
-          usedAssets.push({ role: scene.role, visual: scene.visual, storage_path: storagePath ?? undefined });
-        }
-      } else if (scene.visual === "brand-color") {
-        rendered.backgroundColor = scene.background_color ?? brandKit.primaryColor ?? "#101010";
-        // A flat brand field is a palate cleanser — keep the presenter large so
-        // the cut still reads as a deliberate beat, not dead air.
-        const framing = sceneFraming({ ...scene, composition: scene.composition ?? "split" }, aspectRatio);
-        rendered.characterStyle = framing.characterStyle;
-        rendered.characterScale = framing.characterScale;
-        rendered.offsetX = framing.offsetX;
-        rendered.offsetY = framing.offsetY;
-        usedAssets.push({ role: scene.role, visual: scene.visual });
-      }
-
-      renderScenes.push(rendered);
-    }
 
 
     // ---- Kick off the render -------------------------------------------
@@ -168,7 +110,9 @@ serve(async (req) => {
         voiceId: voiceIdText,
         aspectRatio,
         scenes: renderScenes,
-        captions: true,
+        // Captions are an edit decision — they get added in the Edit studio,
+        // burned into a clean master rather than baked in at render time.
+        captions: false,
       });
     } catch (err) {
       const detail = err instanceof Error ? err.message : String(err);
@@ -209,7 +153,7 @@ serve(async (req) => {
         counts_against_quota: true,
         treatment: plan.treatment,
         scene_count: plan.scenes.length,
-        production_plan: { ...plan, assets: usedAssets },
+        production_plan: { ...plan, assets: [] },
       })
       .select("id, status, created_at")
       .single();

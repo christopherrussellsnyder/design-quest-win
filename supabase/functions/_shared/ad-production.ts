@@ -104,6 +104,31 @@ export interface AdScene {
   text_position?: TextPosition;
 }
 
+/**
+ * Editing intelligence: what the niche evidence says about how this ad should
+ * be CUT, not just written. Surfaced to the user inside the Edit studio.
+ */
+export interface EditRecommendations {
+  /** e.g. "Cut every 1.5s for the first 5 seconds" */
+  cut_rhythm?: string;
+  /** How to hold the first 2 seconds on this platform. */
+  hook_retention?: string;
+  /** Caption treatment: size, placement, styling. */
+  caption_style?: string;
+  /** How much on-screen text this niche's winners use. */
+  text_density?: string;
+  /** Music / sound-off guidance. */
+  sound?: string;
+  /** Where the CTA card goes and how long it holds. */
+  cta_treatment?: string;
+  /** Short list of concrete do-this-in-the-editor moves. */
+  do_this?: string[];
+  /** Short list of mistakes that kill performance in this niche. */
+  avoid?: string[];
+  /** One line on what evidence these calls came from. */
+  evidence?: string;
+}
+
 export interface ProductionPlan {
   treatment: "talking-head" | "product-showcase" | "text-driven" | "hybrid";
   rationale: string;
@@ -115,7 +140,10 @@ export interface ProductionPlan {
   format?: FormatSpec;
   /** Sum of the scene durations, used for the post-render sanity check. */
   total_seconds?: number;
+  /** Evidence-backed editing guidance for the Edit studio. */
+  edit_recommendations?: EditRecommendations;
 }
+
 
 
 export interface BrandKit {
@@ -761,8 +789,38 @@ export function normalizePlan(
     scenes: edited,
     format: spec,
     total_seconds: totalSeconds(edited),
+    edit_recommendations: normalizeEditRecommendations(
+      (p as { edit_recommendations?: unknown }).edit_recommendations,
+    ),
   };
 }
+
+/** Trims model-authored editing guidance down to something safe to render. */
+export function normalizeEditRecommendations(value: unknown): EditRecommendations | undefined {
+  if (!value || typeof value !== "object") return undefined;
+  const r = value as Record<string, unknown>;
+  const line = (v: unknown, max = 220) =>
+    typeof v === "string" && v.trim() ? v.trim().slice(0, max) : undefined;
+  const list = (v: unknown) =>
+    Array.isArray(v)
+      ? v.filter((i) => typeof i === "string" && i.trim()).slice(0, 6).map((i) => String(i).trim().slice(0, 200))
+      : undefined;
+
+  const out: EditRecommendations = {
+    cut_rhythm: line(r.cut_rhythm),
+    hook_retention: line(r.hook_retention),
+    caption_style: line(r.caption_style),
+    text_density: line(r.text_density),
+    sound: line(r.sound),
+    cta_treatment: line(r.cta_treatment),
+    do_this: list(r.do_this),
+    avoid: list(r.avoid),
+    evidence: line(r.evidence, 260),
+  };
+
+  return Object.values(out).some(Boolean) ? out : undefined;
+}
+
 
 /**
  * Stamps every beat with its spoken duration and resolves where its headline

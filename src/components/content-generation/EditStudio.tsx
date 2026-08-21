@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -13,11 +13,14 @@ import {
 import {
   Captions,
   Check,
+  ChevronDown,
   Copy,
   Download,
   ExternalLink,
   Film,
+  HelpCircle,
   Layout,
+  Lightbulb,
   Scissors,
   Sparkles,
 } from 'lucide-react';
@@ -33,6 +36,37 @@ import {
   type VideoAdRecord,
 } from '@/config/video.config';
 import type { ContentHandoff } from '@/lib/contentHandoff';
+
+/** Set the first time a user opens the Edit studio — drives the onboarding tick. */
+export const EDIT_STUDIO_VISITED_KEY = 'korex.editstudio.visited';
+
+/** Plain-language walkthrough for users who have never edited a video before. */
+const WALKTHROUGH: { title: string; body: string }[] = [
+  {
+    title: 'Pick the ad you want to finish',
+    body: 'Choose one of your rendered ads as the base clip in step 3 below. That clip becomes the footage layer of your edit.',
+  },
+  {
+    title: 'Copy the template',
+    body: 'Press “Copy template JSON”. This is a ready-made edit — canvas size, timings and the exact words that appear on screen are already set from your strategy and script.',
+  },
+  {
+    title: 'Open Creatomate and import it',
+    body: 'Create a free Creatomate account, click New template, then choose “Import JSON source” and paste. Your edit opens on the timeline.',
+  },
+  {
+    title: 'Follow the beat list',
+    body: 'The numbered beats below tell you what happens at each second — what is said, what should be on screen, and where the text sits. Match the timeline to that list.',
+  },
+  {
+    title: 'Keep text inside the safe zones',
+    body: 'The grey bands at the top and bottom of the frame get covered by app buttons and captions. Anything important must sit between them — the template already does this for you.',
+  },
+  {
+    title: 'Export and upload',
+    body: 'Export as MP4 at the resolution shown in step 1, then upload it to the platform the strategy day is written for.',
+  },
+];
 
 const FALLBACK_SPECS: Record<string, FormatSpec> = {
   '9:16': {
@@ -88,6 +122,14 @@ export function EditStudio({
 }: Props) {
   const [sourceId, setSourceId] = useState<string>('');
   const [copied, setCopied] = useState(false);
+  // Open by default for first-timers, collapsed once they've been here before.
+  const [guideOpen, setGuideOpen] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem(EDIT_STUDIO_VISITED_KEY) !== 'true';
+    } catch {
+      return true;
+    }
+  });
 
   const completed = useMemo(
     () => videos.filter((v) => v.status === 'completed'),
@@ -192,6 +234,18 @@ export function EditStudio({
     if (!urls[id]) await onResolveUrl(id);
   };
 
+  const recs = plan?.edit_recommendations;
+
+  // Marks the Edit studio as visited so the Getting started checklist can tick.
+  useEffect(() => {
+    try {
+      localStorage.setItem(EDIT_STUDIO_VISITED_KEY, 'true');
+      window.dispatchEvent(new Event('korex:edit-studio-visited'));
+    } catch {
+      /* private mode — the checklist simply stays open */
+    }
+  }, []);
+
   return (
     <div className="space-y-6">
       {/* Why this section exists */}
@@ -210,6 +264,131 @@ export function EditStudio({
           </div>
         </CardContent>
       </Card>
+
+      {/* Beginner walkthrough — editing is the scariest step for new users */}
+      <Card className="bg-background border-card">
+        <CardContent className="p-4">
+          <button
+            type="button"
+            onClick={() => setGuideOpen((v) => !v)}
+            aria-expanded={guideOpen}
+            className="w-full flex items-center gap-2 text-left"
+          >
+            <HelpCircle className="w-4 h-4 text-primary shrink-0" />
+            <span className="text-sm font-medium flex-1">
+              New to editing? Read this first — 2 minutes
+            </span>
+            <ChevronDown
+              className={`w-4 h-4 text-muted-foreground transition-transform ${
+                guideOpen ? 'rotate-180' : ''
+              }`}
+            />
+          </button>
+
+          {guideOpen ? (
+            <div className="mt-4 space-y-4 text-xs text-muted-foreground">
+              <p>
+                Your video ad is delivered as a <strong className="text-foreground">clean master</strong>:
+                just the presenter speaking, at the right size for the platform. No text, no cuts,
+                no music. That's on purpose — a clean master is what every real editor starts from,
+                and it means you can change the wording on screen without paying to re-render.
+              </p>
+
+              <ol className="space-y-3 list-none">
+                {WALKTHROUGH.map((step, i) => (
+                  <li key={step.title} className="flex gap-3">
+                    <span className="mt-0.5 w-5 h-5 shrink-0 rounded-full border border-border text-[10px] flex items-center justify-center text-muted-foreground">
+                      {i + 1}
+                    </span>
+                    <span>
+                      <span className="block text-foreground font-medium">{step.title}</span>
+                      <span className="block mt-0.5">{step.body}</span>
+                    </span>
+                  </li>
+                ))}
+              </ol>
+
+              <p className="text-[11px] text-[hsl(var(--text-tertiary))]">
+                You can't break anything. Nothing you do in Creatomate changes your rendered ad —
+                it stays safe in your library, and you can start over any time.
+              </p>
+            </div>
+          ) : (
+            <p className="mt-2 text-xs text-muted-foreground">
+              A plain-English walkthrough: what the template is, where to paste it, and what to
+              change.
+            </p>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Evidence-backed edit direction */}
+      {recs ? (
+        <section className="space-y-3">
+          <div className="flex items-center gap-2">
+            <Lightbulb className="w-4 h-4 text-primary" />
+            <h2 className="text-sm font-semibold">How to cut this ad — from your niche research</h2>
+          </div>
+          <Card className="bg-background border-card">
+            <CardContent className="p-4 space-y-3">
+              <dl className="grid gap-3 sm:grid-cols-2">
+                {(
+                  [
+                    ['Cut rhythm', recs.cut_rhythm],
+                    ['First two seconds', recs.hook_retention],
+                    ['Captions', recs.caption_style],
+                    ['On-screen text', recs.text_density],
+                    ['Sound', recs.sound],
+                    ['Offer card', recs.cta_treatment],
+                  ] as const
+                )
+                  .filter(([, v]) => !!v)
+                  .map(([label, value]) => (
+                    <div key={label}>
+                      <dt className="text-[10px] uppercase tracking-wide text-[hsl(var(--text-tertiary))]">
+                        {label}
+                      </dt>
+                      <dd className="text-xs text-muted-foreground mt-0.5">{value}</dd>
+                    </div>
+                  ))}
+              </dl>
+
+              {recs.do_this?.length ? (
+                <div>
+                  <p className="text-[10px] uppercase tracking-wide text-[hsl(var(--text-tertiary))]">
+                    Do this
+                  </p>
+                  <ul className="text-xs text-muted-foreground list-disc pl-4 space-y-0.5 mt-1">
+                    {recs.do_this.map((d) => (
+                      <li key={d}>{d}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+
+              {recs.avoid?.length ? (
+                <div>
+                  <p className="text-[10px] uppercase tracking-wide text-[hsl(var(--text-tertiary))]">
+                    Avoid
+                  </p>
+                  <ul className="text-xs text-muted-foreground list-disc pl-4 space-y-0.5 mt-1">
+                    {recs.avoid.map((d) => (
+                      <li key={d}>{d}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+
+              {recs.evidence ? (
+                <p className="text-[11px] text-[hsl(var(--text-tertiary))] italic">
+                  Based on: {recs.evidence}
+                </p>
+              ) : null}
+            </CardContent>
+          </Card>
+        </section>
+      ) : null}
+
 
       {/* Delivery spec */}
       <section className="space-y-3">
@@ -382,20 +561,25 @@ export function EditStudio({
                 Download
               </Button>
               <Button asChild size="sm" className="gap-1.5">
-                <a href="https://creatomate.com/dashboard" target="_blank" rel="noopener noreferrer">
+                <a href="https://creatomate.com/" target="_blank" rel="noopener noreferrer">
                   <ExternalLink className="w-3.5 h-3.5" />
-                  Open Creatomate editor
+                  Open Creatomate
                 </a>
               </Button>
             </div>
 
             <ol className="text-xs text-muted-foreground space-y-1 list-decimal pl-4">
-              <li>In Creatomate, create a new template and choose “Import JSON source”.</li>
+              <li>
+                Sign in to Creatomate (a free account works) — the link opens their site, then go to
+                Templates.
+              </li>
+              <li>Create a new template and choose “Import JSON source”.</li>
               <li>Paste this template — the canvas, timing and text anchors arrive pre-set.</li>
               <li>Swap the base clip or drop B-roll onto track 1 following the beat list above.</li>
               <li>Keep text on track 2 so it always sits over the footage.</li>
               <li>Export at {spec.width}×{spec.height}, MP4, 30 fps.</li>
             </ol>
+
 
             <details className="rounded-md border border-card bg-muted/40">
               <summary className="cursor-pointer px-3 py-2 text-xs text-muted-foreground flex items-center gap-1.5">

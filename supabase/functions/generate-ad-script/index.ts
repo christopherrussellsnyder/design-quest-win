@@ -241,6 +241,8 @@ HARD RULES:
 ${strategyBlock ? "- This ad is tied to a specific strategy day. The visual treatment must express THAT post's theme, emotion and pillar — not a generic brand film." : ""}
 
 
+EDIT RECOMMENDATIONS — the ad is delivered as a CLEAN MASTER (presenter, voice, correct dimensions, nothing else) and the advertiser finishes it in an editor. So for every variant you must also return "edit_recommendations": specific, evidence-backed instructions for HOW to cut this exact ad on ${adPlatform.toUpperCase()}. Derive them from the NICHE + PERFORMANCE INTELLIGENCE brief — cut cadence, first-two-second retention move, caption treatment, on-screen text density, sound-off readability, music energy, and where the offer card sits. Write them so a complete beginner who has never edited a video could follow them literally. No jargon without a plain-language explanation. Name the evidence in one line.
+
 Return ONLY valid JSON, no markdown fences.
 
 Schema:
@@ -258,6 +260,17 @@ Schema:
         "rationale": "<one sentence on why this treatment fits this script and this day>",
         "captions": true,
         "edit_style": "<one line on the overall cut rhythm>",
+        "edit_recommendations": {
+          "cut_rhythm": "<how often to cut, in plain language>",
+          "hook_retention": "<what must happen in the first 2 seconds on this platform>",
+          "caption_style": "<caption size, placement and styling>",
+          "text_density": "<how much on-screen text winners in this niche use>",
+          "sound": "<music/sound-off guidance>",
+          "cta_treatment": "<where the offer card sits and how long it holds>",
+          "do_this": ["<concrete editor move>", "<concrete editor move>"],
+          "avoid": ["<mistake that kills performance in this niche>"],
+          "evidence": "<one line naming the evidence these calls came from>"
+        },
         "scenes": [
           {
             "role": "hook" | "benefit" | "mechanism" | "promo" | "close",
