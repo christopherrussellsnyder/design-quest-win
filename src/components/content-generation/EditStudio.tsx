@@ -242,13 +242,13 @@ export function EditStudio({
         <CardContent className="p-4 flex items-start gap-3">
           <Scissors className="w-4 h-4 text-primary mt-0.5 shrink-0" />
           <div className="text-sm">
-            <p className="font-medium">Edit studio — Creatomate</p>
+            <p className="font-medium">Edit studio — CapCut</p>
             <p className="text-muted-foreground text-xs mt-1">
               {handoff
                 ? `The edit brief below is built from day ${handoff.dayNumber ?? ''}${
                     handoff.theme ? ` (${handoff.theme})` : ''
                   } of your strategy and the script you selected — follow it beat by beat and the ad matches the plan.`
-                : 'Generate a script first, then this becomes a beat-by-beat edit brief plus a Creatomate template you can drop straight into the editor.'}
+                : 'Generate a script first, then this becomes a beat-by-beat edit brief plus timed captions and a text sheet you can drop straight into CapCut.'}
             </p>
           </div>
         </CardContent>
@@ -298,7 +298,7 @@ export function EditStudio({
               </ol>
 
               <p className="text-[11px] text-[hsl(var(--text-tertiary))]">
-                You can't break anything. Nothing you do in Creatomate changes your rendered ad —
+                You can't break anything. Nothing you do in CapCut changes your rendered ad —
                 it stays safe in your library, and you can start over any time.
               </p>
             </div>
