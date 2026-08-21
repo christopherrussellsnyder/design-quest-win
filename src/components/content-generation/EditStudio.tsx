@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -13,11 +13,14 @@ import {
 import {
   Captions,
   Check,
+  ChevronDown,
   Copy,
   Download,
   ExternalLink,
   Film,
+  HelpCircle,
   Layout,
+  Lightbulb,
   Scissors,
   Sparkles,
 } from 'lucide-react';
