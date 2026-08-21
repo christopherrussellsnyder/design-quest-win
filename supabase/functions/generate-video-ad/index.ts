@@ -1,17 +1,10 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { resolveVideoQuota, videoCorsHeaders as corsHeaders } from "../_shared/video-quota.ts";
 import { checkRateLimit, clientKey } from "../_shared/rate-limit.ts";
-import { createHeygenVideo, uploadHeygenImage, ASPECT_DIMENSIONS, type RenderScene } from "../_shared/heygen.ts";
+import { createHeygenVideo, ASPECT_DIMENSIONS, type RenderScene } from "../_shared/heygen.ts";
 import {
-  archiveSceneImage,
-  conformPlate,
-  fetchReferenceImage,
   formatSpec,
-  generateSceneImage,
-  loadBrandKit,
   normalizePlan,
-  sceneFraming,
-  sceneImagePrompt,
   type AdScene,
 } from "../_shared/ad-production.ts";
 
