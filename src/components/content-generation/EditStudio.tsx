@@ -192,6 +192,18 @@ export function EditStudio({
     if (!urls[id]) await onResolveUrl(id);
   };
 
+  const recs = plan?.edit_recommendations;
+
+  // Marks the Edit studio as visited so the Getting started checklist can tick.
+  useEffect(() => {
+    try {
+      localStorage.setItem(EDIT_STUDIO_VISITED_KEY, 'true');
+      window.dispatchEvent(new Event('korex:edit-studio-visited'));
+    } catch {
+      /* private mode — the checklist simply stays open */
+    }
+  }, []);
+
   return (
     <div className="space-y-6">
       {/* Why this section exists */}
@@ -210,6 +222,131 @@ export function EditStudio({
           </div>
         </CardContent>
       </Card>
+
+      {/* Beginner walkthrough — editing is the scariest step for new users */}
+      <Card className="bg-background border-card">
+        <CardContent className="p-4">
+          <button
+            type="button"
+            onClick={() => setGuideOpen((v) => !v)}
+            aria-expanded={guideOpen}
+            className="w-full flex items-center gap-2 text-left"
+          >
+            <HelpCircle className="w-4 h-4 text-primary shrink-0" />
+            <span className="text-sm font-medium flex-1">
+              New to editing? Read this first — 2 minutes
+            </span>
+            <ChevronDown
+              className={`w-4 h-4 text-muted-foreground transition-transform ${
+                guideOpen ? 'rotate-180' : ''
+              }`}
+            />
+          </button>
+
+          {guideOpen ? (
+            <div className="mt-4 space-y-4 text-xs text-muted-foreground">
+              <p>
+                Your video ad is delivered as a <strong className="text-foreground">clean master</strong>:
+                just the presenter speaking, at the right size for the platform. No text, no cuts,
+                no music. That's on purpose — a clean master is what every real editor starts from,
+                and it means you can change the wording on screen without paying to re-render.
+              </p>
+
+              <ol className="space-y-3 list-none">
+                {WALKTHROUGH.map((step, i) => (
+                  <li key={step.title} className="flex gap-3">
+                    <span className="mt-0.5 w-5 h-5 shrink-0 rounded-full border border-border text-[10px] flex items-center justify-center text-muted-foreground">
+                      {i + 1}
+                    </span>
+                    <span>
+                      <span className="block text-foreground font-medium">{step.title}</span>
+                      <span className="block mt-0.5">{step.body}</span>
+                    </span>
+                  </li>
+                ))}
+              </ol>
+
+              <p className="text-[11px] text-[hsl(var(--text-tertiary))]">
+                You can't break anything. Nothing you do in Creatomate changes your rendered ad —
+                it stays safe in your library, and you can start over any time.
+              </p>
+            </div>
+          ) : (
+            <p className="mt-2 text-xs text-muted-foreground">
+              A plain-English walkthrough: what the template is, where to paste it, and what to
+              change.
+            </p>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Evidence-backed edit direction */}
+      {recs ? (
+        <section className="space-y-3">
+          <div className="flex items-center gap-2">
+            <Lightbulb className="w-4 h-4 text-primary" />
+            <h2 className="text-sm font-semibold">How to cut this ad — from your niche research</h2>
+          </div>
+          <Card className="bg-background border-card">
+            <CardContent className="p-4 space-y-3">
+              <dl className="grid gap-3 sm:grid-cols-2">
+                {(
+                  [
+                    ['Cut rhythm', recs.cut_rhythm],
+                    ['First two seconds', recs.hook_retention],
+                    ['Captions', recs.caption_style],
+                    ['On-screen text', recs.text_density],
+                    ['Sound', recs.sound],
+                    ['Offer card', recs.cta_treatment],
+                  ] as const
+                )
+                  .filter(([, v]) => !!v)
+                  .map(([label, value]) => (
+                    <div key={label}>
+                      <dt className="text-[10px] uppercase tracking-wide text-[hsl(var(--text-tertiary))]">
+                        {label}
+                      </dt>
+                      <dd className="text-xs text-muted-foreground mt-0.5">{value}</dd>
+                    </div>
+                  ))}
+              </dl>
+
+              {recs.do_this?.length ? (
+                <div>
+                  <p className="text-[10px] uppercase tracking-wide text-[hsl(var(--text-tertiary))]">
+                    Do this
+                  </p>
+                  <ul className="text-xs text-muted-foreground list-disc pl-4 space-y-0.5 mt-1">
+                    {recs.do_this.map((d) => (
+                      <li key={d}>{d}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+
+              {recs.avoid?.length ? (
+                <div>
+                  <p className="text-[10px] uppercase tracking-wide text-[hsl(var(--text-tertiary))]">
+                    Avoid
+                  </p>
+                  <ul className="text-xs text-muted-foreground list-disc pl-4 space-y-0.5 mt-1">
+                    {recs.avoid.map((d) => (
+                      <li key={d}>{d}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+
+              {recs.evidence ? (
+                <p className="text-[11px] text-[hsl(var(--text-tertiary))] italic">
+                  Based on: {recs.evidence}
+                </p>
+              ) : null}
+            </CardContent>
+          </Card>
+        </section>
+      ) : null}
+
 
       {/* Delivery spec */}
       <section className="space-y-3">
