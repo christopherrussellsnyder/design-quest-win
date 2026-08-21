@@ -569,12 +569,17 @@ export function EditStudio({
             </div>
 
             <ol className="text-xs text-muted-foreground space-y-1 list-decimal pl-4">
-              <li>In Creatomate, create a new template and choose “Import JSON source”.</li>
+              <li>
+                Sign in to Creatomate (a free account works) — the link opens their site, then go to
+                Templates.
+              </li>
+              <li>Create a new template and choose “Import JSON source”.</li>
               <li>Paste this template — the canvas, timing and text anchors arrive pre-set.</li>
               <li>Swap the base clip or drop B-roll onto track 1 following the beat list above.</li>
               <li>Keep text on track 2 so it always sits over the footage.</li>
               <li>Export at {spec.width}×{spec.height}, MP4, 30 fps.</li>
             </ol>
+
 
             <details className="rounded-md border border-card bg-muted/40">
               <summary className="cursor-pointer px-3 py-2 text-xs text-muted-foreground flex items-center gap-1.5">
