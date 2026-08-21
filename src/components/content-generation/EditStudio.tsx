@@ -561,9 +561,9 @@ export function EditStudio({
                 Download
               </Button>
               <Button asChild size="sm" className="gap-1.5">
-                <a href="https://creatomate.com/dashboard" target="_blank" rel="noopener noreferrer">
+                <a href="https://creatomate.com/" target="_blank" rel="noopener noreferrer">
                   <ExternalLink className="w-3.5 h-3.5" />
-                  Open Creatomate editor
+                  Open Creatomate
                 </a>
               </Button>
             </div>
