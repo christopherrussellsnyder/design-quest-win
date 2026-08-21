@@ -241,6 +241,8 @@ HARD RULES:
 ${strategyBlock ? "- This ad is tied to a specific strategy day. The visual treatment must express THAT post's theme, emotion and pillar — not a generic brand film." : ""}
 
 
+EDIT RECOMMENDATIONS — the ad is delivered as a CLEAN MASTER (presenter, voice, correct dimensions, nothing else) and the advertiser finishes it in an editor. So for every variant you must also return "edit_recommendations": specific, evidence-backed instructions for HOW to cut this exact ad on ${adPlatform.toUpperCase()}. Derive them from the NICHE + PERFORMANCE INTELLIGENCE brief — cut cadence, first-two-second retention move, caption treatment, on-screen text density, sound-off readability, music energy, and where the offer card sits. Write them so a complete beginner who has never edited a video could follow them literally. No jargon without a plain-language explanation. Name the evidence in one line.
+
 Return ONLY valid JSON, no markdown fences.
 
 Schema:
