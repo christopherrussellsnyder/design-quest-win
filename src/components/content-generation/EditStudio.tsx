@@ -37,6 +37,37 @@ import {
 } from '@/config/video.config';
 import type { ContentHandoff } from '@/lib/contentHandoff';
 
+/** Set the first time a user opens the Edit studio — drives the onboarding tick. */
+export const EDIT_STUDIO_VISITED_KEY = 'korex.editstudio.visited';
+
+/** Plain-language walkthrough for users who have never edited a video before. */
+const WALKTHROUGH: { title: string; body: string }[] = [
+  {
+    title: 'Pick the ad you want to finish',
+    body: 'Choose one of your rendered ads as the base clip in step 3 below. That clip becomes the footage layer of your edit.',
+  },
+  {
+    title: 'Copy the template',
+    body: 'Press “Copy template JSON”. This is a ready-made edit — canvas size, timings and the exact words that appear on screen are already set from your strategy and script.',
+  },
+  {
+    title: 'Open Creatomate and import it',
+    body: 'Create a free Creatomate account, click New template, then choose “Import JSON source” and paste. Your edit opens on the timeline.',
+  },
+  {
+    title: 'Follow the beat list',
+    body: 'The numbered beats below tell you what happens at each second — what is said, what should be on screen, and where the text sits. Match the timeline to that list.',
+  },
+  {
+    title: 'Keep text inside the safe zones',
+    body: 'The grey bands at the top and bottom of the frame get covered by app buttons and captions. Anything important must sit between them — the template already does this for you.',
+  },
+  {
+    title: 'Export and upload',
+    body: 'Export as MP4 at the resolution shown in step 1, then upload it to the platform the strategy day is written for.',
+  },
+];
+
 const FALLBACK_SPECS: Record<string, FormatSpec> = {
   '9:16': {
     aspect: '9:16',
