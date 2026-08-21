@@ -561,6 +561,13 @@ export default function ContentGeneration() {
               <h2 className="text-sm font-semibold">Review and render</h2>
             </div>
 
+            <p className="text-[11px] text-muted-foreground -mt-1">
+              This renders a clean master — presenter, voice and correct dimensions, with no text or
+              cuts baked in. Add the on-screen text, cuts and music in the Edit studio tab, where
+              your strategy day is turned into a beat-by-beat brief.
+            </p>
+
+
             <Card className="bg-background border-card">
               <CardContent className="p-4 space-y-3">
                 <div className="space-y-1.5">
