@@ -514,22 +514,22 @@ export function EditStudio({
         ) : null}
       </section>
 
-      {/* Creatomate handoff */}
+      {/* CapCut handoff */}
       <section className="space-y-3">
         <div className="flex items-center gap-2">
           <span className="w-5 h-5 rounded border border-border text-[11px] flex items-center justify-center text-muted-foreground">
             3
           </span>
-          <h2 className="text-sm font-semibold">Open it in Creatomate</h2>
+          <h2 className="text-sm font-semibold">Finish it in CapCut — free</h2>
         </div>
 
         <Card className="bg-background border-card">
           <CardContent className="p-4 space-y-4">
             <div className="space-y-1.5 max-w-md">
-              <Label className="text-xs text-muted-foreground">Source clip (optional)</Label>
+              <Label className="text-xs text-muted-foreground">Base clip</Label>
               <Select value={sourceId} onValueChange={handlePickSource}>
                 <SelectTrigger className="bg-muted border-border">
-                  <SelectValue placeholder="Use a rendered ad as the base clip" />
+                  <SelectValue placeholder="Pick a rendered ad to edit" />
                 </SelectTrigger>
                 <SelectContent className="max-h-[280px]">
                   {completed.length === 0 ? (
@@ -546,53 +546,79 @@ export function EditStudio({
                 </SelectContent>
               </Select>
               <p className="text-[11px] text-[hsl(var(--text-tertiary))]">
-                Signed playback links expire — regenerate the template if Creatomate can't load the
-                clip.
+                Download it, then drag the file straight onto the CapCut timeline. Playback links
+                expire, so download it fresh if it won't open.
               </p>
             </div>
 
             <div className="flex flex-wrap gap-2">
-              <Button onClick={handleCopy} variant="outline" size="sm" className="gap-1.5">
-                {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                Copy template JSON
+              {sourceUrl ? (
+                <Button asChild variant="outline" size="sm" className="gap-1.5">
+                  <a href={sourceUrl} download target="_blank" rel="noopener noreferrer">
+                    <Download className="w-3.5 h-3.5" />
+                    Download base clip
+                  </a>
+                </Button>
+              ) : null}
+              <Button
+                onClick={() => handleDownload(srt, `korex-captions.srt`, 'text/plain')}
+                variant="outline"
+                size="sm"
+                className="gap-1.5"
+                disabled={!srt}
+              >
+                <Captions className="w-3.5 h-3.5" />
+                Download captions (.srt)
               </Button>
-              <Button onClick={handleDownload} variant="outline" size="sm" className="gap-1.5">
-                <Download className="w-3.5 h-3.5" />
-                Download
+              <Button onClick={handleCopySheet} variant="outline" size="sm" className="gap-1.5" disabled={!textSheet}>
+                {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                Copy text + timing sheet
               </Button>
               <Button asChild size="sm" className="gap-1.5">
-                <a href="https://creatomate.com/" target="_blank" rel="noopener noreferrer">
+                <a href="https://www.capcut.com/editor" target="_blank" rel="noopener noreferrer">
                   <ExternalLink className="w-3.5 h-3.5" />
-                  Open Creatomate
+                  Open CapCut
                 </a>
               </Button>
             </div>
 
             <ol className="text-xs text-muted-foreground space-y-1 list-decimal pl-4">
               <li>
-                Sign in to Creatomate (a free account works) — the link opens their site, then go to
-                Templates.
+                Open CapCut (free — the web editor works in your browser, no download needed) and
+                create a new project.
               </li>
-              <li>Create a new template and choose “Import JSON source”.</li>
-              <li>Paste this template — the canvas, timing and text anchors arrive pre-set.</li>
-              <li>Swap the base clip or drop B-roll onto track 1 following the beat list above.</li>
-              <li>Keep text on track 2 so it always sits over the footage.</li>
-              <li>Export at {spec.width}×{spec.height}, MP4, 30 fps.</li>
+              <li>
+                Set the canvas to {spec.aspect} in the Ratio menu so it exports at {spec.width}×
+                {spec.height}.
+              </li>
+              <li>Drag in the base clip you downloaded above.</li>
+              <li>
+                Captions → Import captions → choose the .srt file. Every spoken line lands on the
+                timeline already timed.
+              </li>
+              <li>
+                Add each headline from the timing sheet as a Text layer at the second listed, kept
+                inside the safe margins in step 1.
+              </li>
+              <li>Split the clip at each beat boundary below; hard cuts, no fancy transitions.</li>
+              <li>Export → MP4, {spec.width}×{spec.height}, 30 fps.</li>
             </ol>
 
-
-            <details className="rounded-md border border-card bg-muted/40">
-              <summary className="cursor-pointer px-3 py-2 text-xs text-muted-foreground flex items-center gap-1.5">
-                <Layout className="w-3.5 h-3.5" />
-                View template JSON
-              </summary>
-              <pre className="px-3 pb-3 text-[10px] leading-relaxed overflow-x-auto max-h-80 text-muted-foreground">
-                {json}
-              </pre>
-            </details>
+            {textSheet ? (
+              <details className="rounded-md border border-card bg-muted/40">
+                <summary className="cursor-pointer px-3 py-2 text-xs text-muted-foreground flex items-center gap-1.5">
+                  <Layout className="w-3.5 h-3.5" />
+                  View text + timing sheet
+                </summary>
+                <pre className="px-3 pb-3 text-[10px] leading-relaxed overflow-x-auto max-h-80 text-muted-foreground whitespace-pre-wrap">
+                  {textSheet}
+                </pre>
+              </details>
+            ) : null}
           </CardContent>
         </Card>
       </section>
+
 
       {script ? (
         <p className="text-[11px] text-[hsl(var(--text-tertiary))] flex items-start gap-1.5">
