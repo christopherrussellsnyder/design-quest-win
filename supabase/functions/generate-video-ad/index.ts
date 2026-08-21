@@ -110,7 +110,9 @@ serve(async (req) => {
         voiceId: voiceIdText,
         aspectRatio,
         scenes: renderScenes,
-        captions: true,
+        // Captions are an edit decision — they get added in the Edit studio,
+        // burned into a clean master rather than baked in at render time.
+        captions: false,
       });
     } catch (err) {
       const detail = err instanceof Error ? err.message : String(err);
