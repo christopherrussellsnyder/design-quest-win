@@ -51,8 +51,8 @@ const WALKTHROUGH: { title: string; body: string }[] = [
     body: 'Download the .srt caption file and copy the text sheet. Both are already timed to your script, so nothing needs typing out.',
   },
   {
-    title: 'Open CapCut and drop the clip in',
-    body: 'CapCut is free and runs in your browser. Create a new project, set the ratio to match step 1, then drag your clip onto the timeline.',
+    title: 'Open a free editor and drop the clip in',
+    body: 'Clipchamp, Canva, VEED or CapCut all work and are free in the browser. Create a new project, set the ratio to match step 1, then drag your clip onto the timeline. If CapCut is blocked on your network, use Clipchamp.',
   },
 
   {
@@ -202,7 +202,7 @@ export function EditStudio({
       await navigator.clipboard.writeText(textSheet);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-      toast({ title: 'Sheet copied', description: 'Keep it beside CapCut as you edit.' });
+      toast({ title: 'Sheet copied', description: 'Keep it beside your editor as you edit.' });
     } catch {
       toast({ title: 'Copy failed', description: 'Select the sheet and copy manually.', variant: 'destructive' });
     }
@@ -242,13 +242,13 @@ export function EditStudio({
         <CardContent className="p-4 flex items-start gap-3">
           <Scissors className="w-4 h-4 text-primary mt-0.5 shrink-0" />
           <div className="text-sm">
-            <p className="font-medium">Edit studio — CapCut</p>
+            <p className="font-medium">Edit studio</p>
             <p className="text-muted-foreground text-xs mt-1">
               {handoff
                 ? `The edit brief below is built from day ${handoff.dayNumber ?? ''}${
                     handoff.theme ? ` (${handoff.theme})` : ''
                   } of your strategy and the script you selected — follow it beat by beat and the ad matches the plan.`
-                : 'Generate a script first, then this becomes a beat-by-beat edit brief plus timed captions and a text sheet you can drop straight into CapCut.'}
+                : 'Generate a script first, then this becomes a beat-by-beat edit brief plus timed captions and a text sheet you can drop straight into a free editor.'}
             </p>
           </div>
         </CardContent>
@@ -298,7 +298,7 @@ export function EditStudio({
               </ol>
 
               <p className="text-[11px] text-[hsl(var(--text-tertiary))]">
-                You can't break anything. Nothing you do in CapCut changes your rendered ad —
+                You can't break anything. Nothing you do in the editor changes your rendered ad —
                 it stays safe in your library, and you can start over any time.
               </p>
             </div>
@@ -509,7 +509,7 @@ export function EditStudio({
           <span className="w-5 h-5 rounded border border-border text-[11px] flex items-center justify-center text-muted-foreground">
             3
           </span>
-          <h2 className="text-sm font-semibold">Finish it in CapCut — free</h2>
+          <h2 className="text-sm font-semibold">Finish it in a free editor</h2>
         </div>
 
         <Card className="bg-background border-card">
@@ -535,7 +535,7 @@ export function EditStudio({
                 </SelectContent>
               </Select>
               <p className="text-[11px] text-[hsl(var(--text-tertiary))]">
-                Download it, then drag the file straight onto the CapCut timeline. Playback links
+                Download it, then drag the file straight onto the editor timeline. Playback links
                 expire, so download it fresh if it won't open.
               </p>
             </div>
