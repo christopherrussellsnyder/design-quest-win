@@ -51,8 +51,8 @@ const WALKTHROUGH: { title: string; body: string }[] = [
     body: 'Download the .srt caption file and copy the text sheet. Both are already timed to your script, so nothing needs typing out.',
   },
   {
-    title: 'Open CapCut and drop the clip in',
-    body: 'CapCut is free and runs in your browser. Create a new project, set the ratio to match step 1, then drag your clip onto the timeline.',
+    title: 'Open a free editor and drop the clip in',
+    body: 'Clipchamp, Canva, VEED or CapCut all work and are free in the browser. Create a new project, set the ratio to match step 1, then drag your clip onto the timeline. If CapCut is blocked on your network, use Clipchamp.',
   },
 
   {
@@ -202,7 +202,7 @@ export function EditStudio({
       await navigator.clipboard.writeText(textSheet);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-      toast({ title: 'Sheet copied', description: 'Keep it beside CapCut as you edit.' });
+      toast({ title: 'Sheet copied', description: 'Keep it beside your editor as you edit.' });
     } catch {
       toast({ title: 'Copy failed', description: 'Select the sheet and copy manually.', variant: 'destructive' });
     }
@@ -242,13 +242,13 @@ export function EditStudio({
         <CardContent className="p-4 flex items-start gap-3">
           <Scissors className="w-4 h-4 text-primary mt-0.5 shrink-0" />
           <div className="text-sm">
-            <p className="font-medium">Edit studio — CapCut</p>
+            <p className="font-medium">Edit studio</p>
             <p className="text-muted-foreground text-xs mt-1">
               {handoff
                 ? `The edit brief below is built from day ${handoff.dayNumber ?? ''}${
                     handoff.theme ? ` (${handoff.theme})` : ''
                   } of your strategy and the script you selected — follow it beat by beat and the ad matches the plan.`
-                : 'Generate a script first, then this becomes a beat-by-beat edit brief plus timed captions and a text sheet you can drop straight into CapCut.'}
+                : 'Generate a script first, then this becomes a beat-by-beat edit brief plus timed captions and a text sheet you can drop straight into a free editor.'}
             </p>
           </div>
         </CardContent>
@@ -298,7 +298,7 @@ export function EditStudio({
               </ol>
 
               <p className="text-[11px] text-[hsl(var(--text-tertiary))]">
-                You can't break anything. Nothing you do in CapCut changes your rendered ad —
+                You can't break anything. Nothing you do in the editor changes your rendered ad —
                 it stays safe in your library, and you can start over any time.
               </p>
             </div>
@@ -509,7 +509,7 @@ export function EditStudio({
           <span className="w-5 h-5 rounded border border-border text-[11px] flex items-center justify-center text-muted-foreground">
             3
           </span>
-          <h2 className="text-sm font-semibold">Finish it in CapCut — free</h2>
+          <h2 className="text-sm font-semibold">Finish it in a free editor</h2>
         </div>
 
         <Card className="bg-background border-card">
@@ -535,7 +535,7 @@ export function EditStudio({
                 </SelectContent>
               </Select>
               <p className="text-[11px] text-[hsl(var(--text-tertiary))]">
-                Download it, then drag the file straight onto the CapCut timeline. Playback links
+                Download it, then drag the file straight onto the editor timeline. Playback links
                 expire, so download it fresh if it won't open.
               </p>
             </div>
@@ -563,27 +563,41 @@ export function EditStudio({
                 {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                 Copy text + timing sheet
               </Button>
-              <Button asChild size="sm" className="gap-1.5">
-                <a href="https://www.capcut.com/editor" target="_blank" rel="noopener noreferrer">
-                  <ExternalLink className="w-3.5 h-3.5" />
-                  Open CapCut
-                </a>
-              </Button>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-xs text-muted-foreground">Open a free editor</Label>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { label: 'Clipchamp', href: 'https://app.clipchamp.com/', note: 'Microsoft — works everywhere' },
+                  { label: 'Canva', href: 'https://www.canva.com/video-editor/', note: 'Free plan' },
+                  { label: 'VEED', href: 'https://www.veed.io/new', note: 'Free plan' },
+                  { label: 'CapCut', href: 'https://www.capcut.com/editor', note: 'Blocked on some networks' },
+                ].map((e) => (
+                  <Button key={e.label} asChild size="sm" variant={e.label === 'Clipchamp' ? 'default' : 'outline'} className="gap-1.5">
+                    <a href={e.href} target="_blank" rel="noopener noreferrer" title={e.note}>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      {e.label}
+                    </a>
+                  </Button>
+                ))}
+              </div>
+              <p className="text-[11px] text-[hsl(var(--text-tertiary))]">
+                CapCut refuses connections on some networks, schools and regions (ERR_BLOCKED_BY_RESPONSE).
+                If it won't load, use Clipchamp — it opens in any browser and imports the same clip, .srt
+                captions and timing sheet.
+              </p>
             </div>
 
             <ol className="text-xs text-muted-foreground space-y-1 list-decimal pl-4">
+              <li>Open one of the free editors above and create a new project.</li>
               <li>
-                Open CapCut (free — the web editor works in your browser, no download needed) and
-                create a new project.
-              </li>
-              <li>
-                Set the canvas to {spec.aspect} in the Ratio menu so it exports at {spec.width}×
-                {spec.height}.
+                Set the canvas to {spec.aspect} so it exports at {spec.width}×{spec.height}.
               </li>
               <li>Drag in the base clip you downloaded above.</li>
               <li>
-                Captions → Import captions → choose the .srt file. Every spoken line lands on the
-                timeline already timed.
+                Import the .srt caption file (Captions → Import in CapCut/VEED, Subtitles in
+                Clipchamp). Every spoken line lands already timed.
               </li>
               <li>
                 Add each headline from the timing sheet as a Text layer at the second listed, kept
@@ -592,6 +606,7 @@ export function EditStudio({
               <li>Split the clip at each beat boundary below; hard cuts, no fancy transitions.</li>
               <li>Export → MP4, {spec.width}×{spec.height}, 30 fps.</li>
             </ol>
+
 
             {textSheet ? (
               <details className="rounded-md border border-card bg-muted/40">
