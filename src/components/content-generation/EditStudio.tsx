@@ -563,27 +563,41 @@ export function EditStudio({
                 {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                 Copy text + timing sheet
               </Button>
-              <Button asChild size="sm" className="gap-1.5">
-                <a href="https://www.capcut.com/editor" target="_blank" rel="noopener noreferrer">
-                  <ExternalLink className="w-3.5 h-3.5" />
-                  Open CapCut
-                </a>
-              </Button>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-xs text-muted-foreground">Open a free editor</Label>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { label: 'Clipchamp', href: 'https://app.clipchamp.com/', note: 'Microsoft — works everywhere' },
+                  { label: 'Canva', href: 'https://www.canva.com/video-editor/', note: 'Free plan' },
+                  { label: 'VEED', href: 'https://www.veed.io/new', note: 'Free plan' },
+                  { label: 'CapCut', href: 'https://www.capcut.com/editor', note: 'Blocked on some networks' },
+                ].map((e) => (
+                  <Button key={e.label} asChild size="sm" variant={e.label === 'Clipchamp' ? 'default' : 'outline'} className="gap-1.5">
+                    <a href={e.href} target="_blank" rel="noopener noreferrer" title={e.note}>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      {e.label}
+                    </a>
+                  </Button>
+                ))}
+              </div>
+              <p className="text-[11px] text-[hsl(var(--text-tertiary))]">
+                CapCut refuses connections on some networks, schools and regions (ERR_BLOCKED_BY_RESPONSE).
+                If it won't load, use Clipchamp — it opens in any browser and imports the same clip, .srt
+                captions and timing sheet.
+              </p>
             </div>
 
             <ol className="text-xs text-muted-foreground space-y-1 list-decimal pl-4">
+              <li>Open one of the free editors above and create a new project.</li>
               <li>
-                Open CapCut (free — the web editor works in your browser, no download needed) and
-                create a new project.
-              </li>
-              <li>
-                Set the canvas to {spec.aspect} in the Ratio menu so it exports at {spec.width}×
-                {spec.height}.
+                Set the canvas to {spec.aspect} so it exports at {spec.width}×{spec.height}.
               </li>
               <li>Drag in the base clip you downloaded above.</li>
               <li>
-                Captions → Import captions → choose the .srt file. Every spoken line lands on the
-                timeline already timed.
+                Import the .srt caption file (Captions → Import in CapCut/VEED, Subtitles in
+                Clipchamp). Every spoken line lands already timed.
               </li>
               <li>
                 Add each headline from the timing sheet as a Text layer at the second listed, kept
@@ -592,6 +606,7 @@ export function EditStudio({
               <li>Split the clip at each beat boundary below; hard cuts, no fancy transitions.</li>
               <li>Export → MP4, {spec.width}×{spec.height}, 30 fps.</li>
             </ol>
+
 
             {textSheet ? (
               <details className="rounded-md border border-card bg-muted/40">
