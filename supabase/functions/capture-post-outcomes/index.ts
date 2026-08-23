@@ -7,10 +7,23 @@ import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
-  const supabase = createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
-  );
+  const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+  const supabase = createClient(Deno.env.get('SUPABASE_URL')!, serviceKey);
+
+  // Callable by the nightly cron (service role / cron context) or a signed-in user.
+  const authHeader = req.headers.get('Authorization') ?? '';
+  const isCron = req.headers.get('Lovable-Context') === 'cron' || authHeader === `Bearer ${serviceKey}`;
+  if (!isCron) {
+    const token = authHeader.replace('Bearer ', '');
+    const { data: userData } = await supabase.auth.getUser(token);
+    if (!userData?.user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+  }
+
 
   try {
     const now = Date.now();
