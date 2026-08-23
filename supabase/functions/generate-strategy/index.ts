@@ -396,6 +396,34 @@ Mark "rewrite" for any post scoring under 75. Provide a rewrite object for every
   return posts;
 }
 
+// Closed-loop calibration: compact note built from measured predicted-vs-actual error
+// for this niche. Only calibrated patterns (sample_size >= threshold) are surfaced.
+async function buildCalibrationNote(supabase: any, niche: string): Promise<string> {
+  if (!niche) return '';
+  try {
+    const { data } = await supabase
+      .from('niche_calibration')
+      .select('pattern_type, pattern_value, error_pct, sample_size')
+      .eq('niche', niche)
+      .eq('is_calibrated', true)
+      .order('sample_size', { ascending: false })
+      .limit(6);
+    const rows = (data ?? []) as any[];
+    if (!rows.length) return '';
+    return rows
+      .map((r) => {
+        const err = Number(r.error_pct) || 0;
+        const dir = err < 0 ? 'over-predicted' : 'under-predicted';
+        return `- ${r.pattern_type} "${r.pattern_value}": historically ${dir} engagement by ~${Math.abs(Math.round(err))}% (n=${r.sample_size}).`;
+      })
+      .join('\n');
+  } catch (e) {
+    console.warn('calibration note skipped:', (e as Error).message);
+    return '';
+  }
+}
+
+
 function parseJSONSafe(text: string): any {
   // First try direct parse
   try { return JSON.parse(text); } catch {}
