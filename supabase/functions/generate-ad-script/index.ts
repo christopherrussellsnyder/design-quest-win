@@ -373,14 +373,40 @@ Write the ${variantCount} script variants, each with its production plan, now.`;
 
     // Sanitise the art direction: caps generated plates, drops malformed scenes,
     // and falls back to a clean read when the model gives us nothing usable.
+    // The evidence block is attached server-side so the UI can label each
+    // recommendation honestly instead of trusting the model's own claim.
+    const allowedBasis = new Set(["measured", "niche_calibrated", "best_practice"]);
     const variants = rawVariants.map((v) => {
       const variant = (v ?? {}) as Record<string, unknown>;
       const script = String(variant.script ?? "");
-      const plan = normalizePlan(variant.production_plan, script);
+      const plan = normalizePlan(variant.production_plan, script) as Record<string, any>;
+
+      // Downgrade any basis the evidence we actually gathered cannot support.
+      const recs = plan.edit_recommendations as Record<string, any> | undefined;
+      if (recs) {
+        let basis = String(recs.basis ?? "best_practice");
+        if (!allowedBasis.has(basis)) basis = "best_practice";
+        if (basis === "measured" && !intelEvidence.first_party) {
+          basis = intelEvidence.calibrated_patterns.length ? "niche_calibrated" : "best_practice";
+        }
+        if (basis === "niche_calibrated" && !intelEvidence.calibrated_patterns.length) {
+          basis = "best_practice";
+        }
+        recs.basis = basis;
+      }
+
+      plan.evidence = intelEvidence;
       return { ...variant, production_plan: plan };
     });
 
-    return json({ variants, brand_kit: brandKit, intel_sources: intelSources, platform: adPlatform });
+    return json({
+      variants,
+      brand_kit: brandKit,
+      intel_sources: intelSources,
+      platform: adPlatform,
+      evidence: intelEvidence,
+    });
+
 
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
