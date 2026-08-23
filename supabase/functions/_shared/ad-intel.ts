@@ -106,8 +106,18 @@ export async function gatherAdIntel(
   const sources: string[] = [];
   const blocks: string[] = [];
 
-  const [signalsRes, searchIntel, adIntel, siteIntel, vocIntel, topPostsRes, patternsRes, baselineRes, hooksRes] =
-    await Promise.all([
+  const [
+    signalsRes,
+    searchIntel,
+    adIntel,
+    siteIntel,
+    vocIntel,
+    topPostsRes,
+    patternsRes,
+    baselineRes,
+    hooksRes,
+    calibrationRes,
+  ] = await Promise.all([
       supabase
         .from("campaign_intelligence_signals")
         .select("*")
@@ -128,7 +138,18 @@ export async function gatherAdIntel(
         .limit(12),
       supabase.rpc("get_user_baseline_metrics", { p_user_id: userId, p_platform: platform }).catch(() => ({ data: [] })),
       supabase.rpc("get_top_performing_elements", { p_user_id: userId, p_element_type: "hooks", p_limit: 6 }).catch(() => ({ data: [] })),
+      // Creative choices already measured against real outcomes in this niche.
+      supabase
+        .from("niche_calibration")
+        .select("pattern_type,pattern_value,error_pct,sample_size,avg_actual")
+        .eq("niche", niche)
+        .eq("is_calibrated", true)
+        .like("pattern_type", "creative_%")
+        .order("sample_size", { ascending: false })
+        .limit(10)
+        .then((r: any) => r, () => ({ data: [] })),
     ]);
+
 
   // ---- AI-estimated platform trend (model priors, NOT live platform data) ----
   const signals = signalsRes?.data || [];
