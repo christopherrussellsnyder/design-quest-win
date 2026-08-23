@@ -33,6 +33,7 @@ import { useStrategyGeneration, StrategyPost, StrategyOverview } from '@/hooks/u
 import { StrategyOverviewCard } from '@/components/strategy/StrategyOverviewCard';
 import { CampaignStructureCard } from '@/components/strategy/CampaignStructureCard';
 import { StrategyPostCard } from '@/components/strategy/StrategyPostCard';
+import { OutcomeTrackingPanel } from '@/components/strategy/OutcomeTrackingPanel';
 import { StrategyCalendarView } from '@/components/strategy/StrategyCalendarView';
 import { exportStrategyToCSV, exportStrategyToJSON } from '@/components/strategy/StrategyExport';
 import { StrategyDialog } from '@/components/strategist/StrategyDialog';
