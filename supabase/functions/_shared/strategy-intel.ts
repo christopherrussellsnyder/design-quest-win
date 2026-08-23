@@ -254,11 +254,19 @@ export async function crawlBusinessSite(supabase: any, website: string): Promise
       })
       .filter((h) => h && h.startsWith(base.origin));
 
-    for (const link of Array.from(new Set(links)).slice(0, 3)) {
-      const r = await timedFetch(link, { headers: { 'User-Agent': 'Mozilla/5.0 (compatible; KorexIntelligence/1.0)' } });
-      if (!r || !r.ok) continue;
-      pages.push({ url: link, text: stripHtml(await r.text()).slice(0, 3000) });
-    }
+    // Fetch the internal pages concurrently — they are independent, so worst case
+    // is one timeout window (~9s) instead of three sequential ones (~27s).
+    const linkResults = await Promise.all(
+      Array.from(new Set(links)).slice(0, 3).map(async (link) => {
+        const r = await timedFetch(link, { headers: { 'User-Agent': 'Mozilla/5.0 (compatible; KorexIntelligence/1.0)' } });
+        if (!r || !r.ok) return null;
+        const text = await r.text().catch(() => '');
+        if (!text) return null;
+        return { url: link, text: stripHtml(text).slice(0, 3000) };
+      }),
+    );
+    for (const p of linkResults) if (p) pages.push(p);
+
     // Site copy changes rarely — 7-day TTL.
     await setCached(supabase, 'site_crawl', cacheKey, pages, 24 * 7);
   }
