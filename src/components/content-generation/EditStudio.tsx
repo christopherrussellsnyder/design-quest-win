@@ -25,6 +25,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { EvidenceBasisBadge } from '@/components/DataSourceBadge';
 import {
   CAMERA_LABELS,
   COMPOSITION_LABELS,
