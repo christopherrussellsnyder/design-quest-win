@@ -47,7 +47,9 @@ function buildPrompt(platform: string, mode: ContentMode, industry: string) {
       ? "PAID ad creatives only (cold-audience direct-response)"
       : "HYBRID mix of organic feed content AND paid ad creatives";
 
-  return `You are Korex Intelligence's research analyst. Produce a compact, high-signal "what's working RIGHT NOW" research report for ${platform}.
+  return `You are Korex Intelligence's research analyst. Produce a compact, high-signal AI-ESTIMATED research report on what is generally working on ${platform}.
+
+IMPORTANT: You have NO live API access to ${platform} and no access to any user's account data. Everything you return is an ESTIMATE derived from your prior knowledge of publicly discussed patterns. Never present a figure as measured, live, or sourced from platform data. Engagement lift figures must be phrased as estimates (e.g. "est. +30-40% vs baseline").
 
 Scope: ${modeLine}
 Industry focus: ${industry || "general (all industries)"}
@@ -56,7 +58,7 @@ Requirements:
 - Base everything on well-known, currently-effective patterns from the last 6-12 months on ${platform}.
 - Concrete, not generic. "Split-screen POV with hard cut at 1.2s" beats "use engaging videos".
 - Cite the mechanic behind why each pattern works (pattern interrupt, curiosity gap, loop, social proof, etc.).
-- No filler. No disclaimers.
+- No filler. No disclaimers. No fabricated precision.
 
 Return ONLY valid JSON (no markdown, no prose outside JSON):
 {
@@ -64,6 +66,8 @@ Return ONLY valid JSON (no markdown, no prose outside JSON):
   "content_mode": "${mode}",
   "industry": "${industry || "general"}",
   "generated_at": "${new Date().toISOString()}",
+  "data_source_type": "ai_estimated",
+
   "trending_hooks": [
     { "hook": "string (exact opening line template)", "mechanic": "string", "example": "string", "best_for": "string" }
   ],
