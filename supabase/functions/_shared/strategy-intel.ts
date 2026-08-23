@@ -171,32 +171,38 @@ export async function fetchCompetitorAds(
   let snippets: string[] | null = await getCached(supabase, 'competitor_ads', cacheKey);
 
   if (!snippets) {
-    snippets = [];
-    for (const term of terms.slice(0, 3)) {
-      const url =
-        `https://www.facebook.com/ads/library/async/search_ads/?q=${encodeURIComponent(term)}` +
-        `&count=20&active_status=active&ad_type=all&country=${cc}&media_type=all`;
-      const res = await timedFetch(url, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (compatible; KorexIntelligence/1.0)',
-          Accept: 'text/html,application/json',
-        },
-      });
-      if (!res || !res.ok) continue;
-      const body = await res.text().catch(() => '');
-      // The async endpoint returns a `for (;;);`-prefixed JSON payload.
-      const cleaned = body.replace(/^for\s*\(;;\);/, '');
-      const bodies = [...cleaned.matchAll(/"body"\s*:\s*\{\s*"markup"[\s\S]{0,400}?"__html"\s*:\s*"([^"]{40,400})"/g)]
-        .map((m) => stripHtml(m[1].replace(/\\u003C/g, '<').replace(/\\n/g, ' ')))
-        .filter(Boolean);
-      const titles = [...cleaned.matchAll(/"title"\s*:\s*"([^"]{15,180})"/g)].map((m) => m[1]);
-      snippets.push(...bodies.slice(0, 6).map((b) => `[${term}] ${b.slice(0, 220)}`));
-      snippets.push(...titles.slice(0, 6).map((t) => `[${term}] ${t}`));
-    }
-    snippets = Array.from(new Set(snippets)).slice(0, 24);
+    // Independent per-term lookups — run them concurrently so the worst case is one
+    // timeout window rather than the sum of three.
+    const perTerm = await Promise.all(
+      terms.slice(0, 3).map(async (term) => {
+        const out: string[] = [];
+        const url =
+          `https://www.facebook.com/ads/library/async/search_ads/?q=${encodeURIComponent(term)}` +
+          `&count=20&active_status=active&ad_type=all&country=${cc}&media_type=all`;
+        const res = await timedFetch(url, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (compatible; KorexIntelligence/1.0)',
+            Accept: 'text/html,application/json',
+          },
+        });
+        if (!res || !res.ok) return out;
+        const body = await res.text().catch(() => '');
+        // The async endpoint returns a `for (;;);`-prefixed JSON payload.
+        const cleaned = body.replace(/^for\s*\(;;\);/, '');
+        const bodies = [...cleaned.matchAll(/"body"\s*:\s*\{\s*"markup"[\s\S]{0,400}?"__html"\s*:\s*"([^"]{40,400})"/g)]
+          .map((m) => stripHtml(m[1].replace(/\\u003C/g, '<').replace(/\\n/g, ' ')))
+          .filter(Boolean);
+        const titles = [...cleaned.matchAll(/"title"\s*:\s*"([^"]{15,180})"/g)].map((m) => m[1]);
+        out.push(...bodies.slice(0, 6).map((b) => `[${term}] ${b.slice(0, 220)}`));
+        out.push(...titles.slice(0, 6).map((t) => `[${term}] ${t}`));
+        return out;
+      }),
+    );
+    snippets = Array.from(new Set(perTerm.flat())).slice(0, 24);
     // Ad creative in a niche turns over weekly — 3-day TTL keeps it fresh but cheap.
     if (snippets.length) await setCached(supabase, 'competitor_ads', cacheKey, snippets, 72);
   }
+
 
   if (!snippets?.length) {
     return {
