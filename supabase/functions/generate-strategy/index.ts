@@ -278,7 +278,19 @@ Assign week_number based on: days 1-7=week 1, 8-14=week 2, 15-21=week 3, 22+=wee
 Make each post unique, strategic, and personalized for ${ctx.businessName}. Vary post types and content categories according to the content mix.`;
 }
 
-async function callAI(apiKey: string, prompt: string, systemPrompt: string, maxTokens: number = 16000): Promise<string> {
+// Model routing. The long-form creative work stays on the stronger model; bounded
+// structured-JSON grading runs on the lite model (verified side-by-side to score
+// and flag identically on real prompts at a fraction of the cost).
+const MODEL_CREATIVE = 'google/gemini-3-flash-preview';
+const MODEL_STRUCTURED = 'google/gemini-2.5-flash-lite';
+
+async function callAI(
+  apiKey: string,
+  prompt: string,
+  systemPrompt: string,
+  maxTokens: number = 16000,
+  model: string = MODEL_CREATIVE,
+): Promise<string> {
   const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -286,7 +298,7 @@ async function callAI(apiKey: string, prompt: string, systemPrompt: string, maxT
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'google/gemini-3-flash-preview',
+      model,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: prompt },
@@ -299,15 +311,83 @@ async function callAI(apiKey: string, prompt: string, systemPrompt: string, maxT
   if (!response.ok) {
     const errorText = await response.text();
     console.error('AI Gateway error:', response.status, errorText);
-    if (response.status === 429) throw new Error('RATE_LIMIT');
+    if (response.status === 429) {
+      const err: any = new Error('RATE_LIMIT');
+      err.retryAfter = Number(response.headers.get('Retry-After')) || 0;
+      throw err;
+    }
     if (response.status === 402) throw new Error('PAYMENT_REQUIRED');
-    throw new Error(`AI service error ${response.status}: ${errorText.slice(0, 300)}`);
+    const err: any = new Error(`AI service error ${response.status}: ${errorText.slice(0, 300)}`);
+    err.status = response.status;
+    throw err;
   }
 
   const aiResponse = await response.json();
   let text = aiResponse.choices?.[0]?.message?.content || '';
   return text.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
 }
+
+/**
+ * Bounded retry-with-backoff for transient gateway failures (429 / 5xx).
+ * 402 is terminal and rethrown immediately — never retried.
+ */
+async function callAIWithRetry(
+  apiKey: string,
+  prompt: string,
+  systemPrompt: string,
+  maxTokens: number,
+  model: string = MODEL_CREATIVE,
+  attempts = 3,
+  label = 'call',
+): Promise<string> {
+  let lastErr: any;
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    try {
+      return await callAI(apiKey, prompt, systemPrompt, maxTokens, model);
+    } catch (e: any) {
+      lastErr = e;
+      if (e?.message === 'PAYMENT_REQUIRED') throw e;
+      const retryable = e?.message === 'RATE_LIMIT' || (e?.status ?? 0) >= 500;
+      if (!retryable || attempt === attempts) throw e;
+      const backoff = e?.retryAfter
+        ? e.retryAfter * 1000
+        : Math.min(8000, 800 * 2 ** (attempt - 1)) + Math.floor(Math.random() * 400);
+      console.warn(`${label}: attempt ${attempt} failed (${e.message}) — retrying in ${backoff}ms`);
+      await new Promise((r) => setTimeout(r, backoff));
+    }
+  }
+  throw lastErr;
+}
+
+/**
+ * Token-cost control: the full grounding block (site crawl bodies, Reddit quotes,
+ * ad recon, seasonality, budget maths) is only worth its tokens on the single
+ * overview call. Per-day batches get a compressed digest — the same facts, capped
+ * and de-prosed — which cuts repeated prompt tokens by roughly 70-80%.
+ */
+function compressGrounding(sections: Array<string | undefined | null>, maxChars = 2200): string {
+  const lines: string[] = [];
+  for (const section of sections) {
+    if (!section) continue;
+    const [rawHeader, ...rest] = section.split('\n');
+    const header = rawHeader.replace(/^=+\s*|\s*=+$/g, '').trim();
+    // Keep the concrete facts (bullets, observed prices, quotes), drop the
+    // instruction prose that the overview call has already acted on.
+    const facts = rest
+      .map((l) => l.trim())
+      .filter((l) => l && (l.startsWith('-') || l.startsWith('"') || /^Observed prices/i.test(l)))
+      .filter((l) => !/^\d+\./.test(l))
+      .slice(0, 6)
+      .map((l) => (l.length > 180 ? `${l.slice(0, 180)}…` : l));
+    if (!facts.length) continue;
+    lines.push(`${header}: ${facts.map((f) => f.replace(/^-\s*/, '')).join(' | ')}`);
+  }
+  if (!lines.length) return '';
+  let out = `=== GROUNDING DIGEST (condensed real inputs — treat as fact, never invent beyond it) ===\n${lines.join('\n')}`;
+  if (out.length > maxChars) out = `${out.slice(0, maxChars)}…`;
+  return out;
+}
+
 
 // ============================================================================
 // CMO CRITIC PASS
