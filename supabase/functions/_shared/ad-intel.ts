@@ -14,11 +14,32 @@ import {
   fetchVoiceOfCustomer,
 } from "./strategy-intel.ts";
 
+/** A creative choice that has been measured against real outcomes for this niche. */
+export interface CalibratedCreativePattern {
+  pattern_type: string;
+  pattern_value: string;
+  error_pct: number;
+  sample_size: number;
+  avg_actual: number;
+}
+
+/**
+ * Provenance of the evidence behind an ad's creative direction, so the UI can
+ * be honest about which recommendations are measured and which are model priors.
+ */
+export interface AdEvidence {
+  first_party: boolean;
+  ai_estimated: boolean;
+  calibrated_patterns: CalibratedCreativePattern[];
+}
+
 export interface AdIntel {
   section: string;
   sources: string[];
   platform: string;
+  evidence: AdEvidence;
 }
+
 
 export function normalizeAdPlatform(p?: string): string {
   const s = (p || "").toLowerCase();
