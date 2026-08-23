@@ -1053,7 +1053,7 @@ serve(async (req) => {
 
     // Terminal gateway states discovered inside a concurrent batch — recorded once
     // and turned into the response after all in-flight batches settle.
-    let terminalError: 'RATE_LIMIT' | 'PAYMENT_REQUIRED' | null = null;
+    let terminalError: string | null = null;
 
     const runBatch = async (batchIdx: number): Promise<any[]> => {
       const [startDay, endDay] = batches[batchIdx];
