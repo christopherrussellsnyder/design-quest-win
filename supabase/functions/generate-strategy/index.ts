@@ -934,6 +934,9 @@ serve(async (req) => {
 
     console.log(`Generating ${totalPosts} posts in ${batches.length} batches...`);
     const allPosts: any[] = [];
+    const calibrationNiche = ((ctx as any).niche || ctx.industry || 'general') as string;
+    const calibrationNote = await buildCalibrationNote(supabase, calibrationNiche);
+    if (calibrationNote) console.log('Calibration note applied for niche:', calibrationNiche);
     const startDateStr = overview.start_date || new Date().toISOString().split('T')[0];
 
     for (let batchIdx = 0; batchIdx < batches.length; batchIdx++) {
