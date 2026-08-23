@@ -20,7 +20,11 @@ async function callAI(apiKey: string, prompt: string): Promise<any> {
     body: JSON.stringify({
       model: "google/gemini-3-flash-preview",
       messages: [
-        { role: "system", content: "You are a senior paid-media analyst. Return ONLY valid JSON, no markdown." },
+        {
+          role: "system",
+          content:
+            "You are a senior paid-media analyst producing AI-ESTIMATED directional guidance from prior knowledge. You have NO live access to Meta, Google, TikTok or LinkedIn APIs. Never state a specific ROAS, CPA, CTR or revenue figure as if it were measured — describe direction and relative comparison only, and say what the estimate is based on. Return ONLY valid JSON, no markdown.",
+        },
         { role: "user", content: prompt },
       ],
       temperature: 0.3,
@@ -34,24 +38,28 @@ async function callAI(apiKey: string, prompt: string): Promise<any> {
 }
 
 function buildPrompt(platform: string, niche: string): string {
-  return `Analyze the CURRENT (this month) paid-media performance landscape on ${platform.toUpperCase()} for businesses in the "${niche}" niche.
+  return `Produce an AI-ESTIMATED (not live, not measured) view of the paid-media landscape on ${platform.toUpperCase()} for businesses in the "${niche}" niche.
 
-Based on widely reported industry benchmarks, recent algorithm/platform updates, and current best-performing campaign optimization patterns, return JSON:
+This is an estimate derived from your prior knowledge of publicly reported benchmarks and platform documentation. It is NOT connected to any ad account or platform API. Do not invent precise metrics; give direction, relative comparison, and the reasoning behind it.
+
+Return JSON:
 
 {
   "recommended_structure": "CBO | ABO | Advantage+ | Performance Max | Smart+ | Manual",
   "confidence_score": 1-10,
-  "rationale": "2-3 sentences explaining why this structure is currently outperforming alternatives in this niche",
-  "roas_trend": "concrete trend statement with rough numbers, e.g. 'Advantage+ Shopping delivering 3.2-4.1x ROAS vs 2.4x for manual ABO in DTC ecom this quarter'",
-  "profit_margin_trend": "statement about how this affects net margins",
+  "rationale": "2-3 sentences explaining why this structure is generally believed to outperform alternatives in this niche",
+  "roas_trend": "DIRECTIONAL estimate only — e.g. 'Advantage+ Shopping generally reported to outperform manual ABO in DTC ecom'. No fabricated numbers.",
+  "profit_margin_trend": "directional statement about likely net-margin impact, no fabricated numbers",
   "budget_split": {"prospecting": 70, "retargeting": 30},
   "audience_approach": "specific targeting recommendation",
   "creative_volume": "specific creative cadence recommendation",
-  "alternative_to_test": "secondary structure worth A/B testing"
+  "alternative_to_test": "secondary structure worth A/B testing",
+  "estimate_basis": "1 sentence naming what this estimate is grounded in (published benchmarks, platform docs, common practice)"
 }
 
-Be specific to ${platform} and ${niche}. No generic platitudes.`;
+Be specific to ${platform} and ${niche}. No generic platitudes. No fake precision.`;
 }
+
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
