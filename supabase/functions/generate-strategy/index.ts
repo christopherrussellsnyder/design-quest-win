@@ -993,6 +993,7 @@ serve(async (req) => {
           ctx,
           platform,
           groundingSources.length ? `Grounded on: ${groundingSources.join(', ')}` : '',
+          calibrationNote,
         );
       }
 
