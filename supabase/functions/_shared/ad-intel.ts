@@ -173,10 +173,11 @@ export async function gatherAdIntel(
   }
   if (perf.length) {
     blocks.push(
-      `=== PROVEN PERFORMANCE (THIS ADVERTISER'S OWN AUDIENCE — HIGHER CONFIDENCE THAN GENERIC BEST PRACTICE) ===\n${perf.join("\n")}`,
+      `=== FIRST-PARTY PROVEN PERFORMANCE (THIS ADVERTISER'S OWN MEASURED AUDIENCE DATA — HIGHEST CONFIDENCE, OVERRIDES AI-ESTIMATED TRENDS ABOVE) ===\n${perf.join("\n")}`,
     );
-    sources.push("performance_feedback_loop");
+    sources.push("performance_feedback_loop (first_party)");
   }
+
 
   // ---- Platform-native production spec ----
   blocks.push(platformSpec(platform));
