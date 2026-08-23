@@ -23,10 +23,11 @@ import { WorkspacesSection } from '@/components/settings/WorkspacesSection';
 import { TeamMembersSection } from '@/components/settings/TeamMembersSection';
 import { BrandKitSection } from '@/components/settings/BrandKitSection';
 import { TwoFactorSection } from '@/components/settings/TwoFactorSection';
-import { Users } from 'lucide-react';
+import { AdAccountsSection } from '@/components/settings/AdAccountsSection';
+import { Users, Megaphone } from 'lucide-react';
 import { KorexMark } from '@/components/branding/KorexMark';
 
-type SettingsTab = 'profile' | 'workspaces' | 'team' | 'brandkit' | 'business' | 'ai' | 'notifications' | 'billing' | 'about';
+type SettingsTab = 'profile' | 'workspaces' | 'team' | 'brandkit' | 'business' | 'ai' | 'ads' | 'notifications' | 'billing' | 'about';
 
 interface UserProfile {
   fullName: string;
@@ -212,6 +213,7 @@ const Settings: React.FC = () => {
     { id: 'brandkit' as const, label: 'Brand Kit', icon: Palette },
     { id: 'business' as const, label: 'Business Context', icon: Globe },
     { id: 'ai' as const, label: 'AI Preferences', icon: Sparkles },
+    { id: 'ads' as const, label: 'Ad Accounts', icon: Megaphone },
     { id: 'notifications' as const, label: 'Notifications', icon: Bell },
     { id: 'billing' as const, label: 'Billing', icon: CreditCard },
     { id: 'about' as const, label: 'About', icon: Info }
@@ -550,6 +552,7 @@ const Settings: React.FC = () => {
       case 'brandkit': return <BrandKitSection />;
       case 'business': return renderBusinessTab();
       case 'ai': return renderAIPreferencesTab();
+      case 'ads': return <AdAccountsSection />;
       case 'notifications': return renderNotificationsTab();
       case 'billing': return renderBillingTab();
       case 'about': return renderAboutTab();
