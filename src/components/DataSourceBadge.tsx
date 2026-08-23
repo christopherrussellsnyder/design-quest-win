@@ -1,5 +1,5 @@
 import { Badge } from '@/components/ui/badge';
-import { Database, Sparkles, Plug } from 'lucide-react';
+import { Database, Sparkles, Plug, LineChart, Lightbulb } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export type DataSourceType = 'real_api' | 'first_party' | 'ai_estimated';

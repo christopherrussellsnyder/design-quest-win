@@ -311,15 +311,17 @@ export function EditStudio({
         </CardContent>
       </Card>
 
-      {/* Evidence-backed edit direction */}
+      {/* Edit direction, labelled by how it was actually arrived at */}
       {recs ? (
         <section className="space-y-3">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Lightbulb className="w-4 h-4 text-primary" />
-            <h2 className="text-sm font-semibold">How to cut this ad — from your niche research</h2>
+            <h2 className="text-sm font-semibold">How to cut this ad</h2>
+            <EvidenceBasisBadge basis={recs.basis ?? 'best_practice'} />
           </div>
           <Card className="bg-background border-card">
             <CardContent className="p-4 space-y-3">
+
               <dl className="grid gap-3 sm:grid-cols-2">
                 {(
                   [
