@@ -197,6 +197,7 @@ export type Database = {
           conversion_count: number | null
           conversion_rate: number | null
           created_at: string | null
+          creative_signature: Json | null
           id: string
           is_control: boolean | null
           posts_published: number | null
@@ -204,6 +205,7 @@ export type Database = {
           total_impressions: number | null
           variable_value: Json | null
           variant_name: string
+          video_ad_id: string | null
         }
         Insert: {
           ab_test_id?: string | null
@@ -212,6 +214,7 @@ export type Database = {
           conversion_count?: number | null
           conversion_rate?: number | null
           created_at?: string | null
+          creative_signature?: Json | null
           id?: string
           is_control?: boolean | null
           posts_published?: number | null
@@ -219,6 +222,7 @@ export type Database = {
           total_impressions?: number | null
           variable_value?: Json | null
           variant_name: string
+          video_ad_id?: string | null
         }
         Update: {
           ab_test_id?: string | null
@@ -227,6 +231,7 @@ export type Database = {
           conversion_count?: number | null
           conversion_rate?: number | null
           created_at?: string | null
+          creative_signature?: Json | null
           id?: string
           is_control?: boolean | null
           posts_published?: number | null
@@ -234,6 +239,7 @@ export type Database = {
           total_impressions?: number | null
           variable_value?: Json | null
           variant_name?: string
+          video_ad_id?: string | null
         }
         Relationships: [
           {
@@ -241,6 +247,13 @@ export type Database = {
             columns: ["ab_test_id"]
             isOneToOne: false
             referencedRelation: "ab_tests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ab_test_variants_video_ad_id_fkey"
+            columns: ["video_ad_id"]
+            isOneToOne: false
+            referencedRelation: "video_ads"
             referencedColumns: ["id"]
           },
         ]
@@ -4083,6 +4096,11 @@ export type Database = {
           actual_engagement: number | null
           actual_reach: number | null
           created_at: string
+          creative_captions: boolean | null
+          creative_duration_bucket: string | null
+          creative_shot_opening: string | null
+          creative_text_density: string | null
+          creative_treatment: string | null
           error_pct: number | null
           id: string
           measured_at: string | null
@@ -4092,15 +4110,22 @@ export type Database = {
           predicted_engagement: number | null
           predicted_score: number | null
           source: string
-          strategy_post_id: string
+          strategy_post_id: string | null
+          subject_type: string
           updated_at: string
           user_id: string
+          video_ad_id: string | null
         }
         Insert: {
           actual_conversions?: number | null
           actual_engagement?: number | null
           actual_reach?: number | null
           created_at?: string
+          creative_captions?: boolean | null
+          creative_duration_bucket?: string | null
+          creative_shot_opening?: string | null
+          creative_text_density?: string | null
+          creative_treatment?: string | null
           error_pct?: number | null
           id?: string
           measured_at?: string | null
@@ -4110,15 +4135,22 @@ export type Database = {
           predicted_engagement?: number | null
           predicted_score?: number | null
           source?: string
-          strategy_post_id: string
+          strategy_post_id?: string | null
+          subject_type?: string
           updated_at?: string
           user_id: string
+          video_ad_id?: string | null
         }
         Update: {
           actual_conversions?: number | null
           actual_engagement?: number | null
           actual_reach?: number | null
           created_at?: string
+          creative_captions?: boolean | null
+          creative_duration_bucket?: string | null
+          creative_shot_opening?: string | null
+          creative_text_density?: string | null
+          creative_treatment?: string | null
           error_pct?: number | null
           id?: string
           measured_at?: string | null
@@ -4128,9 +4160,11 @@ export type Database = {
           predicted_engagement?: number | null
           predicted_score?: number | null
           source?: string
-          strategy_post_id?: string
+          strategy_post_id?: string | null
+          subject_type?: string
           updated_at?: string
           user_id?: string
+          video_ad_id?: string | null
         }
         Relationships: [
           {
@@ -4138,6 +4172,13 @@ export type Database = {
             columns: ["strategy_post_id"]
             isOneToOne: true
             referencedRelation: "strategy_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "outcome_tracking_video_ad_id_fkey"
+            columns: ["video_ad_id"]
+            isOneToOne: false
+            referencedRelation: "video_ads"
             referencedColumns: ["id"]
           },
         ]
@@ -5528,6 +5569,8 @@ export type Database = {
       }
       video_ads: {
         Row: {
+          ab_test_id: string | null
+          ab_variant_id: string | null
           angle: string | null
           aspect_ratio: string
           avatar_id: string
@@ -5540,6 +5583,7 @@ export type Database = {
           error_message: string | null
           hook: string | null
           id: string
+          predicted_engagement: number | null
           production_plan: Json | null
           provider: string
           provider_video_id: string | null
@@ -5557,6 +5601,8 @@ export type Database = {
           workspace_id: string | null
         }
         Insert: {
+          ab_test_id?: string | null
+          ab_variant_id?: string | null
           angle?: string | null
           aspect_ratio?: string
           avatar_id: string
@@ -5569,6 +5615,7 @@ export type Database = {
           error_message?: string | null
           hook?: string | null
           id?: string
+          predicted_engagement?: number | null
           production_plan?: Json | null
           provider?: string
           provider_video_id?: string | null
@@ -5586,6 +5633,8 @@ export type Database = {
           workspace_id?: string | null
         }
         Update: {
+          ab_test_id?: string | null
+          ab_variant_id?: string | null
           angle?: string | null
           aspect_ratio?: string
           avatar_id?: string
@@ -5598,6 +5647,7 @@ export type Database = {
           error_message?: string | null
           hook?: string | null
           id?: string
+          predicted_engagement?: number | null
           production_plan?: Json | null
           provider?: string
           provider_video_id?: string | null
@@ -5614,7 +5664,22 @@ export type Database = {
           voice_id?: string | null
           workspace_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "video_ads_ab_test_id_fkey"
+            columns: ["ab_test_id"]
+            isOneToOne: false
+            referencedRelation: "ab_tests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_ads_ab_variant_id_fkey"
+            columns: ["ab_variant_id"]
+            isOneToOne: false
+            referencedRelation: "ab_test_variants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       virality_predictions: {
         Row: {
