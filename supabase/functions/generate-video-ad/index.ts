@@ -132,12 +132,26 @@ serve(async (req) => {
     }
 
     // ---- Record it ------------------------------------------------------
+    // The linked day's prediction is copied onto the ad so the nightly outcome
+    // job has something to compare the real numbers against.
+    let predictedEngagement: number | null = null;
+    if (asText(strategyPostId)) {
+      const { data: linked } = await supabase
+        .from("strategy_posts")
+        .select("predicted_engagement")
+        .eq("id", asText(strategyPostId))
+        .maybeSingle();
+      predictedEngagement = linked?.predicted_engagement ?? null;
+    }
+
     const { data: row, error: insertError } = await supabase
       .from("video_ads")
       .insert({
         user_id: userId,
         workspace_id: asText(workspaceId) ?? null,
         strategy_post_id: asText(strategyPostId) ?? null,
+        predicted_engagement: predictedEngagement,
+
         title: asText(title) ?? null,
         hook: asText(hook) ?? null,
         script: scriptText.trim(),
