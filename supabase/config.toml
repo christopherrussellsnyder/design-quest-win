@@ -64,3 +64,9 @@ project_id = "yxpzkcqeqzpgysvrrezc"
     verify_jwt = true
   [functions.tts-narration]
     verify_jwt = false
+
+  [functions.meta-oauth-callback]
+  verify_jwt = false
+
+  [functions.fetch-meta-ad-performance]
+  verify_jwt = false
