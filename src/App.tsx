@@ -46,6 +46,7 @@ const Demo = lazy(() => import("./pages/Demo"));
 const AuthConfirm = lazy(() => import("./pages/AuthConfirm"));
 const Unsubscribe = lazy(() => import("./pages/Unsubscribe"));
 const AdminMessages = lazy(() => import("./pages/AdminMessages"));
+const AdminPredictionAccuracy = lazy(() => import("./pages/AdminPredictionAccuracy"));
 const Reports = lazy(() => import("./pages/Reports"));
 const PublicReport = lazy(() => import("./pages/PublicReport"));
 const AcceptWorkspaceInvite = lazy(() => import("./pages/AcceptWorkspaceInvite"));
