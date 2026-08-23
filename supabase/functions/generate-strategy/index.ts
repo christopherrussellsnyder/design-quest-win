@@ -954,12 +954,24 @@ serve(async (req) => {
       .maybeSingle();
 
     console.log('Step 0: Gathering external grounding...');
+    // Global deadline on the whole grounding phase: a slow external source can never
+    // push the generation past the edge function budget — whatever is back in time
+    // is used, the rest is dropped and logged.
+    const GROUNDING_BUDGET_MS = 20000;
+    const groundingStarted = Date.now();
+    const withDeadline = <T>(p: Promise<T>): Promise<T | null> =>
+      Promise.race([
+        p.catch(() => null),
+        new Promise<null>((r) => setTimeout(() => r(null), GROUNDING_BUDGET_MS)),
+      ]);
+
     const [searchIntel, adIntel, siteIntel, vocIntel] = await Promise.all([
-      fetchSearchDemand(supabase, ctx.industry, ctx.products, ctx.geoFocus).catch(() => null),
-      fetchCompetitorAds(supabase, ctx.industry, ctx.competitors, normalizedReqPlatform, ctx.geoFocus).catch(() => null),
-      crawlBusinessSite(supabase, bi.website || '').catch(() => null),
-      fetchVoiceOfCustomer(supabase, ctx.industry, ctx.products).catch(() => null),
+      withDeadline(fetchSearchDemand(supabase, ctx.industry, ctx.products, ctx.geoFocus)),
+      withDeadline(fetchCompetitorAds(supabase, ctx.industry, ctx.competitors, normalizedReqPlatform, ctx.geoFocus)),
+      withDeadline(crawlBusinessSite(supabase, bi.website || '')),
+      withDeadline(fetchVoiceOfCustomer(supabase, ctx.industry, ctx.products)),
     ]);
+    console.log(`Grounding phase completed in ${Date.now() - groundingStarted}ms (budget ${GROUNDING_BUDGET_MS}ms)`);
 
     const seasonalitySection = buildSeasonalitySection(stratStartISO, durationDays, ctx.geoFocus);
     const budgetSection = buildBudgetSection(
@@ -980,22 +992,43 @@ serve(async (req) => {
       CONFIDENCE_PROMPT,
     ].filter(Boolean).join('\n\n');
 
+    // Compressed digest reused by every per-day batch call (the full block above is
+    // reserved for the single overview call).
+    const groundingDigest = compressGrounding([
+      siteIntel?.section,
+      searchIntel?.section,
+      adIntel?.section,
+      vocIntel?.section,
+      seasonalitySection,
+    ]);
+
     const groundingSources = [searchIntel, adIntel, siteIntel, vocIntel]
       .filter((r) => r?.ok)
       .map((r) => r!.source);
     console.log('Grounding sources active:', groundingSources.join(', ') || 'none (profile only)');
+    console.log(`Grounding size: full ${groundingSection.length} chars → digest ${groundingDigest.length} chars`);
 
     // ========== STEP 1: Generate strategy overview ==========
     console.log('Step 1: Generating strategy overview...');
     const overviewPrompt = buildOverviewPrompt(ctx, platform, durationDays, effectiveGoals, analyticsSection, `${intelligenceSection}\n\n${groundingSection}`, performanceFeedbackSection, promotionsSection, customInstructions, contentMode);
-    const overviewText = await callAI(LOVABLE_API_KEY, overviewPrompt, systemPrompt, 8000);
-    
+
     let overviewData: any;
     let overviewUsedFallback = false;
     try {
+      // Retry-with-backoff so a single transient blip no longer drops the whole
+      // strategy to the deterministic fallback.
+      const overviewText = await callAIWithRetry(
+        LOVABLE_API_KEY, overviewPrompt, systemPrompt, 8000, MODEL_CREATIVE, 3, 'overview',
+      );
       overviewData = parseJSONSafe(overviewText);
-    } catch (e) {
-      console.error('Overview parse failed — using deterministic fallback:', e, 'Text:', overviewText.substring(0, 500));
+    } catch (e: any) {
+      if (e?.message === 'PAYMENT_REQUIRED') {
+        return new Response(
+          JSON.stringify({ error: 'Workspace AI credits are depleted. Add credits in Lovable → Settings → Plans & credits, then retry.', code: 'AI_CREDITS_DEPLETED' }),
+          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      console.error('Overview failed — using deterministic fallback:', e?.message);
       overviewData = buildFallbackOverview(ctx, platform, durationDays, effectiveGoals);
       overviewUsedFallback = true;
     }
@@ -1004,7 +1037,7 @@ serve(async (req) => {
     const weeklyBreakdown = overviewData.weekly_breakdown || [];
     console.log(overviewUsedFallback ? 'Overview: deterministic fallback' : 'Overview generated successfully');
 
-    // ========== STEP 2: Generate posts in batches ==========
+    // ========== STEP 2: Generate posts in batches (concurrent) ==========
     const batchSize = 10;
     const totalPosts = durationDays;
     const batches: number[][] = [];
@@ -1012,57 +1045,39 @@ serve(async (req) => {
       batches.push([i, Math.min(i + batchSize - 1, totalPosts)]);
     }
 
-    console.log(`Generating ${totalPosts} posts in ${batches.length} batches...`);
-    const allPosts: any[] = [];
+    console.log(`Generating ${totalPosts} posts in ${batches.length} concurrent batches...`);
     const calibrationNiche = ((ctx as any).niche || ctx.industry || 'general') as string;
     const calibrationNote = await buildCalibrationNote(supabase, calibrationNiche);
     if (calibrationNote) console.log('Calibration note applied for niche:', calibrationNiche);
     const startDateStr = overview.start_date || new Date().toISOString().split('T')[0];
 
-    for (let batchIdx = 0; batchIdx < batches.length; batchIdx++) {
+    // Terminal gateway states discovered inside a concurrent batch — recorded once
+    // and turned into the response after all in-flight batches settle.
+    let terminalError: 'RATE_LIMIT' | 'PAYMENT_REQUIRED' | null = null;
+
+    const runBatch = async (batchIdx: number): Promise<any[]> => {
       const [startDay, endDay] = batches[batchIdx];
+      // Stagger starts slightly so N concurrent batches don't hit the gateway
+      // rate limiter in the same instant.
+      if (batchIdx > 0) await new Promise((r) => setTimeout(r, batchIdx * 400));
       console.log(`Batch ${batchIdx + 1}/${batches.length}: posts ${startDay}-${endDay}`);
 
-      const batchPrompt = buildBatchPostsPrompt(ctx, platform, startDay, endDay, weeklyBreakdown, startDateStr, performanceFeedbackSection, promotionsSection, groundingSection);
-      
-      let batchPosts: any[] = [];
-      let retries = 0;
-      const maxRetries = 2;
+      const batchPrompt = buildBatchPostsPrompt(ctx, platform, startDay, endDay, weeklyBreakdown, startDateStr, performanceFeedbackSection, promotionsSection, groundingDigest);
 
-      while (retries <= maxRetries) {
-        try {
-          const batchText = await callAI(LOVABLE_API_KEY, batchPrompt, systemPrompt, 16000);
-          const parsed = parseJSONSafe(batchText);
-          batchPosts = Array.isArray(parsed) ? parsed : (parsed.posts || [parsed]);
-          
-          if (batchPosts.length > 0) {
-            console.log(`Batch ${batchIdx + 1} generated ${batchPosts.length} posts`);
-            break;
-          }
-          throw new Error('Empty batch result');
-        } catch (e: any) {
-          if (e.message === 'RATE_LIMIT') {
-            return new Response(
-              JSON.stringify({ error: 'Rate limit exceeded. Please try again in a moment.' }),
-              { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-            );
-          }
-          if (e.message === 'PAYMENT_REQUIRED') {
-            return new Response(
-              JSON.stringify({ error: 'Workspace AI credits are depleted. Add credits in Lovable → Settings → Plans & credits, then retry.', code: 'AI_CREDITS_DEPLETED' }),
-              { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-            );
-          }
-          retries++;
-          console.warn(`Batch ${batchIdx + 1} attempt ${retries} failed:`, e.message);
-          if (retries > maxRetries) {
-            console.error(`Batch ${batchIdx + 1} failed after ${maxRetries + 1} attempts`);
-            // Continue with partial results rather than failing completely
-            break;
-          }
-          // Small delay before retry
-          await new Promise(r => setTimeout(r, 1000));
-        }
+      let batchPosts: any[] = [];
+      try {
+        const batchText = await callAIWithRetry(
+          LOVABLE_API_KEY, batchPrompt, systemPrompt, 16000, MODEL_CREATIVE, 3, `batch ${batchIdx + 1}`,
+        );
+        const parsed = parseJSONSafe(batchText);
+        batchPosts = Array.isArray(parsed) ? parsed : (parsed.posts || [parsed]);
+        console.log(`Batch ${batchIdx + 1} generated ${batchPosts.length} posts`);
+      } catch (e: any) {
+        if (e?.message === 'RATE_LIMIT') terminalError = terminalError || 'RATE_LIMIT';
+        else if (e?.message === 'PAYMENT_REQUIRED') terminalError = 'PAYMENT_REQUIRED';
+        else console.error(`Batch ${batchIdx + 1} failed:`, e?.message);
+        // Continue with partial results rather than failing everything.
+        return [];
       }
 
       // ===== CMO critic pass: grade this batch and rewrite anything weak =====
@@ -1076,9 +1091,28 @@ serve(async (req) => {
           calibrationNote,
         );
       }
+      return batchPosts;
+    };
 
-      allPosts.push(...batchPosts);
+    const batchStarted = Date.now();
+    const batchResults = await Promise.all(batches.map((_, i) => runBatch(i)));
+    console.log(`All ${batches.length} batches completed in ${Date.now() - batchStarted}ms`);
+
+    if (terminalError === 'PAYMENT_REQUIRED') {
+      return new Response(
+        JSON.stringify({ error: 'Workspace AI credits are depleted. Add credits in Lovable → Settings → Plans & credits, then retry.', code: 'AI_CREDITS_DEPLETED' }),
+        { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
+    // Batch order is preserved by Promise.all, so day sequencing is unaffected.
+    const allPosts: any[] = batchResults.flat();
+    if (terminalError === 'RATE_LIMIT' && allPosts.length === 0) {
+      return new Response(
+        JSON.stringify({ error: 'Rate limit exceeded. Please try again in a moment.' }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
 
     if (allPosts.length === 0) {
       console.warn('AI produced zero posts across all batches — using deterministic fallback');
