@@ -325,11 +325,15 @@ export default function Insights() {
                 <ArrowLeft className="w-5 h-5" />
               </Button>
               <div>
-                <h1 className="text-xl font-semibold tracking-tight text-foreground">Insights</h1>
+                <div className="flex items-center gap-2">
+                  <h1 className="text-xl font-semibold tracking-tight text-foreground">Insights</h1>
+                  <DataSourceBadge type="first_party" />
+                </div>
                 <p className="text-sm text-muted-foreground">
                   Upload analytics from any platform — screenshots, PDFs, spreadsheets, and more
                 </p>
               </div>
+
             </div>
             <div>
               <input
