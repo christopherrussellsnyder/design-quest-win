@@ -281,7 +281,8 @@ Schema:
           "cta_treatment": "<where the offer card sits and how long it holds>",
           "do_this": ["<concrete editor move>", "<concrete editor move>"],
           "avoid": ["<mistake that kills performance in this niche>"],
-          "evidence": "<one line naming the evidence these calls came from>"
+          "evidence": "<one line naming the evidence these calls came from>",
+          "basis": "measured" | "niche_calibrated" | "best_practice"
         },
         "scenes": [
           {
