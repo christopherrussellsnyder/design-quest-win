@@ -72,7 +72,7 @@ Return ONLY valid JSON (no markdown, no prose outside JSON):
     { "hook": "string (exact opening line template)", "mechanic": "string", "example": "string", "best_for": "string" }
   ],
   "top_formats": [
-    { "format": "string (e.g. 'Talking-head Reel with kinetic captions')", "why_it_works": "string", "typical_length_seconds": 0, "avg_engagement_lift": "string (e.g. '+38% vs baseline')" }
+    { "format": "string (e.g. 'Talking-head Reel with kinetic captions')", "why_it_works": "string", "typical_length_seconds": 0, "avg_engagement_lift": "string — must be phrased as an estimate, e.g. 'est. +30-40% vs baseline'" }
   ],
   "content_patterns": [
     { "pattern": "string", "description": "string", "when_to_use": "string" }
