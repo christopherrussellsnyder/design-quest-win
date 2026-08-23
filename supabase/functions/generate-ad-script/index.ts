@@ -162,6 +162,11 @@ ${JSON.stringify(priorTreatments, null, 2)}`
     // into art direction so the ad is built on evidence, not vibes.
     let intelBlock = "";
     let intelSources: string[] = [];
+    let intelEvidence: {
+      first_party: boolean;
+      ai_estimated: boolean;
+      calibrated_patterns: { pattern_type: string; pattern_value: string; error_pct: number; sample_size: number; avg_actual: number }[];
+    } = { first_party: false, ai_estimated: false, calibrated_patterns: [] };
     let adPlatform = normalizeAdPlatform(platform || linkedPost?.platform);
     try {
       const [settingsRes, bizInfoRes] = await Promise.all([
@@ -172,6 +177,7 @@ ${JSON.stringify(priorTreatments, null, 2)}`
       const intel = await gatherAdIntel(supabase, userId, adCtx, adPlatform);
       adPlatform = intel.platform;
       intelSources = intel.sources;
+      intelEvidence = intel.evidence;
       intelBlock = intel.section
         ? `\nNICHE + PERFORMANCE INTELLIGENCE (evidence base for this ad — obey it):\n${intel.section}`
         : "";
@@ -179,6 +185,7 @@ ${JSON.stringify(priorTreatments, null, 2)}`
     } catch (e) {
       console.error("[ad-script] intel gathering failed (non-fatal):", e);
     }
+
 
     const promoLine =
       promoCode || promoDetail
