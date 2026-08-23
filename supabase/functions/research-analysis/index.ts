@@ -232,27 +232,36 @@ serve(async (req) => {
 
     if (!report) {
       report = await generateReport(platform, mode, industry || "general");
+      report.data_source_type = "ai_estimated";
       const expiresAt = new Date(Date.now() + CACHE_TTL_HOURS * 3600 * 1000).toISOString();
       await supabase.from("research_insights").insert({
         platform,
         content_mode: mode,
         industry: industry || "general",
         data: report,
+        data_source_type: "ai_estimated",
         expires_at: expiresAt,
       });
       fromCache = false;
     }
 
-    const payload = isPaid ? report : starterCap(report);
+    const payload = {
+      ...(isPaid ? report : starterCap(report)),
+      data_source_type: "ai_estimated",
+      data_source_note:
+        "AI-estimated from model priors and publicly reported patterns. Not live platform data and not measured from your account.",
+    };
 
     return new Response(
       JSON.stringify({
         report: payload,
         from_cache: fromCache,
         tier: isPaid ? "pro" : "starter",
+        data_source_type: "ai_estimated",
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
+
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
     console.error("research-analysis error:", message);
