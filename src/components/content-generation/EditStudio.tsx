@@ -225,6 +225,7 @@ export function EditStudio({
 
 
   const recs = plan?.edit_recommendations;
+  const calibrated = plan?.evidence?.calibrated_patterns ?? [];
 
   // Marks the Edit studio as visited so the Getting started checklist can tick.
   useEffect(() => {
