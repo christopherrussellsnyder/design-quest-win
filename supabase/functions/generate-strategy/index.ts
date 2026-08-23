@@ -775,7 +775,7 @@ serve(async (req) => {
 
     let performanceFeedbackSection = '';
     if (topPosts.length > 0 || patterns.length > 0 || slots.length > 0 || baseline) {
-      const lines: string[] = ['=== PROVEN PERFORMANCE LEARNINGS (FROM THIS USER\'S ACTUAL HISTORY — APPLY, DO NOT IGNORE) ==='];
+      const lines: string[] = ['=== FIRST-PARTY PROVEN PERFORMANCE LEARNINGS (MEASURED FROM THIS USER\'S ACTUAL PUBLISHED RESULTS — HIGHEST CONFIDENCE SOURCE, OVERRIDES AI-ESTIMATED TRENDS) ==='];
 
       if (baseline) {
         lines.push(`- Baseline (last 90 days, ${normalizedPlatform}): avg engagement rate ${Number(baseline.avg_engagement_rate || 0).toFixed(2)}%, avg impressions ${baseline.avg_impressions || 0}, posts analyzed ${baseline.total_posts || 0}. New strategy must AT MINIMUM match this baseline; aim to exceed by 15-25%.`);
