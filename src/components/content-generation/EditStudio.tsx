@@ -376,6 +376,34 @@ export function EditStudio({
                   Based on: {recs.evidence}
                 </p>
               ) : null}
+
+              {calibrated.length ? (
+                <div className="pt-2 border-t border-border">
+                  <p className="text-[10px] uppercase tracking-wide text-[hsl(var(--text-tertiary))]">
+                    Measured in your niche
+                  </p>
+                  <ul className="text-xs text-muted-foreground space-y-0.5 mt-1">
+                    {calibrated.slice(0, 4).map((c) => (
+                      <li key={`${c.pattern_type}-${c.pattern_value}`}>
+                        <span className="text-foreground">
+                          {c.pattern_type.replace('creative_', '').replace(/_/g, ' ')}:{' '}
+                          {c.pattern_value.replace(/_/g, ' ')}
+                        </span>{' '}
+                        — {c.avg_actual.toFixed(2)}% average engagement across {c.sample_size}{' '}
+                        shipped ads.
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+
+              <p className="text-[11px] text-[hsl(var(--text-tertiary))] pt-2 border-t border-border">
+                A note on honesty: these calls are read from the script, the shot list and measured
+                outcomes — nothing here watches the finished footage. We can tell you what has
+                worked structurally; we can't tell you whether a given frame looks good. Judge the
+                picture with your own eyes.
+              </p>
+
             </CardContent>
           </Card>
         </section>
