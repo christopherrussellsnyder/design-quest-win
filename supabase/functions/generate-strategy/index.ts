@@ -748,12 +748,13 @@ serve(async (req) => {
     let intelligenceSection = '';
     if (intelSignals && intelSignals.length > 0) {
       const lines = intelSignals.map((s: any) => 
-        `- ${s.platform.toUpperCase()} / ${s.niche}: ${s.recommended_structure} currently outperforming. Confidence ${s.confidence_score}/10. ROAS trend: ${s.roas_trend || 'n/a'}. Profit-margin trend: ${s.profit_margin_trend || 'n/a'}. Rationale: ${s.rationale || ''}. Audience: ${s.audience_approach || ''}. Creative: ${s.creative_volume || ''}. Alt to test: ${s.alternative_to_test || ''}.`
+        `- ${s.platform.toUpperCase()} / ${s.niche}: ${s.recommended_structure} estimated to outperform. Model confidence ${s.confidence_score}/10. Directional ROAS view: ${s.roas_trend || 'n/a'}. Directional margin view: ${s.profit_margin_trend || 'n/a'}. Rationale: ${s.rationale || ''}. Audience: ${s.audience_approach || ''}. Creative: ${s.creative_volume || ''}. Alt to test: ${s.alternative_to_test || ''}.`
       );
-      intelligenceSection = `Live Platform Intelligence (refreshed ${new Date(intelSignals[0].refreshed_at).toISOString().split('T')[0]}):\n${lines.join('\n')}\n\nUse this intelligence to ground the recommended_campaign_structure section in current platform reality, not generic best practices.`;
+      intelligenceSection = `AI-Estimated Platform Trend — NOT LIVE DATA (model priors only, generated ${new Date(intelSignals[0].refreshed_at).toISOString().split('T')[0]}):\n${lines.join('\n')}\n\nUse this only as directional guidance for recommended_campaign_structure. It is an AI estimate, not measured platform data — never present it to the user as live or verified performance, and always defer to the first-party performance learnings below when they conflict.`;
     } else {
-      intelligenceSection = `Live Platform Intelligence: No fresh niche-specific signals available; recommend based on general best practices for ${platform} in ${ctx.industry}.`;
+      intelligenceSection = `AI-Estimated Platform Trend: No niche-specific estimate available; recommend based on general best practices for ${platform} in ${ctx.industry}. Do not fabricate performance figures.`;
     }
+
 
     // ========== INSIGHTS FEEDBACK LOOP ==========
     // Pull the user's actual historical performance and feed proven learnings back into prompts.
@@ -774,7 +775,7 @@ serve(async (req) => {
 
     let performanceFeedbackSection = '';
     if (topPosts.length > 0 || patterns.length > 0 || slots.length > 0 || baseline) {
-      const lines: string[] = ['=== PROVEN PERFORMANCE LEARNINGS (FROM THIS USER\'S ACTUAL HISTORY — APPLY, DO NOT IGNORE) ==='];
+      const lines: string[] = ['=== FIRST-PARTY PROVEN PERFORMANCE LEARNINGS (MEASURED FROM THIS USER\'S ACTUAL PUBLISHED RESULTS — HIGHEST CONFIDENCE SOURCE, OVERRIDES AI-ESTIMATED TRENDS) ==='];
 
       if (baseline) {
         lines.push(`- Baseline (last 90 days, ${normalizedPlatform}): avg engagement rate ${Number(baseline.avg_engagement_rate || 0).toFixed(2)}%, avg impressions ${baseline.avg_impressions || 0}, posts analyzed ${baseline.total_posts || 0}. New strategy must AT MINIMUM match this baseline; aim to exceed by 15-25%.`);

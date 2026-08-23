@@ -109,18 +109,19 @@ export async function gatherAdIntel(
       supabase.rpc("get_top_performing_elements", { p_user_id: userId, p_element_type: "hooks", p_limit: 6 }).catch(() => ({ data: [] })),
     ]);
 
-  // ---- Live platform intelligence (what's actually working right now) ----
+  // ---- AI-estimated platform trend (model priors, NOT live platform data) ----
   const signals = signalsRes?.data || [];
   if (signals.length) {
     const lines = signals.map(
       (s: any) =>
-        `- ${String(s.platform).toUpperCase()} / ${s.niche}: ${s.recommended_structure} currently outperforming (confidence ${s.confidence_score}/10). ROAS trend: ${s.roas_trend || "n/a"}. Creative volume norm: ${s.creative_volume || "n/a"}. Audience approach: ${s.audience_approach || "n/a"}. Rationale: ${s.rationale || ""}`,
+        `- ${String(s.platform).toUpperCase()} / ${s.niche}: ${s.recommended_structure} estimated to outperform (model confidence ${s.confidence_score}/10). Directional ROAS view: ${s.roas_trend || "n/a"}. Creative volume norm: ${s.creative_volume || "n/a"}. Audience approach: ${s.audience_approach || "n/a"}. Rationale: ${s.rationale || ""}`,
     );
     blocks.push(
-      `=== LIVE ${platform.toUpperCase()} INTELLIGENCE (what is winning in this niche RIGHT NOW) ===\n${lines.join("\n")}\n\nTranslate this into creative decisions: pacing, hook length, how fast the offer lands, and how many distinct creative variants are needed to feed the winning campaign structure.`,
+      `=== AI-ESTIMATED ${platform.toUpperCase()} TREND (NOT LIVE DATA — model priors only, lowest confidence tier) ===\n${lines.join("\n")}\n\nTranslate this into creative decisions: pacing, hook length, how fast the offer lands, and how many distinct creative variants are needed to feed the recommended campaign structure. Never state these estimates to the end user as measured platform performance.`,
     );
-    sources.push("campaign_intelligence_signals");
+    sources.push("campaign_intelligence_signals (ai_estimated)");
   }
+
 
   for (const r of [siteIntel, searchIntel, adIntel, vocIntel]) {
     if (r?.ok && r.section) {
@@ -172,10 +173,11 @@ export async function gatherAdIntel(
   }
   if (perf.length) {
     blocks.push(
-      `=== PROVEN PERFORMANCE (THIS ADVERTISER'S OWN AUDIENCE — HIGHER CONFIDENCE THAN GENERIC BEST PRACTICE) ===\n${perf.join("\n")}`,
+      `=== FIRST-PARTY PROVEN PERFORMANCE (THIS ADVERTISER'S OWN MEASURED AUDIENCE DATA — HIGHEST CONFIDENCE, OVERRIDES AI-ESTIMATED TRENDS ABOVE) ===\n${perf.join("\n")}`,
     );
-    sources.push("performance_feedback_loop");
+    sources.push("performance_feedback_loop (first_party)");
   }
+
 
   // ---- Platform-native production spec ----
   blocks.push(platformSpec(platform));

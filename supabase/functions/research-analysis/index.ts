@@ -47,7 +47,9 @@ function buildPrompt(platform: string, mode: ContentMode, industry: string) {
       ? "PAID ad creatives only (cold-audience direct-response)"
       : "HYBRID mix of organic feed content AND paid ad creatives";
 
-  return `You are Korex Intelligence's research analyst. Produce a compact, high-signal "what's working RIGHT NOW" research report for ${platform}.
+  return `You are Korex Intelligence's research analyst. Produce a compact, high-signal AI-ESTIMATED research report on what is generally working on ${platform}.
+
+IMPORTANT: You have NO live API access to ${platform} and no access to any user's account data. Everything you return is an ESTIMATE derived from your prior knowledge of publicly discussed patterns. Never present a figure as measured, live, or sourced from platform data. Engagement lift figures must be phrased as estimates (e.g. "est. +30-40% vs baseline").
 
 Scope: ${modeLine}
 Industry focus: ${industry || "general (all industries)"}
@@ -56,7 +58,7 @@ Requirements:
 - Base everything on well-known, currently-effective patterns from the last 6-12 months on ${platform}.
 - Concrete, not generic. "Split-screen POV with hard cut at 1.2s" beats "use engaging videos".
 - Cite the mechanic behind why each pattern works (pattern interrupt, curiosity gap, loop, social proof, etc.).
-- No filler. No disclaimers.
+- No filler. No disclaimers. No fabricated precision.
 
 Return ONLY valid JSON (no markdown, no prose outside JSON):
 {
@@ -64,11 +66,13 @@ Return ONLY valid JSON (no markdown, no prose outside JSON):
   "content_mode": "${mode}",
   "industry": "${industry || "general"}",
   "generated_at": "${new Date().toISOString()}",
+  "data_source_type": "ai_estimated",
+
   "trending_hooks": [
     { "hook": "string (exact opening line template)", "mechanic": "string", "example": "string", "best_for": "string" }
   ],
   "top_formats": [
-    { "format": "string (e.g. 'Talking-head Reel with kinetic captions')", "why_it_works": "string", "typical_length_seconds": 0, "avg_engagement_lift": "string (e.g. '+38% vs baseline')" }
+    { "format": "string (e.g. 'Talking-head Reel with kinetic captions')", "why_it_works": "string", "typical_length_seconds": 0, "avg_engagement_lift": "string — must be phrased as an estimate, e.g. 'est. +30-40% vs baseline'" }
   ],
   "content_patterns": [
     { "pattern": "string", "description": "string", "when_to_use": "string" }
@@ -228,27 +232,36 @@ serve(async (req) => {
 
     if (!report) {
       report = await generateReport(platform, mode, industry || "general");
+      report.data_source_type = "ai_estimated";
       const expiresAt = new Date(Date.now() + CACHE_TTL_HOURS * 3600 * 1000).toISOString();
       await supabase.from("research_insights").insert({
         platform,
         content_mode: mode,
         industry: industry || "general",
         data: report,
+        data_source_type: "ai_estimated",
         expires_at: expiresAt,
       });
       fromCache = false;
     }
 
-    const payload = isPaid ? report : starterCap(report);
+    const payload = {
+      ...(isPaid ? report : starterCap(report)),
+      data_source_type: "ai_estimated",
+      data_source_note:
+        "AI-estimated from model priors and publicly reported patterns. Not live platform data and not measured from your account.",
+    };
 
     return new Response(
       JSON.stringify({
         report: payload,
         from_cache: fromCache,
         tier: isPaid ? "pro" : "starter",
+        data_source_type: "ai_estimated",
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
+
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
     console.error("research-analysis error:", message);

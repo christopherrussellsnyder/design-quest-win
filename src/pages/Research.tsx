@@ -30,6 +30,7 @@ import {
   Rocket,
   Layers,
 } from 'lucide-react';
+import { DataSourceBadge, type DataSourceType } from '@/components/DataSourceBadge';
 
 interface Personalization {
   positioning_summary?: string;
@@ -66,6 +67,8 @@ interface ResearchReport {
   } | null;
   emerging_trends?: { trend: string; signal_strength: string; action: string }[];
   pitfalls_to_avoid?: string[];
+  data_source_type?: DataSourceType;
+  data_source_note?: string;
   _starter_capped?: boolean;
 }
 
@@ -213,7 +216,7 @@ export default function Research() {
         <title>Research Analysis | Korex Intelligence</title>
         <meta
           name="description"
-          content="Live research on what's working right now across every major social platform — trending hooks, top formats, content patterns, and paid campaign intelligence."
+          content="AI-estimated research on what tends to work across every major social platform — trending hooks, top formats, content patterns, and paid campaign guidance. Estimates, not live platform data."
         />
       </Helmet>
 
@@ -231,6 +234,7 @@ export default function Research() {
           <div className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-primary" />
             <h1 className="text-xl font-semibold tracking-tight">Research Analysis</h1>
+            <DataSourceBadge type="ai_estimated" className="ml-1" />
           </div>
           {tier === 'starter' && (
             <Badge variant="outline" className="ml-2 border-primary/40 text-primary">
@@ -336,12 +340,22 @@ export default function Research() {
           {loading && !report && (
             <div className="flex items-center justify-center py-20 text-muted-foreground">
               <Loader2 className="w-6 h-6 animate-spin mr-3" />
-              Analyzing the latest {platform} intelligence…
+              Generating the {platform} estimate…
             </div>
           )}
 
           {report && (
             <div className="space-y-5">
+              <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-4 flex items-start gap-3">
+                <DataSourceBadge type="ai_estimated" />
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  {report.data_source_note ??
+                    'Everything in this report is an AI estimate generated from model priors and publicly reported patterns. It is not live platform data and is not measured from your account.'}{' '}
+                  Your own measured results — shown as{' '}
+                  <span className="text-primary font-medium">Your Data</span> in Insights and
+                  Strategies — always take priority over these estimates.
+                </p>
+              </div>
               {tier === 'pro' && (
                 <div className="rounded-xl border border-primary/30 bg-gradient-to-br from-primary/10 via-background to-background p-5">
                   <div className="flex items-center gap-2 mb-3">
@@ -349,6 +363,7 @@ export default function Research() {
                     <h2 className="text-xl font-semibold tracking-tight">
                       How this applies to your business
                     </h2>
+                    <DataSourceBadge type="ai_estimated" />
                     {personalizationCached && (
                       <span className="text-[10px] text-muted-foreground ml-auto">
                         Cached • refreshes weekly
@@ -495,7 +510,7 @@ export default function Research() {
                 </div>
               )}
 
-              <Section title="Trending Hooks" icon={<TrendingUp className="w-4 h-4" />}>
+              <Section source="ai_estimated" title="Trending Hooks" icon={<TrendingUp className="w-4 h-4" />}>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {report.trending_hooks?.map((h, i) => (
@@ -518,7 +533,7 @@ export default function Research() {
                 </div>
               </Section>
 
-              <Section title="Top-Performing Formats" icon={<Zap className="w-4 h-4" />}>
+              <Section source="ai_estimated" title="Top-Performing Formats" icon={<Zap className="w-4 h-4" />}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {report.top_formats?.map((f, i) => (
                     <div
@@ -543,7 +558,7 @@ export default function Research() {
                 </div>
               </Section>
 
-              <Section title="Content Patterns" icon={<Target className="w-4 h-4" />}>
+              <Section source="ai_estimated" title="Content Patterns" icon={<Target className="w-4 h-4" />}>
                 <div className="space-y-2">
                   {report.content_patterns?.map((p, i) => (
                     <div key={i} className="rounded-lg border border-card bg-background p-4">
@@ -556,7 +571,7 @@ export default function Research() {
               </Section>
 
               {report.posting_cadence && (
-                <Section title="Posting Cadence" icon={<Clock className="w-4 h-4" />}>
+                <Section source="ai_estimated" title="Posting Cadence" icon={<Clock className="w-4 h-4" />}>
                   <div className="rounded-lg border border-card bg-background p-4 text-sm space-y-2">
                     <p>
                       <span className="text-muted-foreground">Frequency:</span>{' '}
@@ -572,7 +587,7 @@ export default function Research() {
               )}
 
               {report.hashtag_strategy && (
-                <Section title="Hashtag Strategy" icon={<Hash className="w-4 h-4" />}>
+                <Section source="ai_estimated" title="Hashtag Strategy" icon={<Hash className="w-4 h-4" />}>
                   <div className="rounded-lg border border-card bg-background p-4 text-sm space-y-2">
                     <p>
                       <span className="text-muted-foreground">Mix:</span>{' '}
@@ -586,7 +601,7 @@ export default function Research() {
               )}
 
               {report.cta_patterns && report.cta_patterns.length > 0 && (
-                <Section title="CTA Patterns" icon={<MousePointerClick className="w-4 h-4" />}>
+                <Section source="ai_estimated" title="CTA Patterns" icon={<MousePointerClick className="w-4 h-4" />}>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                     {report.cta_patterns.map((c, i) => (
                       <div key={i} className="rounded-lg border border-card bg-background p-3">
@@ -599,7 +614,7 @@ export default function Research() {
               )}
 
               {report.ad_campaign_intelligence && (
-                <Section title="Ad Campaign Intelligence" icon={<Target className="w-4 h-4" />}>
+                <Section source="ai_estimated" title="Ad Campaign Intelligence (AI-Estimated)" icon={<Target className="w-4 h-4" />}>
                   <div className="rounded-lg border border-primary/30 bg-primary/5 p-4 text-sm space-y-2">
                     <p>
                       <span className="text-muted-foreground">Recommended:</span>{' '}
@@ -623,7 +638,7 @@ export default function Research() {
               )}
 
               {report.emerging_trends && report.emerging_trends.length > 0 && (
-                <Section title="Emerging Trends" icon={<TrendingUp className="w-4 h-4" />}>
+                <Section source="ai_estimated" title="Emerging Trends" icon={<TrendingUp className="w-4 h-4" />}>
                   <div className="space-y-2">
                     {report.emerging_trends.map((t, i) => (
                       <div
@@ -651,7 +666,7 @@ export default function Research() {
               )}
 
               {report.pitfalls_to_avoid && report.pitfalls_to_avoid.length > 0 && (
-                <Section title="Pitfalls to Avoid" icon={<AlertTriangle className="w-4 h-4" />}>
+                <Section source="ai_estimated" title="Pitfalls to Avoid" icon={<AlertTriangle className="w-4 h-4" />}>
                   <ul className="space-y-1.5 text-sm">
                     {report.pitfalls_to_avoid.map((p, i) => (
                       <li
@@ -675,10 +690,12 @@ export default function Research() {
 function Section({
   title,
   icon,
+  source,
   children,
 }: {
   title: string;
   icon: React.ReactNode;
+  source?: DataSourceType;
   children: React.ReactNode;
 }) {
   return (
@@ -687,6 +704,7 @@ function Section({
         <CardTitle className="flex items-center gap-2 text-sm font-semibold tracking-tight text-foreground">
           <span className="text-primary">{icon}</span>
           {title}
+          {source && <DataSourceBadge type={source} className="ml-1 text-[10px]" />}
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0">{children}</CardContent>
