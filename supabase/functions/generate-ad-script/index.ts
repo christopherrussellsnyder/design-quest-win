@@ -250,6 +250,11 @@ ${strategyBlock ? "- This ad is tied to a specific strategy day. The visual trea
 
 EDIT RECOMMENDATIONS — the ad is delivered as a CLEAN MASTER (presenter, voice, correct dimensions, nothing else) and the advertiser finishes it in an editor. So for every variant you must also return "edit_recommendations": specific, evidence-backed instructions for HOW to cut this exact ad on ${adPlatform.toUpperCase()}. Derive them from the NICHE + PERFORMANCE INTELLIGENCE brief — cut cadence, first-two-second retention move, caption treatment, on-screen text density, sound-off readability, music energy, and where the offer card sits. Write them so a complete beginner who has never edited a video could follow them literally. No jargon without a plain-language explanation. Name the evidence in one line.
 
+EVIDENCE HONESTY — you must also set "basis" on the edit recommendations, and you must be truthful:
+- "measured" — the call is taken from this advertiser's own measured results or the CALIBRATED CREATIVE PERFORMANCE block (real predicted-vs-actual data).
+- "niche_calibrated" — the call comes from the niche-level calibrated patterns but not this advertiser's own numbers.
+- "best_practice" — the call is general craft knowledge you are applying. This is the DEFAULT. If the brief contains no measured data supporting a call, you must say "best_practice". Never claim "measured" to sound more authoritative — a false claim of measurement is the worst possible failure here.
+
 Return ONLY valid JSON, no markdown fences.
 
 Schema:
