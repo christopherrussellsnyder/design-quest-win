@@ -2,6 +2,7 @@ import React from 'react';
 import { Target, TrendingUp, Users, Layers, Repeat, FlaskConical, Sparkles } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { DataSourceBadge } from '@/components/DataSourceBadge';
 
 export interface RecommendedCampaignStructure {
   structure_type?: string;
@@ -34,13 +35,16 @@ export function CampaignStructureCard({ data, platform }: Props) {
             <Target className="w-4 h-4 text-primary" />
             Recommended Campaign Structure
           </CardTitle>
-          <Badge variant="outline" className="text-xs">
-            {data.structure_type}
-          </Badge>
+          <div className="flex items-center gap-2">
+            <DataSourceBadge type="ai_estimated" />
+            <Badge variant="outline" className="text-xs">
+              {data.structure_type}
+            </Badge>
+          </div>
         </div>
         {platform && (
           <p className="text-xs text-muted-foreground capitalize">
-            For paid ads on {platform}
+            For paid ads on {platform} — directional AI estimate, not measured platform data
           </p>
         )}
       </CardHeader>
@@ -56,7 +60,7 @@ export function CampaignStructureCard({ data, platform }: Props) {
             <TrendingUp className="w-4 h-4 text-primary mt-0.5 shrink-0" />
             <div>
               <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
-                Current performance signal
+                AI-estimated trend (not live data)
               </p>
               <p className="text-foreground text-xs leading-relaxed">{data.roas_trend_signal}</p>
             </div>
