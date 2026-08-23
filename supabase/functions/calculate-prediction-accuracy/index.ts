@@ -34,10 +34,13 @@ Deno.serve(async (req) => {
   try {
     const { data: rows, error } = await supabase
       .from('outcome_tracking')
-      .select('id, niche, predicted_engagement, actual_engagement, pattern_hook_technique, pattern_post_type, error_pct, measured_at')
+      .select(
+        'id, niche, predicted_engagement, actual_engagement, pattern_hook_technique, pattern_post_type, creative_treatment, creative_shot_opening, creative_text_density, creative_duration_bucket, creative_captions, error_pct, measured_at',
+      )
       .not('actual_engagement', 'is', null)
       .not('predicted_engagement', 'is', null)
       .limit(5000);
+
     if (error) throw error;
 
     const outcomes = (rows ?? []) as any[];
