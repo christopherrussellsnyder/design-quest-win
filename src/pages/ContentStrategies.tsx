@@ -33,6 +33,7 @@ import { useStrategyGeneration, StrategyPost, StrategyOverview } from '@/hooks/u
 import { StrategyOverviewCard } from '@/components/strategy/StrategyOverviewCard';
 import { CampaignStructureCard } from '@/components/strategy/CampaignStructureCard';
 import { StrategyPostCard } from '@/components/strategy/StrategyPostCard';
+import { OutcomeTrackingPanel } from '@/components/strategy/OutcomeTrackingPanel';
 import { StrategyCalendarView } from '@/components/strategy/StrategyCalendarView';
 import { exportStrategyToCSV, exportStrategyToJSON } from '@/components/strategy/StrategyExport';
 import { StrategyDialog } from '@/components/strategist/StrategyDialog';
@@ -191,6 +192,7 @@ export default function ContentStrategies() {
 
               {/* Main Content - Posts */}
               <div className="lg:col-span-2 space-y-4">
+                <OutcomeTrackingPanel strategyId={selectedStrategy.strategy.id} />
                 {selectedStrategy.posts.map(post => (
                   <StrategyPostCard key={post.id} post={post} />
                 ))}

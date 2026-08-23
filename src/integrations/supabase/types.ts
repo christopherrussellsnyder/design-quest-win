@@ -3862,6 +3862,48 @@ export type Database = {
           },
         ]
       }
+      niche_calibration: {
+        Row: {
+          avg_actual: number
+          avg_predicted: number
+          created_at: string
+          error_pct: number
+          id: string
+          is_calibrated: boolean
+          last_updated: string
+          niche: string
+          pattern_type: string
+          pattern_value: string
+          sample_size: number
+        }
+        Insert: {
+          avg_actual?: number
+          avg_predicted?: number
+          created_at?: string
+          error_pct?: number
+          id?: string
+          is_calibrated?: boolean
+          last_updated?: string
+          niche: string
+          pattern_type: string
+          pattern_value: string
+          sample_size?: number
+        }
+        Update: {
+          avg_actual?: number
+          avg_predicted?: number
+          created_at?: string
+          error_pct?: number
+          id?: string
+          is_calibrated?: boolean
+          last_updated?: string
+          niche?: string
+          pattern_type?: string
+          pattern_value?: string
+          sample_size?: number
+        }
+        Relationships: []
+      }
       niche_strategies: {
         Row: {
           avg_engagement_benchmark: number | null
@@ -4034,6 +4076,71 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      outcome_tracking: {
+        Row: {
+          actual_conversions: number | null
+          actual_engagement: number | null
+          actual_reach: number | null
+          created_at: string
+          error_pct: number | null
+          id: string
+          measured_at: string | null
+          niche: string | null
+          pattern_hook_technique: string | null
+          pattern_post_type: string | null
+          predicted_engagement: number | null
+          predicted_score: number | null
+          source: string
+          strategy_post_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          actual_conversions?: number | null
+          actual_engagement?: number | null
+          actual_reach?: number | null
+          created_at?: string
+          error_pct?: number | null
+          id?: string
+          measured_at?: string | null
+          niche?: string | null
+          pattern_hook_technique?: string | null
+          pattern_post_type?: string | null
+          predicted_engagement?: number | null
+          predicted_score?: number | null
+          source?: string
+          strategy_post_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          actual_conversions?: number | null
+          actual_engagement?: number | null
+          actual_reach?: number | null
+          created_at?: string
+          error_pct?: number | null
+          id?: string
+          measured_at?: string | null
+          niche?: string | null
+          pattern_hook_technique?: string | null
+          pattern_post_type?: string | null
+          predicted_engagement?: number | null
+          predicted_score?: number | null
+          source?: string
+          strategy_post_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "outcome_tracking_strategy_post_id_fkey"
+            columns: ["strategy_post_id"]
+            isOneToOne: true
+            referencedRelation: "strategy_posts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       performance_data: {
         Row: {
@@ -4288,6 +4395,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      prediction_accuracy_daily: {
+        Row: {
+          avg_abs_error_pct: number
+          avg_actual: number
+          avg_predicted: number
+          created_at: string
+          day: string
+          id: string
+          sample_size: number
+        }
+        Insert: {
+          avg_abs_error_pct?: number
+          avg_actual?: number
+          avg_predicted?: number
+          created_at?: string
+          day: string
+          id?: string
+          sample_size?: number
+        }
+        Update: {
+          avg_abs_error_pct?: number
+          avg_actual?: number
+          avg_predicted?: number
+          created_at?: string
+          day?: string
+          id?: string
+          sample_size?: number
+        }
+        Relationships: []
       }
       rate_limit_hits: {
         Row: {
@@ -4586,6 +4723,7 @@ export type Database = {
           caption: string
           content_category: string | null
           content_pillar: string | null
+          critic_score: number | null
           cta: string | null
           cta_strength: string | null
           cta_type: string | null
@@ -4627,6 +4765,7 @@ export type Database = {
           caption: string
           content_category?: string | null
           content_pillar?: string | null
+          critic_score?: number | null
           cta?: string | null
           cta_strength?: string | null
           cta_type?: string | null
@@ -4668,6 +4807,7 @@ export type Database = {
           caption?: string
           content_category?: string | null
           content_pillar?: string | null
+          critic_score?: number | null
           cta?: string | null
           cta_strength?: string | null
           cta_type?: string | null

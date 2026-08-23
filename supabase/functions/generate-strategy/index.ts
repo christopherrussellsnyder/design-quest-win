@@ -321,6 +321,7 @@ async function criticPass(
   ctx: BusinessCtx,
   platform: string,
   groundingSummary: string,
+  calibrationNote = '',
 ): Promise<any[]> {
   if (!posts.length) return posts;
 
@@ -338,7 +339,7 @@ async function criticPass(
 
 GROUNDING TRUTH AVAILABLE TO THE WRITER:
 ${groundingSummary || 'None beyond the business profile.'}
-
+${calibrationNote ? `\nHISTORICAL PREDICTION CALIBRATION (real measured outcomes for this niche — score accordingly):\n${calibrationNote}\n` : ''}
 DRAFTED POSTS:
 ${JSON.stringify(digest)}
 
@@ -348,6 +349,7 @@ Return ONLY JSON:
 {"scores":[{"index":0,"score":0,"verdict":"keep|rewrite","problem":"one sentence"}],"rewrites":[{"index":0,"hook":"new 5-10 word hook","technique":"archetype","opening":"2-3 sentences","body":"100-150 words","cta":"new cta text","full_caption":"150-250 word caption","differentiation_anchor":"which real product/UVP/pain point"}]}
 
 Mark "rewrite" for any post scoring under 75. Provide a rewrite object for every post marked rewrite (max 6 rewrites). Rewrites must keep the same content_category and day, and must be anchored to a real input — never invent products, prices, or claims.`;
+
 
   try {
     const raw = await callAI(
@@ -393,6 +395,34 @@ Mark "rewrite" for any post scoring under 75. Provide a rewrite object for every
 
   return posts;
 }
+
+// Closed-loop calibration: compact note built from measured predicted-vs-actual error
+// for this niche. Only calibrated patterns (sample_size >= threshold) are surfaced.
+async function buildCalibrationNote(supabase: any, niche: string): Promise<string> {
+  if (!niche) return '';
+  try {
+    const { data } = await supabase
+      .from('niche_calibration')
+      .select('pattern_type, pattern_value, error_pct, sample_size')
+      .eq('niche', niche)
+      .eq('is_calibrated', true)
+      .order('sample_size', { ascending: false })
+      .limit(6);
+    const rows = (data ?? []) as any[];
+    if (!rows.length) return '';
+    return rows
+      .map((r) => {
+        const err = Number(r.error_pct) || 0;
+        const dir = err < 0 ? 'over-predicted' : 'under-predicted';
+        return `- ${r.pattern_type} "${r.pattern_value}": historically ${dir} engagement by ~${Math.abs(Math.round(err))}% (n=${r.sample_size}).`;
+      })
+      .join('\n');
+  } catch (e) {
+    console.warn('calibration note skipped:', (e as Error).message);
+    return '';
+  }
+}
+
 
 function parseJSONSafe(text: string): any {
   // First try direct parse
@@ -904,6 +934,9 @@ serve(async (req) => {
 
     console.log(`Generating ${totalPosts} posts in ${batches.length} batches...`);
     const allPosts: any[] = [];
+    const calibrationNiche = ((ctx as any).niche || ctx.industry || 'general') as string;
+    const calibrationNote = await buildCalibrationNote(supabase, calibrationNiche);
+    if (calibrationNote) console.log('Calibration note applied for niche:', calibrationNiche);
     const startDateStr = overview.start_date || new Date().toISOString().split('T')[0];
 
     for (let batchIdx = 0; batchIdx < batches.length; batchIdx++) {
@@ -960,6 +993,7 @@ serve(async (req) => {
           ctx,
           platform,
           groundingSources.length ? `Grounded on: ${groundingSources.join(', ')}` : '',
+          calibrationNote,
         );
       }
 
@@ -1085,6 +1119,7 @@ serve(async (req) => {
         prediction_basis: perfPrediction.prediction_basis,
         strategic_rationale: stratRationale,
         optimization_tips: optTips,
+        critic_score: post.quality_review?.score ?? null,
       };
     });
 
