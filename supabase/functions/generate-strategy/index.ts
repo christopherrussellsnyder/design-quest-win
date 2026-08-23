@@ -1119,6 +1119,7 @@ serve(async (req) => {
         prediction_basis: perfPrediction.prediction_basis,
         strategic_rationale: stratRationale,
         optimization_tips: optTips,
+        critic_score: post.quality_review?.score ?? null,
       };
     });
 
