@@ -104,6 +104,7 @@ serve(async (req) => {
             audience_approach: result.audience_approach,
             creative_volume: result.creative_volume,
             alternative_to_test: result.alternative_to_test,
+            data_source_type: "ai_estimated",
             refreshed_at: new Date().toISOString(),
           }, { onConflict: "platform,niche" });
 
