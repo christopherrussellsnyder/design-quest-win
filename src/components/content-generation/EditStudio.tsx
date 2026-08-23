@@ -25,6 +25,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { EvidenceBasisBadge } from '@/components/DataSourceBadge';
 import {
   CAMERA_LABELS,
   COMPOSITION_LABELS,
@@ -224,6 +225,7 @@ export function EditStudio({
 
 
   const recs = plan?.edit_recommendations;
+  const calibrated = plan?.evidence?.calibrated_patterns ?? [];
 
   // Marks the Edit studio as visited so the Getting started checklist can tick.
   useEffect(() => {
@@ -311,15 +313,17 @@ export function EditStudio({
         </CardContent>
       </Card>
 
-      {/* Evidence-backed edit direction */}
+      {/* Edit direction, labelled by how it was actually arrived at */}
       {recs ? (
         <section className="space-y-3">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Lightbulb className="w-4 h-4 text-primary" />
-            <h2 className="text-sm font-semibold">How to cut this ad — from your niche research</h2>
+            <h2 className="text-sm font-semibold">How to cut this ad</h2>
+            <EvidenceBasisBadge basis={recs.basis ?? 'best_practice'} />
           </div>
           <Card className="bg-background border-card">
             <CardContent className="p-4 space-y-3">
+
               <dl className="grid gap-3 sm:grid-cols-2">
                 {(
                   [
@@ -373,6 +377,34 @@ export function EditStudio({
                   Based on: {recs.evidence}
                 </p>
               ) : null}
+
+              {calibrated.length ? (
+                <div className="pt-2 border-t border-border">
+                  <p className="text-[10px] uppercase tracking-wide text-[hsl(var(--text-tertiary))]">
+                    Measured in your niche
+                  </p>
+                  <ul className="text-xs text-muted-foreground space-y-0.5 mt-1">
+                    {calibrated.slice(0, 4).map((c) => (
+                      <li key={`${c.pattern_type}-${c.pattern_value}`}>
+                        <span className="text-foreground">
+                          {c.pattern_type.replace('creative_', '').replace(/_/g, ' ')}:{' '}
+                          {c.pattern_value.replace(/_/g, ' ')}
+                        </span>{' '}
+                        — {c.avg_actual.toFixed(2)}% average engagement across {c.sample_size}{' '}
+                        shipped ads.
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+
+              <p className="text-[11px] text-[hsl(var(--text-tertiary))] pt-2 border-t border-border">
+                A note on honesty: these calls are read from the script, the shot list and measured
+                outcomes — nothing here watches the finished footage. We can tell you what has
+                worked structurally; we can't tell you whether a given frame looks good. Judge the
+                picture with your own eyes.
+              </p>
+
             </CardContent>
           </Card>
         </section>

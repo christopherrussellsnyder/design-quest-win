@@ -131,13 +131,150 @@ Deno.serve(async (req) => {
       }
     }
 
-    console.log(`capture-post-outcomes: created=${created} measured=${measured}`);
-    return json({ ok: true, created, measured });
+    // ---- Creative (video ad) outcomes -------------------------------------
+    // Creative choices are tracked in the SAME table and calibrated by the same
+    // nightly job as hook technique / post type, so a "video under 15s" or
+    // "text overlay on first frame" earns or loses trust on measured results.
+    const creative = await captureCreativeOutcomes(supabase, windowStart, windowEnd);
+
+    console.log(
+      `capture-post-outcomes: created=${created} measured=${measured} creative_created=${creative.created} creative_measured=${creative.measured}`,
+    );
+    return json({ ok: true, created, measured, creative });
+
   } catch (e) {
     console.error('capture-post-outcomes error', e);
     return json({ error: (e as Error).message }, 500);
   }
 });
+
+/**
+ * Reduces a rendered ad's production plan to the handful of creative choices
+ * worth calibrating. Deliberately coarse: we want buckets with enough samples
+ * to mean something, not a unique signature per ad.
+ */
+export function creativeSignature(ad: any) {
+  const plan = (ad?.production_plan ?? {}) as any;
+  const scenes: any[] = Array.isArray(plan.scenes) ? plan.scenes : [];
+  const secs = Number(ad?.duration_seconds) || Number(plan.total_seconds) || 0;
+
+  const textScenes = scenes.filter(
+    (s) => s?.visual === 'text-card' || (typeof s?.on_screen_text === 'string' && s.on_screen_text.trim()),
+  ).length;
+  const density = !scenes.length
+    ? null
+    : textScenes / scenes.length >= 0.6
+      ? 'heavy_text'
+      : textScenes === 0
+        ? 'no_text'
+        : 'light_text';
+
+  return {
+    creative_treatment: plan.treatment ? String(plan.treatment) : ad?.treatment || null,
+    creative_shot_opening: scenes[0]?.shot_type ? String(scenes[0].shot_type) : null,
+    creative_text_density: density,
+    creative_duration_bucket: !secs ? null : secs < 15 ? 'under_15s' : secs <= 30 ? '15_30s' : 'over_30s',
+    creative_captions: typeof plan.captions === 'boolean' ? plan.captions : null,
+  };
+}
+
+async function captureCreativeOutcomes(supabase: any, windowStart: string, windowEnd: string) {
+  const { data: ads } = await supabase
+    .from('video_ads')
+    .select('id, user_id, duration_seconds, treatment, production_plan, predicted_engagement, created_at')
+    .eq('status', 'completed')
+    .gte('created_at', `${windowStart}T00:00:00Z`)
+    .lte('created_at', `${windowEnd}T23:59:59Z`)
+    .limit(300);
+
+  const list = (ads ?? []) as any[];
+  if (!list.length) return { created: 0, measured: 0 };
+
+  const { data: existing } = await supabase
+    .from('outcome_tracking')
+    .select('video_ad_id, actual_engagement')
+    .in('video_ad_id', list.map((a) => a.id));
+  const existingMap = new Map((existing ?? []).map((r: any) => [r.video_ad_id, r]));
+
+  const byUser = new Map<string, any[]>();
+  for (const a of list) {
+    if (!a.user_id) continue;
+    if (!byUser.has(a.user_id)) byUser.set(a.user_id, []);
+    byUser.get(a.user_id)!.push(a);
+  }
+
+  let created = 0;
+  let measured = 0;
+
+  for (const [userId, userAds] of byUser) {
+    const { data: profile } = await supabase
+      .from('business_profiles')
+      .select('niche, industry')
+      .eq('user_id', userId)
+      .maybeSingle();
+    const niche = (profile as any)?.niche || (profile as any)?.industry || 'general';
+
+    const { data: adAccount } = await supabase
+      .from('connected_ad_accounts')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('platform', 'meta')
+      .eq('status', 'active')
+      .maybeSingle();
+
+    let snapshots: any[] = [];
+    if (adAccount) {
+      const { data: snaps } = await supabase
+        .from('ad_performance_snapshots')
+        .select('date_start, impressions, reach, clicks, purchases')
+        .eq('user_id', userId)
+        .gte('date_start', windowStart)
+        .lte('date_start', windowEnd);
+      snapshots = snaps ?? [];
+    }
+
+    for (const ad of userAds) {
+      const prior = existingMap.get(ad.id);
+      if (prior && prior.actual_engagement != null) continue;
+
+      const day = String(ad.created_at).slice(0, 10);
+      const dayRows = snapshots.filter((s) => s.date_start === day);
+      let actuals: Record<string, any> = {};
+      let source = 'manual_entry';
+
+      if (dayRows.length) {
+        const impressions = sum(dayRows, 'impressions');
+        actuals = {
+          actual_engagement: impressions > 0 ? round2((sum(dayRows, 'clicks') / impressions) * 100) : 0,
+          actual_reach: sum(dayRows, 'reach') || null,
+          actual_conversions: sum(dayRows, 'purchases') || null,
+          measured_at: new Date().toISOString(),
+        };
+        source = 'meta_api';
+        measured++;
+      }
+
+      const { error: upErr } = await supabase.from('outcome_tracking').upsert(
+        {
+          user_id: userId,
+          subject_type: 'video_ad',
+          video_ad_id: ad.id,
+          predicted_engagement: ad.predicted_engagement,
+          niche,
+          source,
+          ...creativeSignature(ad),
+          ...actuals,
+        },
+        { onConflict: 'video_ad_id' },
+      );
+      if (upErr) console.error('creative outcome upsert failed', ad.id, upErr.message);
+      else if (!prior) created++;
+    }
+  }
+
+  return { created, measured };
+}
+
 
 function sum(rows: any[], key: string) {
   return rows.reduce((a, r) => a + (Number(r[key]) || 0), 0);

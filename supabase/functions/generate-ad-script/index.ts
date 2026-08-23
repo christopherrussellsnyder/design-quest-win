@@ -162,6 +162,11 @@ ${JSON.stringify(priorTreatments, null, 2)}`
     // into art direction so the ad is built on evidence, not vibes.
     let intelBlock = "";
     let intelSources: string[] = [];
+    let intelEvidence: {
+      first_party: boolean;
+      ai_estimated: boolean;
+      calibrated_patterns: { pattern_type: string; pattern_value: string; error_pct: number; sample_size: number; avg_actual: number }[];
+    } = { first_party: false, ai_estimated: false, calibrated_patterns: [] };
     let adPlatform = normalizeAdPlatform(platform || linkedPost?.platform);
     try {
       const [settingsRes, bizInfoRes] = await Promise.all([
@@ -172,6 +177,7 @@ ${JSON.stringify(priorTreatments, null, 2)}`
       const intel = await gatherAdIntel(supabase, userId, adCtx, adPlatform);
       adPlatform = intel.platform;
       intelSources = intel.sources;
+      intelEvidence = intel.evidence;
       intelBlock = intel.section
         ? `\nNICHE + PERFORMANCE INTELLIGENCE (evidence base for this ad — obey it):\n${intel.section}`
         : "";
@@ -179,6 +185,7 @@ ${JSON.stringify(priorTreatments, null, 2)}`
     } catch (e) {
       console.error("[ad-script] intel gathering failed (non-fatal):", e);
     }
+
 
     const promoLine =
       promoCode || promoDetail
@@ -243,6 +250,11 @@ ${strategyBlock ? "- This ad is tied to a specific strategy day. The visual trea
 
 EDIT RECOMMENDATIONS — the ad is delivered as a CLEAN MASTER (presenter, voice, correct dimensions, nothing else) and the advertiser finishes it in an editor. So for every variant you must also return "edit_recommendations": specific, evidence-backed instructions for HOW to cut this exact ad on ${adPlatform.toUpperCase()}. Derive them from the NICHE + PERFORMANCE INTELLIGENCE brief — cut cadence, first-two-second retention move, caption treatment, on-screen text density, sound-off readability, music energy, and where the offer card sits. Write them so a complete beginner who has never edited a video could follow them literally. No jargon without a plain-language explanation. Name the evidence in one line.
 
+EVIDENCE HONESTY — you must also set "basis" on the edit recommendations, and you must be truthful:
+- "measured" — the call is taken from this advertiser's own measured results or the CALIBRATED CREATIVE PERFORMANCE block (real predicted-vs-actual data).
+- "niche_calibrated" — the call comes from the niche-level calibrated patterns but not this advertiser's own numbers.
+- "best_practice" — the call is general craft knowledge you are applying. This is the DEFAULT. If the brief contains no measured data supporting a call, you must say "best_practice". Never claim "measured" to sound more authoritative — a false claim of measurement is the worst possible failure here.
+
 Return ONLY valid JSON, no markdown fences.
 
 Schema:
@@ -269,7 +281,8 @@ Schema:
           "cta_treatment": "<where the offer card sits and how long it holds>",
           "do_this": ["<concrete editor move>", "<concrete editor move>"],
           "avoid": ["<mistake that kills performance in this niche>"],
-          "evidence": "<one line naming the evidence these calls came from>"
+          "evidence": "<one line naming the evidence these calls came from>",
+          "basis": "measured" | "niche_calibrated" | "best_practice"
         },
         "scenes": [
           {
@@ -360,14 +373,40 @@ Write the ${variantCount} script variants, each with its production plan, now.`;
 
     // Sanitise the art direction: caps generated plates, drops malformed scenes,
     // and falls back to a clean read when the model gives us nothing usable.
+    // The evidence block is attached server-side so the UI can label each
+    // recommendation honestly instead of trusting the model's own claim.
+    const allowedBasis = new Set(["measured", "niche_calibrated", "best_practice"]);
     const variants = rawVariants.map((v) => {
       const variant = (v ?? {}) as Record<string, unknown>;
       const script = String(variant.script ?? "");
-      const plan = normalizePlan(variant.production_plan, script);
+      const plan = normalizePlan(variant.production_plan, script) as Record<string, any>;
+
+      // Downgrade any basis the evidence we actually gathered cannot support.
+      const recs = plan.edit_recommendations as Record<string, any> | undefined;
+      if (recs) {
+        let basis = String(recs.basis ?? "best_practice");
+        if (!allowedBasis.has(basis)) basis = "best_practice";
+        if (basis === "measured" && !intelEvidence.first_party) {
+          basis = intelEvidence.calibrated_patterns.length ? "niche_calibrated" : "best_practice";
+        }
+        if (basis === "niche_calibrated" && !intelEvidence.calibrated_patterns.length) {
+          basis = "best_practice";
+        }
+        recs.basis = basis;
+      }
+
+      plan.evidence = intelEvidence;
       return { ...variant, production_plan: plan };
     });
 
-    return json({ variants, brand_kit: brandKit, intel_sources: intelSources, platform: adPlatform });
+    return json({
+      variants,
+      brand_kit: brandKit,
+      intel_sources: intelSources,
+      platform: adPlatform,
+      evidence: intelEvidence,
+    });
+
 
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

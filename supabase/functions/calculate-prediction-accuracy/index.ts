@@ -34,10 +34,13 @@ Deno.serve(async (req) => {
   try {
     const { data: rows, error } = await supabase
       .from('outcome_tracking')
-      .select('id, niche, predicted_engagement, actual_engagement, pattern_hook_technique, pattern_post_type, error_pct, measured_at')
+      .select(
+        'id, niche, predicted_engagement, actual_engagement, pattern_hook_technique, pattern_post_type, creative_treatment, creative_shot_opening, creative_text_density, creative_duration_bucket, creative_captions, error_pct, measured_at',
+      )
       .not('actual_engagement', 'is', null)
       .not('predicted_engagement', 'is', null)
       .limit(5000);
+
     if (error) throw error;
 
     const outcomes = (rows ?? []) as any[];
@@ -73,7 +76,20 @@ Deno.serve(async (req) => {
       const niche = r.niche || 'general';
       add(niche, 'hook_technique', r.pattern_hook_technique, r);
       add(niche, 'post_type', r.pattern_post_type, r);
+      // Creative choices ride the identical loop — same minimum sample size,
+      // same error maths, so an edit decision is trusted on the same terms.
+      add(niche, 'creative_treatment', r.creative_treatment, r);
+      add(niche, 'creative_shot_opening', r.creative_shot_opening, r);
+      add(niche, 'creative_text_density', r.creative_text_density, r);
+      add(niche, 'creative_duration_bucket', r.creative_duration_bucket, r);
+      add(
+        niche,
+        'creative_captions',
+        typeof r.creative_captions === 'boolean' ? (r.creative_captions ? 'captions_on' : 'captions_off') : null,
+        r,
+      );
     }
+
 
     const calibrationRows = [...buckets.entries()].map(([key, b]) => {
       const [niche, pattern_type, pattern_value] = key.split('||');

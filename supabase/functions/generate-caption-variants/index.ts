@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.4";
 import { requirePro } from "../_shared/require-pro.ts";
 import { checkRateLimit, clientKey } from "../_shared/rate-limit.ts";
 
@@ -117,10 +118,64 @@ Generate the two A/B variants now.`;
 
     const variants = Array.isArray(parsed?.variants) ? parsed.variants.slice(0, 2) : [];
 
+    // Register the variants as a real experiment so caption choices are settled
+    // by measured performance in the A/B framework, not by model judgment alone.
+    let abTestId: string | null = null;
+    let registered: { label: string; variant_id: string }[] = [];
+    if (variants.length) {
+      try {
+        const admin = createClient(
+          Deno.env.get('SUPABASE_URL') ?? '',
+          Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+          { auth: { persistSession: false } },
+        );
+
+        const { data: test, error: testErr } = await admin
+          .from('ab_tests')
+          .insert({
+            user_id: gate.userId,
+            name: `Caption test — ${String(hook || caption).slice(0, 40)}`,
+            variable_being_tested: 'caption',
+            hypothesis: 'A different hook or tone will lift engagement on the same offer.',
+            platform: platform || null,
+            status: 'running',
+            start_date: new Date().toISOString(),
+          })
+          .select('id')
+          .single();
+        if (testErr) throw testErr;
+        abTestId = test.id;
+
+        const rows = [
+          { variant_name: 'Control (original)', content_template: caption, is_control: true },
+          ...variants.map((v: any, i: number) => ({
+            variant_name: String(v?.label || `Variant ${i === 0 ? 'A' : 'B'}`),
+            content_template: String(v?.caption ?? ''),
+            is_control: false,
+            variable_value: { angle: v?.angle ?? null, hook: v?.hook ?? null },
+          })),
+        ].map((r) => ({ ...r, ab_test_id: abTestId }));
+
+        const { data: inserted } = await admin
+          .from('ab_test_variants')
+          .insert(rows)
+          .select('id, variant_name, is_control');
+
+        registered = (inserted ?? [])
+          .filter((r: any) => !r.is_control)
+          .map((r: any) => ({ label: r.variant_name, variant_id: r.id }));
+      } catch (e) {
+        // The experiment is a bonus — never fail the generation over it.
+        console.error('caption A/B registration failed (non-fatal):', e);
+        abTestId = null;
+      }
+    }
+
     return new Response(
-      JSON.stringify({ variants }),
+      JSON.stringify({ variants, ab_test_id: abTestId, registered_variants: registered }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
+
   } catch (err) {
     console.error('generate-caption-variants error:', err);
     return new Response(

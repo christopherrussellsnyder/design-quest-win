@@ -132,12 +132,26 @@ serve(async (req) => {
     }
 
     // ---- Record it ------------------------------------------------------
+    // The linked day's prediction is copied onto the ad so the nightly outcome
+    // job has something to compare the real numbers against.
+    let predictedEngagement: number | null = null;
+    if (asText(strategyPostId)) {
+      const { data: linked } = await supabase
+        .from("strategy_posts")
+        .select("predicted_engagement")
+        .eq("id", asText(strategyPostId))
+        .maybeSingle();
+      predictedEngagement = linked?.predicted_engagement ?? null;
+    }
+
     const { data: row, error: insertError } = await supabase
       .from("video_ads")
       .insert({
         user_id: userId,
         workspace_id: asText(workspaceId) ?? null,
         strategy_post_id: asText(strategyPostId) ?? null,
+        predicted_engagement: predictedEngagement,
+
         title: asText(title) ?? null,
         hook: asText(hook) ?? null,
         script: scriptText.trim(),
@@ -164,15 +178,93 @@ serve(async (req) => {
       return json({ error: "Render started but could not be saved. Please contact support." }, 500);
     }
 
+    // ---- Register the creative in the A/B framework ----------------------
+    // Ads generated against the same strategy day are competing creatives, so
+    // they join one experiment and get settled on measured performance rather
+    // than on the model's own opinion of which script is best.
+    let abTestId: string | null = null;
+    let abVariantId: string | null = null;
+    try {
+      const postId = asText(strategyPostId) ?? null;
+
+      if (postId) {
+        const { data: existing } = await supabase
+          .from("ab_tests")
+          .select("id")
+          .eq("user_id", userId)
+          .eq("variable_being_tested", "creative")
+          .eq("status", "running")
+          .ilike("description", `%${postId}%`)
+          .maybeSingle();
+        abTestId = existing?.id ?? null;
+      }
+
+      if (!abTestId) {
+        const { data: test } = await supabase
+          .from("ab_tests")
+          .insert({
+            user_id: userId,
+            name: `Creative test — ${asText(title) ?? asText(hook) ?? "video ad"}`.slice(0, 80),
+            description: postId ? `strategy_post:${postId}` : "standalone creative test",
+            variable_being_tested: "creative",
+            hypothesis: "Treatment, opening shot and text density change how this ad performs.",
+            status: "running",
+            start_date: new Date().toISOString(),
+          })
+          .select("id")
+          .single();
+        abTestId = test?.id ?? null;
+      }
+
+      if (abTestId) {
+        const { count } = await supabase
+          .from("ab_test_variants")
+          .select("id", { count: "exact", head: true })
+          .eq("ab_test_id", abTestId);
+
+        const { data: variant } = await supabase
+          .from("ab_test_variants")
+          .insert({
+            ab_test_id: abTestId,
+            variant_name: (asText(title) ?? `${plan.treatment} cut`).slice(0, 60),
+            is_control: (count ?? 0) === 0,
+            content_template: scriptText.trim().slice(0, 4000),
+            variable_value: { angle: asText(angle) ?? null, treatment: plan.treatment },
+            video_ad_id: row.id,
+            creative_signature: {
+              treatment: plan.treatment,
+              opening_shot: plan.scenes?.[0]?.shot_type ?? null,
+              scene_count: plan.scenes.length,
+              captions: plan.captions ?? null,
+              aspect_ratio: aspectRatio,
+            },
+          })
+          .select("id")
+          .single();
+        abVariantId = variant?.id ?? null;
+
+        await supabase
+          .from("video_ads")
+          .update({ ab_test_id: abTestId, ab_variant_id: abVariantId })
+          .eq("id", row.id);
+      }
+    } catch (e) {
+      // Experiment bookkeeping must never block a paid render.
+      console.error("[video-ad] A/B registration failed (non-fatal):", e);
+    }
+
     return json({
       id: row.id,
       status: row.status,
+      ab_test_id: abTestId,
+      ab_variant_id: abVariantId,
       quota: {
         tier,
         limit: limit === Number.POSITIVE_INFINITY ? null : limit,
         used: used + 1,
       },
     });
+
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error("[video-ad] ERROR:", message);
