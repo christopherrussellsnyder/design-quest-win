@@ -353,6 +353,107 @@ export type Database = {
         }
         Relationships: []
       }
+      ad_performance_snapshots: {
+        Row: {
+          account_id: string
+          clicks: number | null
+          connected_account_id: string
+          cpc: number | null
+          cpm: number | null
+          created_at: string
+          ctr: number | null
+          data_source_type: Database["public"]["Enums"]["data_source_type"]
+          date_start: string | null
+          date_stop: string | null
+          fetched_at: string
+          frequency: number | null
+          id: string
+          impressions: number | null
+          level: string
+          object_id: string
+          object_name: string | null
+          objective: string | null
+          platform: string
+          purchase_value: number | null
+          purchases: number | null
+          raw: Json
+          reach: number | null
+          roas: number | null
+          spend: number | null
+          status: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_id: string
+          clicks?: number | null
+          connected_account_id: string
+          cpc?: number | null
+          cpm?: number | null
+          created_at?: string
+          ctr?: number | null
+          data_source_type?: Database["public"]["Enums"]["data_source_type"]
+          date_start?: string | null
+          date_stop?: string | null
+          fetched_at?: string
+          frequency?: number | null
+          id?: string
+          impressions?: number | null
+          level?: string
+          object_id: string
+          object_name?: string | null
+          objective?: string | null
+          platform?: string
+          purchase_value?: number | null
+          purchases?: number | null
+          raw?: Json
+          reach?: number | null
+          roas?: number | null
+          spend?: number | null
+          status?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_id?: string
+          clicks?: number | null
+          connected_account_id?: string
+          cpc?: number | null
+          cpm?: number | null
+          created_at?: string
+          ctr?: number | null
+          data_source_type?: Database["public"]["Enums"]["data_source_type"]
+          date_start?: string | null
+          date_stop?: string | null
+          fetched_at?: string
+          frequency?: number | null
+          id?: string
+          impressions?: number | null
+          level?: string
+          object_id?: string
+          object_name?: string | null
+          objective?: string | null
+          platform?: string
+          purchase_value?: number | null
+          purchases?: number | null
+          raw?: Json
+          reach?: number | null
+          roas?: number | null
+          spend?: number | null
+          status?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_performance_snapshots_connected_account_id_fkey"
+            columns: ["connected_account_id"]
+            isOneToOne: false
+            referencedRelation: "connected_ad_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_conversations: {
         Row: {
           created_at: string | null
@@ -2486,6 +2587,69 @@ export type Database = {
         }
         Relationships: []
       }
+      connected_ad_accounts: {
+        Row: {
+          access_token_enc: string | null
+          account_id: string
+          account_name: string | null
+          connected_at: string
+          created_at: string
+          currency: string | null
+          id: string
+          last_error: string | null
+          last_synced_at: string | null
+          platform: string
+          refresh_token_enc: string | null
+          scopes: string[] | null
+          status: string
+          timezone_name: string | null
+          token_expires_at: string | null
+          updated_at: string
+          user_id: string
+          workspace_id: string | null
+        }
+        Insert: {
+          access_token_enc?: string | null
+          account_id: string
+          account_name?: string | null
+          connected_at?: string
+          created_at?: string
+          currency?: string | null
+          id?: string
+          last_error?: string | null
+          last_synced_at?: string | null
+          platform?: string
+          refresh_token_enc?: string | null
+          scopes?: string[] | null
+          status?: string
+          timezone_name?: string | null
+          token_expires_at?: string | null
+          updated_at?: string
+          user_id: string
+          workspace_id?: string | null
+        }
+        Update: {
+          access_token_enc?: string | null
+          account_id?: string
+          account_name?: string | null
+          connected_at?: string
+          created_at?: string
+          currency?: string | null
+          id?: string
+          last_error?: string | null
+          last_synced_at?: string | null
+          platform?: string
+          refresh_token_enc?: string | null
+          scopes?: string[] | null
+          status?: string
+          timezone_name?: string | null
+          token_expires_at?: string | null
+          updated_at?: string
+          user_id?: string
+          workspace_id?: string | null
+        }
+        Relationships: []
+      }
       contact_submissions: {
         Row: {
           created_at: string
@@ -3746,6 +3910,33 @@ export type Database = {
           sample_strategies?: Json | null
           success_rate?: number | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      oauth_states: {
+        Row: {
+          created_at: string
+          expires_at: string
+          platform: string
+          redirect_to: string | null
+          state: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string
+          platform?: string
+          redirect_to?: string | null
+          state: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          platform?: string
+          redirect_to?: string | null
+          state?: string
+          user_id?: string
         }
         Relationships: []
       }
