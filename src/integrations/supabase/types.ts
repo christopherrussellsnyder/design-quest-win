@@ -754,6 +754,7 @@ export type Database = {
       audience_activity_patterns: {
         Row: {
           avg_engagement_rate: number | null
+          data_source_type: Database["public"]["Enums"]["data_source_type"]
           day_of_week: number
           hour_of_day: number
           id: string
@@ -764,6 +765,7 @@ export type Database = {
         }
         Insert: {
           avg_engagement_rate?: number | null
+          data_source_type?: Database["public"]["Enums"]["data_source_type"]
           day_of_week: number
           hour_of_day: number
           id?: string
@@ -774,6 +776,7 @@ export type Database = {
         }
         Update: {
           avg_engagement_rate?: number | null
+          data_source_type?: Database["public"]["Enums"]["data_source_type"]
           day_of_week?: number
           hour_of_day?: number
           id?: string
@@ -1860,6 +1863,7 @@ export type Database = {
           confidence_score: number | null
           created_at: string
           creative_volume: string | null
+          data_source_type: Database["public"]["Enums"]["data_source_type"]
           id: string
           niche: string
           platform: string
@@ -1877,6 +1881,7 @@ export type Database = {
           confidence_score?: number | null
           created_at?: string
           creative_volume?: string | null
+          data_source_type?: Database["public"]["Enums"]["data_source_type"]
           id?: string
           niche: string
           platform: string
@@ -1894,6 +1899,7 @@ export type Database = {
           confidence_score?: number | null
           created_at?: string
           creative_volume?: string | null
+          data_source_type?: Database["public"]["Enums"]["data_source_type"]
           id?: string
           niche?: string
           platform?: string
@@ -2837,6 +2843,7 @@ export type Database = {
         Row: {
           avg_engagement_rate: number | null
           created_at: string | null
+          data_source_type: Database["public"]["Enums"]["data_source_type"]
           id: string
           last_calculated: string | null
           pattern_type: string
@@ -2852,6 +2859,7 @@ export type Database = {
         Insert: {
           avg_engagement_rate?: number | null
           created_at?: string | null
+          data_source_type?: Database["public"]["Enums"]["data_source_type"]
           id?: string
           last_calculated?: string | null
           pattern_type: string
@@ -2867,6 +2875,7 @@ export type Database = {
         Update: {
           avg_engagement_rate?: number | null
           created_at?: string | null
+          data_source_type?: Database["public"]["Enums"]["data_source_type"]
           id?: string
           last_calculated?: string | null
           pattern_type?: string
@@ -2997,6 +3006,7 @@ export type Database = {
         Row: {
           confidence_score: number | null
           content_category: string | null
+          data_source_type: Database["public"]["Enums"]["data_source_type"]
           first_detected: string | null
           id: string
           is_active: boolean | null
@@ -3008,6 +3018,7 @@ export type Database = {
         Insert: {
           confidence_score?: number | null
           content_category?: string | null
+          data_source_type?: Database["public"]["Enums"]["data_source_type"]
           first_detected?: string | null
           id?: string
           is_active?: boolean | null
@@ -3019,6 +3030,7 @@ export type Database = {
         Update: {
           confidence_score?: number | null
           content_category?: string | null
+          data_source_type?: Database["public"]["Enums"]["data_source_type"]
           first_detected?: string | null
           id?: string
           is_active?: boolean | null
@@ -3256,6 +3268,7 @@ export type Database = {
           avg_posts_per_week: number
           benchmark_month: string
           created_at: string | null
+          data_source_type: Database["public"]["Enums"]["data_source_type"]
           id: string
           industry: string
           platform: string
@@ -3268,6 +3281,7 @@ export type Database = {
           avg_posts_per_week: number
           benchmark_month: string
           created_at?: string | null
+          data_source_type?: Database["public"]["Enums"]["data_source_type"]
           id?: string
           industry: string
           platform: string
@@ -3280,6 +3294,7 @@ export type Database = {
           avg_posts_per_week?: number
           benchmark_month?: string
           created_at?: string | null
+          data_source_type?: Database["public"]["Enums"]["data_source_type"]
           id?: string
           industry?: string
           platform?: string
@@ -3909,6 +3924,7 @@ export type Database = {
           avg_engagement_rate: number | null
           avg_roas: number | null
           created_at: string | null
+          data_source_type: Database["public"]["Enums"]["data_source_type"]
           id: string
           last_updated: string | null
           niche: string
@@ -3926,6 +3942,7 @@ export type Database = {
           avg_engagement_rate?: number | null
           avg_roas?: number | null
           created_at?: string | null
+          data_source_type?: Database["public"]["Enums"]["data_source_type"]
           id?: string
           last_updated?: string | null
           niche: string
@@ -3943,6 +3960,7 @@ export type Database = {
           avg_engagement_rate?: number | null
           avg_roas?: number | null
           created_at?: string | null
+          data_source_type?: Database["public"]["Enums"]["data_source_type"]
           id?: string
           last_updated?: string | null
           niche?: string
@@ -4103,6 +4121,7 @@ export type Database = {
           content_mode: string
           created_at: string
           data: Json
+          data_source_type: Database["public"]["Enums"]["data_source_type"]
           expires_at: string
           generated_at: string
           id: string
@@ -4113,6 +4132,7 @@ export type Database = {
           content_mode?: string
           created_at?: string
           data?: Json
+          data_source_type?: Database["public"]["Enums"]["data_source_type"]
           expires_at?: string
           generated_at?: string
           id?: string
@@ -4123,6 +4143,7 @@ export type Database = {
           content_mode?: string
           created_at?: string
           data?: Json
+          data_source_type?: Database["public"]["Enums"]["data_source_type"]
           expires_at?: string
           generated_at?: string
           id?: string
@@ -4136,6 +4157,7 @@ export type Database = {
           content_mode: string
           created_at: string
           data: Json
+          data_source_type: Database["public"]["Enums"]["data_source_type"]
           expires_at: string
           generated_at: string
           id: string
@@ -4147,6 +4169,7 @@ export type Database = {
           content_mode: string
           created_at?: string
           data: Json
+          data_source_type?: Database["public"]["Enums"]["data_source_type"]
           expires_at: string
           generated_at?: string
           id?: string
@@ -4158,6 +4181,7 @@ export type Database = {
           content_mode?: string
           created_at?: string
           data?: Json
+          data_source_type?: Database["public"]["Enums"]["data_source_type"]
           expires_at?: string
           generated_at?: string
           id?: string
@@ -4649,6 +4673,7 @@ export type Database = {
       trending_topics: {
         Row: {
           category: string | null
+          data_source_type: Database["public"]["Enums"]["data_source_type"]
           detected_at: string | null
           growth_rate: number | null
           id: string
@@ -4660,6 +4685,7 @@ export type Database = {
         }
         Insert: {
           category?: string | null
+          data_source_type?: Database["public"]["Enums"]["data_source_type"]
           detected_at?: string | null
           growth_rate?: number | null
           id?: string
@@ -4671,6 +4697,7 @@ export type Database = {
         }
         Update: {
           category?: string | null
+          data_source_type?: Database["public"]["Enums"]["data_source_type"]
           detected_at?: string | null
           growth_rate?: number | null
           id?: string
@@ -5762,6 +5789,7 @@ export type Database = {
       app_role: "owner" | "admin" | "editor" | "viewer"
       campaign_status: "active" | "paused" | "draft"
       campaign_trend: "up" | "down" | "neutral"
+      data_source_type: "real_api" | "first_party" | "ai_estimated"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -5892,6 +5920,7 @@ export const Constants = {
       app_role: ["owner", "admin", "editor", "viewer"],
       campaign_status: ["active", "paused", "draft"],
       campaign_trend: ["up", "down", "neutral"],
+      data_source_type: ["real_api", "first_party", "ai_estimated"],
     },
   },
 } as const
