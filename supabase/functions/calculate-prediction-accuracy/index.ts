@@ -8,10 +8,28 @@ const MIN_SAMPLE = 10;
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
-  const supabase = createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
-  );
+  const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+  const supabase = createClient(Deno.env.get('SUPABASE_URL')!, serviceKey);
+
+  // Nightly cron, or an admin/owner triggering a manual run from the internal dashboard.
+  const authHeader = req.headers.get('Authorization') ?? '';
+  const isCron = req.headers.get('Lovable-Context') === 'cron' || authHeader === `Bearer ${serviceKey}`;
+  if (!isCron) {
+    const { data: userData } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''));
+    const uid = userData?.user?.id;
+    let isAdmin = false;
+    if (uid) {
+      const { data: roles } = await supabase.from('user_roles').select('role').eq('user_id', uid);
+      isAdmin = (roles ?? []).some((r: any) => r.role === 'admin' || r.role === 'owner');
+    }
+    if (!isAdmin) {
+      return new Response(JSON.stringify({ error: 'Forbidden' }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+  }
+
 
   try {
     const { data: rows, error } = await supabase
