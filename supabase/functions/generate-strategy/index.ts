@@ -321,6 +321,7 @@ async function criticPass(
   ctx: BusinessCtx,
   platform: string,
   groundingSummary: string,
+  calibrationNote = '',
 ): Promise<any[]> {
   if (!posts.length) return posts;
 
@@ -338,7 +339,7 @@ async function criticPass(
 
 GROUNDING TRUTH AVAILABLE TO THE WRITER:
 ${groundingSummary || 'None beyond the business profile.'}
-
+${calibrationNote ? `\nHISTORICAL PREDICTION CALIBRATION (real measured outcomes for this niche — score accordingly):\n${calibrationNote}\n` : ''}
 DRAFTED POSTS:
 ${JSON.stringify(digest)}
 
@@ -348,6 +349,7 @@ Return ONLY JSON:
 {"scores":[{"index":0,"score":0,"verdict":"keep|rewrite","problem":"one sentence"}],"rewrites":[{"index":0,"hook":"new 5-10 word hook","technique":"archetype","opening":"2-3 sentences","body":"100-150 words","cta":"new cta text","full_caption":"150-250 word caption","differentiation_anchor":"which real product/UVP/pain point"}]}
 
 Mark "rewrite" for any post scoring under 75. Provide a rewrite object for every post marked rewrite (max 6 rewrites). Rewrites must keep the same content_category and day, and must be anchored to a real input — never invent products, prices, or claims.`;
+
 
   try {
     const raw = await callAI(
