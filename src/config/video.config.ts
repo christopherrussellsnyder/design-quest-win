@@ -74,6 +74,30 @@ export interface AdScene {
   text_position?: TextPosition;
 }
 
+/**
+ * Where a creative recommendation actually comes from.
+ * - measured: this advertiser's own measured results
+ * - niche_calibrated: predicted-vs-actual data aggregated across the niche
+ * - best_practice: general craft knowledge the model is applying
+ */
+export type CreativeBasis = 'measured' | 'niche_calibrated' | 'best_practice';
+
+/** A creative choice scored against real outcomes for this niche. */
+export interface CalibratedCreativePattern {
+  pattern_type: string;
+  pattern_value: string;
+  error_pct: number;
+  sample_size: number;
+  avg_actual: number;
+}
+
+/** Provenance of the evidence behind an ad's creative direction. */
+export interface AdEvidence {
+  first_party: boolean;
+  ai_estimated: boolean;
+  calibrated_patterns: CalibratedCreativePattern[];
+}
+
 /** Evidence-backed guidance for how to CUT the ad, surfaced in the Edit studio. */
 export interface EditRecommendations {
   cut_rhythm?: string;
@@ -85,6 +109,7 @@ export interface EditRecommendations {
   do_this?: string[];
   avoid?: string[];
   evidence?: string;
+  basis?: CreativeBasis;
 }
 
 export interface ProductionPlan {
@@ -97,7 +122,9 @@ export interface ProductionPlan {
   format?: FormatSpec;
   total_seconds?: number;
   edit_recommendations?: EditRecommendations;
+  evidence?: AdEvidence;
 }
+
 
 
 
