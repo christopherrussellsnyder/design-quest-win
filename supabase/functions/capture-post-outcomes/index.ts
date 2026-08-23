@@ -131,8 +131,17 @@ Deno.serve(async (req) => {
       }
     }
 
-    console.log(`capture-post-outcomes: created=${created} measured=${measured}`);
-    return json({ ok: true, created, measured });
+    // ---- Creative (video ad) outcomes -------------------------------------
+    // Creative choices are tracked in the SAME table and calibrated by the same
+    // nightly job as hook technique / post type, so a "video under 15s" or
+    // "text overlay on first frame" earns or loses trust on measured results.
+    const creative = await captureCreativeOutcomes(supabase, windowStart, windowEnd);
+
+    console.log(
+      `capture-post-outcomes: created=${created} measured=${measured} creative_created=${creative.created} creative_measured=${creative.measured}`,
+    );
+    return json({ ok: true, created, measured, creative });
+
   } catch (e) {
     console.error('capture-post-outcomes error', e);
     return json({ error: (e as Error).message }, 500);
