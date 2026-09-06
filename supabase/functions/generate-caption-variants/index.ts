@@ -122,7 +122,41 @@ Generate ${CANDIDATE_POOL} distinct candidates now.`;
       parsed = match ? JSON.parse(match[0]) : { variants: [] };
     }
 
-    const variants = Array.isArray(parsed?.variants) ? parsed.variants.slice(0, 2) : [];
+    // ===== Multi-objective selection (deterministic, zero AI cost) =====
+    // Each candidate is scored on hook strength, CTA clarity, readability,
+    // specificity and voice match against the original. Max-Marginal-Relevance
+    // then picks two that are both strong AND far apart, so the A/B test
+    // actually measures a difference.
+    const pool = (Array.isArray(parsed?.variants) ? parsed.variants : [])
+      .filter((v: any) => typeof v?.caption === 'string' && v.caption.trim().length > 20)
+      .map((v: any) => ({ ...v, caption: String(v.caption).trim() }));
+
+    const scoredPool = pool.map((v: any) => ({
+      ...v,
+      score: scoreCaption(v.caption, {
+        platform: String(platform || ''),
+        reference: caption,
+        hook: String(v.hook || ''),
+      }),
+    }));
+
+    const picked = selectDiverseCaptions(scoredPool, 2, (v: any) => v.score.total);
+
+    const variants = picked.map((v: any, i: number) => ({
+      label: `Variant ${i === 0 ? 'A' : 'B'}`,
+      angle: v.angle ?? '',
+      hook: v.hook ?? '',
+      caption: v.caption,
+      // Surfaced so the UI can show WHY this variant was kept, rather than
+      // implying a measured result that does not exist yet.
+      selection_score: v.score.total,
+      selection_dimensions: v.score.dimensions,
+    }));
+
+    console.log(
+      `Caption pool ${scoredPool.length} → kept 2 ` +
+      `(scores ${variants.map((v: any) => v.selection_score).join(', ')})`,
+    );
 
     // Register the variants as a real experiment so caption choices are settled
     // by measured performance in the A/B framework, not by model judgment alone.
