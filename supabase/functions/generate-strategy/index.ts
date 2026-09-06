@@ -411,6 +411,9 @@ async function criticPass(
   platform: string,
   groundingSummary: string,
   calibrationNote = '',
+  /** Deterministic pre-screen result — points the paid critic at posts that
+   *  already failed objective checks instead of re-judging everything blind. */
+  targetedNote = '',
 ): Promise<any[]> {
   if (!posts.length) return posts;
 
@@ -429,15 +432,22 @@ async function criticPass(
 GROUNDING TRUTH AVAILABLE TO THE WRITER:
 ${groundingSummary || 'None beyond the business profile.'}
 ${calibrationNote ? `\nHISTORICAL PREDICTION CALIBRATION (real measured outcomes for this niche — score accordingly):\n${calibrationNote}\n` : ''}
+${targetedNote ? `\n${targetedNote}\n` : ''}
 DRAFTED POSTS:
 ${JSON.stringify(digest)}
 
-Grade each post 0-100 on: (a) scroll-stopping power of the hook, (b) specificity — could a competitor publish this unchanged? (c) anchoring to a real product/UVP/pain point, (d) CTA clarity, (e) originality versus saturated niche tropes.
+Grade each post 0-100 on these SPECIFIC, SEPARATELY-SCORED dimensions, then average them into "score":
+(a) hook_stopping_power — would this stop a thumb in 1.5s?
+(b) specificity — could a competitor publish this unchanged? If yes, score under 40.
+(c) evidence_anchoring — is it tied to a real product, price, UVP, or stated pain point from the grounding truth?
+(d) cta_clarity — does the reader know exactly what to do next?
+(e) originality — does it avoid the saturated tropes in this niche?
+(f) prediction_realism — is the forecast consistent with the calibration data above?
 
 Return ONLY JSON:
-{"scores":[{"index":0,"score":0,"verdict":"keep|rewrite","problem":"one sentence"}],"rewrites":[{"index":0,"hook":"new 5-10 word hook","technique":"archetype","opening":"2-3 sentences","body":"100-150 words","cta":"new cta text","full_caption":"150-250 word caption","differentiation_anchor":"which real product/UVP/pain point"}]}
+{"scores":[{"index":0,"score":0,"dimensions":{"hook_stopping_power":0,"specificity":0,"evidence_anchoring":0,"cta_clarity":0,"originality":0,"prediction_realism":0},"verdict":"keep|rewrite","problem":"one sentence"}],"rewrites":[{"index":0,"hook":"new 5-10 word hook","technique":"archetype","opening":"2-3 sentences","body":"100-150 words","cta":"new cta text","full_caption":"150-250 word caption","differentiation_anchor":"which real product/UVP/pain point"}]}
 
-Mark "rewrite" for any post scoring under 75. Provide a rewrite object for every post marked rewrite (max 6 rewrites). Rewrites must keep the same content_category and day, and must be anchored to a real input — never invent products, prices, or claims.`;
+Mark "rewrite" for any post scoring under 75, and for every post named in the pre-screen above. Provide a rewrite object for every post marked rewrite (max 6 rewrites). Rewrites must keep the same content_category and day, and must be anchored to a real input — never invent products, prices, or claims.`;
 
 
   try {
