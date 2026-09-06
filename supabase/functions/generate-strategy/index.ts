@@ -1170,6 +1170,26 @@ serve(async (req) => {
         return [];
       }
 
+      // ===== Deterministic pre-screen (free) =====
+      // Objective, measurable dimensions computed from the drafted text itself:
+      // specificity, evidence grounding, internal originality, generic-filler
+      // density, actionability and calibration fit. The result names the exact
+      // weak posts so the paid critic call below spends its rewrite budget on
+      // them instead of re-reading the whole batch blind.
+      let targetedNote = '';
+      if (batchPosts.length > 0) {
+        const preScreen = scoreStrategyCandidate(batchPosts, groundingTerms, calibratedPatterns);
+        targetedNote = buildTargetedCriticNote(preScreen);
+        console.log(
+          `Batch ${batchIdx + 1} pre-screen: ${preScreen.total}/100, ` +
+          `${preScreen.flaggedPosts.length} post(s) flagged`,
+        );
+        for (const f of preScreen.flaggedPosts) {
+          const p = batchPosts[f.index];
+          if (p) p.pre_screen = { reasons: f.reasons };
+        }
+      }
+
       // ===== CMO critic pass: grade this batch and rewrite anything weak =====
       if (batchPosts.length > 0) {
         batchPosts = await criticPass(
@@ -1179,6 +1199,7 @@ serve(async (req) => {
           platform,
           groundingSources.length ? `Grounded on: ${groundingSources.join(', ')}` : '',
           calibrationNote,
+          targetedNote,
         );
       }
       return batchPosts;
