@@ -1005,7 +1005,64 @@ serve(async (req) => {
       durationDays,
     );
 
+    // ---- Evidence fusion: rank, dedupe and contradiction-check the sources ----
+    // Sources are no longer concatenated as equals. Each atomic claim is weighted
+    // by (source reliability x recency x relevance to this business), duplicate
+    // claims across sources collapse into one corroborated claim, disagreements
+    // are surfaced explicitly, and a confidence score is derived from how much of
+    // the picture is measured versus model-estimated. Pure CPU — no extra spend.
+    const evidenceQueryTerms = [
+      ctx.businessName, ctx.industry, ctx.products, ctx.competitors,
+      ctx.uvp, ctx.painPoints, ctx.geoFocus,
+    ].filter(Boolean) as string[];
+
+    const rawSignals: RawSignal[] = [];
+    const pushSignals = (
+      section: string | undefined | null,
+      source: string,
+      sourceType: 'first_party' | 'real_api' | 'ai_estimated',
+    ) => {
+      if (!section) return;
+      for (const line of section.split('\n')) {
+        const t = line.trim();
+        // Only the factual bullet/quote lines carry claims; the instruction
+        // prose ("RULES:", numbered directives) is not evidence.
+        if (!t.startsWith('-') && !t.startsWith('"')) continue;
+        if (/^\d+\./.test(t)) continue;
+        rawSignals.push({
+          text: t.replace(/^-\s*/, ''),
+          source,
+          sourceType,
+          observedAt: new Date().toISOString(), // freshly fetched this run
+        });
+      }
+    };
+
+    pushSignals(siteIntel?.section, siteIntel?.source || 'crawl:unknown', 'real_api');
+    pushSignals(searchIntel?.section, searchIntel?.source || 'semrush', 'real_api');
+    pushSignals(adIntel?.section, adIntel?.source || 'meta-ad-library', 'real_api');
+    pushSignals(vocIntel?.section, vocIntel?.source || 'reddit', 'real_api');
+    pushSignals(performanceFeedbackSection, 'performance_feedback_loop', 'first_party');
+    pushSignals(seasonalitySection, 'seasonality:deterministic', 'real_api');
+
+    const evidence = buildEvidenceLedger(rawSignals, evidenceQueryTerms);
+    const evidenceSection = renderEvidenceLedger(evidence);
+    console.log(
+      `Evidence ledger: ${evidence.signals.length} signals ` +
+      `(${evidence.duplicatesCollapsed} duplicates collapsed, ${evidence.contradictions.length} contradictions), ` +
+      `confidence ${evidence.confidenceLabel} ${evidence.confidence}/100`,
+    );
+
+    // Concrete anchors (real product names, crawled prices, real search phrases)
+    // used by the deterministic scorers below. Extracted from gathered text only.
+    const groundingTerms = extractGroundingTerms([
+      siteIntel?.section, searchIntel?.section, adIntel?.section,
+      vocIntel?.section, performanceFeedbackSection, promotionsSection,
+      ctx.products, ctx.uvp, ctx.businessName,
+    ]);
+
     const groundingSection = [
+      evidenceSection,
       siteIntel?.section,
       searchIntel?.section,
       adIntel?.section,
@@ -1017,14 +1074,23 @@ serve(async (req) => {
     ].filter(Boolean).join('\n\n');
 
     // Compressed digest reused by every per-day batch call (the full block above is
-    // reserved for the single overview call).
-    const groundingDigest = compressGrounding([
-      siteIntel?.section,
-      searchIntel?.section,
-      adIntel?.section,
-      vocIntel?.section,
-      seasonalitySection,
-    ]);
+    // reserved for the single overview call). The top-ranked evidence leads the
+    // digest so batch writers see the strongest signals first.
+    const groundingDigest = [
+      evidence.signals.length
+        ? `=== TOP-RANKED EVIDENCE (confidence ${evidence.confidenceLabel} ${evidence.confidence}/100) ===\n` +
+          evidence.signals.slice(0, 8)
+            .map((s) => `- [${s.sourceType}] ${s.text.slice(0, 170)}`)
+            .join('\n')
+        : '',
+      compressGrounding([
+        siteIntel?.section,
+        searchIntel?.section,
+        adIntel?.section,
+        vocIntel?.section,
+        seasonalitySection,
+      ]),
+    ].filter(Boolean).join('\n\n');
 
     const groundingSources = [searchIntel, adIntel, siteIntel, vocIntel]
       .filter((r) => r?.ok)
