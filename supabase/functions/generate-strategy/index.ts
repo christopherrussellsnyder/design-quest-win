@@ -1149,8 +1149,11 @@ serve(async (req) => {
 
     console.log(`Generating ${totalPosts} posts in ${batches.length} concurrent batches...`);
     const calibrationNiche = ((ctx as any).niche || ctx.industry || 'general') as string;
-    const calibrationNote = await buildCalibrationNote(supabase, calibrationNiche);
-    if (calibrationNote) console.log('Calibration note applied for niche:', calibrationNiche);
+    const { note: calibrationNote, patterns: calibratedPatterns } =
+      await buildCalibrationNote(supabase, calibrationNiche);
+    if (calibrationNote) {
+      console.log(`Calibration applied for niche ${calibrationNiche}: ${calibratedPatterns.length} measured pattern(s)`);
+    }
     const startDateStr = overview.start_date || new Date().toISOString().split('T')[0];
 
     // Terminal gateway states discovered inside a concurrent batch — recorded once
