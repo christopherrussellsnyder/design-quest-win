@@ -245,11 +245,58 @@ serve(async (req) => {
       fromCache = false;
     }
 
+    // ===== First-party corroboration (per-user, deterministic, no AI cost) =====
+    // The report itself is AI-estimated and shared/cached across users, so it
+    // stays untouched. On top of it we check each estimated pattern against the
+    // caller's OWN measured top-performing posts. Anything that matches gets
+    // upgraded from "the model thinks" to "and your own numbers agree" — which
+    // is the only claim here backed by real data. Runs after the cache read so
+    // one user's history never leaks into another user's cached report.
+    let corroboration: Record<string, unknown> = { checked: false };
+    try {
+      const { data: topPosts } = await supabase.rpc("get_top_performing_posts", {
+        p_user_id: user.id,
+        p_platform: platform,
+        p_limit: 25,
+      });
+      const measured = (topPosts ?? []) as { content?: string; engagement_rate?: number }[];
+
+      if (measured.length >= 3) {
+        const corpus = measured.map((p) => String(p.content ?? "")).filter(Boolean);
+        const hooks = Array.isArray(report.trending_hooks) ? report.trending_hooks : [];
+
+        const confirmed: string[] = [];
+        for (const h of hooks) {
+          const text = typeof h === "string" ? h : String((h as any)?.hook ?? (h as any)?.text ?? "");
+          if (!text) continue;
+          const best = Math.max(0, ...corpus.map((c) => similarity(text, c)));
+          if (best >= 0.28) confirmed.push(text);
+        }
+
+        corroboration = {
+          checked: true,
+          posts_compared: measured.length,
+          confirmed_by_your_data: confirmed,
+          note: confirmed.length
+            ? `${confirmed.length} of these estimated patterns also appear in your own measured top-performing posts.`
+            : "None of these estimated patterns appear in your measured top posts yet — treat them as untested hypotheses.",
+        };
+      } else {
+        corroboration = {
+          checked: false,
+          note: "Not enough measured posts on your account yet to corroborate these estimates.",
+        };
+      }
+    } catch (e) {
+      console.warn("corroboration skipped:", (e as Error).message);
+    }
+
     const payload = {
       ...(isPaid ? report : starterCap(report)),
       data_source_type: "ai_estimated",
       data_source_note:
         "AI-estimated from model priors and publicly reported patterns. Not live platform data and not measured from your account.",
+      first_party_corroboration: corroboration,
     };
 
     return new Response(
