@@ -502,8 +502,13 @@ Mark "rewrite" for any post scoring under 75, and for every post named in the pr
 
 // Closed-loop calibration: compact note built from measured predicted-vs-actual error
 // for this niche. Only calibrated patterns (sample_size >= threshold) are surfaced.
-async function buildCalibrationNote(supabase: any, niche: string): Promise<string> {
-  if (!niche) return '';
+// Returns both the prompt note AND the structured rows, so measured outcomes feed
+// the deterministic scorer during generation, not just the after-the-fact review.
+async function buildCalibrationNote(
+  supabase: any,
+  niche: string,
+): Promise<{ note: string; patterns: { pattern_value: string; error_pct: number }[] }> {
+  if (!niche) return { note: '', patterns: [] };
   try {
     const { data } = await supabase
       .from('niche_calibration')
@@ -513,17 +518,24 @@ async function buildCalibrationNote(supabase: any, niche: string): Promise<strin
       .order('sample_size', { ascending: false })
       .limit(6);
     const rows = (data ?? []) as any[];
-    if (!rows.length) return '';
-    return rows
+    if (!rows.length) return { note: '', patterns: [] };
+    const note = rows
       .map((r) => {
         const err = Number(r.error_pct) || 0;
         const dir = err < 0 ? 'over-predicted' : 'under-predicted';
         return `- ${r.pattern_type} "${r.pattern_value}": historically ${dir} engagement by ~${Math.abs(Math.round(err))}% (n=${r.sample_size}).`;
       })
       .join('\n');
+    return {
+      note,
+      patterns: rows.map((r) => ({
+        pattern_value: String(r.pattern_value ?? ''),
+        error_pct: Number(r.error_pct) || 0,
+      })),
+    };
   } catch (e) {
     console.warn('calibration note skipped:', (e as Error).message);
-    return '';
+    return { note: '', patterns: [] };
   }
 }
 
