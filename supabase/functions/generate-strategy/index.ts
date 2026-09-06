@@ -11,6 +11,15 @@ import {
   DIVERSITY_PROMPT,
   CONFIDENCE_PROMPT,
 } from "../_shared/strategy-intel.ts";
+import {
+  buildEvidenceLedger,
+  renderEvidenceLedger,
+  extractGroundingTerms,
+  scoreStrategyCandidate,
+  buildTargetedCriticNote,
+  selectBestCandidate,
+  type RawSignal,
+} from "../_shared/algorithms.ts";
 import { checkRateLimit, clientKey } from "../_shared/rate-limit.ts";
 
 const corsHeaders = {
