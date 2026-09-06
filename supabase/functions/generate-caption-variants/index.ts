@@ -40,13 +40,20 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY is not configured');
 
+    // Over-generate, then keep the best two by objective score AND angle
+    // distance. One call, same cost bracket — a wider candidate pool costs only
+    // output tokens, and two near-identical variants make a worthless A/B test.
+    const CANDIDATE_POOL = 5;
+
     const systemPrompt = `You are Korex Intelligence, an elite social media copywriter.
-Generate TWO distinct A/B caption variants for the same post idea. Each variant should test a different angle so the user can compare performance.
+Generate ${CANDIDATE_POOL} genuinely distinct caption candidates for the same post idea. They will be scored and the two strongest, most different ones kept for an A/B test.
 
 Rules:
 - Keep the same core message, offer, and CTA intent as the original.
-- Variant A = a DIFFERENT HOOK/ANGLE (e.g., curiosity-driven, contrarian, story-led).
-- Variant B = a DIFFERENT TONE/STRUCTURE (e.g., more direct/punchy, list-style, emotional).
+- Every candidate must use a DIFFERENT hook archetype AND a different structure
+  (e.g. curiosity-gap, contrarian, story-led, direct/punchy, list-style).
+- Two candidates that could be swapped without a reader noticing are a failure.
+- Every candidate must contain one explicit, unmistakable call to action.
 - Match the platform's native voice (${platform || 'social'}).
 - Length should be similar to the original (±20%).
 - Do NOT include hashtags in the variants.
@@ -55,8 +62,7 @@ Rules:
 JSON schema:
 {
   "variants": [
-    { "label": "Variant A", "angle": "<short angle description>", "hook": "<opening hook line>", "caption": "<full caption>" },
-    { "label": "Variant B", "angle": "<short angle description>", "hook": "<opening hook line>", "caption": "<full caption>" }
+    { "angle": "<short angle description>", "hook": "<opening hook line>", "caption": "<full caption>" }
   ]
 }`;
 
@@ -70,7 +76,7 @@ JSON schema:
 ${caption}
 """
 
-Generate the two A/B variants now.`;
+Generate ${CANDIDATE_POOL} distinct candidates now.`;
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
