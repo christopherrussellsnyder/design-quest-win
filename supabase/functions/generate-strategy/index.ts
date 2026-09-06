@@ -1110,6 +1110,16 @@ serve(async (req) => {
     console.log('Grounding sources active:', groundingSources.join(', ') || 'none (profile only)');
     console.log(`Grounding size: full ${groundingSection.length} chars → digest ${groundingDigest.length} chars`);
 
+    // Measured predicted-vs-actual calibration for this niche. Fetched BEFORE
+    // generation so real outcomes steer candidate selection and the batch
+    // pre-screen — not only the after-the-fact review.
+    const calibrationNiche = ((ctx as any).niche || ctx.industry || 'general') as string;
+    const { note: calibrationNote, patterns: calibratedPatterns } =
+      await buildCalibrationNote(supabase, calibrationNiche);
+    if (calibrationNote) {
+      console.log(`Calibration applied for niche ${calibrationNiche}: ${calibratedPatterns.length} measured pattern(s)`);
+    }
+
     // ========== STEP 1: Generate strategy overview (multi-candidate) ==========
     // COST NOTE: the overview is the single highest-leverage call in the run —
     // every downstream batch inherits its positioning. We draft OVERVIEW_CANDIDATES
