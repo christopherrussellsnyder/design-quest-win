@@ -128,35 +128,42 @@ Generate ${CANDIDATE_POOL} distinct candidates now.`;
     // specificity and voice match against the original. Max-Marginal-Relevance
     // then picks two that are both strong AND far apart, so the A/B test
     // actually measures a difference.
-    const pool = (Array.isArray(parsed?.variants) ? parsed.variants : [])
+    const pool: any[] = (Array.isArray(parsed?.variants) ? parsed.variants : [])
       .filter((v: any) => typeof v?.caption === 'string' && v.caption.trim().length > 20)
       .map((v: any) => ({ ...v, caption: String(v.caption).trim() }));
 
-    const scoredPool = pool.map((v: any) => ({
-      ...v,
-      score: scoreCaption(v.caption, {
+    const poolScores = pool.map((v: any) =>
+      scoreCaption(v.caption, {
         platform: String(platform || ''),
-        reference: caption,
+        voiceReference: String(caption || ''),
         hook: String(v.hook || ''),
       }),
-    }));
+    );
 
-    const picked = selectDiverseCaptions(scoredPool, 2, (v: any) => v.score.total);
+    const { picked, rejected } = selectDiverseCaptions(pool, poolScores, 2);
 
-    const variants = picked.map((v: any, i: number) => ({
+    const variants = picked.map(({ item, score }, i) => ({
       label: `Variant ${i === 0 ? 'A' : 'B'}`,
-      angle: v.angle ?? '',
-      hook: v.hook ?? '',
-      caption: v.caption,
-      // Surfaced so the UI can show WHY this variant was kept, rather than
-      // implying a measured result that does not exist yet.
-      selection_score: v.score.total,
-      selection_dimensions: v.score.dimensions,
+      angle: item.angle ?? '',
+      hook: item.hook ?? '',
+      caption: item.caption,
+      // Surfaced so the UI can explain WHY this variant was kept. This is a
+      // pre-publication quality score, NOT a measured performance result.
+      selection_score: score.total,
+      selection_dimensions: {
+        hook_strength: score.hookStrength,
+        cta_clarity: score.ctaClarity,
+        readability: score.readability,
+        voice_match: score.voiceMatch,
+        specificity: score.specificity,
+      },
+      selection_notes: score.notes,
     }));
 
     console.log(
-      `Caption pool ${scoredPool.length} → kept 2 ` +
-      `(scores ${variants.map((v: any) => v.selection_score).join(', ')})`,
+      `Caption pool ${pool.length} → kept ${variants.length} ` +
+      `(scores ${variants.map((v) => v.selection_score).join(', ')}; ` +
+      `${rejected.length} rejected: ${rejected.map((r) => r.reason).join(' | ') || 'none'})`,
     );
 
     // Register the variants as a real experiment so caption choices are settled
