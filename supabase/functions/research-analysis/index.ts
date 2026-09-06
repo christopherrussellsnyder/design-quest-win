@@ -7,6 +7,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { serviceClient } from "../_shared/supabase.ts";
 import { checkRateLimit, clientKey } from "../_shared/rate-limit.ts";
+import { similarity } from "../_shared/algorithms.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
