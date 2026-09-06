@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { serviceClient } from "../_shared/supabase.ts";
+import { scoreCaption, selectDiverseCaptions } from "../_shared/algorithms.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
