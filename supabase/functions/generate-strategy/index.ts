@@ -1456,6 +1456,24 @@ serve(async (req) => {
         strategy: { ...overview, id: savedStrategy.id },
         weeklyBreakdown: weeklyBreakdown,
         postsCount: allPosts.length,
+        // Diagnostics: every field below is computed from real gathered evidence
+        // and the generated text. Nothing here is model-asserted.
+        quality: {
+          plan_score: finalScore.total,
+          dimensions: finalScore.dimensions,
+          flagged_posts: finalScore.flaggedPosts.length,
+          overview_selection: overviewSelection || null,
+        },
+        evidence: {
+          confidence: evidence.confidence,
+          confidence_label: evidence.confidenceLabel,
+          confidence_basis: evidence.confidenceBasis,
+          signals: evidence.signals.length,
+          duplicates_collapsed: evidence.duplicatesCollapsed,
+          contradictions: evidence.contradictions.length,
+          composition: evidence.composition,
+          sources: groundingSources,
+        },
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
