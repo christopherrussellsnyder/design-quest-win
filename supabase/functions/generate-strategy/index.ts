@@ -1310,6 +1310,15 @@ serve(async (req) => {
     const diversity = enforceHookDiversity(allPosts);
     if (diversity.reassigned) console.log(`Diversity guard reassigned ${diversity.reassigned} hook archetypes`);
 
+    // Final plan-level objective score, measured across the WHOLE plan (batch
+    // pre-screens only see their own 10 posts, so cross-batch repetition is only
+    // detectable here). Free — reported, never fabricated.
+    const finalScore = scoreStrategyCandidate(allPosts, groundingTerms, calibratedPatterns);
+    console.log(
+      `Final plan quality ${finalScore.total}/100 — ` +
+      Object.entries(finalScore.dimensions).map(([k, v]) => `${k} ${(v * 100).toFixed(0)}%`).join(', '),
+    );
+
     console.log(`Total posts generated: ${allPosts.length}`);
 
     // ========== STEP 3: Save to database ==========
