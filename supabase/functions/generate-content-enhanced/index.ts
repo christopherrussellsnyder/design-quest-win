@@ -148,7 +148,9 @@ serve(async (req) => {
       const score = calculateEngagementScore(content, successPatterns, platform);
       const quality = scoreCaption(content, {
         platform,
-        voiceReference: successPatterns?.voiceReference || '',
+        // Voice consistency is measured against the user's own historically
+        // successful vocabulary, not an abstract "good copy" ideal.
+        voiceReference: (successPatterns?.keywords ?? []).join(' '),
       });
 
       variations.push({
