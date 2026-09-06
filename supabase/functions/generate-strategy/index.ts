@@ -464,7 +464,12 @@ Mark "rewrite" for any post scoring under 75, and for every post named in the pr
     for (const s of scores) {
       const p = posts[s.index];
       if (!p) continue;
-      p.quality_review = { score: s.score, verdict: s.verdict, problem: s.problem };
+      p.quality_review = {
+        score: s.score,
+        verdict: s.verdict,
+        problem: s.problem,
+        dimensions: s.dimensions ?? null,
+      };
     }
 
     let applied = 0;
