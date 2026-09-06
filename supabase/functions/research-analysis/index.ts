@@ -8,6 +8,17 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { serviceClient } from "../_shared/supabase.ts";
 import { checkRateLimit, clientKey } from "../_shared/rate-limit.ts";
 import { similarity } from "../_shared/algorithms.ts";
+import {
+  crossSourceCorroboration,
+  detectChangePoint,
+  decayWeight,
+  decayWeightedMean,
+  detectEmergingTopics,
+  linkClaimsToEvidence,
+  resolveEntities,
+  analyzeGaps,
+  type ResearchClaim,
+} from "../_shared/research-algorithms.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -471,6 +482,7 @@ serve(async (req) => {
       data_source_note:
         "AI-estimated from model priors and publicly reported patterns. Not live platform data and not measured from your account.",
       first_party_corroboration: corroboration,
+      research_intelligence: intelligence,
     };
 
     return new Response(
