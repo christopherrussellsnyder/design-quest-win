@@ -1110,19 +1110,70 @@ serve(async (req) => {
     console.log('Grounding sources active:', groundingSources.join(', ') || 'none (profile only)');
     console.log(`Grounding size: full ${groundingSection.length} chars → digest ${groundingDigest.length} chars`);
 
-    // ========== STEP 1: Generate strategy overview ==========
-    console.log('Step 1: Generating strategy overview...');
+    // ========== STEP 1: Generate strategy overview (multi-candidate) ==========
+    // COST NOTE: the overview is the single highest-leverage call in the run —
+    // every downstream batch inherits its positioning. We draft OVERVIEW_CANDIDATES
+    // of them concurrently and keep the one that wins on the objective rubric.
+    // At 2 candidates this adds exactly ONE extra ~8k-token call per generation
+    // (roughly +8-12% of total generation cost on a 14-day plan) and no extra wall
+    // time, since the candidates run in parallel. Set to 1 to disable.
+    const OVERVIEW_CANDIDATES = 2;
+
+    console.log(`Step 1: Generating strategy overview (${OVERVIEW_CANDIDATES} candidate(s))...`);
     const overviewPrompt = buildOverviewPrompt(ctx, platform, durationDays, effectiveGoals, analyticsSection, `${intelligenceSection}\n\n${groundingSection}`, performanceFeedbackSection, promotionsSection, customInstructions, contentMode);
+
+    /** Flattens an overview into pseudo-posts so the same measurable rubric
+     *  (specificity / grounding / originality / filler / actionability) can
+     *  score it. No AI cost. */
+    const overviewToScorable = (data: any) =>
+      (data?.weekly_breakdown || []).map((w: any) => ({
+        copy_elements: {
+          hook: { text: String(w?.theme ?? '') },
+          body: [w?.focus, w?.objective, ...(Array.isArray(w?.key_messages) ? w.key_messages : [])]
+            .filter(Boolean).join(' '),
+          cta: { text: String(w?.primary_cta ?? data?.strategy_overview?.primary_cta ?? '') },
+        },
+        strategic_rationale: { differentiation_anchor: w?.differentiation ?? data?.strategy_overview?.positioning },
+      }));
 
     let overviewData: any;
     let overviewUsedFallback = false;
+    let overviewSelection = '';
     try {
-      // Retry-with-backoff so a single transient blip no longer drops the whole
-      // strategy to the deterministic fallback.
-      const overviewText = await callAIWithRetry(
-        LOVABLE_API_KEY, overviewPrompt, systemPrompt, 8000, MODEL_CREATIVE, 3, 'overview',
+      const settled = await Promise.allSettled(
+        Array.from({ length: OVERVIEW_CANDIDATES }, (_, i) =>
+          callAIWithRetry(
+            LOVABLE_API_KEY, overviewPrompt, systemPrompt, 8000, MODEL_CREATIVE, 3, `overview candidate ${i + 1}`,
+          ),
+        ),
       );
-      overviewData = parseJSONSafe(overviewText);
+
+      const payment = settled.find(
+        (s) => s.status === 'rejected' && (s as PromiseRejectedResult).reason?.message === 'PAYMENT_REQUIRED',
+      );
+      if (payment) throw (payment as PromiseRejectedResult).reason;
+
+      const parsedCandidates = settled
+        .filter((s): s is PromiseFulfilledResult<string> => s.status === 'fulfilled')
+        .map((s) => { try { return parseJSONSafe(s.value); } catch { return null; } })
+        .filter((c) => c && c.strategy_overview);
+
+      if (!parsedCandidates.length) throw settled.find((s) => s.status === 'rejected')
+        ? (settled.find((s) => s.status === 'rejected') as PromiseRejectedResult).reason
+        : new Error('No parseable overview candidate');
+
+      if (parsedCandidates.length === 1) {
+        overviewData = parsedCandidates[0];
+      } else {
+        const scored = parsedCandidates.map((c) => ({
+          candidate: c,
+          score: scoreStrategyCandidate(overviewToScorable(c), groundingTerms, calibratedPatterns),
+        }));
+        const { best, score, trace } = selectBestCandidate(scored);
+        overviewData = best;
+        overviewSelection = `${score.total}/100 (${trace})`;
+        console.log(`Overview candidate selection → ${overviewSelection}`);
+      }
     } catch (e: any) {
       if (e?.message === 'PAYMENT_REQUIRED') {
         return new Response(
