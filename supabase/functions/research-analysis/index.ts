@@ -8,6 +8,17 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { serviceClient } from "../_shared/supabase.ts";
 import { checkRateLimit, clientKey } from "../_shared/rate-limit.ts";
 import { similarity } from "../_shared/algorithms.ts";
+import {
+  crossSourceCorroboration,
+  detectChangePoint,
+  decayWeight,
+  decayWeightedMean,
+  detectEmergingTopics,
+  linkClaimsToEvidence,
+  resolveEntities,
+  analyzeGaps,
+  type ResearchClaim,
+} from "../_shared/research-algorithms.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -254,13 +265,34 @@ serve(async (req) => {
     // is the only claim here backed by real data. Runs after the cache read so
     // one user's history never leaks into another user's cached report.
     let corroboration: Record<string, unknown> = { checked: false };
+    let intelligence: Record<string, unknown> = { computed: false };
     try {
       const { data: topPosts } = await supabase.rpc("get_top_performing_posts", {
         p_user_id: user.id,
         p_platform: platform,
         p_limit: 25,
       });
-      const measured = (topPosts ?? []) as { content?: string; engagement_rate?: number }[];
+      const measured = (topPosts ?? []) as {
+        content?: string;
+        engagement_rate?: number;
+        published_at?: string | null;
+      }[];
+
+      // ---- report claim extraction (AI-estimated side of the ledger) -------
+      const reportClaims: string[] = [];
+      const pushAll = (arr: unknown, pick: (x: any) => string) => {
+        if (Array.isArray(arr)) {
+          for (const x of arr) {
+            const t = typeof x === "string" ? x : pick(x);
+            if (t) reportClaims.push(String(t));
+          }
+        }
+      };
+      pushAll(report.trending_hooks, (x) => x?.hook ?? x?.text);
+      pushAll(report.top_formats, (x) => [x?.format, x?.why_it_works].filter(Boolean).join(" — "));
+      pushAll(report.content_patterns, (x) => [x?.pattern, x?.description].filter(Boolean).join(" — "));
+      pushAll(report.emerging_trends, (x) => [x?.trend, x?.action].filter(Boolean).join(" — "));
+      pushAll(report.cta_patterns, (x) => x?.cta);
 
       if (measured.length >= 3) {
         const corpus = measured.map((p) => String(p.content ?? "")).filter(Boolean);
@@ -288,9 +320,161 @@ serve(async (req) => {
           note: "Not enough measured posts on your account yet to corroborate these estimates.",
         };
       }
+
+      // ===================================================================
+      // Deterministic research intelligence layer (no AI cost).
+      // Nothing below invents data: every output is derived from the report
+      // just generated, the account's measured posts, and previously stored
+      // reports for this platform/mode/industry.
+      // ===================================================================
+
+      // Historical reports for this slice — the observation history that
+      // change-point, decay and emerging-topic detection run over.
+      const { data: history } = await supabase
+        .from("research_insights")
+        .select("data, generated_at")
+        .eq("platform", platform)
+        .eq("content_mode", mode)
+        .eq("industry", industry || "general")
+        .order("generated_at", { ascending: true })
+        .limit(24);
+
+      const historyRows = (history ?? []) as { data: any; generated_at: string }[];
+      const textsOf = (d: any): string[] => {
+        const out: string[] = [];
+        const grab = (arr: any, pick: (x: any) => string) => {
+          if (Array.isArray(arr)) for (const x of arr) {
+            const t = typeof x === "string" ? x : pick(x);
+            if (t) out.push(String(t));
+          }
+        };
+        grab(d?.trending_hooks, (x) => x?.hook ?? x?.text);
+        grab(d?.top_formats, (x) => x?.format);
+        grab(d?.content_patterns, (x) => x?.pattern);
+        grab(d?.emerging_trends, (x) => x?.trend);
+        return out;
+      };
+
+      // 4 — emerging topic detection across report history windows
+      const mid = Math.floor(historyRows.length / 2);
+      const priorTexts = historyRows.slice(0, mid).flatMap((r) => textsOf(r.data));
+      const recentTexts = historyRows.slice(mid).flatMap((r) => textsOf(r.data));
+      const emerging =
+        historyRows.length >= 2
+          ? detectEmergingTopics(recentTexts.length ? recentTexts : reportClaims, priorTexts)
+          : [];
+
+      // 3 — decay model over the stored report history
+      const decayed = historyRows.map((r) => ({
+        generated_at: r.generated_at,
+        ...decayWeight(r.generated_at, platform),
+      }));
+      const freshness = decayWeight(
+        (latest?.generated_at as string) ?? new Date().toISOString(),
+        platform,
+      );
+
+      // 2 — change-point detection over the account's measured engagement
+      const series = measured
+        .filter((p) => p.published_at && Number.isFinite(Number(p.engagement_rate)))
+        .map((p) => ({ value: Number(p.engagement_rate), at: p.published_at as string }))
+        .sort((a, b) => new Date(a.at).getTime() - new Date(b.at).getTime());
+      const changePoint = detectChangePoint(series);
+      const trendLevel = decayWeightedMean(series, platform);
+
+      // 1 + 5 — cross-source corroboration and claim↔evidence linking
+      const evidence: ResearchClaim[] = [
+        ...reportClaims.map((t) => ({
+          text: t,
+          source: "korex_model_estimate",
+          sourceType: "ai_estimated" as const,
+          observedAt: new Date().toISOString(),
+        })),
+        ...historyRows.flatMap((r) =>
+          textsOf(r.data).map((t) => ({
+            text: t,
+            source: `korex_report_${new Date(r.generated_at).toISOString().slice(0, 10)}`,
+            sourceType: "ai_estimated" as const,
+            observedAt: r.generated_at,
+          })),
+        ),
+        ...measured.map((p) => ({
+          text: String(p.content ?? ""),
+          source: "your_published_posts",
+          sourceType: "first_party" as const,
+          observedAt: p.published_at ?? null,
+          value: Number(p.engagement_rate) || null,
+        })).filter((e) => e.text),
+      ];
+
+      const corroborated = crossSourceCorroboration(evidence).slice(0, 20);
+      const linked = linkClaimsToEvidence(reportClaims.slice(0, 20), evidence);
+
+      // 6 — entity / competitor resolution over any named entities present
+      const entityMentions: { name: string; source?: string }[] = [];
+      const compArr = (report as any)?.competitors ?? (report as any)?.notable_brands;
+      if (Array.isArray(compArr)) {
+        for (const c of compArr) {
+          const name = typeof c === "string" ? c : String(c?.name ?? c?.brand ?? "");
+          if (name) entityMentions.push({ name, source: "research_report" });
+        }
+      }
+      for (const t of [...reportClaims, ...measured.map((m) => String(m.content ?? ""))]) {
+        for (const m of t.matchAll(/@([A-Za-z0-9_.]{3,30})/g)) {
+          entityMentions.push({ name: m[1], source: "mentions" });
+        }
+      }
+      const entities = resolveEntities(entityMentions).slice(0, 15);
+
+      // 7 — gap analysis: market coverage vs the account's own content
+      const gaps = analyzeGaps(
+        [...reportClaims, ...recentTexts],
+        measured.map((p) => String(p.content ?? "")).filter(Boolean),
+      );
+
+      intelligence = {
+        computed: true,
+        method: "deterministic (no AI cost)",
+        cross_source_corroboration: {
+          claims: corroborated,
+          note: "Agreement is weighted by distinct source, not by how often a claim is restated. AI-estimated sources are down-weighted against measured ones.",
+        },
+        change_point: {
+          ...changePoint,
+          decay_weighted_engagement_rate: trendLevel.value,
+          effective_sample_size: trendLevel.effectiveSampleSize,
+          basis: "your published posts with recorded impressions",
+        },
+        decay_model: {
+          platform_half_life_days: freshness.halfLifeDays,
+          current_report: freshness,
+          history: decayed.slice(-8),
+          note: "Older observations are exponentially down-weighted so stale patterns cannot outrank fresh ones.",
+        },
+        emerging_topics: {
+          topics: emerging,
+          windows_compared: historyRows.length,
+          note: historyRows.length >= 2
+            ? "Burst-scored against prior stored reports for this platform/mode/industry."
+            : "Not enough stored report history yet to measure emergence — showing none rather than guessing.",
+        },
+        claim_evidence: {
+          claims: linked,
+          grading: "A = measured first-party support, B = corroborated across sources, C = single source, D = unsupported",
+        },
+        entities: {
+          resolved: entities,
+          note: entities.length
+            ? "Surface forms of the same brand are collapsed before counting share of voice."
+            : "No named entities were observed in this report or your content.",
+        },
+        gap_analysis: gaps,
+      };
     } catch (e) {
-      console.warn("corroboration skipped:", (e as Error).message);
+      console.warn("research intelligence skipped:", (e as Error).message);
+      intelligence = { computed: false, error: (e as Error).message };
     }
+
 
     const payload = {
       ...(isPaid ? report : starterCap(report)),
@@ -298,6 +482,7 @@ serve(async (req) => {
       data_source_note:
         "AI-estimated from model priors and publicly reported patterns. Not live platform data and not measured from your account.",
       first_party_corroboration: corroboration,
+      research_intelligence: intelligence,
     };
 
     return new Response(
