@@ -136,23 +136,67 @@ serve(async (req) => {
         content = generateFallbackContent(prompt, strategy, tone, platform);
       }
       
-      // STEP 5: Score each variation
+      // STEP 5: Score each variation on two independent axes.
+      //  (a) calculateEngagementScore — historical-pattern fit, learned from the
+      //      user's own measured posts.
+      //  (b) scoreCaption — multi-objective craft quality (hook strength, CTA
+      //      clarity, readability, specificity, voice match, filler penalty).
+      // Neither alone is sufficient: (a) rewards copying what worked before even
+      // when the writing is weak, (b) rewards good writing that ignores this
+      // audience. The blend is what gets ranked.
       const score = calculateEngagementScore(content, successPatterns, platform);
-      
+      const quality = scoreCaption(content, {
+        platform,
+        voiceReference: successPatterns?.voiceReference || '',
+      });
+
       variations.push({
         content: content,
         strategy: strategy.split(' - ')[0],
-        predictedScore: score.score,
+        predictedScore: Math.round(score.score * 0.5 + quality.total * 0.5),
+        patternFitScore: score.score,
+        craftScore: quality.total,
         predictedEngagement: score.engagementRate,
-        breakdown: score.breakdown
+        breakdown: score.breakdown,
+        craftBreakdown: {
+          hook_strength: quality.hookStrength,
+          cta_clarity: quality.ctaClarity,
+          readability: quality.readability,
+          specificity: quality.specificity,
+          voice_match: quality.voiceMatch,
+        },
+        craftNotes: quality.notes,
       });
     }
-    
-    // Sort by predicted score
+
+    // Rank by the blended score, then re-order the runners-up for diversity so
+    // the alternatives offer real choices instead of three rewordings of the
+    // winner.
     variations.sort((a, b) => b.predictedScore - a.predictedScore);
-    
-    console.log('Variations generated and scored:', variations.length);
-    
+    if (variations.length > 2) {
+      const asCaptions = variations.map((v) => ({ caption: v.content, ref: v }));
+      const captionScores = variations.map((v) => ({
+        total: v.predictedScore,
+        hookStrength: v.craftBreakdown.hook_strength,
+        ctaClarity: v.craftBreakdown.cta_clarity,
+        readability: v.craftBreakdown.readability,
+        voiceMatch: v.craftBreakdown.voice_match,
+        specificity: v.craftBreakdown.specificity,
+        fillerPenalty: 0,
+        notes: v.craftNotes,
+      }));
+      const { picked } = selectDiverseCaptions(asCaptions, captionScores, variations.length);
+      if (picked.length === variations.length) {
+        variations.splice(0, variations.length, ...picked.map((p) => p.item.ref));
+      }
+    }
+
+    console.log(
+      `Variations generated and scored: ${variations.length} ` +
+      `(blended top ${variations[0]?.predictedScore}, ` +
+      `pattern-fit ${variations[0]?.patternFitScore}, craft ${variations[0]?.craftScore})`,
+    );
+
     // STEP 6: Generate optimization suggestions
     const topVariant = variations[0];
     const suggestions = generateOptimizationSuggestions(topVariant.content, platform);
