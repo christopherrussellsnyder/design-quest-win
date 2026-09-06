@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.4";
 import { requirePro } from "../_shared/require-pro.ts";
 import { checkRateLimit, clientKey } from "../_shared/rate-limit.ts";
+import { scoreCaption, selectDiverseCaptions } from "../_shared/algorithms.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -40,13 +41,20 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY is not configured');
 
+    // Over-generate, then keep the best two by objective score AND angle
+    // distance. One call, same cost bracket — a wider candidate pool costs only
+    // output tokens, and two near-identical variants make a worthless A/B test.
+    const CANDIDATE_POOL = 5;
+
     const systemPrompt = `You are Korex Intelligence, an elite social media copywriter.
-Generate TWO distinct A/B caption variants for the same post idea. Each variant should test a different angle so the user can compare performance.
+Generate ${CANDIDATE_POOL} genuinely distinct caption candidates for the same post idea. They will be scored and the two strongest, most different ones kept for an A/B test.
 
 Rules:
 - Keep the same core message, offer, and CTA intent as the original.
-- Variant A = a DIFFERENT HOOK/ANGLE (e.g., curiosity-driven, contrarian, story-led).
-- Variant B = a DIFFERENT TONE/STRUCTURE (e.g., more direct/punchy, list-style, emotional).
+- Every candidate must use a DIFFERENT hook archetype AND a different structure
+  (e.g. curiosity-gap, contrarian, story-led, direct/punchy, list-style).
+- Two candidates that could be swapped without a reader noticing are a failure.
+- Every candidate must contain one explicit, unmistakable call to action.
 - Match the platform's native voice (${platform || 'social'}).
 - Length should be similar to the original (±20%).
 - Do NOT include hashtags in the variants.
@@ -55,8 +63,7 @@ Rules:
 JSON schema:
 {
   "variants": [
-    { "label": "Variant A", "angle": "<short angle description>", "hook": "<opening hook line>", "caption": "<full caption>" },
-    { "label": "Variant B", "angle": "<short angle description>", "hook": "<opening hook line>", "caption": "<full caption>" }
+    { "angle": "<short angle description>", "hook": "<opening hook line>", "caption": "<full caption>" }
   ]
 }`;
 
@@ -70,7 +77,7 @@ JSON schema:
 ${caption}
 """
 
-Generate the two A/B variants now.`;
+Generate ${CANDIDATE_POOL} distinct candidates now.`;
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -116,7 +123,48 @@ Generate the two A/B variants now.`;
       parsed = match ? JSON.parse(match[0]) : { variants: [] };
     }
 
-    const variants = Array.isArray(parsed?.variants) ? parsed.variants.slice(0, 2) : [];
+    // ===== Multi-objective selection (deterministic, zero AI cost) =====
+    // Each candidate is scored on hook strength, CTA clarity, readability,
+    // specificity and voice match against the original. Max-Marginal-Relevance
+    // then picks two that are both strong AND far apart, so the A/B test
+    // actually measures a difference.
+    const pool: any[] = (Array.isArray(parsed?.variants) ? parsed.variants : [])
+      .filter((v: any) => typeof v?.caption === 'string' && v.caption.trim().length > 20)
+      .map((v: any) => ({ ...v, caption: String(v.caption).trim() }));
+
+    const poolScores = pool.map((v: any) =>
+      scoreCaption(v.caption, {
+        platform: String(platform || ''),
+        voiceReference: String(caption || ''),
+        hook: String(v.hook || ''),
+      }),
+    );
+
+    const { picked, rejected } = selectDiverseCaptions(pool, poolScores, 2);
+
+    const variants = picked.map(({ item, score }, i) => ({
+      label: `Variant ${i === 0 ? 'A' : 'B'}`,
+      angle: item.angle ?? '',
+      hook: item.hook ?? '',
+      caption: item.caption,
+      // Surfaced so the UI can explain WHY this variant was kept. This is a
+      // pre-publication quality score, NOT a measured performance result.
+      selection_score: score.total,
+      selection_dimensions: {
+        hook_strength: score.hookStrength,
+        cta_clarity: score.ctaClarity,
+        readability: score.readability,
+        voice_match: score.voiceMatch,
+        specificity: score.specificity,
+      },
+      selection_notes: score.notes,
+    }));
+
+    console.log(
+      `Caption pool ${pool.length} → kept ${variants.length} ` +
+      `(scores ${variants.map((v) => v.selection_score).join(', ')}; ` +
+      `${rejected.length} rejected: ${rejected.map((r) => r.reason).join(' | ') || 'none'})`,
+    );
 
     // Register the variants as a real experiment so caption choices are settled
     // by measured performance in the A/B framework, not by model judgment alone.

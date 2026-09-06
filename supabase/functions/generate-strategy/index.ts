@@ -11,6 +11,15 @@ import {
   DIVERSITY_PROMPT,
   CONFIDENCE_PROMPT,
 } from "../_shared/strategy-intel.ts";
+import {
+  buildEvidenceLedger,
+  renderEvidenceLedger,
+  extractGroundingTerms,
+  scoreStrategyCandidate,
+  buildTargetedCriticNote,
+  selectBestCandidate,
+  type RawSignal,
+} from "../_shared/algorithms.ts";
 import { checkRateLimit, clientKey } from "../_shared/rate-limit.ts";
 
 const corsHeaders = {
@@ -402,6 +411,9 @@ async function criticPass(
   platform: string,
   groundingSummary: string,
   calibrationNote = '',
+  /** Deterministic pre-screen result — points the paid critic at posts that
+   *  already failed objective checks instead of re-judging everything blind. */
+  targetedNote = '',
 ): Promise<any[]> {
   if (!posts.length) return posts;
 
@@ -420,15 +432,22 @@ async function criticPass(
 GROUNDING TRUTH AVAILABLE TO THE WRITER:
 ${groundingSummary || 'None beyond the business profile.'}
 ${calibrationNote ? `\nHISTORICAL PREDICTION CALIBRATION (real measured outcomes for this niche — score accordingly):\n${calibrationNote}\n` : ''}
+${targetedNote ? `\n${targetedNote}\n` : ''}
 DRAFTED POSTS:
 ${JSON.stringify(digest)}
 
-Grade each post 0-100 on: (a) scroll-stopping power of the hook, (b) specificity — could a competitor publish this unchanged? (c) anchoring to a real product/UVP/pain point, (d) CTA clarity, (e) originality versus saturated niche tropes.
+Grade each post 0-100 on these SPECIFIC, SEPARATELY-SCORED dimensions, then average them into "score":
+(a) hook_stopping_power — would this stop a thumb in 1.5s?
+(b) specificity — could a competitor publish this unchanged? If yes, score under 40.
+(c) evidence_anchoring — is it tied to a real product, price, UVP, or stated pain point from the grounding truth?
+(d) cta_clarity — does the reader know exactly what to do next?
+(e) originality — does it avoid the saturated tropes in this niche?
+(f) prediction_realism — is the forecast consistent with the calibration data above?
 
 Return ONLY JSON:
-{"scores":[{"index":0,"score":0,"verdict":"keep|rewrite","problem":"one sentence"}],"rewrites":[{"index":0,"hook":"new 5-10 word hook","technique":"archetype","opening":"2-3 sentences","body":"100-150 words","cta":"new cta text","full_caption":"150-250 word caption","differentiation_anchor":"which real product/UVP/pain point"}]}
+{"scores":[{"index":0,"score":0,"dimensions":{"hook_stopping_power":0,"specificity":0,"evidence_anchoring":0,"cta_clarity":0,"originality":0,"prediction_realism":0},"verdict":"keep|rewrite","problem":"one sentence"}],"rewrites":[{"index":0,"hook":"new 5-10 word hook","technique":"archetype","opening":"2-3 sentences","body":"100-150 words","cta":"new cta text","full_caption":"150-250 word caption","differentiation_anchor":"which real product/UVP/pain point"}]}
 
-Mark "rewrite" for any post scoring under 75. Provide a rewrite object for every post marked rewrite (max 6 rewrites). Rewrites must keep the same content_category and day, and must be anchored to a real input — never invent products, prices, or claims.`;
+Mark "rewrite" for any post scoring under 75, and for every post named in the pre-screen above. Provide a rewrite object for every post marked rewrite (max 6 rewrites). Rewrites must keep the same content_category and day, and must be anchored to a real input — never invent products, prices, or claims.`;
 
 
   try {
@@ -445,7 +464,12 @@ Mark "rewrite" for any post scoring under 75. Provide a rewrite object for every
     for (const s of scores) {
       const p = posts[s.index];
       if (!p) continue;
-      p.quality_review = { score: s.score, verdict: s.verdict, problem: s.problem };
+      p.quality_review = {
+        score: s.score,
+        verdict: s.verdict,
+        problem: s.problem,
+        dimensions: s.dimensions ?? null,
+      };
     }
 
     let applied = 0;
@@ -478,8 +502,13 @@ Mark "rewrite" for any post scoring under 75. Provide a rewrite object for every
 
 // Closed-loop calibration: compact note built from measured predicted-vs-actual error
 // for this niche. Only calibrated patterns (sample_size >= threshold) are surfaced.
-async function buildCalibrationNote(supabase: any, niche: string): Promise<string> {
-  if (!niche) return '';
+// Returns both the prompt note AND the structured rows, so measured outcomes feed
+// the deterministic scorer during generation, not just the after-the-fact review.
+async function buildCalibrationNote(
+  supabase: any,
+  niche: string,
+): Promise<{ note: string; patterns: { pattern_value: string; error_pct: number }[] }> {
+  if (!niche) return { note: '', patterns: [] };
   try {
     const { data } = await supabase
       .from('niche_calibration')
@@ -489,17 +518,24 @@ async function buildCalibrationNote(supabase: any, niche: string): Promise<strin
       .order('sample_size', { ascending: false })
       .limit(6);
     const rows = (data ?? []) as any[];
-    if (!rows.length) return '';
-    return rows
+    if (!rows.length) return { note: '', patterns: [] };
+    const note = rows
       .map((r) => {
         const err = Number(r.error_pct) || 0;
         const dir = err < 0 ? 'over-predicted' : 'under-predicted';
         return `- ${r.pattern_type} "${r.pattern_value}": historically ${dir} engagement by ~${Math.abs(Math.round(err))}% (n=${r.sample_size}).`;
       })
       .join('\n');
+    return {
+      note,
+      patterns: rows.map((r) => ({
+        pattern_value: String(r.pattern_value ?? ''),
+        error_pct: Number(r.error_pct) || 0,
+      })),
+    };
   } catch (e) {
     console.warn('calibration note skipped:', (e as Error).message);
-    return '';
+    return { note: '', patterns: [] };
   }
 }
 
@@ -981,7 +1017,64 @@ serve(async (req) => {
       durationDays,
     );
 
+    // ---- Evidence fusion: rank, dedupe and contradiction-check the sources ----
+    // Sources are no longer concatenated as equals. Each atomic claim is weighted
+    // by (source reliability x recency x relevance to this business), duplicate
+    // claims across sources collapse into one corroborated claim, disagreements
+    // are surfaced explicitly, and a confidence score is derived from how much of
+    // the picture is measured versus model-estimated. Pure CPU — no extra spend.
+    const evidenceQueryTerms = [
+      ctx.businessName, ctx.industry, ctx.products, ctx.competitors,
+      ctx.uvp, ctx.painPoints, ctx.geoFocus,
+    ].filter(Boolean) as string[];
+
+    const rawSignals: RawSignal[] = [];
+    const pushSignals = (
+      section: string | undefined | null,
+      source: string,
+      sourceType: 'first_party' | 'real_api' | 'ai_estimated',
+    ) => {
+      if (!section) return;
+      for (const line of section.split('\n')) {
+        const t = line.trim();
+        // Only the factual bullet/quote lines carry claims; the instruction
+        // prose ("RULES:", numbered directives) is not evidence.
+        if (!t.startsWith('-') && !t.startsWith('"')) continue;
+        if (/^\d+\./.test(t)) continue;
+        rawSignals.push({
+          text: t.replace(/^-\s*/, ''),
+          source,
+          sourceType,
+          observedAt: new Date().toISOString(), // freshly fetched this run
+        });
+      }
+    };
+
+    pushSignals(siteIntel?.section, siteIntel?.source || 'crawl:unknown', 'real_api');
+    pushSignals(searchIntel?.section, searchIntel?.source || 'semrush', 'real_api');
+    pushSignals(adIntel?.section, adIntel?.source || 'meta-ad-library', 'real_api');
+    pushSignals(vocIntel?.section, vocIntel?.source || 'reddit', 'real_api');
+    pushSignals(performanceFeedbackSection, 'performance_feedback_loop', 'first_party');
+    pushSignals(seasonalitySection, 'seasonality:deterministic', 'real_api');
+
+    const evidence = buildEvidenceLedger(rawSignals, evidenceQueryTerms);
+    const evidenceSection = renderEvidenceLedger(evidence);
+    console.log(
+      `Evidence ledger: ${evidence.signals.length} signals ` +
+      `(${evidence.duplicatesCollapsed} duplicates collapsed, ${evidence.contradictions.length} contradictions), ` +
+      `confidence ${evidence.confidenceLabel} ${evidence.confidence}/100`,
+    );
+
+    // Concrete anchors (real product names, crawled prices, real search phrases)
+    // used by the deterministic scorers below. Extracted from gathered text only.
+    const groundingTerms = extractGroundingTerms([
+      siteIntel?.section, searchIntel?.section, adIntel?.section,
+      vocIntel?.section, performanceFeedbackSection, promotionsSection,
+      ctx.products, ctx.uvp, ctx.businessName,
+    ]);
+
     const groundingSection = [
+      evidenceSection,
       siteIntel?.section,
       searchIntel?.section,
       adIntel?.section,
@@ -993,14 +1086,23 @@ serve(async (req) => {
     ].filter(Boolean).join('\n\n');
 
     // Compressed digest reused by every per-day batch call (the full block above is
-    // reserved for the single overview call).
-    const groundingDigest = compressGrounding([
-      siteIntel?.section,
-      searchIntel?.section,
-      adIntel?.section,
-      vocIntel?.section,
-      seasonalitySection,
-    ]);
+    // reserved for the single overview call). The top-ranked evidence leads the
+    // digest so batch writers see the strongest signals first.
+    const groundingDigest = [
+      evidence.signals.length
+        ? `=== TOP-RANKED EVIDENCE (confidence ${evidence.confidenceLabel} ${evidence.confidence}/100) ===\n` +
+          evidence.signals.slice(0, 8)
+            .map((s) => `- [${s.sourceType}] ${s.text.slice(0, 170)}`)
+            .join('\n')
+        : '',
+      compressGrounding([
+        siteIntel?.section,
+        searchIntel?.section,
+        adIntel?.section,
+        vocIntel?.section,
+        seasonalitySection,
+      ]),
+    ].filter(Boolean).join('\n\n');
 
     const groundingSources = [searchIntel, adIntel, siteIntel, vocIntel]
       .filter((r) => r?.ok)
@@ -1008,19 +1110,80 @@ serve(async (req) => {
     console.log('Grounding sources active:', groundingSources.join(', ') || 'none (profile only)');
     console.log(`Grounding size: full ${groundingSection.length} chars → digest ${groundingDigest.length} chars`);
 
-    // ========== STEP 1: Generate strategy overview ==========
-    console.log('Step 1: Generating strategy overview...');
+    // Measured predicted-vs-actual calibration for this niche. Fetched BEFORE
+    // generation so real outcomes steer candidate selection and the batch
+    // pre-screen — not only the after-the-fact review.
+    const calibrationNiche = ((ctx as any).niche || ctx.industry || 'general') as string;
+    const { note: calibrationNote, patterns: calibratedPatterns } =
+      await buildCalibrationNote(supabase, calibrationNiche);
+    if (calibrationNote) {
+      console.log(`Calibration applied for niche ${calibrationNiche}: ${calibratedPatterns.length} measured pattern(s)`);
+    }
+
+    // ========== STEP 1: Generate strategy overview (multi-candidate) ==========
+    // COST NOTE: the overview is the single highest-leverage call in the run —
+    // every downstream batch inherits its positioning. We draft OVERVIEW_CANDIDATES
+    // of them concurrently and keep the one that wins on the objective rubric.
+    // At 2 candidates this adds exactly ONE extra ~8k-token call per generation
+    // (roughly +8-12% of total generation cost on a 14-day plan) and no extra wall
+    // time, since the candidates run in parallel. Set to 1 to disable.
+    const OVERVIEW_CANDIDATES = 2;
+
+    console.log(`Step 1: Generating strategy overview (${OVERVIEW_CANDIDATES} candidate(s))...`);
     const overviewPrompt = buildOverviewPrompt(ctx, platform, durationDays, effectiveGoals, analyticsSection, `${intelligenceSection}\n\n${groundingSection}`, performanceFeedbackSection, promotionsSection, customInstructions, contentMode);
+
+    /** Flattens an overview into pseudo-posts so the same measurable rubric
+     *  (specificity / grounding / originality / filler / actionability) can
+     *  score it. No AI cost. */
+    const overviewToScorable = (data: any) =>
+      (data?.weekly_breakdown || []).map((w: any) => ({
+        copy_elements: {
+          hook: { text: String(w?.theme ?? '') },
+          body: [w?.focus, w?.objective, ...(Array.isArray(w?.key_messages) ? w.key_messages : [])]
+            .filter(Boolean).join(' '),
+          cta: { text: String(w?.primary_cta ?? data?.strategy_overview?.primary_cta ?? '') },
+        },
+        strategic_rationale: { differentiation_anchor: w?.differentiation ?? data?.strategy_overview?.positioning },
+      }));
 
     let overviewData: any;
     let overviewUsedFallback = false;
+    let overviewSelection = '';
     try {
-      // Retry-with-backoff so a single transient blip no longer drops the whole
-      // strategy to the deterministic fallback.
-      const overviewText = await callAIWithRetry(
-        LOVABLE_API_KEY, overviewPrompt, systemPrompt, 8000, MODEL_CREATIVE, 3, 'overview',
+      const settled = await Promise.allSettled(
+        Array.from({ length: OVERVIEW_CANDIDATES }, (_, i) =>
+          callAIWithRetry(
+            LOVABLE_API_KEY, overviewPrompt, systemPrompt, 8000, MODEL_CREATIVE, 3, `overview candidate ${i + 1}`,
+          ),
+        ),
       );
-      overviewData = parseJSONSafe(overviewText);
+
+      const payment = settled.find(
+        (s) => s.status === 'rejected' && (s as PromiseRejectedResult).reason?.message === 'PAYMENT_REQUIRED',
+      );
+      if (payment) throw (payment as PromiseRejectedResult).reason;
+
+      const parsedCandidates = settled
+        .filter((s): s is PromiseFulfilledResult<string> => s.status === 'fulfilled')
+        .map((s) => { try { return parseJSONSafe(s.value); } catch { return null; } })
+        .filter((c) => c && c.strategy_overview);
+
+      if (!parsedCandidates.length) throw settled.find((s) => s.status === 'rejected')
+        ? (settled.find((s) => s.status === 'rejected') as PromiseRejectedResult).reason
+        : new Error('No parseable overview candidate');
+
+      if (parsedCandidates.length === 1) {
+        overviewData = parsedCandidates[0];
+      } else {
+        const scored = parsedCandidates.map((c) => ({
+          candidate: c,
+          score: scoreStrategyCandidate(overviewToScorable(c), groundingTerms, calibratedPatterns),
+        }));
+        const { best, score, trace } = selectBestCandidate(scored);
+        overviewData = best;
+        overviewSelection = `${score.total}/100 (${trace})`;
+        console.log(`Overview candidate selection → ${overviewSelection}`);
+      }
     } catch (e: any) {
       if (e?.message === 'PAYMENT_REQUIRED') {
         return new Response(
@@ -1046,9 +1209,6 @@ serve(async (req) => {
     }
 
     console.log(`Generating ${totalPosts} posts in ${batches.length} concurrent batches...`);
-    const calibrationNiche = ((ctx as any).niche || ctx.industry || 'general') as string;
-    const calibrationNote = await buildCalibrationNote(supabase, calibrationNiche);
-    if (calibrationNote) console.log('Calibration note applied for niche:', calibrationNiche);
     const startDateStr = overview.start_date || new Date().toISOString().split('T')[0];
 
     // Terminal gateway states discovered inside a concurrent batch — recorded once
@@ -1080,6 +1240,26 @@ serve(async (req) => {
         return [];
       }
 
+      // ===== Deterministic pre-screen (free) =====
+      // Objective, measurable dimensions computed from the drafted text itself:
+      // specificity, evidence grounding, internal originality, generic-filler
+      // density, actionability and calibration fit. The result names the exact
+      // weak posts so the paid critic call below spends its rewrite budget on
+      // them instead of re-reading the whole batch blind.
+      let targetedNote = '';
+      if (batchPosts.length > 0) {
+        const preScreen = scoreStrategyCandidate(batchPosts, groundingTerms, calibratedPatterns);
+        targetedNote = buildTargetedCriticNote(preScreen);
+        console.log(
+          `Batch ${batchIdx + 1} pre-screen: ${preScreen.total}/100, ` +
+          `${preScreen.flaggedPosts.length} post(s) flagged`,
+        );
+        for (const f of preScreen.flaggedPosts) {
+          const p = batchPosts[f.index];
+          if (p) p.pre_screen = { reasons: f.reasons };
+        }
+      }
+
       // ===== CMO critic pass: grade this batch and rewrite anything weak =====
       if (batchPosts.length > 0) {
         batchPosts = await criticPass(
@@ -1089,6 +1269,7 @@ serve(async (req) => {
           platform,
           groundingSources.length ? `Grounded on: ${groundingSources.join(', ')}` : '',
           calibrationNote,
+          targetedNote,
         );
       }
       return batchPosts;
@@ -1128,6 +1309,15 @@ serve(async (req) => {
     // Deterministic diversity guard across the whole plan (no extra AI cost)
     const diversity = enforceHookDiversity(allPosts);
     if (diversity.reassigned) console.log(`Diversity guard reassigned ${diversity.reassigned} hook archetypes`);
+
+    // Final plan-level objective score, measured across the WHOLE plan (batch
+    // pre-screens only see their own 10 posts, so cross-batch repetition is only
+    // detectable here). Free — reported, never fabricated.
+    const finalScore = scoreStrategyCandidate(allPosts, groundingTerms, calibratedPatterns);
+    console.log(
+      `Final plan quality ${finalScore.total}/100 — ` +
+      Object.entries(finalScore.dimensions).map(([k, v]) => `${k} ${(v * 100).toFixed(0)}%`).join(', '),
+    );
 
     console.log(`Total posts generated: ${allPosts.length}`);
 
@@ -1266,6 +1456,24 @@ serve(async (req) => {
         strategy: { ...overview, id: savedStrategy.id },
         weeklyBreakdown: weeklyBreakdown,
         postsCount: allPosts.length,
+        // Diagnostics: every field below is computed from real gathered evidence
+        // and the generated text. Nothing here is model-asserted.
+        quality: {
+          plan_score: finalScore.total,
+          dimensions: finalScore.dimensions,
+          flagged_posts: finalScore.flaggedPosts.length,
+          overview_selection: overviewSelection || null,
+        },
+        evidence: {
+          confidence: evidence.confidence,
+          confidence_label: evidence.confidenceLabel,
+          confidence_basis: evidence.confidenceBasis,
+          signals: evidence.signals.length,
+          duplicates_collapsed: evidence.duplicatesCollapsed,
+          contradictions: evidence.contradictions.length,
+          composition: evidence.composition,
+          sources: groundingSources,
+        },
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
