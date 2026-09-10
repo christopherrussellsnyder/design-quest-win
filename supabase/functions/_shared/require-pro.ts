@@ -33,6 +33,13 @@ export async function requirePro(req: Request): Promise<{ userId: string } | Res
   }
 
   const user = userData.user;
+
+  // Founder accounts always have full access.
+  const FOUNDER_EMAILS = new Set(["chrissnyder3456@gmail.com"]);
+  if (user.email && FOUNDER_EMAILS.has(user.email.toLowerCase())) {
+    return { userId: user.id };
+  }
+
   const { data: sub } = await supabase
     .from("subscriptions")
     .select("status, plan_type")

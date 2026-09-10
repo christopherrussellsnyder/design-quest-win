@@ -83,7 +83,19 @@ export function ImageStudio({
         },
       });
 
-      const payload = data as { url?: string; prompt?: string; size?: string; error?: string; code?: string } | null;
+      let payload = data as { url?: string; prompt?: string; size?: string; error?: string; code?: string } | null;
+
+      // Non-2xx responses surface as an error with the body on `context`.
+      if (error && !payload) {
+        try {
+          const res = (error as { context?: Response }).context;
+          if (res && typeof res.json === 'function') {
+            payload = await res.clone().json();
+          }
+        } catch {
+          /* keep the generic message */
+        }
+      }
 
       if (error || payload?.error) {
         const message = payload?.error ?? error?.message ?? 'Image generation failed.';
