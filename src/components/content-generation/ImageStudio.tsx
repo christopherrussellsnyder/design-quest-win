@@ -248,7 +248,7 @@ export function ImageStudio({
             </div>
 
             <div className="space-y-1.5 sm:col-span-2">
-              <Label className="text-xs text-muted-foreground">Product screen reference (recommended for Korex visuals)</Label>
+              <Label className="text-xs text-muted-foreground">Product screen reference</Label>
               {referenceImage ? (
                 <div className="flex items-center gap-3 border border-border bg-muted p-2 rounded-md">
                   <img src={referenceImage} alt="Product screen reference" className="h-16 w-24 rounded-sm object-cover border border-border" />
