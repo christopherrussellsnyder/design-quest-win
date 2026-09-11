@@ -18,6 +18,35 @@ function sizeForPlatform(platform?: string, postType?: string): string {
   return "1024x1024"; // IG feed, default
 }
 
+const MAX_REFERENCE_BYTES = 8 * 1024 * 1024;
+const SUPPORTED_REFERENCE_TYPES = new Set(["image/png", "image/jpeg", "image/webp"]);
+
+function parseReferenceImage(value: unknown): string | null {
+  if (typeof value !== "string" || !value) return null;
+  const match = value.match(/^data:(image\/(?:png|jpeg|webp));base64,([A-Za-z0-9+/=]+)$/);
+  const mimeType = match?.[1];
+  const encoded = match?.[2];
+  if (!mimeType || !encoded || !SUPPORTED_REFERENCE_TYPES.has(mimeType)) {
+    throw new Error("Product screen reference must be a PNG, JPEG, or WebP image.");
+  }
+  const estimatedBytes = Math.floor((encoded.length * 3) / 4);
+  if (estimatedBytes > MAX_REFERENCE_BYTES) {
+    throw new Error("Product screen reference must be smaller than 8 MB.");
+  }
+  return value;
+}
+
+function separateVisualBrief(brief?: string): { direction?: string; captionContext?: string } {
+  if (!brief) return {};
+  const marker = /caption this image supports\s*:/i;
+  const match = marker.exec(brief);
+  if (!match || match.index === undefined) return { direction: brief.trim() };
+  return {
+    direction: brief.slice(0, match.index).trim(),
+    captionContext: brief.slice(match.index + match[0].length).trim(),
+  };
+}
+
 // Art-direction scaffolding: what separates a stock-looking render from
 // something that reads like a paid campaign asset.
 const CRAFT_DIRECTIVES = [
@@ -47,17 +76,36 @@ function buildPrompt(input: {
   brandColors?: string;
   brandVoice?: string;
   stylePrompt?: string;
+  hasProductReference?: boolean;
 }) {
   const platform = input.platform || "Instagram";
   const parts: string[] = [];
+  const { direction, captionContext } = separateVisualBrief(input.visualDescription);
 
   parts.push(
     `High-end advertising visual for ${platform}, produced to agency standard for a scroll-stopping paid social placement.`,
   );
 
-  if (input.visualDescription) parts.push("Subject and scene: " + input.visualDescription + ".");
+  if (direction) {
+    parts.push(
+      "Follow every labeled visual instruction in this production brief exactly. The split-screen/layout, subject, scene, emotion, palette, attention device, and CTA are requirements, not suggestions:\n" +
+        direction,
+    );
+  }
   else if (input.hook) parts.push("Subject and scene: " + input.hook + ".");
   else if (input.caption) parts.push("Subject and scene: " + input.caption.slice(0, 300) + ".");
+
+  if (captionContext) {
+    parts.push(
+      "Message context only (do not render this paragraph as text): " + captionContext.slice(0, 500),
+    );
+  }
+
+  if (input.hasProductReference) {
+    parts.push(
+      "The attached image is the authoritative Korex Intelligence product-screen reference. Preserve its real interface structure, navigation, typography, brand mark, colors, controls, spacing, and recognizable screen content. Place that authentic interface on the device in the requested scene. Do not invent a generic analytics app, redesign the interface, replace its logo, or substitute unrelated charts.",
+    );
+  }
 
   if (input.stylePrompt) parts.push("Art direction: " + input.stylePrompt + ".");
   if (input.theme) parts.push("Mood: " + input.theme.replace(/_/g, " ") + ".");
@@ -73,7 +121,7 @@ function buildPrompt(input: {
   if (input.textOverlay) {
     parts.push(
       `Render this exact headline as clean, correctly spelled typography, spelled letter for letter: "${input.textOverlay}". ` +
-        "Use a single modern sans-serif, tight tracking, high contrast against its backdrop, placed in intentional negative space. " +
+        "Use a single modern sans-serif, high contrast against its backdrop, placed in intentional negative space. " +
         "No other text anywhere in the image.",
     );
   } else {
@@ -169,27 +217,60 @@ Deno.serve(async (req) => {
       model = "openai/gpt-image-2",
       quality = "high",
       enhance = true,
+      referenceImage,
     } = body || {};
+
+    if (typeof visualDescription !== "string" || !visualDescription.trim() || visualDescription.length > 6000) {
+      return new Response(JSON.stringify({ error: "Image description must contain between 1 and 6,000 characters." }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    let productReference: string | null;
+    try {
+      productReference = parseReferenceImage(referenceImage);
+    } catch (validationError) {
+      return new Response(JSON.stringify({ error: (validationError as Error).message }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const basePrompt = buildPrompt({
       caption, hook, theme, postType, platform,
       visualDescription, colorPalette, textOverlay,
       brandColors, brandVoice, stylePrompt,
+      hasProductReference: Boolean(productReference),
     });
     const size = sizeForPlatform(platform, postType);
-    const prompt = enhance ? await enhanceBrief(basePrompt, LOVABLE_API_KEY) : basePrompt;
+    // Keep structured, labeled strategy briefs intact. The enhancer is useful
+    // for short ideas, but compressing a complete production brief can discard
+    // required layout, product, copy, or CTA instructions.
+    const prompt = enhance && basePrompt.length < 1400
+      ? await enhanceBrief(basePrompt, LOVABLE_API_KEY)
+      : basePrompt;
 
     // Body shape depends on the vendor: OpenAI image models take `prompt`,
     // Gemini image models take chat-style `messages` + `modalities`.
-    const isGemini = String(model).startsWith("google/");
+    // Product references use Gemini's multimodal image-generation body. The
+    // OpenAI generations endpoint is text-only; its edit route is multipart.
+    const selectedModel = productReference ? "google/gemini-3-pro-image" : String(model);
+    const isGemini = selectedModel.startsWith("google/");
+    const geminiContent = productReference
+      ? [
+          { type: "text", text: prompt },
+          { type: "image_url", image_url: { url: productReference } },
+        ]
+      : prompt;
     const requestBody = isGemini
       ? {
-          model,
-          messages: [{ role: "user", content: prompt }],
+          model: selectedModel,
+          messages: [{ role: "user", content: geminiContent }],
           modalities: ["image", "text"],
         }
       : {
-          model,
+          model: selectedModel,
           prompt,
           size,
           quality,
@@ -252,12 +333,44 @@ Deno.serve(async (req) => {
 
     const { data: pub } = supabase.storage.from("media").getPublicUrl(filename);
 
+    const [width, height] = size.split("x").map(Number);
+    const generatedName = filename.split("/").pop() ?? `korex-generated-${Date.now()}.png`;
+    const { error: libraryErr } = await supabase.from("media_library").insert({
+      user_id: userId,
+      filename: generatedName,
+      original_filename: generatedName,
+      file_type: "image",
+      mime_type: "image/png",
+      file_size: bytes.byteLength,
+      storage_url: pub.publicUrl,
+      thumbnail_url: pub.publicUrl,
+      width: Number.isFinite(width) ? width : null,
+      height: Number.isFinite(height) ? height : null,
+      title: "Korex generated visual",
+      description: prompt.slice(0, 2000),
+      alt_text: visualDescription.slice(0, 500),
+      tags: productReference ? ["ai-generated", "korex-ui-reference"] : ["ai-generated"],
+      times_used: 0,
+      avg_engagement_rate: 0,
+      total_impressions: 0,
+      is_favorite: false,
+    });
+
+    if (libraryErr) {
+      await supabase.storage.from("media").remove([filename]);
+      return new Response(JSON.stringify({ error: `The image was generated, but could not be saved to Media: ${libraryErr.message}` }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     return new Response(JSON.stringify({
       url: pub.publicUrl,
       path: filename,
       prompt,
       size,
-      model,
+      model: selectedModel,
+      savedToMedia: true,
     }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
