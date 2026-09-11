@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Download, ImageIcon, Loader2, Sparkles } from 'lucide-react';
+import { Download, ImageIcon, Loader2, Sparkles, Upload, X } from 'lucide-react';
 
 const PLATFORMS = [
   { value: 'instagram', label: 'Instagram feed', hint: 'Square 1:1' },
@@ -43,6 +43,8 @@ interface GeneratedImage {
   size: string;
 }
 
+const MAX_REFERENCE_BYTES = 8 * 1024 * 1024;
+
 interface ImageStudioProps {
   /** Prefilled from a linked strategy day so nothing has to be retyped. */
   initialConcept?: string;
@@ -65,6 +67,28 @@ export function ImageStudio({
   const [engine, setEngine] = useState('openai/gpt-image-2');
   const [isGenerating, setIsGenerating] = useState(false);
   const [images, setImages] = useState<GeneratedImage[]>([]);
+  const [referenceImage, setReferenceImage] = useState<string | null>(null);
+  const [referenceName, setReferenceName] = useState('');
+
+  const handleReferenceImage = (file?: File) => {
+    if (!file) return;
+    if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) {
+      toast({ title: 'Unsupported image', description: 'Use a PNG, JPEG, or WebP screenshot.', variant: 'destructive' });
+      return;
+    }
+    if (file.size > MAX_REFERENCE_BYTES) {
+      toast({ title: 'Screenshot is too large', description: 'Choose an image smaller than 8 MB.', variant: 'destructive' });
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result !== 'string') return;
+      setReferenceImage(reader.result);
+      setReferenceName(file.name);
+    };
+    reader.onerror = () => toast({ title: 'Could not read screenshot', variant: 'destructive' });
+    reader.readAsDataURL(file);
+  };
 
   const handleGenerate = async () => {
     if (!concept.trim()) return;
@@ -80,10 +104,11 @@ export function ImageStudio({
           model: engine,
           quality: engine === 'openai/gpt-image-1-mini' ? 'medium' : 'high',
           enhance: true,
+          referenceImage: referenceImage ?? undefined,
         },
       });
 
-      let payload = data as { url?: string; prompt?: string; size?: string; error?: string; code?: string } | null;
+      let payload = data as { url?: string; prompt?: string; size?: string; savedToMedia?: boolean; error?: string; code?: string } | null;
 
       // Non-2xx responses surface as an error with the body on `context`.
       if (error && !payload) {
@@ -119,7 +144,10 @@ export function ImageStudio({
         { url: payload.url as string, prompt: payload.prompt ?? concept, size: payload.size ?? '' },
         ...prev,
       ]);
-      toast({ title: 'Image ready', description: 'Saved to your media library.' });
+      toast({
+        title: 'Image ready',
+        description: payload.savedToMedia ? 'Saved to your media library.' : 'Generated successfully.',
+      });
     } catch (err) {
       toast({
         title: 'Image generation failed',
@@ -142,9 +170,10 @@ export function ImageStudio({
               onChange={(e) => setConcept(e.target.value)}
               placeholder="A founder at a desk reviewing a campaign dashboard at night, warm desk lamp, city window behind."
               rows={3}
-              maxLength={1200}
+              maxLength={6000}
               className="bg-muted border-border resize-none"
             />
+            <p className="text-[11px] text-muted-foreground text-right">{concept.length.toLocaleString()} / 6,000</p>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
@@ -216,6 +245,45 @@ export function ImageStudio({
                 maxLength={120}
                 className="bg-muted border-border"
               />
+            </div>
+
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label className="text-xs text-muted-foreground">Product screen reference (recommended for Korex visuals)</Label>
+              {referenceImage ? (
+                <div className="flex items-center gap-3 border border-border bg-muted p-2 rounded-md">
+                  <img src={referenceImage} alt="Product screen reference" className="h-16 w-24 rounded-sm object-cover border border-border" />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">{referenceName}</p>
+                    <p className="text-xs text-muted-foreground">The generated device screen will follow this real interface.</p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    aria-label="Remove product screen reference"
+                    onClick={() => { setReferenceImage(null); setReferenceName(''); }}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : (
+                <Button asChild type="button" variant="outline" className="w-full justify-start gap-2">
+                  <label>
+                    <Upload className="h-4 w-4" />
+                    Add a real Korex screenshot
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp"
+                      className="sr-only"
+                      onChange={(event) => {
+                        handleReferenceImage(event.target.files?.[0]);
+                        event.currentTarget.value = '';
+                      }}
+                    />
+                  </label>
+                </Button>
+              )}
+              <p className="text-[11px] text-muted-foreground">PNG, JPEG, or WebP up to 8 MB. A reference automatically uses the product-grounded image engine.</p>
             </div>
           </div>
 
