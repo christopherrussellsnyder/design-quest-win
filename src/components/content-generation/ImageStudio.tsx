@@ -270,7 +270,7 @@ export function ImageStudio({
                 <Button asChild type="button" variant="outline" className="w-full justify-start gap-2">
                   <label>
                     <Upload className="h-4 w-4" />
-                    Add a real Korex screenshot
+                    Add a real screenshot
                     <input
                       type="file"
                       accept="image/png,image/jpeg,image/webp"
