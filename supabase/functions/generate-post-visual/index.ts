@@ -24,10 +24,12 @@ const SUPPORTED_REFERENCE_TYPES = new Set(["image/png", "image/jpeg", "image/web
 function parseReferenceImage(value: unknown): string | null {
   if (typeof value !== "string" || !value) return null;
   const match = value.match(/^data:(image\/(?:png|jpeg|webp));base64,([A-Za-z0-9+/=]+)$/);
-  if (!match || !SUPPORTED_REFERENCE_TYPES.has(match[1])) {
+  const mimeType = match?.[1];
+  const encoded = match?.[2];
+  if (!mimeType || !encoded || !SUPPORTED_REFERENCE_TYPES.has(mimeType)) {
     throw new Error("Product screen reference must be a PNG, JPEG, or WebP image.");
   }
-  const estimatedBytes = Math.floor((match[2].length * 3) / 4);
+  const estimatedBytes = Math.floor((encoded.length * 3) / 4);
   if (estimatedBytes > MAX_REFERENCE_BYTES) {
     throw new Error("Product screen reference must be smaller than 8 MB.");
   }
