@@ -2,11 +2,8 @@
 import { serviceClient } from "../_shared/supabase.ts";
 import { requirePro } from "../_shared/require-pro.ts";
 import { checkRateLimit, clientKey } from "../_shared/rate-limit.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { getCorsHeaders } from "../_shared/cors.ts";
+import { callLovableGateway } from "../_shared/llm-gateway.ts";
 
 // Platform-aware aspect ratios -> gpt-image-2 size strings
 function sizeForPlatform(platform?: string, postType?: string): string {
@@ -141,27 +138,23 @@ function buildPrompt(input: {
  */
 async function enhanceBrief(prompt: string, apiKey: string): Promise<string> {
   try {
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          {
-            role: "system",
-            content:
-              "You are a senior art director writing prompts for a state-of-the-art image model. " +
-              "Rewrite the brief into ONE dense paragraph (max 220 words) of concrete visual direction: " +
-              "subject and styling, wardrobe, environment and set dressing, camera body/lens/aperture/angle/distance, " +
-              "lighting setup and direction, time of day, colour grade, composition and where negative space sits, " +
-              "and surface/material detail. Keep every explicit instruction from the brief exactly as given — " +
-              "especially any headline text to render verbatim, colour palette, and prohibitions. " +
-              "Never add text to the image that the brief did not request. Output the prompt only, no preamble.",
-          },
-          { role: "user", content: prompt },
-        ],
-        max_tokens: 700,
-      }),
+    const res = await callLovableGateway(apiKey, {
+      model: "google/gemini-3-flash-preview",
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are a senior art director writing prompts for a state-of-the-art image model. " +
+            "Rewrite the brief into ONE dense paragraph (max 220 words) of concrete visual direction: " +
+            "subject and styling, wardrobe, environment and set dressing, camera body/lens/aperture/angle/distance, " +
+            "lighting setup and direction, time of day, colour grade, composition and where negative space sits, " +
+            "and surface/material detail. Keep every explicit instruction from the brief exactly as given — " +
+            "especially any headline text to render verbatim, colour palette, and prohibitions. " +
+            "Never add text to the image that the brief did not request. Output the prompt only, no preamble.",
+        },
+        { role: "user", content: prompt },
+      ],
+      max_tokens: 700,
     });
     if (!res.ok) return prompt;
     const json = await res.json();
@@ -173,6 +166,7 @@ async function enhanceBrief(prompt: string, apiKey: string): Promise<string> {
 }
 
 Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   const rl = await checkRateLimit(clientKey(req, "generate-post-visual"), { limit: 15, windowMs: 60000 });

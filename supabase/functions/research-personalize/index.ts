@@ -6,17 +6,13 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { serviceClient } from "../_shared/supabase.ts";
 import { checkRateLimit, clientKey } from "../_shared/rate-limit.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-};
+import { getCorsHeaders } from "../_shared/cors.ts";
+import { isFounderEmail } from "../_shared/founder.ts";
+import { callLovableGateway } from "../_shared/llm-gateway.ts";
 
 const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY") ?? "";
 const CACHE_TTL_HOURS = 24 * 7;
 const FORCE_REFRESH_COOLDOWN_HOURS = 12;
-const FOUNDER_EMAILS = new Set(["chrissnyder3456@gmail.com"]);
 
 type ContentMode = "organic" | "paid" | "hybrid";
 
@@ -136,20 +132,13 @@ async function generatePersonalization(
   if (!LOVABLE_API_KEY) throw new Error("Missing LOVABLE_API_KEY");
   const prompt = buildPrompt(platform, mode, industry, trends, ctx);
 
-  const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${LOVABLE_API_KEY}`,
-    },
-    body: JSON.stringify({
-      model: "google/gemini-2.5-flash-lite",
-      messages: [
-        { role: "system", content: "You return only valid JSON. No markdown fences." },
-        { role: "user", content: prompt },
-      ],
-      temperature: 0.6,
-    }),
+  const resp = await callLovableGateway(LOVABLE_API_KEY, {
+    model: "google/gemini-2.5-flash-lite",
+    messages: [
+      { role: "system", content: "You return only valid JSON. No markdown fences." },
+      { role: "user", content: prompt },
+    ],
+    temperature: 0.6,
   });
 
   if (!resp.ok) {
@@ -170,6 +159,7 @@ async function generatePersonalization(
 }
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   const rl = await checkRateLimit(clientKey(req, "research-personalize"), {
@@ -214,7 +204,7 @@ serve(async (req) => {
       .select("status, plan_type")
       .eq("user_id", user.id)
       .maybeSingle();
-    const isFounder = FOUNDER_EMAILS.has(user.email || "");
+    const isFounder = isFounderEmail(user.email);
     const isPaid =
       isFounder ||
       (sub?.status === "active" && (sub.plan_type === "pro" || sub.plan_type === "agency"));

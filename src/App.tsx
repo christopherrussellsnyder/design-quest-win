@@ -11,6 +11,7 @@ import { ThemeProvider, ThemeRouteScope } from "@/contexts/ThemeContext";
 import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 import { WorkspaceProvider } from "@/contexts/WorkspaceContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { AdminRoute } from "@/components/AdminRoute";
 import { ErrorFallback } from "@/components/ErrorFallback";
 import { usePageTracking } from "@/lib/analytics";
 import { lazy, Suspense, Component, ReactNode } from "react";
@@ -30,6 +31,11 @@ const MediaLibrary = lazy(() => import("./pages/MediaLibrary"));
 const Settings = lazy(() => import("./pages/Settings"));
 const Research = lazy(() => import("./pages/Research"));
 const ContentGeneration = lazy(() => import("./pages/ContentGeneration"));
+const ABTesting = lazy(() => import("./pages/ABTesting"));
+const Analytics = lazy(() => import("./pages/Analytics"));
+const Automation = lazy(() => import("./pages/Automation"));
+const AudienceTargeting = lazy(() => import("./pages/AudienceTargeting"));
+const CompetitorMonitoring = lazy(() => import("./pages/CompetitorMonitoring"));
 
 
 const HealthCheck = lazy(() => import("./pages/HealthCheck"));
@@ -152,8 +158,8 @@ const App = () => (
                   <Route path="/demo" element={<Demo />} />
                   <Route path="/auth/confirm" element={<AuthConfirm />} />
                   <Route path="/unsubscribe" element={<Unsubscribe />} />
-                  <Route path="/admin/messages" element={<ProtectedRoute><AdminMessages /></ProtectedRoute>} />
-                  <Route path="/admin/prediction-accuracy" element={<ProtectedRoute><AdminPredictionAccuracy /></ProtectedRoute>} />
+                  <Route path="/admin/messages" element={<AdminRoute><AdminMessages /></AdminRoute>} />
+                  <Route path="/admin/prediction-accuracy" element={<AdminRoute><AdminPredictionAccuracy /></AdminRoute>} />
                   <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
                   <Route path="/r/:token" element={<PublicReport />} />
                   <Route path="/accept-workspace-invite/:token" element={<AcceptWorkspaceInvite />} />
@@ -162,9 +168,9 @@ const App = () => (
                   <Route
                     path="/health"
                     element={
-                      <ProtectedRoute>
+                      <AdminRoute>
                         <HealthCheck />
-                      </ProtectedRoute>
+                      </AdminRoute>
                     }
                   />
                   
@@ -172,12 +178,10 @@ const App = () => (
                   <Route path="/dashboard" element={<Navigate to="/ai-strategist" replace />} />
                   <Route path="/scheduler" element={<Navigate to="/ai-strategist" replace />} />
                   <Route path="/campaigns" element={<Navigate to="/ai-strategist" replace />} />
-                  <Route path="/analytics" element={<Navigate to="/insights" replace />} />
-                  <Route path="/ab-testing" element={<Navigate to="/ai-strategist" replace />} />
+                  {/* /ab-testing, /analytics and /audience-intelligence used to redirect here; all are real pages again below */}
                   <Route path="/audience" element={<Navigate to="/ai-strategist" replace />} />
                   <Route path="/content-ai" element={<Navigate to="/ai-strategist" replace />} />
                   <Route path="/ai-analytics" element={<Navigate to="/insights" replace />} />
-                  <Route path="/audience-intelligence" element={<Navigate to="/ai-strategist" replace />} />
                   <Route path="/ai-assistant" element={<Navigate to="/ai-strategist" replace />} />
                   <Route path="/intelligence" element={<Navigate to="/ai-strategist" replace />} />
                   <Route path="/media-library" element={<Navigate to="/media" replace />} />
@@ -250,6 +254,46 @@ const App = () => (
                     }
                   />
                   <Route path="/video-ads" element={<Navigate to="/content-generation" replace />} />
+                  <Route
+                    path="/ab-testing"
+                    element={
+                      <ProtectedRoute>
+                        <ABTesting />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/analytics"
+                    element={
+                      <ProtectedRoute>
+                        <Analytics />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/automation"
+                    element={
+                      <ProtectedRoute>
+                        <Automation />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/audience-intelligence"
+                    element={
+                      <ProtectedRoute>
+                        <AudienceTargeting />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/competitor-monitoring"
+                    element={
+                      <ProtectedRoute>
+                        <CompetitorMonitoring />
+                      </ProtectedRoute>
+                    }
+                  />
 
                   <Route
                     path="/settings"

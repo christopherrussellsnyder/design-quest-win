@@ -1,21 +1,35 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { serviceClient } from "../_shared/supabase.ts";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { getCorsHeaders } from "../_shared/cors.ts";
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { userId, action, postId, platform, afterTime, preferences } = await req.json();
-    
     const supabase = serviceClient();
-    
+
+    // Service-role client bypasses RLS; this previously trusted a
+    // client-supplied userId for every read/write. Derive userId from the
+    // verified token instead.
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ error: 'Authentication required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+    const { data: authData, error: authErr } = await supabase.auth.getUser(
+      authHeader.replace('Bearer ', ''),
+    );
+    if (authErr || !authData.user) {
+      return new Response(JSON.stringify({ error: 'Invalid session' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+    const userId = authData.user.id;
+
+    const { action, postId, platform, afterTime, preferences } = await req.json();
+
     console.log('Auto-optimize action:', action, 'for user:', userId);
     
     if (action === 'get_preferences') {
@@ -119,8 +133,9 @@ serve(async (req) => {
             scheduled_time: slot[0].suggested_time,
             status: 'scheduled'
           })
-          .eq('id', postId);
-        
+          .eq('id', postId)
+          .eq('user_id', userId);
+
         if (updateError) throw updateError;
       }
       

@@ -12,6 +12,7 @@ import { BusinessProfile } from '@/hooks/useWebsiteAnalysis';
 import { cn } from '@/lib/utils';
 import { AnimatedDotGrid } from '@/components/strategist/AnimatedDotGrid';
 import { GettingStartedCard } from '@/components/onboarding/GettingStartedCard';
+import { ProfileCompletenessNudge } from '@/components/onboarding/ProfileCompletenessNudge';
 
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -201,10 +202,6 @@ export default function AIStrategist() {
     }
   };
 
-  const handleFavorite = (id: string) => {
-    toast.info('Favorite feature coming soon!');
-  };
-
   const handleContextUpdate = () => {
     queryClient.invalidateQueries({ queryKey: ['business-context'] });
     queryClient.invalidateQueries({ queryKey: ['recent-analytics'] });
@@ -224,7 +221,8 @@ export default function AIStrategist() {
         <div className="absolute top-3 left-1/2 -translate-x-1/2 z-50">
           <WorkspaceSwitcher />
         </div>
-        <div className="absolute top-3 right-3 z-50">
+        <div className="absolute top-3 right-3 z-50 flex items-center gap-2">
+          <ProfileCompletenessNudge />
           <Button aria-label="Business settings" variant="ghost" size="icon" onClick={() => navigate('/settings')} className="text-muted-foreground hover:text-foreground hover:bg-card" title="Business Settings">
             <Settings className="w-4 h-4" />
           </Button>
@@ -241,7 +239,6 @@ export default function AIStrategist() {
           onNewChat={handleNewConversation}
           onDelete={handleDeleteRequest}
           onRename={handleRename}
-          onFavorite={handleFavorite}
         />
 
         {/* Main Chat Area */}

@@ -1,19 +1,33 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { serviceClient } from "../_shared/supabase.ts";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { getCorsHeaders } from "../_shared/cors.ts";
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
   try {
-    const { userId, content, platform, mediaUrls, scheduledTime } = await req.json();
-    
     const supabase = serviceClient();
-    
+
+    // Service-role client bypasses RLS; this previously trusted a
+    // client-supplied userId to read another account's baseline metrics
+    // and content patterns. Derive userId from the verified token instead.
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ error: 'Authentication required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+    const { data: authData, error: authErr } = await supabase.auth.getUser(
+      authHeader.replace('Bearer ', ''),
+    );
+    if (authErr || !authData.user) {
+      return new Response(JSON.stringify({ error: 'Invalid session' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+    const userId = authData.user.id;
+
+    const { content, platform, mediaUrls, scheduledTime } = await req.json();
+
     console.log('Predicting engagement for user:', userId);
     
     // Get user baseline metrics

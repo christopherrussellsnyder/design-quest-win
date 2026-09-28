@@ -117,7 +117,7 @@ export function ChatArea({
       setHasStrategies((count || 0) > 0);
       
       if (settingsData) {
-        const ta = (settingsData.target_audience as any) || {};
+        const ta = (settingsData.target_audience as Record<string, unknown>) || {};
         setSettingsComplete(!!(settingsData.business_name && settingsData.industry && ta.age_range));
       } else {
         setSettingsComplete(false);
@@ -142,7 +142,7 @@ export function ChatArea({
       id: msg.id,
       role: msg.role as 'user' | 'assistant',
       content: msg.content,
-      attachments: msg.attachments as any,
+      attachments: msg.attachments as { type: string; url: string; name?: string }[] | undefined,
       createdAt: new Date(msg.created_at || new Date()),
     })));
   };
@@ -368,17 +368,17 @@ export function ChatArea({
         })),
       };
 
+      const { data: { session } } = await supabase.auth.getSession();
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-chat`,
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            'Authorization': `Bearer ${session?.access_token ?? import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           },
-          body: JSON.stringify({ 
+          body: JSON.stringify({
             messages: allMessages,
-            userId: user?.id,
             conversationId: convId,
             businessContext: contextData,
             context_preferences: preferences,
@@ -908,7 +908,7 @@ I'll use this context to provide personalized marketing recommendations. You can
                       <Label className="text-xs">Response Style</Label>
                       <Select
                         value={preferences.response_style}
-                        onValueChange={(v) => setPreferences(p => ({ ...p, response_style: v as any }))}
+                        onValueChange={(v) => setPreferences(p => ({ ...p, response_style: v as ContextPreferences['response_style'] }))}
                       >
                         <SelectTrigger className="h-8 text-xs">
                           <SelectValue />
@@ -925,7 +925,7 @@ I'll use this context to provide personalized marketing recommendations. You can
                       <Label className="text-xs">Tone</Label>
                       <Select
                         value={preferences.tone_preference}
-                        onValueChange={(v) => setPreferences(p => ({ ...p, tone_preference: v as any }))}
+                        onValueChange={(v) => setPreferences(p => ({ ...p, tone_preference: v as ContextPreferences['tone_preference'] }))}
                       >
                         <SelectTrigger className="h-8 text-xs">
                           <SelectValue />
@@ -953,6 +953,7 @@ I'll use this context to provide personalized marketing recommendations. You can
               <Button
                 onClick={() => sendMessage()}
                 disabled={!input.trim() || isDisabled}
+                aria-label="Send message"
                 size="icon"
                 className="h-9 w-9 rounded-xl flex-shrink-0 bg-gradient-to-br from-primary to-arasaka-red-dark hover:shadow-glow transition-all duration-300"
               >

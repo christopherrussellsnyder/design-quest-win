@@ -1,11 +1,9 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { serviceClient } from "../_shared/supabase.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
+import { getCorsHeaders } from "../_shared/cors.ts";
+import { checkRateLimit, clientKey } from "../_shared/rate-limit.ts";
+import { isFounderEmail } from "../_shared/founder.ts";
 
 const PRODUCT_TO_TIER: Record<string, string> = {
   // Current live products
@@ -25,8 +23,17 @@ const PRODUCT_TO_TIER: Record<string, string> = {
 const STRIPE_CACHE_TTL_MS = 15 * 60 * 1000;
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
+  }
+
+  const rl = await checkRateLimit(clientKey(req, "check-subscription"), { limit: 30, windowMs: 60_000 });
+  if (!rl.ok) {
+    return new Response(JSON.stringify({ error: "Too many requests. Please wait a moment." }), {
+      status: 429,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 
   const supabaseClient = serviceClient();
@@ -71,6 +78,20 @@ serve(async (req) => {
 
     const strategiesUsed = usageRes.data?.[0]?.lifetime_strategies_generated ?? 0;
     const localSub = subRes.data;
+
+    // Founder accounts bypass Stripe entirely — always report full access.
+    if (isFounderEmail(user.email)) {
+      return new Response(JSON.stringify({
+        subscribed: true,
+        tier: "founder",
+        subscription_end: null,
+        strategies_used: strategiesUsed,
+        source: "founder",
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
 
     // Fast path: return cached subscription if fresh and not forced.
     if (!force && localSub?.updated_at) {

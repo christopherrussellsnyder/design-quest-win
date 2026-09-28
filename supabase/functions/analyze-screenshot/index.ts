@@ -1,11 +1,8 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { serviceClient } from "../_shared/supabase.ts";
 import { checkRateLimit, clientKey } from "../_shared/rate-limit.ts";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-};
+import { getCorsHeaders } from "../_shared/cors.ts";
+import { callLovableGateway } from "../_shared/llm-gateway.ts";
 
 const JSON_SCHEMA = `{
   "metadata": {
@@ -178,9 +175,26 @@ ${JSON_SCHEMA}
 Focus on actionable intelligence. Use null for fields not derivable.`;
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
+
+  // This endpoint writes uploaded_analytics rows keyed by userId — authenticate
+  // the caller and only ever trust our own verified id, never a client-supplied one.
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader?.startsWith('Bearer ')) {
+    return new Response(JSON.stringify({ error: 'Authentication required' }),
+      { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+  }
+  const { data: authData, error: authErr } = await serviceClient().auth.getUser(
+    authHeader.replace('Bearer ', ''),
+  );
+  if (authErr || !authData.user) {
+    return new Response(JSON.stringify({ error: 'Invalid session' }),
+      { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+  }
+  const userId = authData.user.id;
 
   const rl = await checkRateLimit(clientKey(req, "analyze-screenshot"), { limit: 15, windowMs: 60000 });
   if (!rl.ok) {
@@ -201,12 +215,7 @@ serve(async (req) => {
     }
 
     const body = await req.json();
-    const { imageBase64, userId, workspace_id: bodyWorkspaceId, screenshotUrl, imageUrl, textData, fileType, fileFormat, fileName, fileSize, contentType } = body;
-
-    if (!userId) {
-      return new Response(JSON.stringify({ error: 'userId is required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-    }
+    const { imageBase64, workspace_id: bodyWorkspaceId, screenshotUrl, imageUrl, textData, fileType, fileFormat, fileName, fileSize, contentType } = body;
 
     const detectedFormat = fileFormat || (textData ? 'text' : 'image');
     console.log('Analyzing file for user:', userId, 'format:', detectedFormat, 'fileName:', fileName);
@@ -215,18 +224,14 @@ serve(async (req) => {
 
     if (textData) {
       const prompt = TEXT_DATA_ANALYSIS_PROMPT.replace('{DATA}', textData.slice(0, 30000));
-      aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${LOVABLE_API_KEY}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'google/gemini-2.5-flash',
-          messages: [
-            { role: 'system', content: 'You are an expert marketing analytics data analyst for both social media and advertising platforms. Return ONLY valid JSON.' },
-            { role: 'user', content: prompt }
-          ],
-          max_tokens: 12000,
-          temperature: 0.3,
-        }),
+      aiResponse = await callLovableGateway(LOVABLE_API_KEY, {
+        model: 'google/gemini-2.5-flash',
+        messages: [
+          { role: 'system', content: 'You are an expert marketing analytics data analyst for both social media and advertising platforms. Return ONLY valid JSON.' },
+          { role: 'user', content: prompt }
+        ],
+        max_tokens: 12000,
+        temperature: 0.3,
       });
     } else {
       let base64Data = imageBase64;
@@ -250,21 +255,17 @@ serve(async (req) => {
         mimeType = 'application/pdf';
       }
 
-      aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${LOVABLE_API_KEY}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'google/gemini-2.5-flash',
-          messages: [{
-            role: 'user',
-            content: [
-              { type: 'text', text: IMAGE_ANALYSIS_PROMPT },
-              { type: 'image_url', image_url: { url: `data:${mimeType};base64,${base64Data}` } }
-            ]
-          }],
-          max_tokens: 12000,
-          temperature: 0.3,
-        }),
+      aiResponse = await callLovableGateway(LOVABLE_API_KEY, {
+        model: 'google/gemini-2.5-flash',
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'text', text: IMAGE_ANALYSIS_PROMPT },
+            { type: 'image_url', image_url: { url: `data:${mimeType};base64,${base64Data}` } }
+          ]
+        }],
+        max_tokens: 12000,
+        temperature: 0.3,
       });
     }
 

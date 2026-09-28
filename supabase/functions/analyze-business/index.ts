@@ -1,11 +1,8 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { anonClient, serviceClient } from "../_shared/supabase.ts";
 import { checkRateLimit, clientKey } from "../_shared/rate-limit.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
+import { getCorsHeaders } from "../_shared/cors.ts";
+import { callLovableGateway } from "../_shared/llm-gateway.ts";
 
 const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -321,6 +318,7 @@ IMPORTANT:
 }
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
@@ -334,11 +332,28 @@ serve(async (req) => {
   }
 
   try {
-    const { scrapedContent, userId, workspace_id: bodyWorkspaceId } = await req.json() as { scrapedContent: ScrapedContent; userId: string; workspace_id?: string | null };
-    
-    if (!scrapedContent || !userId) {
+    // Authenticate the caller and only ever trust our own verified id — this
+    // endpoint overwrites the caller's business_context, so a client-supplied
+    // userId would let anyone overwrite anyone else's business profile.
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ error: 'Authentication required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+    const { data: authData, error: authErr } = await serviceClient().auth.getUser(
+      authHeader.replace('Bearer ', ''),
+    );
+    if (authErr || !authData.user) {
+      return new Response(JSON.stringify({ error: 'Invalid session' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+    const userId = authData.user.id;
+
+    const { scrapedContent, workspace_id: bodyWorkspaceId } = await req.json() as { scrapedContent: ScrapedContent; workspace_id?: string | null };
+
+    if (!scrapedContent) {
       return new Response(
-        JSON.stringify({ error: 'Scraped content and user ID are required' }),
+        JSON.stringify({ error: 'Scraped content is required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -354,24 +369,17 @@ serve(async (req) => {
     
     const analysisPrompt = buildComprehensivePrompt(scrapedContent);
     
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { 
-            role: "system", 
-            content: "You are a comprehensive business intelligence analyst. Return ONLY valid JSON without any markdown formatting or code blocks. Be thorough, specific, and cite actual content from the website pages in your analysis." 
-          },
-          { role: "user", content: analysisPrompt }
-        ],
-        temperature: 0.4,
-        max_tokens: 32000,
-      }),
+    const response = await callLovableGateway(LOVABLE_API_KEY, {
+      model: "google/gemini-2.5-flash",
+      messages: [
+        {
+          role: "system",
+          content: "You are a comprehensive business intelligence analyst. Return ONLY valid JSON without any markdown formatting or code blocks. Be thorough, specific, and cite actual content from the website pages in your analysis."
+        },
+        { role: "user", content: analysisPrompt }
+      ],
+      temperature: 0.4,
+      max_tokens: 32000,
     });
 
     if (!response.ok) {
