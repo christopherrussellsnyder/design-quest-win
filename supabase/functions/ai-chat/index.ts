@@ -1,11 +1,8 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { serviceClient } from "../_shared/supabase.ts";
-import { checkRateLimit, clientKey } from "../_shared/rate-limit.ts";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-};
+import { checkRateLimit } from "../_shared/rate-limit.ts";
+import { getCorsHeaders } from "../_shared/cors.ts";
+import { callLovableGateway } from "../_shared/llm-gateway.ts";
 
 interface ContextPreferences {
   response_style?: 'concise' | 'detailed' | 'balanced';
@@ -542,6 +539,7 @@ function calculateTrends(analyticsData: any[]): any {
 }
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
@@ -553,21 +551,51 @@ serve(async (req) => {
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    const { messages, userId, conversationId, businessContext: providedContext, context_preferences = {} } = await req.json();
+    // Authenticate the caller and only ever trust our own verified id — this
+    // endpoint reads business context and conversation history by userId, so
+    // a client-supplied id would let anyone read anyone else's data.
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ error: 'Authentication required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+    const authClient = serviceClient();
+    const { data: authData, error: authErr } = await authClient.auth.getUser(
+      authHeader.replace('Bearer ', ''),
+    );
+    if (authErr || !authData.user) {
+      return new Response(JSON.stringify({ error: 'Invalid session' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+    const userId = authData.user.id;
+
+    const { messages, conversationId: requestedConversationId, businessContext: providedContext, context_preferences = {} } = await req.json();
 
     if (!messages || !Array.isArray(messages)) {
       return new Response(JSON.stringify({ error: 'messages array is required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    // Bound payload + apply generous per-user/IP rate limit to deter abuse
+    // A conversationId only counts if it actually belongs to this user —
+    // otherwise silently drop it rather than pull in someone else's history.
+    let conversationId: string | undefined;
+    if (requestedConversationId) {
+      const { data: conv } = await authClient
+        .from('ai_conversations')
+        .select('id')
+        .eq('id', requestedConversationId)
+        .eq('user_id', userId)
+        .maybeSingle();
+      conversationId = conv ? requestedConversationId : undefined;
+    }
+
+    // Bound payload + apply generous per-user rate limit to deter abuse
     // without affecting real usage. Response shape unchanged.
     if (messages.length > 200) {
       return new Response(JSON.stringify({ error: 'messages array too large' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
-    const rlKey = userId ? `ai-chat:user:${userId}` : clientKey(req, 'ai-chat');
-    const rl = await checkRateLimit(rlKey, { limit: 60, windowMs: 60_000 });
+    const rl = await checkRateLimit(`ai-chat:user:${userId}`, { limit: 60, windowMs: 60_000 });
     if (!rl.ok) {
       return new Response(JSON.stringify({ error: 'Too many requests. Please slow down.' }),
         { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
@@ -594,16 +622,12 @@ serve(async (req) => {
     const systemPrompt = buildCognitiveSystemPrompt(fullContext, context_preferences as ContextPreferences, dbConversationHistory.length > 0 ? dbConversationHistory : messages, businessSettings);
     console.log('Cognitive prompt length:', systemPrompt.length);
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${LOVABLE_API_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'google/gemini-3-flash-preview',
-        messages: [{ role: 'system', content: systemPrompt }, ...messages],
-        stream: true,
-        temperature: 0.7,
-        max_tokens: 4000,
-      }),
+    const response = await callLovableGateway(LOVABLE_API_KEY, {
+      model: 'google/gemini-3-flash-preview',
+      messages: [{ role: 'system', content: systemPrompt }, ...messages],
+      stream: true,
+      temperature: 0.7,
+      max_tokens: 4000,
     });
 
     if (!response.ok) {

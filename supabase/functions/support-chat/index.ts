@@ -1,11 +1,8 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { serviceClient } from "../_shared/supabase.ts";
 import { checkRateLimit, clientKey } from "../_shared/rate-limit.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { getCorsHeaders } from "../_shared/cors.ts";
+import { callLovableGateway } from "../_shared/llm-gateway.ts";
 
 const SYSTEM_PROMPT = `You are Korex Support, the AI-powered customer support agent for Korex Intelligence — an AI marketing strategy platform.
 
@@ -37,6 +34,7 @@ When escalating, end your reply with the literal token [ESCALATE] on its own lin
 If a question is outside Korex scope (unrelated coding, personal advice, etc.), gently redirect to what Korex does help with.`;
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
@@ -97,21 +95,14 @@ serve(async (req) => {
       ? `User plan: ${sub.plan_type || "starter"} (${sub.status})`
       : "User plan: starter (free)";
 
-    const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: `${SYSTEM_PROMPT}\n\nUSER CONTEXT:\nEmail: ${user.email}\n${planContext}` },
-          ...messages.slice(-12),
-        ],
-        temperature: 0.5,
-        max_tokens: 1200,
-      }),
+    const aiRes = await callLovableGateway(LOVABLE_API_KEY, {
+      model: "google/gemini-3-flash-preview",
+      messages: [
+        { role: "system", content: `${SYSTEM_PROMPT}\n\nUSER CONTEXT:\nEmail: ${user.email}\n${planContext}` },
+        ...messages.slice(-12),
+      ],
+      temperature: 0.5,
+      max_tokens: 1200,
     });
 
     if (!aiRes.ok) {

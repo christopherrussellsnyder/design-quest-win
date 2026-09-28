@@ -1,11 +1,8 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { DOMParser } from "https://deno.land/x/deno_dom@v0.1.38/deno-dom-wasm.ts";
 import { checkRateLimit, clientKey } from "../_shared/rate-limit.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
+import { getCorsHeaders } from "../_shared/cors.ts";
+import { anonClient } from "../_shared/supabase.ts";
 
 interface PageData {
   url: string;
@@ -419,8 +416,24 @@ function countByType(pages: PageData[]): Record<string, number> {
 }
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
+  }
+
+  // This crawls and fetches arbitrary URLs on the caller's behalf and costs
+  // real compute — require a real session rather than leaving it wide open.
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader?.startsWith('Bearer ')) {
+    return new Response(JSON.stringify({ error: 'Authentication required' }),
+      { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+  }
+  const { data: authData, error: authErr } = await anonClient().auth.getUser(
+    authHeader.replace('Bearer ', ''),
+  );
+  if (authErr || !authData.user) {
+    return new Response(JSON.stringify({ error: 'Invalid session' }),
+      { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   }
 
   const rl = await checkRateLimit(clientKey(req, "scrape-website"), { limit: 20, windowMs: 60000 });
@@ -432,7 +445,7 @@ serve(async (req) => {
   }
 
   try {
-    const { websiteUrl, userId, analysisDepth = 'standard' } = await req.json();
+    const { websiteUrl, analysisDepth = 'standard' } = await req.json();
     
     if (!websiteUrl) {
       return new Response(
